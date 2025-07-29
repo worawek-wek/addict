@@ -1,0 +1,419 @@
+body {
+  font-family: "IBM Plex Sans Thai", sans-serif;
+  font-size: 1em;
+  line-height: 1.5;
+  font-weight: 400;
+  color: black;
+}
+
+:root {
+  --c-purple: #522947;
+  --c-purple-active: #360629;
+  --c-light-purple: #ceb7bd;
+  --rgb-purple: 82, 41, 71;
+  --c-border: #ededed;
+  --c-cream: #f5eee4;
+}
+
+/*-----------------------------------------
+    LAYOUT STYLE
+-------------------------------------------*/
+select,
+button,
+a {
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  text-decoration: none;
+}
+
+.fs-12 {
+  font-size: 12px;
+}
+
+.fs-14 {
+  font-size: 14px;
+}
+
+.fs-18 {
+  font-size: 18px;
+}
+
+.fs-20 {
+  font-size: 20px;
+}
+.ff-playfair {
+  font-family: "Playfair Display", serif;
+}
+.authentication-wrapper.authentication-basic {
+  align-items: center;
+  justify-content: center;
+}
+.authentication-wrapper {
+  --bs-auth-basic-inner-max-width: 460px;
+  display: flex;
+  flex-basis: 100%;
+  inline-size: 100%;
+  min-block-size: 95vh;
+}
+.authentication-wrapper.authentication-basic .authentication-inner {
+  position: relative;
+  max-inline-size: var(--bs-auth-basic-inner-max-width);
+}
+.authentication-wrapper .authentication-inner {
+  block-size: 100%;
+  inline-size: 100%;
+  margin-block: auto;
+  margin-inline: 0;
+}
+i.fi {
+  line-height: 10px !important;
+}
+.scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 600px;
+}
+.image-square{
+  width:60px;
+  height:60px;
+  object-fit: cover;
+}
+/*----------------------------------
+    COLOR STYLE 
+----------------------------------*/
+.text-purple {
+  color: var(--c-purple);
+}
+/*-----------------------------------------
+    BACKGROUND STYLE
+-------------------------------------------*/
+.bg-addict {
+  background-image: url(../images/background.webp);
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.bgs-100{
+  background-size: 100%;
+}
+.bgs-cover{
+  background-size: cover;
+}
+.bg-cream {
+  background-color: var(--c-cream);
+}
+/*-----------------------------------------
+    NAVBAR STYLE
+-------------------------------------------*/
+.switch {
+  position: relative;
+  display: inline-block;
+  margin: 0 5px;
+}
+
+.switch > span {
+  position: absolute;
+  top: 4px;
+  pointer-events: none;
+  font-weight: normal;
+  font-size: 14px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+  width: 50%;
+  text-align: center;
+}
+
+.switch input.check-toggle-round-flat:checked ~ .off {
+  color: #fff;
+}
+
+.switch input.check-toggle-round-flat:checked ~ .on {
+  color: var(--c-purple);
+}
+
+.switch > span.on {
+  left: 0;
+  padding-left: 1px;
+  color: #fff;
+}
+
+.switch > span.off {
+  right: 0;
+  padding-right: 1px;
+  color: var(--c-purple);
+}
+
+.switch .check-toggle {
+  position: absolute;
+  margin-left: -9999px;
+  visibility: hidden;
+}
+.switch .check-toggle + label {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.switch input.check-toggle-round-flat + label {
+  padding: 1px;
+  width: 84px;
+  height: 28px;
+  background-color: var(--c-purple);
+}
+.switch input.check-toggle-round-flat + label:before,
+.switch input.check-toggle-round-flat + label:after {
+  display: block;
+  position: absolute;
+  content: "";
+}
+
+.switch input.check-toggle-round-flat + label:before {
+  top: 1px;
+  left: 1px;
+  bottom: 1px;
+  right: 1px;
+  background-color: #fff;
+}
+.switch input.check-toggle-round-flat + label:after {
+  top: 1px;
+  left: 1px;
+  bottom: 1px;
+  width: 41px;
+  background-color: var(--c-purple);
+  -webkit-transition: margin 0.2s;
+  -moz-transition: margin 0.2s;
+  -o-transition: margin 0.2s;
+  transition: margin 0.2s;
+}
+
+.switch input.check-toggle-round-flat:checked + label {
+}
+
+.switch input.check-toggle-round-flat:checked + label:after {
+  margin-left: 41px;
+}
+/*-----------------------------------------
+    Form STYLE
+-------------------------------------------*/
+.search-container {
+  width: 300px;
+  display: block;
+  position: relative;
+}
+
+input#search-bar {
+  padding: 0.375rem 0.75rem;
+  width: 100%;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--bs-body-color);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: var(--bs-body-bg);
+  background-clip: padding-box;
+  border: var(--bs-border-width) solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+input#search-bar:focus {
+  border: 1px solid var(--c-purple);
+  transition: 0.35s ease;
+  color: var(--c-purple);
+}
+input#search-bar:focus::-webkit-input-placeholder {
+  transition: opacity 0.45s ease;
+  opacity: 0;
+}
+input#search-bar:focus::-moz-placeholder {
+  transition: opacity 0.45s ease;
+  opacity: 0;
+}
+input#search-bar:focus:-ms-placeholder {
+  transition: opacity 0.45s ease;
+  opacity: 0;
+}
+
+.search-icon {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  color: black;
+}
+/*-----------------------------------------
+    Footer STYLE
+-------------------------------------------*/
+
+/*-----------------------------------------
+    BADGE STYLE
+-------------------------------------------*/
+.badge-hot {
+  background-color: var(--c-light-purple);
+  color: var(--c-purple);
+}
+/*-----------------------------------------
+    BUTTON STYLE
+-------------------------------------------*/
+.btn {
+  box-shadow: var(--bs-btn-box-shadow);
+  --bs-btn-box-shadow: 0 0.125rem 0.375rem
+    rgba(var(--bs-btn-box-shadow-rgb), 0.3);
+  --bs-btn-focus-box-shadow: 0 0.125rem 0.375rem
+    rgba(var(--bs-btn-focus-shadow-rgb));
+  --bs-btn-active-shadow: 0 0.125rem 0.375rem
+    rgba(var(--bs-btn-active-shadow-rgb));
+}
+.btn:active {
+  border-color: transparent !important;
+}
+.btn-purple {
+  --bs-btn-bg: var(--c-purple);
+  --bs-btn-color: var(--bs-white);
+  --bs-btn-border-color: var(--c-purple);
+  --bs-btn-hover-color: var(--bs-white);
+  --bs-btn-hover-bg: color-mix(in sRGB, #000 20%, var(--c-purple));
+  --bs-btn-hover-border-color: var(--bs-btn-hover-bg);
+  --bs-btn-active-color: var(--bs-white);
+  --bs-btn-active-bg: color-mix(in sRGB, #000 20%, var(--c-purple));
+  --bs-btn-active-border-color: var(--bs-btn-active-bg);
+  --bs-btn-box-shadow-rgb: var(--rgb-purple);
+  --bs-btn-focus-shadow-rgb: var(--rgb-purple);
+  --bs-btn-active-shadow-rgb: var(--rgb-purple);
+  --bs-btn-disabled-color: var(--bs-white);
+  --bs-btn-disabled-bg: var(--c-purple);
+  --bs-btn-disabled-border-color: var(--c-purple);
+  --bs-btn-group-border-color: color-mix(in sRGB, #000 10%, var(--c-purple));
+  --bs-btn-waves-effect-color: var(--rgb-purple);
+}
+.btn-purple-check {
+  --bs-btn-bg: var(--c-light-purple);
+  --bs-btn-color: var(--c-purple);
+  --bs-btn-border-color: var(--c-light-purple);
+  --bs-btn-hover-color: var(--bs-white);
+  --bs-btn-hover-bg: color-mix(in sRGB, #000 20%, var(--c-purple));
+  --bs-btn-hover-border-color: var(--bs-btn-hover-bg);
+  --bs-btn-active-color: var(--bs-white);
+  --bs-btn-active-bg: var(--c-purple);
+  --bs-btn-active-border-color: var(--bs-btn-active-bg);
+  --bs-btn-box-shadow-rgb: var(--rgb-purple);
+  --bs-btn-focus-shadow-rgb: var(--rgb-purple);
+  --bs-btn-active-shadow-rgb: var(--rgb-purple);
+  --bs-btn-disabled-color: var(--bs-white);
+  --bs-btn-disabled-bg: var(--c-light-purple);
+  --bs-btn-disabled-border-color: var(--c-light-purple);
+  --bs-btn-group-border-color: color-mix(in sRGB, #000 10%, var(--c-purple));
+  --bs-btn-waves-effect-color: var(--rgb-purple);
+  fill: var(--c-purple);
+}
+.btn-purple-check svg {
+  width: 60px;
+  height: 60px;
+}
+.btn-check:checked+.btn, .btn.active, .btn.show, .btn:first-child:active, :not(.btn-check)+.btn:active {
+    color: var(--bs-btn-active-color);
+    background-color: var(--bs-btn-active-bg);
+    border-color: var(--bs-btn-active-border-color);
+    fill: var(--bs-btn-active-color);
+}
+/*-----------------------------------------
+    FORM STYLE
+-------------------------------------------*/
+.form-check-input {
+  --bs-form-check-input-checked-bg: var(--c-purple);
+  --bs-form-check-input-checked-border-color: var(--c-purple);
+  --bs-form-check-shadow-color: var(--rgb-purple);
+  --bs-form-check-box-shadow: 0 0.125rem 0.375rem 0
+    rgba(var(--bs-form-check-shadow-color), 0.3);
+  cursor: pointer;
+}
+.form-check-input:checked {
+  border-color: var(--bs-form-check-input-checked-border-color);
+  background-color: var(--bs-form-check-input-checked-bg);
+  box-shadow: var(--bs-form-check-box-shadow);
+}
+.form-check-input:focus {
+  border-color: #faceee;
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(82, 41, 71, 0.25);
+}
+.box-password {
+  position: relative;
+}
+.field-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  line-height: 0;
+  z-index: 1;
+}
+.field-icon:hover {
+  cursor: pointer;
+}
+/*-----------------------------------------
+    TAB STYLE
+-------------------------------------------*/
+
+/*-----------------------------------------
+    UPLOAD STYLE
+-------------------------------------------*/
+
+/*-----------------------------------------
+    TABLE STYLE
+-------------------------------------------*/
+
+/*-----------------------------------------
+    CAROUSEL STYLE
+-------------------------------------------*/
+
+/*-----------------------------------------
+    RESPONSIVE
+-------------------------------------------*/
+@media screen and (max-width: 767px) {
+}
+
+@media screen and (max-width: 1023px) {
+}
+
+@media screen and (min-width: 320px) and (max-width: 374px) {
+}
+
+@media screen and (min-width: 375px) and (max-width: 413px) {
+}
+
+@media screen and (min-width: 414px) and (max-width: 424px) {
+}
+
+@media screen and (min-width: 425px) and (max-width: 767px) {
+}
+
+@media screen and (min-width: 768px) and (max-width: 1023px) {
+}
+
+@media screen and (min-width: 1024px) and (max-width: 1279px) {
+}
+
+@media screen and (min-width: 1280px) and (max-width: 1359px) {
+}
+
+@media screen and (min-width: 1360px) and (max-width: 1439px) {
+}
+
+@media screen and (min-width: 1440px) and (max-width: 1599px) {
+}
+
+@media screen and (min-width: 1600px) and (max-width: 1919px) {
+}
+
+@media screen and (min-width: 1920px) and (max-width: 2559px) {
+}
+
+@media screen and (min-width: 2560px) {
+}
