@@ -50,12 +50,12 @@ Route::get('/clc', function() {
 	Artisan::call('config:clear');
 	Artisan::call('config:cache');
 	Artisan::call('view:clear');
-  
+
 	return "Cleared!";
-  
+
   });
 Route::get('/', function () {
-    return redirect('admin/user');
+    return view('frontend.index');
 });
 
 Route::controller(DashboardController::class)->group(function() {                    //////////////////////////
@@ -289,7 +289,7 @@ Route::prefix('admin')->group(function () {
 
         // Route::get('user/datatable', [UserController::class, 'datatable'])->name('user.datatable');    //////////////////////////
         // Route::resource('user', UserController::class);                         //////////////////////////
-        // Route::controller(UserController::class)->group(function() {     
+        // Route::controller(UserController::class)->group(function() {
         //     Route::post('edit_news/{id}', 'edit_news')->name('edit_news');    //////////////////////////
         //     Route::post('edit_news', 'edit_news')->name('edit_news');    //////////////////////////               //////////////////////////
         //     Route::post('change_password', 'change_password')->name('change_password');    //////////////////////////
@@ -316,7 +316,7 @@ Route::prefix('admin')->group(function () {
             Route::post('user-time/{id}', 'update')->name('user-time.update');    //////////////////////////
             Route::get('user-time-page', 'index')->name('user-time');    //////////////////////////
         });
-        
+
         Route::get('position/datatable', [PositionController::class, 'datatable'])->name('position.datatable');    //////////////////////////
         Route::resource('position', PositionController::class);                         //////////////////////////
         Route::controller(PositionController::class)->group(function() {                    //////////////////////////
@@ -324,14 +324,14 @@ Route::prefix('admin')->group(function () {
             Route::get('position-page', 'index')->name('position');    //////////////////////////
         });
 
-        
+
         Route::get('work-shift/datatable', [WorkShiftController::class, 'datatable'])->name('work-shift.datatable');    //////////////////////////
         Route::resource('work-shift', WorkShiftController::class);                         //////////////////////////
         Route::controller(WorkShiftController::class)->group(function() {                    //////////////////////////
             Route::post('work-shift/{id}', 'update')->name('work-shift.update');    //////////////////////////
             Route::get('work-shift-page', 'index')->name('work-shift');    //////////////////////////
         });
-            
+
         Route::get('welfare/datatable', [WelfareController::class, 'datatable'])->name('welfare.datatable');    //////////////////////////
         Route::resource('welfare', WelfareController::class);                         //////////////////////////
         Route::controller(WelfareController::class)->group(function() {                    //////////////////////////
@@ -345,7 +345,7 @@ Route::prefix('admin')->group(function () {
             Route::post('annual-holiday/{id}', 'update')->name('annual-holiday.update');    //////////////////////////
             Route::get('annual-holiday-page', 'index')->name('annual-holiday');    //////////////////////////
         });
-        
+
         // Route::get('user-setting/datatable', [UserSettingController::class, 'datatable'])->name('user-setting.datatable');    //////////////////////////
         Route::controller(UserSettingController::class)->group(function() {                    //////////////////////////
             // Route::get('user-setting/work_shift', 'work_shift')->name('user-setting.work_shift');    //////////////////////////
@@ -399,7 +399,7 @@ Route::get('check', [PositionController::class, 'check'])->name('check');    ///
         Route::get('dashboard2-overview-3-page', 'dashboardOverview3')->name('dashboard2-overview-3');
         Route::get('dashboard2-overview-4-page', 'dashboardOverview4')->name('dashboard2-overview-4');
         Route::get('inbox-page', 'inbox')->name('inbox');
-        Route::get('file-manager-page', 'fileManager')->name('file-manager'); 
+        Route::get('file-manager-page', 'fileManager')->name('file-manager');
         Route::get('point-of-sale-page', 'pointOfSale')->name('point-of-sale');
         Route::get('chat-page', 'chat')->name('chat');
         Route::get('post-page', 'post')->name('post');
