@@ -32,9 +32,11 @@ class FrontHomeController extends Controller
         // }
         $data['user'] = User::where('ref_status_id', 1)->get();
         $data['page_url'] = 'home';
+        $data['rooms'] = Room::get();
         // $data['summary'] = $this->summary(session("branch_id"));
+        return view('frontend.home', $data);
 
-        return view('home/index', $data);
+        // return view('home/index', $data);
     }
     public function service($branch = null, $id = null)
     {
@@ -91,12 +93,12 @@ class FrontHomeController extends Controller
             $order = new Order;
             $order->order_number = 1;
             $order->ref_branch_id = 1;
-            
+
             if(@$customer_find){
                 $order->ref_customer_id = $customer_find->id;
-                
+
             }else{
-                
+
                 $customer = new Customer;
                 $customer->name = $request->customer_name;
                 $customer->ref_branch_id = 1;
@@ -117,7 +119,7 @@ class FrontHomeController extends Controller
                 foreach($request->ref_product_id as $product){
 
                     $pro = Product::find($product);
-                    
+
                     $td .= "+$pro->name(".$request->product_qty[$product].')';
 
                     $order_product = new OrderHasProduct;
@@ -128,7 +130,7 @@ class FrontHomeController extends Controller
                     $order_product->save();
                 }
             }
-        
+
             DB::commit();
             $qr = QrCode::size(230)->generate(url("/addict-one/service-more/$order->id"));
 
@@ -148,24 +150,24 @@ class FrontHomeController extends Controller
                     th, td { padding: 2px; text-align: left; font-size: 11px; }
                     th { border-bottom: 1px solid #000; }
                     td { border-bottom: 1px solid #000; }
-                
+
                     @media print {
                         @page {
                             size: 69mm auto;
                             margin: 0;
                         }
-                
+
                         body {
                             width: 69mm;
                             margin: 0;
                         }
-                
+
                         .invoice {
                             width: 69mm;
                         }
                     }
                 </style>
-                
+
             </head>
             <body>
                 <div class='invoice'>
@@ -212,7 +214,7 @@ class FrontHomeController extends Controller
                 if(@$request->product_qty[$product]){
                     $price += Product::find($product)->price*$request->product_qty[$product];
                 }
-                
+
             }
         }
         if(@$request->ref_room_id && $request->service){
@@ -246,7 +248,7 @@ class FrontHomeController extends Controller
                                 ->join('rooms', 'room_for_rents.ref_room_id', '=', 'rooms.id')
                                 ->Where('rent_bills.ref_status_id', 3)
                                 ->select('rent_bills.*', 'renters.prefix' , DB::raw('CONCAT(renters.name, " ", COALESCE(renters.surname, "")) as renter_name'), 'rooms.name as room_name', 'rooms.rent');
-        
+
         if(@$request->search){
             $results = $results->Where(function ($query) use ($request) {
                                     $query->whereRaw("CONCAT(renters.prefix ,' ' , renters.name, ' ', renters.surname) LIKE ?", ["%{$request->search}%"])
@@ -289,7 +291,7 @@ class FrontHomeController extends Controller
 
         return view('admin/dashboard/invoice', $data);
     }
-    
+
     public function ChangeDateToTH($date)
     {
         ////////////////////// แปลงรูปแบบวันเกิดเป็น ไทย
@@ -302,8 +304,8 @@ class FrontHomeController extends Controller
 
         // แปลงวันที่เป็นรูปแบบไทย
         $thaiDate = $date->formatLocalized('%e %B ' . $buddhistYear);
-        
-        $monthTH = [ 
+
+        $monthTH = [
                 "01" => "มกราคม",
                 "02" => "กุมภาพันธ์",
                 "03" => "มีนาคม",
@@ -317,7 +319,7 @@ class FrontHomeController extends Controller
                 "11" => "พฤศจิกายน",
                 "12" => "ธันวาคม"
         ];
-        $monthEN = [    
+        $monthEN = [
                 "01" => "January",
                 "02" => "February",
                 "03" => "March",
