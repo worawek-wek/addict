@@ -18,7 +18,7 @@ class CustomerLoginController extends Controller
         $credentials = $request->only('id_card', 'password');
 
         if (Auth::guard('customer')->attempt($credentials)) {
-            return redirect()->intended('/customer/dashboard');
+            return redirect()->intended('/home');
         }
 
         return back()->withErrors([
