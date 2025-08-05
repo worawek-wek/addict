@@ -29,7 +29,7 @@ class FrontHomeController extends Controller
     {
         // return Auth::guard('customer')->user()->id_card;
         // if(!is_null($id)){
-            session(["branch_id" => $id]);
+        session(["branch_id" => $id]);
         //     return redirect('dashboard');
         // }
         $data['user'] = User::where('ref_status_id', 1)->get();
@@ -42,7 +42,7 @@ class FrontHomeController extends Controller
     }
     public function service($branch = null, $id = null)
     {
-        $data['page_url'] = $branch.'/service';
+        $data['page_url'] = $branch . '/service';
         $data['rooms'] = Room::get();
         $data['products'] = Product::get();
         $data['user'] = User::find($id);
@@ -53,7 +53,7 @@ class FrontHomeController extends Controller
     }
     public function service_more($branch = null, $order_id = null)
     {
-        $data['page_url'] = $branch.'/service';
+        $data['page_url'] = $branch . '/service';
         $data['rooms'] = Room::get();
         $data['products'] = Product::get();
         $order = Order::find($order_id);
@@ -66,40 +66,45 @@ class FrontHomeController extends Controller
     }
     public function get_name_mama($id = null)
     {
-        $user = User::where('user_code',$id)->first();
+        $user = User::where('user_code', $id)->first();
 
         return $user->name;
     }
     public function insert(Request $request, $branch = null, $id = null)
     {
-        try{
+        $id = $request->selected_user;
+
+        try {
             // return $request;
-            $ref_seller_id = User::where('user_code', $request->ref_seller_id)->first()->id;
+            $ref_seller_id = Auth::guard('customer')->user()->id;  // $ref_seller_id = User::where('user_code', $request->ref_seller_id)->first()->id;
+
             $user = User::find($id);
-            $room = Room::find($request->ref_room_id);
+
+            $room = Room::find($request->roomType);
+
             $price = $this->calculate_all($request);
-            if($request->service == 'sixty_minutes'){
+
+            if ($request->service == 'sixty_minutes') {
                 $service = '60 นาที';
-            }else{
+            } else {
                 $service = '90 นาที';
             }
 
-            $customer_find = Customer::where('name', $request->customer_name)->first();
+            $customer_find = Auth::guard('customer')->user();
 
 
             $order_number = 1;
             $latestOrder = Order::latest()->first();
-            if(@$latestOrder){
-                $order_number = $latestOrder->order_number+1;
+            if (@$latestOrder) {
+                $order_number = $latestOrder->order_number + 1;
             }
             $order = new Order;
             $order->order_number = 1;
             $order->ref_branch_id = 1;
 
-            if(@$customer_find){
+            if (@$customer_find) {
                 $order->ref_customer_id = $customer_find->id;
-
-            }else{
+            } else {
 
                 $customer = new Customer;
                 $customer->name = $request->customer_name;
@@ -107,22 +112,20 @@ class FrontHomeController extends Controller
                 $customer->save();
 
                 $order->ref_customer_id = $customer->id;
-
             }
-
             $order->ref_user_id = $id;
             $order->ref_seller_id = $ref_seller_id;
-            $order->ref_room_id = $request->ref_room_id;
-            $order->service_laundry_cost = $request->service;
+            $order->ref_room_id = $request->roomType;
+            $order->service_laundry_cost = $request->timeService;
             $order->ref_status_id = 2;
             $order->save();
             $td = '';
-            if(@$request->ref_product_id){
-                foreach($request->ref_product_id as $product){
+            if (@$request->ref_product_id) {
+                foreach ($request->ref_product_id as $product) {
 
                     $pro = Product::find($product);
 
-                    $td .= "+$pro->name(".$request->product_qty[$product].')';
+                    $td .= "+$pro->name(" . $request->product_qty[$product] . ')';
 
                     $order_product = new OrderHasProduct;
                     $order_product->ref_order_id = $order->id;
@@ -179,8 +182,8 @@ class FrontHomeController extends Controller
                     </div>
                     <p class='right-align'><strong>แคชเชียร์:</strong> Addict</p>
                     <p><strong>ห้อง:</strong> $room->name</p>
-                    <p><strong>เปิดห้อง:</strong> ".date('d/m/Y H:i')."</p>
-                    <p><strong>เช็คบิล:</strong> ".date('d/m/Y H:i:s')."</p>
+                    <p><strong>เปิดห้อง:</strong> " . date('d/m/Y H:i') . "</p>
+                    <p><strong>เช็คบิล:</strong> " . date('d/m/Y H:i:s') . "</p>
                     <table>
                         <tr>
                             <th>จำนวน</th>
@@ -211,19 +214,18 @@ class FrontHomeController extends Controller
     {
         $price = 0;
         $data['rooms'] = Room::get();
-        if(@$request->ref_product_id){
-            foreach($request->ref_product_id as $product){
-                if(@$request->product_qty[$product]){
-                    $price += Product::find($product)->price*$request->product_qty[$product];
+        if (@$request->ref_product_id) {
+            foreach ($request->ref_product_id as $product) {
+                if (@$request->product_qty[$product]) {
+                    $price += Product::find($product)->price * $request->product_qty[$product];
                 }
-
             }
         }
-        if(@$request->ref_room_id && $request->service){
-            $room = Room::find($request->ref_room_id);
-            if($request->service == 'sixty_minutes'){
+        if (@$request->roomType && $request->timeService) {
+            $room = Room::find($request->roomType);
+            if ($request->timeService == 'sixty_minutes') {
                 $price += $room->sixty_minutes;
-            }else{
+            } else {
                 $price += $room->ninety_minutes;
             }
         }
@@ -233,9 +235,9 @@ class FrontHomeController extends Controller
     public function overdue(Request $request)
     {
         $all_overdue_payment = RentBill::where('rent_bills.ref_status_id', 3)
-                                        ->join('room_for_rents', 'rent_bills.ref_room_for_rent_id', '=', 'room_for_rents.id')
-                                        ->join('rooms', 'room_for_rents.ref_room_id', '=', 'rooms.id')
-                                        ->sum(DB::raw('rooms.rent + rent_bills.electricity_amount + rent_bills.water_amount'));
+            ->join('room_for_rents', 'rent_bills.ref_room_for_rent_id', '=', 'room_for_rents.id')
+            ->join('rooms', 'room_for_rents.ref_room_id', '=', 'rooms.id')
+            ->sum(DB::raw('rooms.rent + rent_bills.electricity_amount + rent_bills.water_amount'));
 
         $data['page_url'] = 'dashboard';
         $data['summary'] = $this->summary(session("branch_id"));
@@ -244,22 +246,22 @@ class FrontHomeController extends Controller
     }
     public function datatable(Request $request)
     {
-        $results = RentBill::orderBy('id','DESC')
-                                ->join('room_for_rents', 'rent_bills.ref_room_for_rent_id', '=', 'room_for_rents.id')
-                                ->join('renters', 'room_for_rents.ref_renter_id', '=', 'renters.id')
-                                ->join('rooms', 'room_for_rents.ref_room_id', '=', 'rooms.id')
-                                ->Where('rent_bills.ref_status_id', 3)
-                                ->select('rent_bills.*', 'renters.prefix' , DB::raw('CONCAT(renters.name, " ", COALESCE(renters.surname, "")) as renter_name'), 'rooms.name as room_name', 'rooms.rent');
+        $results = RentBill::orderBy('id', 'DESC')
+            ->join('room_for_rents', 'rent_bills.ref_room_for_rent_id', '=', 'room_for_rents.id')
+            ->join('renters', 'room_for_rents.ref_renter_id', '=', 'renters.id')
+            ->join('rooms', 'room_for_rents.ref_room_id', '=', 'rooms.id')
+            ->Where('rent_bills.ref_status_id', 3)
+            ->select('rent_bills.*', 'renters.prefix', DB::raw('CONCAT(renters.name, " ", COALESCE(renters.surname, "")) as renter_name'), 'rooms.name as room_name', 'rooms.rent');
 
-        if(@$request->search){
+        if (@$request->search) {
             $results = $results->Where(function ($query) use ($request) {
-                                    $query->whereRaw("CONCAT(renters.prefix ,' ' , renters.name, ' ', renters.surname) LIKE ?", ["%{$request->search}%"])
-                                        ->orWhere('rooms.name','LIKE','%'.$request->search.'%');
-                                });
+                $query->whereRaw("CONCAT(renters.prefix ,' ' , renters.name, ' ', renters.surname) LIKE ?", ["%{$request->search}%"])
+                    ->orWhere('rooms.name', 'LIKE', '%' . $request->search . '%');
+            });
         }
 
         $limit = 15;
-        if(@$request['limit']){
+        if (@$request['limit']) {
             $limit = $request['limit'];
         }
         // $data['prefix'] = [ 1 => 'บริษัท', 2 => 'นาย', 3 => 'นางสาว', 4 => 'นาง'];
@@ -283,7 +285,6 @@ class FrontHomeController extends Controller
 
         $data['user'] = $user;
         return view('admin/dashboard/change_password', $data);
-
     }
     public function invoice($id)
     {
@@ -308,32 +309,32 @@ class FrontHomeController extends Controller
         $thaiDate = $date->formatLocalized('%e %B ' . $buddhistYear);
 
         $monthTH = [
-                "01" => "มกราคม",
-                "02" => "กุมภาพันธ์",
-                "03" => "มีนาคม",
-                "04" => "เมษายน",
-                "05" => "พฤษภาคม",
-                "06" => "มิถุนายน",
-                "07" => "กรกฎาคม",
-                "08" => "สิงหาคม",
-                "09" => "กันยายน",
-                "10" => "ตุลาคม",
-                "11" => "พฤศจิกายน",
-                "12" => "ธันวาคม"
+            "01" => "มกราคม",
+            "02" => "กุมภาพันธ์",
+            "03" => "มีนาคม",
+            "04" => "เมษายน",
+            "05" => "พฤษภาคม",
+            "06" => "มิถุนายน",
+            "07" => "กรกฎาคม",
+            "08" => "สิงหาคม",
+            "09" => "กันยายน",
+            "10" => "ตุลาคม",
+            "11" => "พฤศจิกายน",
+            "12" => "ธันวาคม"
         ];
         $monthEN = [
-                "01" => "January",
-                "02" => "February",
-                "03" => "March",
-                "04" => "April",
-                "05" => "May",
-                "06" => "June",
-                "07" => "July",
-                "08" => "August",
-                "09" => "September",
-                "10" => "October",
-                "11" => "November",
-                "12" => "December"
+            "01" => "January",
+            "02" => "February",
+            "03" => "March",
+            "04" => "April",
+            "05" => "May",
+            "06" => "June",
+            "07" => "July",
+            "08" => "August",
+            "09" => "September",
+            "10" => "October",
+            "11" => "November",
+            "12" => "December"
         ];
         return str_replace($monthEN[$m], $monthTH[$m], $thaiDate);
     }

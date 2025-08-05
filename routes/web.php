@@ -44,16 +44,15 @@ use App\Http\Controllers\ColorSchemeController;
 |
 */
 
-Route::get('/clc', function() {
+Route::get('/clc', function () {
 
-	Artisan::call('cache:clear');
-	Artisan::call('config:clear');
-	Artisan::call('config:cache');
-	Artisan::call('view:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('config:clear');
+    Artisan::call('config:cache');
+    Artisan::call('view:clear');
 
-	return "Cleared!";
-
-  });
+    return "Cleared!";
+});
 Route::get('/', function () {
     return redirect('login');
 });
@@ -67,19 +66,21 @@ Route::middleware('auth:customer')->group(function () {
     Route::post('/logout', [CustomerLoginController::class, 'logout'])->name('customer.logout');
 
     // protected controllers
-    Route::controller(FrontHomeController::class)->group(function() {
+    Route::controller(FrontHomeController::class)->group(function () {
         Route::get('calculate-all', 'calculate_all')->name('calculate-all');
         Route::get('get-name-mama/{id}', 'get_name_mama')->name('get-name-mama');
         Route::get('home/', 'index')->name('dashboard');
         Route::get('{branch}/service-more/{id}', 'service_more')->name('service');
         Route::get('{branch}/service/{id}', 'service')->name('service');
-        Route::post('{branch}/service/{id}', 'insert')->name('insert');
+        // Route::post('{branch}/service/{id}', 'insert')->name('insert');
+        Route::post('/service', 'insert')->name('insert');
+
         Route::get('dashboard/overdue', 'overdue')->name('dashboard.overdue');
         Route::get('dashboard/overdue/{id}', 'invoice')->name('dashboard.invoice');
         Route::get('dashboard/{branch_id}', 'index')->name('dashboard');
     });
 
-    Route::controller(FrontClockInController::class)->group(function() {
+    Route::controller(FrontClockInController::class)->group(function () {
         Route::get('{branch}/clock-in', 'index')->name('clock-in');
         Route::post('{branch}/clock-in', 'clock_in')->name('clock-in');
     });
@@ -98,92 +99,90 @@ Route::prefix('admin')->group(function () {
     Route::get('dark-mode-switcher', [DarkModeController::class, 'switch'])->name('dark-mode-switcher');
     Route::get('color-scheme-switcher/{color_scheme}', [ColorSchemeController::class, 'switch'])->name('color-scheme-switcher');
 
-    Route::controller(AuthController::class)->middleware('loggedin')->group(function() {
+    Route::controller(AuthController::class)->middleware('loggedin')->group(function () {
         Route::get('login', 'loginView')->name('admin.login');
         Route::post('login', 'login')->name('login.check');
         Route::get('register', 'registerView')->name('register.index');
         Route::post('register', 'register')->name('register.store');
     });
-    Route::middleware('auth')->group(function() {
+    Route::middleware('auth')->group(function () {
 
-    Route::controller(ReportController::class)->group(function() {                    //////////////////////////
-        Route::get('report/view-overview', 'view_overview')->name('report.view_overview');    //////////////////////////
-        Route::get('report/rent-bill', 'rent_bill')->name('report.rent_bill');    //////////////////////////
-        Route::get('report/move-in', 'move_in')->name('report.move_in');    //////////////////////////
-        Route::get('report/move-out', 'move_out')->name('report.move_out');    //////////////////////////
-        Route::get('report/bad-debt', 'badDebt')->name('report.bad_debt');    //////////////////////////
-        Route::get('report/monthly-booking', 'monthly_booking')->name('report.monthly_booking');    //////////////////////////
-    });
-    Route::controller(SettingController::class)->group(function() {                    //////////////////////////
+        Route::controller(ReportController::class)->group(function () {                    //////////////////////////
+            Route::get('report/view-overview', 'view_overview')->name('report.view_overview');    //////////////////////////
+            Route::get('report/rent-bill', 'rent_bill')->name('report.rent_bill');    //////////////////////////
+            Route::get('report/move-in', 'move_in')->name('report.move_in');    //////////////////////////
+            Route::get('report/move-out', 'move_out')->name('report.move_out');    //////////////////////////
+            Route::get('report/bad-debt', 'badDebt')->name('report.bad_debt');    //////////////////////////
+            Route::get('report/monthly-booking', 'monthly_booking')->name('report.monthly_booking');    //////////////////////////
+        });
+        Route::controller(SettingController::class)->group(function () {                    //////////////////////////
 
-        Route::get('setting/fine', 'fine')->name('setting.fine');    //////////////////////////
-        Route::get('setting/fine/datatable', 'fine_datatable')->name('setting.fine-datatable');    //////////////////////////
-        Route::get('setting/fine/{id}', 'fine_edit')->name('setting.fine-edit');    //////////////////////////
-        Route::post('setting/fine/update/{id}', 'fine_update')->name('setting.fine-update');    //////////////////////////
+            Route::get('setting/fine', 'fine')->name('setting.fine');    //////////////////////////
+            Route::get('setting/fine/datatable', 'fine_datatable')->name('setting.fine-datatable');    //////////////////////////
+            Route::get('setting/fine/{id}', 'fine_edit')->name('setting.fine-edit');    //////////////////////////
+            Route::post('setting/fine/update/{id}', 'fine_update')->name('setting.fine-update');    //////////////////////////
 
-        // ////////////////
-        Route::get('setting/bank', 'bank')->name('setting.bank');    //////////////////////////
-        Route::get('setting/bank/datatable', 'bank_datatable')->name('setting.bank-datatable');    //////////////////////////
-        Route::post('setting/bank/insert', 'bank_insert')->name('setting.bank-insert');    //////////////////////////
-        Route::get('setting/bank/{id}', 'bank_edit')->name('setting.bank-edit');    //////////////////////////
-        Route::post('setting/bank/update/{id}', 'bank_update')->name('setting.bank-update');    //////////////////////////
-        Route::delete('setting/bank/{id}', 'bank_delete')->name('setting.bank-delete');    //////////////////////////
-        ////////////////
-    });
-    // Route::controller(PDFController::class)->group(function() {                    //////////////////////////
-    //     Route::get('pdf', 'index')->name('dashboard');    //////////////////////////
-    //     Route::get('pdf/receipt', 'receipt')->name('Receipt');    //////////////////////////
-    // });
-    Route::controller(UserController::class)->group(function() {                   //////////////////////////
-        Route::post('clock-in', 'clock_in')->name('clock-in');    //////////////////////////
-        Route::delete('user/{id}', 'destroy')->name('user.destroy');    //////////////////////////
-        Route::post('user/change-status/{id}', 'change_status')->name('user.change-status');    //////////////////////////
-        Route::get('user', 'index')->name('user');    //////////////////////////
-        Route::get('user/datatable', 'datatable')->name('user.datatable');    //////////////////////////
-        Route::post('user', 'store')->name('user.insert');    //////////////////////////
-        Route::get('user/{id}', 'edit')->name('user');    //////////////////////////
-        Route::post('user/{id}', 'update')->name('user.update');    //////////////////////////
-    });
-    Route::controller(ProductController::class)->group(function() {                   //////////////////////////
-        Route::get('product', 'index')->name('product');    //////////////////////////
-        Route::get('product/datatable', 'datatable')->name('product.datatable');    //////////////////////////
-        Route::get('card_stock_report', 'card_stock_report')->name('card_stock_report');    //////////////////////////
-        Route::get('card_stock_report/datatable', 'card_stock_report_datatable')->name('card_stock_report.datatable');    //////////////////////////
-        Route::post('card_stock_report', 'card_stock_report_store')->name('card_stock_report.insert');    //////////////////////////
-        Route::post('product', 'store')->name('product.insert');    //////////////////////////
-        Route::get('product/{id}', 'edit')->name('product');    //////////////////////////
-        Route::post('product/{id}', 'update')->name('product.update');    //////////////////////////
-    });
-    Route::controller(CustomerController::class)->group(function() {                   //////////////////////////
-        Route::get('customer', 'index')->name('customer');    //////////////////////////
-        Route::get('customer/datatable', 'datatable')->name('customer.datatable');    //////////////////////////
-    });
-    Route::controller(OrderController::class)->group(function() {                   //////////////////////////
-        Route::get('order', 'index')->name('order');    //////////////////////////
-        Route::get('order/datatable', 'datatable')->name('order.datatable');    //////////////////////////
-        Route::get('sales_report', 'sales_report')->name('sales_report');    //////////////////////////
-        Route::get('sales_report/datatable', 'sales_report_datatable')->name('sales_report.datatable');    //////////////////////////
-    });
-    Route::controller(RoomController::class)->group(function() {                   //////////////////////////
-        Route::get('room', 'index')->name('room');    //////////////////////////
-        Route::get('room/datatable', 'datatable')->name('room.datatable');    //////////////////////////
-        Route::post('room', 'store')->name('room.insert');    //////////////////////////
-        Route::get('room/{id}', 'edit')->name('room');    //////////////////////////
-        Route::post('room/{id}', 'update')->name('room.update');    //////////////////////////
-    });
-    Route::controller(AuditController::class)->group(function() {                   //////////////////////////
-        Route::get('audit', 'index')->name('audit');    //////////////////////////
-    });
-    Route::controller(BranchController::class)->group(function() {                    //////////////////////////
-        Route::get('branch', 'index')->name('branch');    //////////////////////////
-        Route::get('branch/add', 'add')->name('branch.add');    //////////////////////////
-        Route::post('branch/add', 'store')->name('branch.insert');    //////////////////////////
-        Route::get('branch/manage', 'manage')->name('branch.manage');    //////////////////////////
-    });
+            // ////////////////
+            Route::get('setting/bank', 'bank')->name('setting.bank');    //////////////////////////
+            Route::get('setting/bank/datatable', 'bank_datatable')->name('setting.bank-datatable');    //////////////////////////
+            Route::post('setting/bank/insert', 'bank_insert')->name('setting.bank-insert');    //////////////////////////
+            Route::get('setting/bank/{id}', 'bank_edit')->name('setting.bank-edit');    //////////////////////////
+            Route::post('setting/bank/update/{id}', 'bank_update')->name('setting.bank-update');    //////////////////////////
+            Route::delete('setting/bank/{id}', 'bank_delete')->name('setting.bank-delete');    //////////////////////////
+            ////////////////
+        });
+        // Route::controller(PDFController::class)->group(function() {                    //////////////////////////
+        //     Route::get('pdf', 'index')->name('dashboard');    //////////////////////////
+        //     Route::get('pdf/receipt', 'receipt')->name('Receipt');    //////////////////////////
+        // });
+        Route::controller(UserController::class)->group(function () {                   //////////////////////////
+            Route::post('clock-in', 'clock_in')->name('clock-in');    //////////////////////////
+            Route::delete('user/{id}', 'destroy')->name('user.destroy');    //////////////////////////
+            Route::post('user/change-status/{id}', 'change_status')->name('user.change-status');    //////////////////////////
+            Route::get('user', 'index')->name('user');    //////////////////////////
+            Route::get('user/datatable', 'datatable')->name('user.datatable');    //////////////////////////
+            Route::post('user', 'store')->name('user.insert');    //////////////////////////
+            Route::get('user/{id}', 'edit')->name('user');    //////////////////////////
+            Route::post('user/{id}', 'update')->name('user.update');    //////////////////////////
+        });
+        Route::controller(ProductController::class)->group(function () {                   //////////////////////////
+            Route::get('product', 'index')->name('product');    //////////////////////////
+            Route::get('product/datatable', 'datatable')->name('product.datatable');    //////////////////////////
+            Route::get('card_stock_report', 'card_stock_report')->name('card_stock_report');    //////////////////////////
+            Route::get('card_stock_report/datatable', 'card_stock_report_datatable')->name('card_stock_report.datatable');    //////////////////////////
+            Route::post('card_stock_report', 'card_stock_report_store')->name('card_stock_report.insert');    //////////////////////////
+            Route::post('product', 'store')->name('product.insert');    //////////////////////////
+            Route::get('product/{id}', 'edit')->name('product');    //////////////////////////
+            Route::post('product/{id}', 'update')->name('product.update');    //////////////////////////
+        });
+        Route::controller(CustomerController::class)->group(function () {                   //////////////////////////
+            Route::get('customer', 'index')->name('customer');    //////////////////////////
+            Route::get('customer/datatable', 'datatable')->name('customer.datatable');    //////////////////////////
+        });
+        Route::controller(OrderController::class)->group(function () {                   //////////////////////////
+            Route::get('order', 'index')->name('order');    //////////////////////////
+            Route::get('order/datatable', 'datatable')->name('order.datatable');    //////////////////////////
+            Route::get('sales_report', 'sales_report')->name('sales_report');    //////////////////////////
+            Route::get('sales_report/datatable', 'sales_report_datatable')->name('sales_report.datatable');    //////////////////////////
+        });
+        Route::controller(RoomController::class)->group(function () {                   //////////////////////////
+            Route::get('room', 'index')->name('room');    //////////////////////////
+            Route::get('room/datatable', 'datatable')->name('room.datatable');    //////////////////////////
+            Route::post('room', 'store')->name('room.insert');    //////////////////////////
+            Route::get('room/{id}', 'edit')->name('room');    //////////////////////////
+            Route::post('room/{id}', 'update')->name('room.update');    //////////////////////////
+        });
+        Route::controller(AuditController::class)->group(function () {                   //////////////////////////
+            Route::get('audit', 'index')->name('audit');    //////////////////////////
+        });
+        Route::controller(BranchController::class)->group(function () {                    //////////////////////////
+            Route::get('branch', 'index')->name('branch');    //////////////////////////
+            Route::get('branch/add', 'add')->name('branch.add');    //////////////////////////
+            Route::post('branch/add', 'store')->name('branch.insert');    //////////////////////////
+            Route::get('branch/manage', 'manage')->name('branch.manage');    //////////////////////////
+        });
         Route::get('logout', [AuthController::class, 'logout'])->name('logout');
-
     });
 });
 /////////////// Ajax ////////////////
 Route::get('change_date_format/{date}', [UserController::class, 'ChangeDateFormat'])->name('change_date_format');    //////////////////////////
-

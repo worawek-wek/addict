@@ -12,7 +12,10 @@
         <div class="card p-xl-4 mb-5">
             <div class="card-body">
                 <h1 class="text-center ff-playfair">Booking</h1>
-                <form>
+                {{-- <form id="insert_service" method="POST" action="{{ route('insert') }}"> --}}
+                <form id="insert_service" method="POST">
+
+                    @csrf
                     <div class="row g-3">
                         <div class="col-sm-6">
                             <label for="exampleFormControlInput1" class="form-label fs-14 mb-0">Date</label>
@@ -45,37 +48,22 @@
                                             <div class="card p-2">
                                                 <input class="form-check-input mb-2" type="radio" name="selected_user"
                                                     value="{{ $row->id }}" id="user{{ $index }}"
+                                                    data-nickname="{{ $row->nickname ?? $row->name }}"
+                                                    data-image="/upload/user/{{ $row->image_name ?? 'default.png' }}"
+                                                    data-salary="{{ $row->salary }}"
                                                     {{ $index === 0 ? 'checked' : '' }}>
                                                 <label class="form-check-label d-block" for="user{{ $index }}">
                                                     <img src="/upload/user/{{ $row->image_name ?? 'default.png' }}"
                                                         alt="" class="mw-100 mb-2">
-                                                    <div
-                                                        class="d-flex align-items-center justify-content-between w-100 mb-1">
-                                                        <div>
-                                                            <span
-                                                                class="badge badge-hot small rounded-0 fw-normal">HOT</span>
-                                                        </div>
-                                                        <div>
-                                                            <span class="review small">4.4</span>
-                                                            <i class="fi fi-sr-star text-warning small"></i>
-                                                            <span class="text-muted small">(1.23k)</span>
-                                                        </div>
-                                                    </div>
                                                     <p class="fw-medium mb-0">{{ $row->nickname ?? $row->name }}</p>
-                                                    <p class="fs-14 text-muted">
-                                                        {{ $row->remark ?? 'No description yet.' }}</p>
-                                                    <p class="mb-0 fs-12 text-muted">
-                                                        <i class="fi fi-rr-clock"></i> เริ่มงาน
-                                                        {{ \Carbon\Carbon::parse($row->work_start_date)->format('d M Y') }}
-                                                    </p>
                                                 </label>
                                             </div>
                                         </div>
                                     @endforeach
-
                                 </div>
                             </div>
                         </div>
+
 
                         <div class="col-12">
                             <h4 class="bg-cream ff-playfair p-2">Service Course</h4>
@@ -112,7 +100,9 @@
                                 @foreach ($rooms as $index => $room)
                                     <input type="radio" class="btn-check" name="roomType"
                                         id="roomType{{ $room->id }}" value="{{ $room->id }}"
-                                        autocomplete="off" {{ $index === 0 ? 'checked' : '' }}>
+                                        data-name="{{ $room->name }}" data-sixty="{{ $room->sixty_minutes }}"
+                                        data-ninety="{{ $room->ninety_minutes }}" autocomplete="off"
+                                        {{ $index === 0 ? 'checked' : '' }}>
 
                                     <label
                                         class="btn btn-purple-check d-flex flex-column justify-content-center text-center"
@@ -211,20 +201,23 @@
                             <h4 class="bg-cream ff-playfair p-2">Time Period</h4>
                         </div>
                         <div class="col-12">
-                            <label for="exampleFormControlInput1" class="form-label fs-14 mb-0">Duration of service
-                                use</label>
+                            <label class="form-label fs-14 mb-0">Duration of service use</label>
                             <div class="d-flex gap-2 flex-wrap">
                                 <input type="radio" class="btn-check" name="timeService" id="60min"
-                                    autocomplete="off" checked>
-                                <label class="btn btn-purple-check flex-fill rounded-0" for="60min">60
-                                    minutes/service</label>
+                                    value="sixty_minutes" autocomplete="off" checked>
+                                <label class="btn btn-purple-check flex-fill rounded-0" for="60min">
+                                    60 minutes/service
+                                </label>
 
                                 <input type="radio" class="btn-check" name="timeService" id="90min"
-                                    autocomplete="off">
-                                <label class="btn btn-purple-check flex-fill rounded-0" for="90min">90
-                                    minutes/service</label>
+                                    value="ninety_minutes" autocomplete="off">
+                                <label class="btn btn-purple-check flex-fill rounded-0" for="90min">
+                                    90 minutes/service
+                                </label>
                             </div>
                         </div>
+
+
                         <div class="col-12">
                             <div class="card card-body">
                                 <h4 class="ff-playfair">Summary</h4>
@@ -232,54 +225,34 @@
                                     <div class="col-sm-4">
                                         <h6>Date and time of service use</h6>
                                         <ul>
-                                            <li>dd/mm/yyyy</li>
-                                            <li>hh:mm</li>
+                                            <li id="summary-date">dd/mm/yyyy</li>
+                                            <li id="summary-time">hh:mm</li>
                                         </ul>
                                     </div>
                                     <div class="col-sm-4">
                                         <h6>Service</h6>
                                         <ul>
-                                            <li>Service A</li>
+                                            <li id="summary-service">Service A</li>
                                         </ul>
                                         <h6>Room</h6>
                                         <ul>
-                                            <li>Type room - First room</li>
-                                            <li>Roome number - FR001</li>
+                                            <li id="summary-room-type">Type room - First room</li>
+                                            <li id="summary-room-number">Room number - FR001</li>
                                         </ul>
+
                                         <h6>Time Period</h6>
                                         <ul>
-                                            <li>60 mins/service</li>
+                                            <li id="summary-duration">60 mins/service</li>
                                         </ul>
                                     </div>
                                     <div class="col-sm-4">
-                                        <div class="card p-2 mb-2">
-                                            <div class="d-flex">
-                                                <div class="flex-shrink-0">
-                                                    <img src="images/background-with-shadow-woman.webp" alt=""
-                                                        class="image-square">
-                                                </div>
-                                                <div class="flex-grow-1 ms-2">
-                                                    N'Ploy <button type="button" class="btn p-0"><i
-                                                            class="fi fi-rr-circle-xmark text-danger"></i></button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card p-2 mb-2">
-                                            <div class="d-flex">
-                                                <div class="flex-shrink-0">
-                                                    <img src="images/background-with-shadow-woman.webp" alt=""
-                                                        class="image-square">
-                                                </div>
-                                                <div class="flex-grow-1 ms-2">
-                                                    N'Game <button type="button" class="btn p-0"><i
-                                                            class="fi fi-rr-circle-xmark text-danger"></i></button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <div id="selected-staff-list"></div>
                                     </div>
                                     <div class="col-sm-12">
-                                        <h4 class="text-end text-purple"><span class="fs-12 fw-normal">THB</span>
-                                            3,136</h4>
+                                        <h4 class="text-end text-purple">
+                                            <span class="fs-12 fw-normal">THB</span>
+                                            <span id="summary-price">0.00</span>
+                                        </h4>
                                         <button class="btn btn-purple rounded-0 w-100"
                                             type="submit">Checkout</button>
                                     </div>
@@ -292,6 +265,8 @@
         </div>
     </div>
     @include('frontend.layout.inc_footer')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         $('#menu li').eq(4).addClass('active');
     </script>
@@ -299,17 +274,178 @@
         document.getElementById('search-bar').addEventListener('input', function() {
             const keyword = this.value.toLowerCase();
             const cards = document.querySelectorAll('.user-card');
-
             cards.forEach(card => {
                 const name = card.getAttribute('data-name');
-                if (name.includes(keyword)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
+                card.style.display = name.includes(keyword) ? 'block' : 'none';
+            });
+        });
+
+        function removeSelectedStaff() {
+            const checked = document.querySelector('input[name="selected_user"]:checked');
+            if (checked) {
+                checked.checked = false;
+                updateSummary();
+            }
+        }
+
+        function updateSummary() {
+            const inputDate = document.getElementById('inputDate');
+            const inputTime = document.getElementById('inputTime');
+            const summaryDate = document.getElementById('summary-date');
+            const summaryTime = document.getElementById('summary-time');
+            const summaryService = document.getElementById('summary-service');
+            const summaryRoomType = document.getElementById('summary-room-type');
+            const summaryRoomNumber = document.getElementById('summary-room-number');
+            const summaryDuration = document.getElementById('summary-duration');
+            const staffListContainer = document.getElementById('selected-staff-list');
+            const summaryPrice = document.getElementById('summary-price');
+
+            const date = inputDate.value;
+            const dateParts = date.split('-');
+            summaryDate.textContent = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+            summaryTime.textContent = inputTime.value;
+
+            const selectedService = document.querySelector('input[name="options"]:checked');
+            if (selectedService) {
+                const label = document.querySelector(`label[for="${selectedService.id}"]`);
+                summaryService.textContent = label?.innerText || '-';
+            }
+
+            const selectedRoomType = document.querySelector('input[name="roomType"]:checked');
+            let roomPrice = 0;
+            if (selectedRoomType) {
+                const label = document.querySelector(`label[for="${selectedRoomType.id}"]`);
+                summaryRoomType.textContent = `Type room - ${label?.innerText.trim()}`;
+                const sixty = parseFloat(selectedRoomType.dataset.sixty || 0);
+                const ninety = parseFloat(selectedRoomType.dataset.ninety || 0);
+                const duration = document.querySelector('input[name="timeService"]:checked')?.id;
+                if (duration === '60min') roomPrice = sixty;
+                else if (duration === '90min') roomPrice = ninety;
+            }
+
+            const selectedRoomNumber = document.querySelector('input[name="roomNumber"]:checked');
+            if (selectedRoomNumber) {
+                const label = document.querySelector(`label[for="${selectedRoomNumber.id}"]`);
+                summaryRoomNumber.textContent = `Room number - ${label?.innerText.trim()}`;
+            }
+
+            const selectedDuration = document.querySelector('input[name="timeService"]:checked');
+            if (selectedDuration) {
+                const label = document.querySelector(`label[for="${selectedDuration.id}"]`);
+                summaryDuration.textContent = label?.innerText || '-';
+            }
+
+            staffListContainer.innerHTML = '';
+            const selectedStaff = document.querySelector('input[name="selected_user"]:checked');
+            let staffSalary = 0;
+            if (selectedStaff) {
+                const nickname = selectedStaff.dataset.nickname;
+                const image = selectedStaff.dataset.image;
+                staffSalary = parseFloat(selectedStaff.dataset.salary || 0);
+                staffListContainer.innerHTML = `
+                    <div class="card p-2 mb-2">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <img src="${image}" alt="" class="image-square" style="width:40px; height:40px; object-fit:cover;">
+                            </div>
+                            <div class="flex-grow-1 ms-2">
+                                ${nickname}
+                                <button type="button" class="btn p-0" onclick="removeSelectedStaff()">
+                                    <i class="fi fi-rr-circle-xmark text-danger"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const total = roomPrice + staffSalary;
+            summaryPrice.textContent = total.toLocaleString(undefined, {
+                minimumFractionDigits: 2
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', updateSummary);
+
+        ['inputDate', 'inputTime'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateSummary);
+        });
+
+        document.querySelectorAll(
+            'input[name="options"], input[name="roomType"], input[name="roomNumber"], input[name="timeService"], input[name="selected_user"]'
+        ).forEach(el => {
+            el.addEventListener('change', updateSummary);
+        });
+    </script>
+    <script>
+        $('#insert_service').on('submit', function(e) {
+            e.preventDefault(); // หยุดการ submit ปกติ
+
+            Swal.fire({
+                title: 'ยืนยันการดำเนินการ?',
+                text: 'คุณต้องการทำรายการหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = $(this);
+                    const formData = form.serialize();
+
+                    $.ajax({
+                        type: 'POST',
+                        url: "{{ route('insert') }}",
+                        data: formData,
+                        beforeSend: function() {
+                            Swal.fire({
+                                title: 'กำลังดำเนินการ...',
+                                text: 'กรุณารอสักครู่',
+                                allowOutsideClick: false,
+                                showConfirmButton: false,
+                                willOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+                        },
+                        success: function(response) {
+                            Swal.close(); // ปิด loading
+
+                            const win = window.open('', '_blank');
+                            win.document.open();
+                            win.document.write(response); // HTML ใบเสร็จ
+                            win.document.close();
+
+                            win.onload = () => {
+                                win.focus();
+                                win.print();
+                            };
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'ทำรายการสำเร็จ',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        },
+                        error: function(xhr) {
+                            Swal.close(); // ปิด loading
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'เกิดข้อผิดพลาด',
+                                text: 'ไม่สามารถทำรายการได้ กรุณาลองใหม่อีกครั้ง'
+                            });
+
+                            console.error(xhr.responseText);
+                        }
+                    });
                 }
             });
         });
     </script>
+
 
 </body>
 
