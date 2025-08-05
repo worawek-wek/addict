@@ -16,11 +16,14 @@
                     <div class="row g-3">
                         <div class="col-sm-6">
                             <label for="exampleFormControlInput1" class="form-label fs-14 mb-0">Date</label>
-                            <input type="date" class="form-control" id="exampleFormControlInput1" placeholder="">
+                            <input type="date" class="form-control" id="inputDate" name="booking_date"
+                                value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
                         </div>
                         <div class="col-sm-6">
                             <label for="exampleFormControlInput1" class="form-label fs-14 mb-0">Time</label>
-                            <input type="time" class="form-control" id="exampleFormControlInput1" placeholder="">
+                            <input type="time" class="form-control" id="inputTime" name="booking_time"
+                                value="{{ \Carbon\Carbon::now()->format('H:i') }}">
                         </div>
                         <div class="col-12">
                             <h4 class="bg-cream ff-playfair p-2">Staff</h4>
