@@ -13,6 +13,7 @@ use App\Models\Room;
 use App\Models\Branch;
 use Illuminate\Support\Facades\DB;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\Auth;
 
 DB::beginTransaction();
 
@@ -26,6 +27,7 @@ class FrontHomeController extends Controller
      */
     public function index($id = null)
     {
+        // return Auth::guard('customer')->user()->id_card;
         // if(!is_null($id)){
             session(["branch_id" => $id]);
         //     return redirect('dashboard');

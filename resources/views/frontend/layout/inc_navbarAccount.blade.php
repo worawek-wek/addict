@@ -13,14 +13,24 @@
             <div class="dropdown btn-group">
                 <button class="btn dropdown-toggle d-flex align-items-center text-white" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fi fi-rr-circle-user me-md-1"></i> <span class="d-md-inline d-none">Username</span>
+                    <i class="fi fi-rr-circle-user me-md-1"></i>
+                    <span class="d-md-inline d-none">{{ Auth::guard('customer')->user()?->name ?? 'Username' }}</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item d-flex align-items-center" href="#"><i class="fi fi-rr-power me-1"></i>
-                            Sign out</a></li>
+                    <li>
+                        <form method="POST" action="{{ route('customer.logout') }}">
+                            @csrf
+                            <button type="submit" class="dropdown-item d-flex align-items-center">
+                                <i class="fi fi-rr-power me-1"></i> Sign out
+                            </button>
+                        </form>
+                    </li>
                 </ul>
             </div>
-            <button class="btn btn-icon d-flex align-items-center text-white"><i class="fi fi-rr-qr-scan"></i></button>
+
+            <button class="btn btn-icon d-flex align-items-center text-white">
+                <i class="fi fi-rr-qr-scan"></i>
+            </button>
         </div>
     </div>
 </nav>
