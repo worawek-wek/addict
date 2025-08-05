@@ -73,7 +73,6 @@ class FrontHomeController extends Controller
     public function insert(Request $request, $branch = null, $id = null)
     {
         $id = $request->selected_user;
-
         try {
             // return $request;
             $ref_seller_id = Auth::guard('customer')->user()->id;  // $ref_seller_id = User::where('user_code', $request->ref_seller_id)->first()->id;
@@ -84,10 +83,14 @@ class FrontHomeController extends Controller
 
             $price = $this->calculate_all($request);
 
-            if ($request->service == 'sixty_minutes') {
+            if ($request->timeService == 'forty_minutes') {
+                $service = '40 นาที';
+            } elseif ($request->timeService == 'sixty_minutes') {
                 $service = '60 นาที';
-            } else {
+            } elseif ($request->timeService == 'ninety_minutes') {
                 $service = '90 นาที';
+            } else {
+                $service = '-';
             }
 
             $customer_find = Auth::guard('customer')->user();
@@ -118,6 +121,29 @@ class FrontHomeController extends Controller
             $order->ref_room_id = $request->roomType;
             $order->service_laundry_cost = $request->timeService;
             $order->ref_status_id = 2;
+            $order->booking_date = $request->booking_date;
+            $order->start_time = $request->booking_time;
+
+            // คำนวณเวลาสิ้นสุดตามเวลาที่เลือก
+            $start = \Carbon\Carbon::createFromFormat('H:i', $request->booking_time);
+
+            switch ($request->timeService) {
+                case 'forty_minutes':
+                    $end = $start->copy()->addMinutes(40);
+                    break;
+                case 'sixty_minutes':
+                    $end = $start->copy()->addMinutes(60);
+                    break;
+                case 'ninety_minutes':
+                    $end = $start->copy()->addMinutes(90);
+                    break;
+                default:
+                    $end = $start;
+            }
+
+            $order->end_time = $end->format('H:i');
+
+
             $order->save();
             $td = '';
             if (@$request->ref_product_id) {
@@ -182,8 +208,9 @@ class FrontHomeController extends Controller
                     </div>
                     <p class='right-align'><strong>แคชเชียร์:</strong> Addict</p>
                     <p><strong>ห้อง:</strong> $room->name</p>
-                    <p><strong>เปิดห้อง:</strong> " . date('d/m/Y H:i') . "</p>
-                    <p><strong>เช็คบิล:</strong> " . date('d/m/Y H:i:s') . "</p>
+                 <p><strong>เปิดห้อง:</strong> " . \Carbon\Carbon::parse($order->booking_date . ' ' . $order->start_time)->format('d/m/Y H:i') . "</p>
+<p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse($order->booking_date . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+
                     <table>
                         <tr>
                             <th>จำนวน</th>
@@ -214,6 +241,8 @@ class FrontHomeController extends Controller
     {
         $price = 0;
         $data['rooms'] = Room::get();
+                   $user = User::find( $request->selected_user);
+                    $price+= $user->salary;
         if (@$request->ref_product_id) {
             foreach ($request->ref_product_id as $product) {
                 if (@$request->product_qty[$product]) {
@@ -223,13 +252,17 @@ class FrontHomeController extends Controller
         }
         if (@$request->roomType && $request->timeService) {
             $room = Room::find($request->roomType);
-            if ($request->timeService == 'sixty_minutes') {
+
+            if ($request->timeService == 'forty_minutes') {
+                $price += $room->forty_minutes;
+
+
+            } elseif ($request->timeService == 'sixty_minutes') {
                 $price += $room->sixty_minutes;
-            } else {
+            } elseif ($request->timeService == 'ninety_minutes') {
                 $price += $room->ninety_minutes;
             }
         }
-
         return number_format($price);
     }
     public function overdue(Request $request)

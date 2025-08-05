@@ -65,7 +65,7 @@
                         </div>
 
 
-                        <div class="col-12">
+                        {{-- <div class="col-12">
                             <h4 class="bg-cream ff-playfair p-2">Service Course</h4>
                         </div>
                         <div class="col-12">
@@ -89,7 +89,7 @@
                                 <label class="btn btn-purple-check flex-fill rounded-0" for="option4">Service D</label>
 
                             </div>
-                        </div>
+                        </div> --}}
                         <div class="col-12">
                             <h4 class="bg-cream ff-playfair p-2">Room</h4>
                         </div>
@@ -100,7 +100,8 @@
                                 @foreach ($rooms as $index => $room)
                                     <input type="radio" class="btn-check" name="roomType"
                                         id="roomType{{ $room->id }}" value="{{ $room->id }}"
-                                        data-name="{{ $room->name }}" data-sixty="{{ $room->sixty_minutes }}"
+                                        data-name="{{ $room->name }}" data-forty="{{ $room->forty_minutes }}"
+                                        data-sixty="{{ $room->sixty_minutes }}"
                                         data-ninety="{{ $room->ninety_minutes }}" autocomplete="off"
                                         {{ $index === 0 ? 'checked' : '' }}>
 
@@ -164,7 +165,7 @@
 
                         </div>
 
-                        <div class="col-12">
+                        {{-- <div class="col-12">
                             <label for="exampleFormControlInput1" class="form-label fs-14 mb-0">2.Room number</label>
                             <div class="d-flex gap-2 flex-wrap">
                                 <input type="radio" class="btn-check" name="roomNumber" id="roomNumber1"
@@ -196,13 +197,19 @@
                                 <label class="btn btn-purple-check flex-fill rounded-0"
                                     for="roomNumber6">FR006</label>
                             </div>
-                        </div>
+                        </div> --}}
                         <div class="col-12">
                             <h4 class="bg-cream ff-playfair p-2">Time Period</h4>
                         </div>
                         <div class="col-12">
                             <label class="form-label fs-14 mb-0">Duration of service use</label>
                             <div class="d-flex gap-2 flex-wrap">
+                                <input type="radio" class="btn-check" name="timeService" id="40min"
+                                    value="forty_minutes" autocomplete="off">
+                                <label class="btn btn-purple-check flex-fill rounded-0" for="40min">
+                                    40 minutes/service
+                                </label>
+
                                 <input type="radio" class="btn-check" name="timeService" id="60min"
                                     value="sixty_minutes" autocomplete="off" checked>
                                 <label class="btn btn-purple-check flex-fill rounded-0" for="60min">
@@ -215,6 +222,7 @@
                                     90 minutes/service
                                 </label>
                             </div>
+
                         </div>
 
 
@@ -230,14 +238,14 @@
                                         </ul>
                                     </div>
                                     <div class="col-sm-4">
-                                        <h6>Service</h6>
+                                        {{-- <h6>Service</h6>
                                         <ul>
                                             <li id="summary-service">Service A</li>
-                                        </ul>
+                                        </ul> --}}
                                         <h6>Room</h6>
                                         <ul>
                                             <li id="summary-room-type">Type room - First room</li>
-                                            <li id="summary-room-number">Room number - FR001</li>
+                                            {{-- <li id="summary-room-number">Room number - FR001</li> --}}
                                         </ul>
 
                                         <h6>Time Period</h6>
@@ -302,7 +310,10 @@
 
             const date = inputDate.value;
             const dateParts = date.split('-');
-            summaryDate.textContent = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+            if (dateParts.length === 3) {
+                summaryDate.textContent = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+            }
+
             summaryTime.textContent = inputTime.value;
 
             const selectedService = document.querySelector('input[name="options"]:checked');
@@ -316,10 +327,14 @@
             if (selectedRoomType) {
                 const label = document.querySelector(`label[for="${selectedRoomType.id}"]`);
                 summaryRoomType.textContent = `Type room - ${label?.innerText.trim()}`;
+
+                const forty = parseFloat(selectedRoomType.dataset.forty || 0);
                 const sixty = parseFloat(selectedRoomType.dataset.sixty || 0);
                 const ninety = parseFloat(selectedRoomType.dataset.ninety || 0);
                 const duration = document.querySelector('input[name="timeService"]:checked')?.id;
-                if (duration === '60min') roomPrice = sixty;
+
+                if (duration === '40min') roomPrice = forty;
+                else if (duration === '60min') roomPrice = sixty;
                 else if (duration === '90min') roomPrice = ninety;
             }
 
@@ -343,20 +358,20 @@
                 const image = selectedStaff.dataset.image;
                 staffSalary = parseFloat(selectedStaff.dataset.salary || 0);
                 staffListContainer.innerHTML = `
-                    <div class="card p-2 mb-2">
-                        <div class="d-flex">
-                            <div class="flex-shrink-0">
-                                <img src="${image}" alt="" class="image-square" style="width:40px; height:40px; object-fit:cover;">
-                            </div>
-                            <div class="flex-grow-1 ms-2">
-                                ${nickname}
-                                <button type="button" class="btn p-0" onclick="removeSelectedStaff()">
-                                    <i class="fi fi-rr-circle-xmark text-danger"></i>
-                                </button>
-                            </div>
+                <div class="card p-2 mb-2">
+                    <div class="d-flex">
+                        <div class="flex-shrink-0">
+                            <img src="${image}" alt="" class="image-square" style="width:40px; height:40px; object-fit:cover;">
+                        </div>
+                        <div class="flex-grow-1 ms-2">
+                            ${nickname}
+                            <button type="button" class="btn p-0" onclick="removeSelectedStaff()">
+                                <i class="fi fi-rr-circle-xmark text-danger"></i>
+                            </button>
                         </div>
                     </div>
-                `;
+                </div>
+            `;
             }
 
             const total = roomPrice + staffSalary;
@@ -377,68 +392,85 @@
             el.addEventListener('change', updateSummary);
         });
     </script>
+
     <script>
         $('#insert_service').on('submit', function(e) {
             e.preventDefault(); // หยุดการ submit ปกติ
 
+            // Step 1: แสดง popup แจ้งเตือนก่อน
             Swal.fire({
-                title: 'ยืนยันการดำเนินการ?',
-                text: 'คุณต้องการทำรายการหรือไม่?',
-                icon: 'warning',
+                icon: 'info',
+                title: 'โปรดตรวจสอบวันและเวลา',
+                html: `
+            🔔 <strong>กรุณาตรวจสอบวันและเวลาก่อนกดยืนยันการจอง</strong><br>
+            หากมาช้ากว่า 15 นาทีโดยไม่แจ้ง ทางร้านขอสงวนสิทธิ์ในการยกเลิกการจองค่ะ<br><br>
+            🔔 <strong>Please double-check your date and time before confirming.</strong><br>
+            If you arrive more than 15 minutes late without notice, your booking may be cancelled.
+        `,
+                confirmButtonText: 'ตรวจสอบแล้ว',
                 showCancelButton: true,
-                confirmButtonText: 'ตกลง',
-                cancelButtonText: 'ยกเลิก',
-                reverseButtons: true
+                cancelButtonText: 'ยกเลิก'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const form = $(this);
-                    const formData = form.serialize();
+                    // Step 2: Popup ยืนยันการทำรายการ
+                    Swal.fire({
+                        title: 'ยืนยันการดำเนินการ?',
+                        text: 'คุณต้องการทำรายการหรือไม่?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'ตกลง',
+                        cancelButtonText: 'ยกเลิก',
+                        // reverseButtons: true
+                    }).then((confirmResult) => {
+                        if (confirmResult.isConfirmed) {
+                            const form = $('#insert_service');
+                            const formData = form.serialize();
 
-                    $.ajax({
-                        type: 'POST',
-                        url: "{{ route('insert') }}",
-                        data: formData,
-                        beforeSend: function() {
-                            Swal.fire({
-                                title: 'กำลังดำเนินการ...',
-                                text: 'กรุณารอสักครู่',
-                                allowOutsideClick: false,
-                                showConfirmButton: false,
-                                willOpen: () => {
-                                    Swal.showLoading();
+                            $.ajax({
+                                type: 'POST',
+                                url: "{{ route('insert') }}",
+                                data: formData,
+                                beforeSend: function() {
+                                    Swal.fire({
+                                        title: 'กำลังดำเนินการ...',
+                                        text: 'กรุณารอสักครู่',
+                                        allowOutsideClick: false,
+                                        showConfirmButton: false,
+                                        willOpen: () => {
+                                            Swal.showLoading();
+                                        }
+                                    });
+                                },
+                                success: function(response) {
+                                    Swal.close();
+
+                                    const win = window.open('', '_blank');
+                                    win.document.open();
+                                    win.document.write(response);
+                                    win.document.close();
+
+                                    win.onload = () => {
+                                        win.focus();
+                                        win.print();
+                                    };
+
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'ทำรายการสำเร็จ',
+                                        showConfirmButton: false,
+                                        timer: 1500
+                                    });
+                                },
+                                error: function(xhr) {
+                                    Swal.close();
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'เกิดข้อผิดพลาด',
+                                        text: 'ไม่สามารถทำรายการได้ กรุณาลองใหม่อีกครั้ง'
+                                    });
+                                    console.error(xhr.responseText);
                                 }
                             });
-                        },
-                        success: function(response) {
-                            Swal.close(); // ปิด loading
-
-                            const win = window.open('', '_blank');
-                            win.document.open();
-                            win.document.write(response); // HTML ใบเสร็จ
-                            win.document.close();
-
-                            win.onload = () => {
-                                win.focus();
-                                win.print();
-                            };
-
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'ทำรายการสำเร็จ',
-                                showConfirmButton: false,
-                                timer: 1500
-                            });
-                        },
-                        error: function(xhr) {
-                            Swal.close(); // ปิด loading
-
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'เกิดข้อผิดพลาด',
-                                text: 'ไม่สามารถทำรายการได้ กรุณาลองใหม่อีกครั้ง'
-                            });
-
-                            console.error(xhr.responseText);
                         }
                     });
                 }
