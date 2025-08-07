@@ -95,7 +95,7 @@
                         </div>
 
                         <div class="col-12">
-                            <label for="roomType" class="form-label fs-14 mb-0">1. Type Room</label>
+                            {{-- <label for="roomType" class="form-label fs-14 mb-0">1. Type Room</label> --}}
                             <div class="d-flex gap-2 flex-wrap">
                                 @foreach ($rooms as $index => $room)
                                     <input type="radio" class="btn-check" name="roomType"
@@ -198,6 +198,42 @@
                                     for="roomNumber6">FR006</label>
                             </div>
                         </div> --}}
+
+                        <div class="col-12">
+                            <h4 class="bg-cream ff-playfair p-2">Snacks (Optional)</h4>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="d-flex gap-2 flex-wrap">
+                                @foreach ($products as $product)
+                                    <div class="snack-item" style="position: relative; width: 19%; min-width: 200px;">
+                                        <input type="checkbox" class="btn-check snack-checkbox" name="ref_product_id[]"
+                                            id="snack{{ $product->id }}" value="{{ $product->id }}"
+                                            data-name="{{ $product->name }}" data-price="{{ $product->price }}"
+                                            autocomplete="off">
+
+                                        <label
+                                            class="btn btn-purple-check d-flex flex-column justify-content-center text-center"
+                                            for="snack{{ $product->id }}">
+                                            <img src="{{ asset('assets/svg/icons/junk-food-icon.svg') }}"
+                                                alt="snack" width="50" class="mb-2 mx-auto">
+                                            {{ $product->name }}
+                                            <br>
+                                            <small>{{ number_format($product->price, 2) }} ฿</small>
+                                        </label>
+
+                                        {{-- จำนวนสินค้า (แสดงเมื่อ checkbox ถูกติ๊ก) --}}
+                                        <div class="quantity-input mt-1 text-center" style="display: none;">
+                                            <input type="number" name="product_qty[{{ $product->id }}]"
+                                                class="form-control form-control-sm text-center" value="0"
+                                                min="0" style="width: 80px; margin: 0 auto;">
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+
                         <div class="col-12">
                             <h4 class="bg-cream ff-playfair p-2">Time Period</h4>
                         </div>
@@ -247,7 +283,8 @@
                                             <li id="summary-room-type">Type room - First room</li>
                                             {{-- <li id="summary-room-number">Room number - FR001</li> --}}
                                         </ul>
-
+                                        <h6>Snacks</h6>
+                                        <ul id="summary-snacks"></ul>
                                         <h6>Time Period</h6>
                                         <ul>
                                             <li id="summary-duration">60 mins/service</li>
@@ -255,7 +292,9 @@
                                     </div>
                                     <div class="col-sm-4">
                                         <div id="selected-staff-list"></div>
+
                                     </div>
+
                                     <div class="col-sm-12">
                                         <h4 class="text-end text-purple">
                                             <span class="fs-12 fw-normal">THB</span>
@@ -307,21 +346,19 @@
             const summaryDuration = document.getElementById('summary-duration');
             const staffListContainer = document.getElementById('selected-staff-list');
             const summaryPrice = document.getElementById('summary-price');
+            const summarySnacks = document.getElementById('summary-snacks');
 
+            // วันที่
             const date = inputDate.value;
             const dateParts = date.split('-');
             if (dateParts.length === 3) {
                 summaryDate.textContent = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
             }
 
+            // เวลา
             summaryTime.textContent = inputTime.value;
 
-            const selectedService = document.querySelector('input[name="options"]:checked');
-            if (selectedService) {
-                const label = document.querySelector(`label[for="${selectedService.id}"]`);
-                summaryService.textContent = label?.innerText || '-';
-            }
-
+            // ประเภทห้อง
             const selectedRoomType = document.querySelector('input[name="roomType"]:checked');
             let roomPrice = 0;
             if (selectedRoomType) {
@@ -338,18 +375,14 @@
                 else if (duration === '90min') roomPrice = ninety;
             }
 
-            const selectedRoomNumber = document.querySelector('input[name="roomNumber"]:checked');
-            if (selectedRoomNumber) {
-                const label = document.querySelector(`label[for="${selectedRoomNumber.id}"]`);
-                summaryRoomNumber.textContent = `Room number - ${label?.innerText.trim()}`;
-            }
-
+            // ระยะเวลา
             const selectedDuration = document.querySelector('input[name="timeService"]:checked');
             if (selectedDuration) {
                 const label = document.querySelector(`label[for="${selectedDuration.id}"]`);
                 summaryDuration.textContent = label?.innerText || '-';
             }
 
+            // พนักงาน
             staffListContainer.innerHTML = '';
             const selectedStaff = document.querySelector('input[name="selected_user"]:checked');
             let staffSalary = 0;
@@ -358,23 +391,44 @@
                 const image = selectedStaff.dataset.image;
                 staffSalary = parseFloat(selectedStaff.dataset.salary || 0);
                 staffListContainer.innerHTML = `
-                <div class="card p-2 mb-2">
-                    <div class="d-flex">
-                        <div class="flex-shrink-0">
-                            <img src="${image}" alt="" class="image-square" style="width:40px; height:40px; object-fit:cover;">
-                        </div>
-                        <div class="flex-grow-1 ms-2">
-                            ${nickname}
-                            <button type="button" class="btn p-0" onclick="removeSelectedStaff()">
-                                <i class="fi fi-rr-circle-xmark text-danger"></i>
-                            </button>
-                        </div>
+            <div class="card p-2 mb-2">
+                <div class="d-flex">
+                    <div class="flex-shrink-0">
+                        <img src="${image}" alt="" class="image-square" style="width:40px; height:40px; object-fit:cover;">
+                    </div>
+                    <div class="flex-grow-1 ms-2">
+                        ${nickname}
+                        <button type="button" class="btn p-0" onclick="removeSelectedStaff()">
+                            <i class="fi fi-rr-circle-xmark text-danger"></i>
+                        </button>
                     </div>
                 </div>
-            `;
+            </div>
+        `;
             }
 
-            const total = roomPrice + staffSalary;
+            // Snacks
+            summarySnacks.innerHTML = '';
+            let snackTotal = 0;
+            document.querySelectorAll('.snack-checkbox:checked').forEach(checkbox => {
+                const container = checkbox.closest('.snack-item');
+                const name = checkbox.dataset.name;
+                const price = parseFloat(checkbox.dataset.price || 0);
+                const qtyInput = container.querySelector('input[type="number"]');
+                const qty = parseInt(qtyInput.value || 1);
+                const total = price * qty;
+
+                snackTotal += total;
+
+                const li = document.createElement('li');
+                li.innerHTML = `
+            ${name} <span>${qty} x ${price.toFixed(2)} ฿</span>
+        `;
+                summarySnacks.appendChild(li);
+            });
+
+            // ราคารวม
+            const total = roomPrice + staffSalary + snackTotal;
             summaryPrice.textContent = total.toLocaleString(undefined, {
                 minimumFractionDigits: 2
             });
@@ -477,6 +531,39 @@
             });
         });
     </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkboxes = document.querySelectorAll('.snack-checkbox');
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                const container = this.closest('.snack-item');
+                const qtyInputWrapper = container.querySelector('.quantity-input');
+                const qtyInput = container.querySelector('input[type="number"]');
+
+                if (this.checked) {
+                    qtyInputWrapper.style.display = 'block';
+                    qtyInput.disabled = false;
+                    if (parseInt(qtyInput.value) === 0) {
+                        qtyInput.value = 1;
+                    }
+                } else {
+                    qtyInputWrapper.style.display = 'none';
+                    qtyInput.disabled = false;
+                    qtyInput.value = 0;
+                }
+
+                updateSummary();
+            });
+        });
+
+        // ✅ เมื่อจำนวนเปลี่ยน
+        document.querySelectorAll('.snack-item input[type="number"]').forEach(input => {
+            input.addEventListener('input', updateSummary);
+        });
+    });
+</script>
+
 
 
 </body>

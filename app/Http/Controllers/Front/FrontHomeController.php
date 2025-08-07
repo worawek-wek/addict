@@ -35,7 +35,8 @@ class FrontHomeController extends Controller
         $data['user'] = User::where('ref_status_id', 1)->get();
         $data['page_url'] = 'home';
         $data['rooms'] = Room::get();
-        // $data['summary'] = $this->summary(session("branch_id"));
+        $data['products'] = Product::get();
+
         return view('frontend.home', $data);
 
         // return view('home/index', $data);
@@ -147,6 +148,7 @@ class FrontHomeController extends Controller
             $order->save();
             $td = '';
             if (@$request->ref_product_id) {
+
                 foreach ($request->ref_product_id as $product) {
 
                     $pro = Product::find($product);
@@ -241,8 +243,8 @@ class FrontHomeController extends Controller
     {
         $price = 0;
         $data['rooms'] = Room::get();
-                   $user = User::find( $request->selected_user);
-                    $price+= $user->salary;
+        $user = User::find($request->selected_user);
+        $price += $user->salary;
         if (@$request->ref_product_id) {
             foreach ($request->ref_product_id as $product) {
                 if (@$request->product_qty[$product]) {
@@ -255,8 +257,6 @@ class FrontHomeController extends Controller
 
             if ($request->timeService == 'forty_minutes') {
                 $price += $room->forty_minutes;
-
-
             } elseif ($request->timeService == 'sixty_minutes') {
                 $price += $room->sixty_minutes;
             } elseif ($request->timeService == 'ninety_minutes') {
