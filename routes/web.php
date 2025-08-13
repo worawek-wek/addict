@@ -56,12 +56,24 @@ Route::get('/clc', function () {
 Route::get('/', function () {
     return redirect('login');
 });
+Route::get('/register', [CustomerLoginController::class, 'showRegisterForm'])
+    ->name('customer.register');
+
+Route::post('/register', [CustomerLoginController::class, 'register'])
+    ->name('customer.register.submit');
+
 Route::middleware('guest:customer')->group(function () {
     Route::get('/login', [CustomerLoginController::class, 'showLoginForm'])->name('customer.login');
     Route::post('/login', [CustomerLoginController::class, 'login']);
 });
 
 Route::middleware('auth:customer')->group(function () {
+   Route::get('/api/get-users-by-branch/{branchId}', function ($branchId) {
+    return \App\Models\User::where('ref_status_id', 1)
+        ->where('ref_branch_id', $branchId)
+        ->get(['id', 'name', 'nickname', 'salary', 'image_name']);
+});
+
     // logout
     Route::post('/logout', [CustomerLoginController::class, 'logout'])->name('customer.logout');
 
@@ -77,7 +89,7 @@ Route::middleware('auth:customer')->group(function () {
 
         Route::get('dashboard/overdue', 'overdue')->name('dashboard.overdue');
         Route::get('dashboard/overdue/{id}', 'invoice')->name('dashboard.invoice');
-        Route::get('dashboard/{branch_id}', 'index')->name('dashboard');
+        // Route::get('dashboard/{branch_id}', 'index')->name('dashboard');
     });
 
     Route::controller(FrontClockInController::class)->group(function () {

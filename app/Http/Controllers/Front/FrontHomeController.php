@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
+use App\Models\AddonOption;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\User;
@@ -11,6 +12,7 @@ use App\Models\Order;
 use App\Models\OrderHasProduct;
 use App\Models\Room;
 use App\Models\Branch;
+use App\Models\OrderHasAddonOption;
 use Illuminate\Support\Facades\DB;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Auth;
@@ -32,10 +34,14 @@ class FrontHomeController extends Controller
         session(["branch_id" => $id]);
         //     return redirect('dashboard');
         // }
-        $data['user'] = User::where('ref_status_id', 1)->get();
+        $data['user'] = User::where('ref_status_id', 1)
+            ->where('ref_branch_id', 1)
+            ->get();
         $data['page_url'] = 'home';
         $data['rooms'] = Room::get();
         $data['products'] = Product::get();
+        $data['option'] = AddonOption::orderBy('price', 'asc')->get();
+        $data['branches'] = Branch::all();
 
         return view('frontend.home', $data);
 
@@ -104,7 +110,7 @@ class FrontHomeController extends Controller
             }
             $order = new Order;
             $order->order_number = 1;
-            $order->ref_branch_id = 1;
+            $order->ref_branch_id = $request->ref_branch_id;
 
             if (@$customer_find) {
                 $order->ref_customer_id = $customer_find->id;
@@ -124,8 +130,7 @@ class FrontHomeController extends Controller
             $order->ref_status_id = 2;
             $order->booking_date = $request->booking_date;
             $order->start_time = $request->booking_time;
-
-            // คำนวณเวลาสิ้นสุดตามเวลาที่เลือก
+            $order->total_price = number_format($price, 2, '.', '');
             $start = \Carbon\Carbon::createFromFormat('H:i', $request->booking_time);
 
             switch ($request->timeService) {
@@ -161,6 +166,20 @@ class FrontHomeController extends Controller
                     $order_product->price = $pro->price;
                     $order_product->quantity = $request->product_qty[$product];
                     $order_product->save();
+                }
+            }
+            if (@$request->ref_option_id) {
+                foreach ($request->ref_option_id as $option_id) {
+                    $option = AddonOption::find($option_id);
+
+                    // ต่อข้อความสำหรับแสดงในใบเสร็จหรือหน้าจอ
+                    $td .= "+$option->name";
+
+                    $order_option = new OrderHasAddonOption();
+                    $order_option->ref_order_id = $order->id;
+                    $order_option->ref_option_id = $option_id;
+                    $order_option->price = $option->price;
+                    $order_option->save();
                 }
             }
 
@@ -239,32 +258,48 @@ class FrontHomeController extends Controller
             DB::rollBack();
         }
     }
-    public function calculate_all(Request $request)
+    public function calculate_all(Request $request): float
     {
         $price = 0;
-        $data['rooms'] = Room::get();
+
         $user = User::find($request->selected_user);
         $price += $user->salary;
-        if (@$request->ref_product_id) {
+
+        if (!empty($request->ref_product_id)) {
             foreach ($request->ref_product_id as $product) {
-                if (@$request->product_qty[$product]) {
+                if (!empty($request->product_qty[$product])) {
                     $price += Product::find($product)->price * $request->product_qty[$product];
                 }
             }
         }
-        if (@$request->roomType && $request->timeService) {
-            $room = Room::find($request->roomType);
 
-            if ($request->timeService == 'forty_minutes') {
-                $price += $room->forty_minutes;
-            } elseif ($request->timeService == 'sixty_minutes') {
-                $price += $room->sixty_minutes;
-            } elseif ($request->timeService == 'ninety_minutes') {
-                $price += $room->ninety_minutes;
+        if (!empty($request->ref_option_id)) {
+            foreach ($request->ref_option_id as $optionId) {
+                $option = AddonOption::find($optionId);
+                if ($option) {
+                    $price += $option->price;
+                }
             }
         }
-        return number_format($price);
+
+        if (!empty($request->roomType) && $request->timeService) {
+            $room = Room::find($request->roomType);
+            switch ($request->timeService) {
+                case 'forty_minutes':
+                    $price += $room->forty_minutes;
+                    break;
+                case 'sixty_minutes':
+                    $price += $room->sixty_minutes;
+                    break;
+                case 'ninety_minutes':
+                    $price += $room->ninety_minutes;
+                    break;
+            }
+        }
+
+        return $price; // float
     }
+
     public function overdue(Request $request)
     {
         $all_overdue_payment = RentBill::where('rent_bills.ref_status_id', 3)

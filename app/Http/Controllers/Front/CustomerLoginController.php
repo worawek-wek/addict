@@ -1,7 +1,9 @@
 <?php
+
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -12,7 +14,10 @@ class CustomerLoginController extends Controller
     {
         return view('frontend.login');
     }
-
+    public function showRegisterForm()
+    {
+        return view('frontend.register');
+    }
     public function login(Request $request)
     {
         $credentials = $request->only('id_card', 'password');
@@ -35,5 +40,63 @@ class CustomerLoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/login'); // หรือเปลี่ยน path ได้ตามต้องการ
+    }
+    public function register(Request $request)
+    {
+        // ถ้าต้องการจำกัด contact_app ให้ตรงกับหน้า (line/whatsapp/wechat/email)
+        $request->validate(
+            [
+                'first_name'          => 'required|string|max:255',
+                'last_name'           => 'required|string|max:255',
+                'nationality'         => 'nullable|string|max:100',
+                'phone'               => 'required|string|max:20|unique:customers,phone',
+                'contact_app'         => 'nullable|in:line,whatsapp,wechat,email',
+                'contact_app_handle'  => 'nullable|string|max:255',
+                'id_card'             => 'required|string|unique:customers,id_card',
+                'password'            => 'required|string|min:6|confirmed',
+            ],
+            // messages (ไทย)
+            [
+                'required' => ':attribute จำเป็นต้องกรอก',
+                'string'   => ':attribute ต้องเป็นตัวอักษร',
+                'max'      => ':attribute ต้องไม่เกิน :max ตัวอักษร',
+                'unique'   => ':attribute นี้ถูกใช้ไปแล้ว',
+                'in'       => ':attribute ไม่ถูกต้อง',
+                'email'    => ':attribute รูปแบบไม่ถูกต้อง',
+                'min'      => ':attribute ต้องมีอย่างน้อย :min ตัวอักษร',
+                'confirmed' => 'ยืนยันรหัสผ่านไม่ตรงกัน',
+            ],
+            // attributes (label ไทย)
+            [
+                'first_name'         => 'ชื่อ',
+                'last_name'          => 'นามสกุล',
+                'nationality'        => 'สัญชาติ',
+                'phone'              => 'เบอร์โทร',
+                'contact_app'        => 'แอปติดต่อ',
+                'contact_app_handle' => 'ไอดี/เบอร์ในแอป',
+                'id_card'            => 'หมายเลขบัตร/Username',
+                'password'           => 'รหัสผ่าน',
+            ]
+        );
+
+        $user = Customer::create([
+            'name'               => (string) $request->first_name . ' ' . (string) $request->last_name,
+            'first_name'         => (string) $request->first_name,
+            'last_name'          => (string) $request->last_name,
+            'nationality'        => $request->nationality ? (string) $request->nationality : null,
+            'phone'              => (string) $request->phone,
+            'contact_app'        => $request->contact_app ? (string) $request->contact_app : null,
+            'contact_app_handle' => $request->contact_app_handle ? (string) $request->contact_app_handle : null,
+            'id_card'            => (string) $request->id_card,
+            'password'           => Hash::make((string) $request->password),
+            'ref_branch_id' => 1
+        ]);
+
+        if ($user) {
+            auth()->login($user);
+            return redirect()->route('dashboard')->with('success', 'สมัครสมาชิกเรียบร้อย');
+        }
+
+        return back()->with('error', 'ไม่สามารถสมัครสมาชิกได้ กรุณาลองอีกครั้ง');
     }
 }

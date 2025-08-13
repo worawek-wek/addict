@@ -44,8 +44,10 @@
 
                             <div class="mb-3">
                                 <label for="id_card" class="form-label fs-14 mb-0">ID card number or Username</label>
-                                <input type="text" name="id_card" class="form-control @error('id_card') is-invalid @enderror"
-                                    id="id_card" value="{{ old('id_card') }}" placeholder="Please enter your ID card number or username.">
+                                <input type="text" name="id_card"
+                                    class="form-control @error('id_card') is-invalid @enderror" id="id_card"
+                                    value="{{ old('id_card') }}"
+                                    placeholder="Please enter your ID card number or username.">
                                 @error('id_card')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -54,8 +56,9 @@
                             <div class="mb-3">
                                 <label for="password" class="form-label fs-14 mb-0">Password</label>
                                 <div class="box-password">
-                                    <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
-                                        id="password" placeholder="Password">
+                                    <input type="password" name="password"
+                                        class="form-control @error('password') is-invalid @enderror" id="password"
+                                        placeholder="Password">
                                     <span toggle="#password" class="fi fi-rr-eye field-icon toggle-password"></span>
                                 </div>
                                 @error('password')
@@ -64,6 +67,9 @@
                             </div>
 
                             <button type="submit" class="btn btn-purple w-100">Login</button>
+                            <a href="{{ route('customer.register') }}" class="btn btn-outline-purple w-100">
+                                สมัครสมาชิก
+                            </a>
                         </form>
 
                     </div>
@@ -115,7 +121,7 @@
 
 </html>
 
-                            {{-- <div class="row gx-0">
+{{-- <div class="row gx-0">
                                 <div class="col-sm-6">
                                     <div class="mb-3 form-check">
                                         <input type="checkbox" class="form-check-input" id="exampleCheck1">

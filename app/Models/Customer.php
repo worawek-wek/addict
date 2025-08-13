@@ -8,9 +8,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class Customer extends Authenticatable
 {
     // use HasFactory;
-    protected $fillable = [
-        'name',
+   protected $fillable = [
+        'name','first_name','last_name','nationality','phone',
+        'contact_app','contact_app_handle','id_card','password','ref_branch_id',
+        'email', // ถ้ามี
     ];
+
+    protected $hidden = ['password', 'remember_token'];
 
     public $timestamps = true;
     protected $primaryKey = 'id';

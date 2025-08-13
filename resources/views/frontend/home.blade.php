@@ -4,6 +4,7 @@
 <head>
     <title>Addict - Home</title>
     @include('frontend.layout.inc_header')
+
 </head>
 
 <body class="bg-addict bgs-cover">
@@ -40,8 +41,30 @@
                             </form>
                         </div>
                         <div class="col-12">
+                            <h4 class="bg-cream ff-playfair p-2">Branch</h4>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fs-14 mb-0">Select Branch</label>
+                            <div class="d-flex gap-2 flex-wrap" id="branch-selector">
+                                @foreach ($branches as $branch)
+                                    <input type="radio" class="btn-check" name="ref_branch_id"
+                                        id="branch{{ $branch->id }}" value="{{ $branch->id }}" autocomplete="off"
+                                        {{ $loop->first ? 'checked' : '' }}>
+                                    <label class="btn btn-purple-check flex-fill" for="branch{{ $branch->id }}">
+                                        {{ $branch->name }}
+                                    </label>
+                                @endforeach
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="col-12">
                             <div class="scroll">
-                                <div class="row g-3">
+                                <div class="row g-3" id="user-list">
+                                    {{-- default load --}}
                                     @foreach ($user as $index => $row)
                                         <div class="col-6 col-sm-3 user-card"
                                             data-name="{{ strtolower($row->name . ' ' . $row->nickname) }}">
@@ -200,34 +223,34 @@
                         </div> --}}
 
                         <div class="col-12">
-                            <h4 class="bg-cream ff-playfair p-2">Snacks (Optional)</h4>
+                            <h4 class="bg-cream ff-playfair p-2">Add-on Options</h4>
                         </div>
 
                         <div class="col-12">
                             <div class="d-flex gap-2 flex-wrap">
-                                @foreach ($products as $product)
+                                @foreach ($option as $item)
                                     <div class="snack-item" style="position: relative; width: 19%; min-width: 200px;">
-                                        <input type="checkbox" class="btn-check snack-checkbox" name="ref_product_id[]"
-                                            id="snack{{ $product->id }}" value="{{ $product->id }}"
-                                            data-name="{{ $product->name }}" data-price="{{ $product->price }}"
+                                        <input type="checkbox" class="btn-check addon-checkbox" name="ref_option_id[]"
+                                            id="addon{{ $item->id }}" value="{{ $item->id }}"
+                                            data-name="{{ $item->name }}" data-price="{{ $item->price }}"
                                             autocomplete="off">
+
 
                                         <label
                                             class="btn btn-purple-check d-flex flex-column justify-content-center text-center"
-                                            for="snack{{ $product->id }}">
-                                            <img src="{{ asset('assets/svg/icons/junk-food-icon.svg') }}"
-                                                alt="snack" width="50" class="mb-2 mx-auto">
-                                            {{ $product->name }}
-                                            <br>
-                                            <small>{{ number_format($product->price, 2) }} ฿</small>
-                                        </label>
+                                            for="addon{{ $item->id }}">
+                                            <svg class="w-6 h-6 text-gray-800 dark:text-white mx-auto mb-2"
+                                                aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+                                                height="24" fill="none" viewBox="0 0 24 24">
+                                                <path stroke="currentColor" stroke-linecap="round"
+                                                    stroke-linejoin="round" stroke-width="2"
+                                                    d="M12.01 6.001C6.5 1 1 8 5.782 13.001L12.011 20l6.23-7C23 8 17.5 1 12.01 6.002Z" />
+                                            </svg>
 
-                                        {{-- จำนวนสินค้า (แสดงเมื่อ checkbox ถูกติ๊ก) --}}
-                                        <div class="quantity-input mt-1 text-center" style="display: none;">
-                                            <input type="number" name="product_qty[{{ $product->id }}]"
-                                                class="form-control form-control-sm text-center" value="0"
-                                                min="0" style="width: 80px; margin: 0 auto;">
-                                        </div>
+                                            {{ $item->name }}
+                                            <br>
+                                            <small>{{ number_format($item->price, 2) }} ฿</small>
+                                        </label>
                                     </div>
                                 @endforeach
                             </div>
@@ -283,8 +306,9 @@
                                             <li id="summary-room-type">Type room - First room</li>
                                             {{-- <li id="summary-room-number">Room number - FR001</li> --}}
                                         </ul>
-                                        <h6>Snacks</h6>
-                                        <ul id="summary-snacks"></ul>
+                                        <h6>Add-on Options</h6>
+                                        <ul id="summary-addons"></ul>
+
                                         <h6>Time Period</h6>
                                         <ul>
                                             <li id="summary-duration">60 mins/service</li>
@@ -340,13 +364,11 @@
             const inputTime = document.getElementById('inputTime');
             const summaryDate = document.getElementById('summary-date');
             const summaryTime = document.getElementById('summary-time');
-            const summaryService = document.getElementById('summary-service');
             const summaryRoomType = document.getElementById('summary-room-type');
-            const summaryRoomNumber = document.getElementById('summary-room-number');
             const summaryDuration = document.getElementById('summary-duration');
             const staffListContainer = document.getElementById('selected-staff-list');
             const summaryPrice = document.getElementById('summary-price');
-            const summarySnacks = document.getElementById('summary-snacks');
+            const summaryAddons = document.getElementById('summary-addons');
 
             // วันที่
             const date = inputDate.value;
@@ -407,43 +429,46 @@
         `;
             }
 
-            // Snacks
-            summarySnacks.innerHTML = '';
-            let snackTotal = 0;
-            document.querySelectorAll('.snack-checkbox:checked').forEach(checkbox => {
-                const container = checkbox.closest('.snack-item');
+            // Add-on Options
+            summaryAddons.innerHTML = '';
+            let addonTotal = 0;
+
+            document.querySelectorAll('.addon-checkbox:checked').forEach(checkbox => {
                 const name = checkbox.dataset.name;
                 const price = parseFloat(checkbox.dataset.price || 0);
-                const qtyInput = container.querySelector('input[type="number"]');
-                const qty = parseInt(qtyInput.value || 1);
-                const total = price * qty;
-
-                snackTotal += total;
+                addonTotal += price;
 
                 const li = document.createElement('li');
-                li.innerHTML = `
-            ${name} <span>${qty} x ${price.toFixed(2)} ฿</span>
-        `;
-                summarySnacks.appendChild(li);
+                li.innerHTML = `${name} <span>${price.toFixed(2)} ฿</span>`;
+                summaryAddons.appendChild(li);
             });
 
             // ราคารวม
-            const total = roomPrice + staffSalary + snackTotal;
+            const total = roomPrice + staffSalary + addonTotal;
             summaryPrice.textContent = total.toLocaleString(undefined, {
                 minimumFractionDigits: 2
             });
         }
 
-        document.addEventListener('DOMContentLoaded', updateSummary);
 
-        ['inputDate', 'inputTime'].forEach(id => {
-            document.getElementById(id).addEventListener('input', updateSummary);
-        });
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSummary(); // แสดง summary ครั้งแรก
 
-        document.querySelectorAll(
-            'input[name="options"], input[name="roomType"], input[name="roomNumber"], input[name="timeService"], input[name="selected_user"]'
-        ).forEach(el => {
-            el.addEventListener('change', updateSummary);
+            // ✅ เมื่อ checkbox ของ Add-on เปลี่ยน
+            document.querySelectorAll('.addon-checkbox').forEach(cb => {
+                cb.addEventListener('change', updateSummary);
+            });
+
+            // ✅ อัปเดตเมื่อเลือกวัน เวลา ประเภทห้อง ฯลฯ
+            ['inputDate', 'inputTime'].forEach(id => {
+                document.getElementById(id).addEventListener('input', updateSummary);
+            });
+
+            document.querySelectorAll(
+                'input[name="options"], input[name="roomType"], input[name="roomNumber"], input[name="timeService"], input[name="selected_user"]'
+            ).forEach(el => {
+                el.addEventListener('change', updateSummary);
+            });
         });
     </script>
 
@@ -496,25 +521,25 @@
                                     });
                                 },
                                 success: function(response) {
-                                    Swal.close();
-
-                                    const win = window.open('', '_blank');
-                                    win.document.open();
-                                    win.document.write(response);
-                                    win.document.close();
-
-                                    win.onload = () => {
-                                        win.focus();
-                                        win.print();
-                                    };
-
                                     Swal.fire({
                                         icon: 'success',
                                         title: 'ทำรายการสำเร็จ',
                                         showConfirmButton: false,
                                         timer: 1500
+                                    }).then(() => {
+                                        const win = window.open('', '_blank');
+                                        win.document.open();
+                                        win.document.write(response);
+                                        win.document.close();
+
+                                        win.onload = () => {
+                                            win.focus();
+                                            win.print();
+                                        };
+                                        location.reload();
+
                                     });
-                                },
+                                }, // ✅ เพิ่ม comma ตรงนี้
                                 error: function(xhr) {
                                     Swal.close();
                                     Swal.fire({
@@ -525,45 +550,50 @@
                                     console.error(xhr.responseText);
                                 }
                             });
+
                         }
                     });
                 }
             });
         });
     </script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const checkboxes = document.querySelectorAll('.snack-checkbox');
+    <script>
+      $('input[name="ref_branch_id"]').on('change', function () {
+    const branchId = $(this).val();
 
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', function () {
-                const container = this.closest('.snack-item');
-                const qtyInputWrapper = container.querySelector('.quantity-input');
-                const qtyInput = container.querySelector('input[type="number"]');
-
-                if (this.checked) {
-                    qtyInputWrapper.style.display = 'block';
-                    qtyInput.disabled = false;
-                    if (parseInt(qtyInput.value) === 0) {
-                        qtyInput.value = 1;
-                    }
-                } else {
-                    qtyInputWrapper.style.display = 'none';
-                    qtyInput.disabled = false;
-                    qtyInput.value = 0;
-                }
-
-                updateSummary();
+    $.ajax({
+        url: '/api/get-users-by-branch/' + branchId,
+        type: 'GET',
+        success: function (users) {
+            let html = '';
+            users.forEach((row, index) => {
+                const image = row.image_name ?? 'default.png';
+                const nickname = row.nickname ?? row.name;
+                html += `
+                    <div class="col-6 col-sm-3 user-card"
+                        data-name="${(row.name + ' ' + nickname).toLowerCase()}">
+                        <div class="card p-2">
+                            <input class="form-check-input mb-2" type="radio" name="selected_user"
+                                value="${row.id}" id="user${index}"
+                                data-nickname="${nickname}"
+                                data-image="/upload/user/${image}"
+                                data-salary="${row.salary}"
+                                ${index === 0 ? 'checked' : ''}>
+                            <label class="form-check-label d-block" for="user${index}">
+                                <img src="/upload/user/${image}" alt="" class="mw-100 mb-2">
+                                <p class="fw-medium mb-0">${nickname}</p>
+                            </label>
+                        </div>
+                    </div>
+                `;
             });
-        });
 
-        // ✅ เมื่อจำนวนเปลี่ยน
-        document.querySelectorAll('.snack-item input[type="number"]').forEach(input => {
-            input.addEventListener('input', updateSummary);
-        });
+            $('#user-list').html(html);
+        }
     });
-</script>
+});
 
+    </script>
 
 
 </body>
