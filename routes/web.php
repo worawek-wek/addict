@@ -172,6 +172,8 @@ Route::prefix('admin')->group(function () {
         Route::controller(CustomerController::class)->group(function () {                   //////////////////////////
             Route::get('customer', 'index')->name('customer');    //////////////////////////
             Route::get('customer/datatable', 'datatable')->name('customer.datatable');    //////////////////////////
+            Route::post('customer/{customer}/lock', [CustomerController::class, 'lock']);
+            Route::post('customer/{customer}/unlock', [CustomerController::class, 'unlock']);
         });
         Route::controller(OrderController::class)->group(function () {                   //////////////////////////
             Route::get('order', 'index')->name('order');    //////////////////////////

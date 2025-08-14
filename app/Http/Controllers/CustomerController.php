@@ -20,25 +20,25 @@ class CustomerController extends Controller
     {
         $data['page_url'] = 'admin/customer';
         $data['page'] = 'ลูกค้า';
-        
+
         return view('admin/customer/index', $data);
     }
 
     public function datatable(Request $request)
     {
-        $results = Customer::withCount('orders')->orderBy('id','DESC');
+        $results = Customer::withCount('orders')->orderBy('id', 'DESC');
         // if(@$request->brand_name){
         //     $results = $results->Where('brand_name','LIKE','%'.$request->brand_name.'%');
         // }
-        
-        if(@$request->search){
+
+        if (@$request->search) {
             $results = $results->orWhere(function ($query) use ($request) {
-                                    $query->where('name','LIKE','%'.$request->search.'%');
-                                });
+                $query->where('name', 'LIKE', '%' . $request->search . '%');
+            });
         }
 
         $limit = 15;
-        if(@$request['limit']){
+        if (@$request['limit']) {
             $limit = $request['limit'];
         }
 
@@ -75,14 +75,14 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        try{
+        try {
             $customer = new Customer;
             $customer->name = $request->name;
             $customer->price = $request->price;
             $customer->cost = $request->cost;
             $customer->remark = $request->remark;
             $customer->save();
-            
+
             DB::commit();
             return true;
         } catch (QueryException $err) {
@@ -110,7 +110,7 @@ class CustomerController extends Controller
      */
     public function edit($id)
     {
-        
+
         $data['page_url'] = 'admin/customer';
         $data['customer'] = Customer::find($id);
         return view('admin/customer/view', $data);
@@ -126,7 +126,7 @@ class CustomerController extends Controller
     public function update(Request $request, $id)
     {
         //
-        try{
+        try {
             $customer = Customer::find($id);
             $customer->name = $request->name;
             $customer->price = $request->price;
@@ -150,7 +150,7 @@ class CustomerController extends Controller
      */
     public function destroy($id)
     {
-        try{
+        try {
             Customer::destroy($id);
             DB::commit();
             return true;
@@ -159,5 +159,29 @@ class CustomerController extends Controller
         }
         //
     }
-    
+    public function lock(Customer $customer)
+    {
+        try {
+            $customer->status = 0; // 0 = locked
+            $customer->save();
+            DB::commit();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function unlock(Customer $customer)
+    {
+        try {
+            $customer->status = 1; // 1 = unlocked
+            $customer->save();
+                        DB::commit();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
 }
