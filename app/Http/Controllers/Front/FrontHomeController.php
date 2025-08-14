@@ -127,7 +127,7 @@ class FrontHomeController extends Controller
             $order->ref_seller_id = $ref_seller_id;
             $order->ref_room_id = $request->roomType;
             $order->service_laundry_cost = $request->timeService;
-            $order->ref_status_id = 2;
+            $order->ref_status_id = 1;
             $order->booking_date = $request->booking_date;
             $order->start_time = $request->booking_time;
             $order->total_price = number_format($price, 2, '.', '');

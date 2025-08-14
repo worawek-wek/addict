@@ -18,19 +18,26 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li>
+                        <a href="{{ route('customer.orders.history') }}"
+                            class="dropdown-item d-flex align-items-center">
+                            <i class="fi fi-rr-document me-1"></i> ประวัติการจอง
+                        </a>
+                    </li>
+                    <li>
                         <form method="POST" action="{{ route('customer.logout') }}">
                             @csrf
                             <button type="submit" class="dropdown-item d-flex align-items-center">
-                                <i class="fi fi-rr-power me-1"></i> Sign out
+                                <i class="fi fi-rr-power me-1"></i> ออกจากระบบ
                             </button>
                         </form>
                     </li>
                 </ul>
             </div>
 
-            <button class="btn btn-icon d-flex align-items-center text-white">
-                <i class="fi fi-rr-qr-scan"></i>
-            </button>
+            <a href="{{ route('customer.orders.history') }}" class="btn btn-icon d-flex align-items-center text-white">
+                <i class="fi fi-rr-file-invoice me-2"></i> Booking history
+            </a>
         </div>
+
     </div>
 </nav>

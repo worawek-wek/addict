@@ -29,18 +29,7 @@
                             <input type="time" class="form-control" id="inputTime" name="booking_time"
                                 value="{{ \Carbon\Carbon::now()->format('H:i') }}">
                         </div>
-                        <div class="col-12">
-                            <h4 class="bg-cream ff-playfair p-2">Staff</h4>
-                        </div>
-                        <div class="col-12">
-                            <form>
-                                <div class="search-container mb-3">
-                                    <input type="text" id="search-bar" placeholder="Search">
-                                    <a href="#"><i class="search-icon fi fi-rr-search"></i></a>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="col-12">
+                             <div class="col-12">
                             <h4 class="bg-cream ff-playfair p-2">Branch</h4>
                         </div>
 
@@ -57,6 +46,18 @@
                                 @endforeach
                             </div>
 
+                        </div>
+
+                        <div class="col-12">
+                            <h4 class="bg-cream ff-playfair p-2">Staff</h4>
+                        </div>
+                        <div class="col-12">
+                            <form>
+                                <div class="search-container mb-3">
+                                    <input type="text" id="search-bar" placeholder="Search">
+                                    <a href="#"><i class="search-icon fi fi-rr-search"></i></a>
+                                </div>
+                            </form>
                         </div>
 
 

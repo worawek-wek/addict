@@ -22,15 +22,28 @@ class CustomerLoginController extends Controller
     {
         $credentials = $request->only('id_card', 'password');
 
-        if (Auth::guard('customer')->attempt($credentials)) {
+        // First, find the customer by their ID card number
+        $customer = Customer::where('id_card', $credentials['id_card'])->first();
+
+        // Check if the customer exists and the password is correct
+        if ($customer && Hash::check($credentials['password'], $customer->password)) {
+            // If the customer's status is 0, show the specific error message
+            if ($customer->status === 0) {
+                return back()->withErrors([
+                    'id_card' => 'Please contact staff.',
+                ]);
+            }
+
+            // If status is not 0, and credentials are correct, log them in
+            Auth::guard('customer')->login($customer);
             return redirect()->intended('/home');
         }
 
+        // If the customer doesn't exist or password is wrong, show a generic error
         return back()->withErrors([
-            'id_card' => 'Invalid credentials',
+            'id_card' => 'Invalid credentials.',
         ]);
     }
-
     public function logout(Request $request)
     {
         Auth::guard('customer')->logout();

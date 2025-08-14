@@ -32,6 +32,7 @@ use App\Http\Controllers\WelfareController;
 use App\Http\Controllers\ExportExcelController;
 use App\Http\Controllers\AnnualHolidayController;
 use App\Http\Controllers\ColorSchemeController;
+use App\Http\Controllers\Front\OrderCusController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,11 +69,12 @@ Route::middleware('guest:customer')->group(function () {
 });
 
 Route::middleware('auth:customer')->group(function () {
-   Route::get('/api/get-users-by-branch/{branchId}', function ($branchId) {
-    return \App\Models\User::where('ref_status_id', 1)
-        ->where('ref_branch_id', $branchId)
-        ->get(['id', 'name', 'nickname', 'salary', 'image_name']);
-});
+    Route::get('/api/get-users-by-branch/{branchId}', function ($branchId) {
+        return \App\Models\User::where('ref_status_id', 1)
+            ->where('ref_branch_id', $branchId)
+            ->get(['id', 'name', 'nickname', 'salary', 'image_name']);
+    });
+    Route::get('/customer/orders', [OrderCusController::class, 'index'])->name('customer.orders.history');
 
     // logout
     Route::post('/logout', [CustomerLoginController::class, 'logout'])->name('customer.logout');
