@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\OrderRoomController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PageController;
@@ -120,7 +121,11 @@ Route::prefix('admin')->group(function () {
         Route::post('register', 'register')->name('register.store');
     });
     Route::middleware('auth')->group(function () {
-
+        Route::prefix('order-rooms')->group(function () {
+            Route::get('/', [OrderRoomController::class, 'index'])->name('order-rooms.index');
+            Route::get('/datatable', [OrderRoomController::class, 'datatable'])->name('order-rooms.datatable');
+            Route::get('/{id}', [OrderRoomController::class, 'show'])->name('order-rooms.show');
+        });
         Route::controller(ReportController::class)->group(function () {                    //////////////////////////
             Route::get('report/view-overview', 'view_overview')->name('report.view_overview');    //////////////////////////
             Route::get('report/rent-bill', 'rent_bill')->name('report.rent_bill');    //////////////////////////

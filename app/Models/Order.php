@@ -36,4 +36,8 @@ class Order extends Model
     {
         return $this->hasMany(OrderHasAddonOption::class, 'ref_order_id');
     }
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'ref_customer_id');
+    }
 }
