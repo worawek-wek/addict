@@ -122,7 +122,7 @@ class OrderRoomController extends Controller
         } elseif (strtolower($statusName) === 'pending') {
             $orderRoom->badge_class = 'bg-warning';
             $orderRoom->status_label = $statusName;
-        } elseif (strtolower($statusName) === 'cancelled') {
+        } elseif ($statusName === 'ยกเลิก') {
             $orderRoom->badge_class = 'bg-danger';
             $orderRoom->status_label = $statusName;
         } else {

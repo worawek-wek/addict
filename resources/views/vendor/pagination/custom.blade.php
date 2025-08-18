@@ -1,9 +1,15 @@
 @if ($paginator->hasPages())
     <nav>
         <ul class="pagination justify-content-center">
+
             {{-- First Page --}}
             <li class="page-item {{ $paginator->onFirstPage() ? 'disabled' : '' }}">
                 <a class="page-link" href="{{ $paginator->url(1) }}">First</a>
+            </li>
+
+            {{-- Previous Page --}}
+            <li class="page-item {{ $paginator->onFirstPage() ? 'disabled' : '' }}">
+                <a class="page-link" href="{{ $paginator->previousPageUrl() ?? '#' }}" tabindex="-1">Prev</a>
             </li>
 
             {{-- Page Numbers --}}
@@ -16,6 +22,11 @@
                     @endforeach
                 @endif
             @endforeach
+
+            {{-- Next Page --}}
+            <li class="page-item {{ $paginator->currentPage() == $paginator->lastPage() ? 'disabled' : '' }}">
+                <a class="page-link" href="{{ $paginator->nextPageUrl() ?? '#' }}">Next</a>
+            </li>
 
             {{-- Last Page --}}
             <li class="page-item {{ $paginator->currentPage() == $paginator->lastPage() ? 'disabled' : '' }}">
