@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use Illuminate\Http\Request;
 use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,7 @@ class CustomerController extends Controller
     {
         $data['page_url'] = 'admin/customer';
         $data['page'] = 'ลูกค้า';
+        $data['branches'] = Branch::all(); // ✅ โหลดข้อมูลสาขาแล้วส่งไปที่ view
 
         return view('admin/customer/index', $data);
     }
@@ -73,22 +75,35 @@ class CustomerController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+    // public function store(Request $request)
+    // {
+    //     try {
+    //         $customer = new Customer;
+    //         $customer->name = $request->name;
+    //         $customer->price = $request->price;
+    //         $customer->cost = $request->cost;
+    //         $customer->remark = $request->remark;
+    //         $customer->save();
+
+    //         DB::commit();
+    //         return true;
+    //     } catch (QueryException $err) {
+    //         DB::rollBack();
+    //     }
+    //     //
+    // }
     public function store(Request $request)
     {
-        try {
-            $customer = new Customer;
-            $customer->name = $request->name;
-            $customer->price = $request->price;
-            $customer->cost = $request->cost;
-            $customer->remark = $request->remark;
-            $customer->save();
+        $validated = $request->validate([
+            'ref_branch_id' => 'required',
+            'name' => 'required|string',
+            'phone' => 'nullable|string',
+            'remark' => 'nullable|string'
+        ]);
 
-            DB::commit();
-            return true;
-        } catch (QueryException $err) {
-            DB::rollBack();
-        }
-        //
+        Customer::create($validated);
+
+        return response()->json(true);
     }
 
     /**
@@ -99,8 +114,10 @@ class CustomerController extends Controller
      */
     public function show($id)
     {
-        //
+        $customer = Customer::findOrFail($id);
+        return response()->json($customer);
     }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -177,11 +194,29 @@ class CustomerController extends Controller
         try {
             $customer->status = 1; // 1 = unlocked
             $customer->save();
-                        DB::commit();
+            DB::commit();
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
+    }
+
+    public function updateCus(Request $request, $id)
+    {
+        $customer = Customer::findOrFail($id);
+
+        $result = $customer->update($request->only([
+            'name',
+            'first_name',
+            'last_name',
+            'phone',
+            'id_card',
+            'ref_branch_id'
+        ]));
+
+        DB::commit();
+
+        return response()->json(true);
     }
 }

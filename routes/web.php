@@ -121,6 +121,15 @@ Route::prefix('admin')->group(function () {
         Route::post('register', 'register')->name('register.store');
     });
     Route::middleware('auth')->group(function () {
+       Route::controller(CustomerController::class)->group(function () {
+        Route::get('customer', 'index')->name('customer.index');
+        Route::get('customer/datatable', 'datatable')->name('customer.datatable');
+        Route::post('customer', 'store')->name('customer.store'); // ✅ เพิ่มลูกค้า
+        Route::get('customer/{id}', 'show')->name('customer.show'); // ✅ โหลดข้อมูล
+        Route::put('customer/{id}', 'updateCus')->name('customer.update'); // ✅ อัปเดต
+        Route::post('customer/{customer}/lock', 'lock')->name('customer.lock');
+        Route::post('customer/{customer}/unlock', 'unlock')->name('customer.unlock');
+    });
         Route::prefix('order-rooms')->group(function () {
             Route::get('/', [OrderRoomController::class, 'index'])->name('order-rooms.index');
             Route::get('/datatable', [OrderRoomController::class, 'datatable'])->name('order-rooms.datatable');
@@ -175,12 +184,7 @@ Route::prefix('admin')->group(function () {
             Route::get('product/{id}', 'edit')->name('product');    //////////////////////////
             Route::post('product/{id}', 'update')->name('product.update');    //////////////////////////
         });
-        Route::controller(CustomerController::class)->group(function () {                   //////////////////////////
-            Route::get('customer', 'index')->name('customer');    //////////////////////////
-            Route::get('customer/datatable', 'datatable')->name('customer.datatable');    //////////////////////////
-            Route::post('customer/{customer}/lock', [CustomerController::class, 'lock']);
-            Route::post('customer/{customer}/unlock', [CustomerController::class, 'unlock']);
-        });
+
         Route::controller(OrderController::class)->group(function () {                   //////////////////////////
             Route::get('order', 'index')->name('order');    //////////////////////////
             Route::get('order/datatable', 'datatable')->name('order.datatable');    //////////////////////////
