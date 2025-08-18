@@ -43,10 +43,10 @@
                                                         <span class="input-group-text"><i
                                                                 class="ti ti-search"></i></span>
                                                         <input
-                                                            oninput='loadData("{{ route('ord
-                                                            er-rooms.datatable') }}")'
+                                                            oninput='loadData("{{ route('order-rooms.datatable') }}")'
                                                             name="search" type="text" class="form-control p_search"
-                                                            placeholder="ค้นหา..." />
+                                                            placeholder="ค้นหาชื่อลูกค้า..." />
+
                                                     </div>
                                                 </div>
                                             </div>

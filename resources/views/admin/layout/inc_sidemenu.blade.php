@@ -5,8 +5,10 @@
 </script> --}}
 <style>
     .active .menu-link i {
-        color: #ffffff !important; /* เปลี่ยนสีของไอคอนใน <li> ที่มีคลาส active */
+        color: #ffffff !important;
+        /* เปลี่ยนสีของไอคอนใน <li> ที่มีคลาส active */
     }
+
     /* .active .menu-link {
         color: #000000 !important;
     } */
@@ -67,7 +69,7 @@
         <a href="javascript:void(0);" class="layout-menu-toggle text-large ms-auto" style="color: white;">
             <i class="ti menu-toggle-icon d-none d-xl-block ti-sm align-middle"></i>
             <i class="ti ti-x d-block d-xl-none ti-sm align-middle"></i>
-          </a>
+        </a>
     </div>
 
     {{-- <div class="menu-inner-shadow"></div> --}}
@@ -187,6 +189,13 @@
             </a>
         </li> --}}
         <li class="menu-item">
+            <a href="/admin/order-rooms" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-file-invoice"></i>
+                <div data-i18n="การจองห้อง">การจองห้อง</div>
+            </a>
+        </li>
+
+        <li class="menu-item">
             <a href="/admin/user" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-copy"></i>
                 <div data-i18n="บุคลากร">บุคลากร</div>
@@ -267,7 +276,7 @@
     </ul>
 </aside>
 
-    <script>
+<script>
     setTimeout(() => {
         document.querySelectorAll('.menu-item').forEach(item => {
             const hasActiveChild = item.querySelector('.menu-sub .menu-item.active');
@@ -286,5 +295,4 @@
             }
         });
     });
-
-    </script>
+</script>
