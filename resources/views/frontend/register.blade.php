@@ -80,12 +80,6 @@
                                 <input type="text" name="contact_app_handle" value="{{ old('contact_app_handle') }}" class="form-control">
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fs-14 mb-0">ID card number<span class="text-danger">*</span></label>
-                                <input type="text" name="id_card" value="{{ old('id_card') }}"
-                                       class="form-control @error('id_card') is-invalid @enderror">
-                                @error('id_card') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            </div>
 
                             {{-- <div class="col-md-6">
                                 <label class="form-label fs-14 mb-0">Email <span class="text-danger">*</span></label>

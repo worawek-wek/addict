@@ -20,30 +20,27 @@ class CustomerLoginController extends Controller
     }
     public function login(Request $request)
     {
-        $credentials = $request->only('id_card', 'password');
+        $credentials = $request->only('phone', 'password');
 
-        // First, find the customer by their ID card number
-        $customer = Customer::where('id_card', $credentials['id_card'])->first();
+        // หา customer ด้วย phone แทน id_card
+        $customer = Customer::where('phone', $credentials['phone'])->first();
 
-        // Check if the customer exists and the password is correct
         if ($customer && Hash::check($credentials['password'], $customer->password)) {
-            // If the customer's status is 0, show the specific error message
             if ($customer->status === 0) {
                 return back()->withErrors([
-                    'id_card' => 'Please contact staff.',
+                    'phone' => 'Please contact staff.',
                 ]);
             }
 
-            // If status is not 0, and credentials are correct, log them in
             Auth::guard('customer')->login($customer);
             return redirect()->intended('/home');
         }
 
-        // If the customer doesn't exist or password is wrong, show a generic error
         return back()->withErrors([
-            'id_card' => 'Invalid credentials.',
+            'phone' => 'Invalid credentials.',
         ]);
     }
+
     public function logout(Request $request)
     {
         Auth::guard('customer')->logout();
@@ -62,22 +59,23 @@ class CustomerLoginController extends Controller
                 'first_name'          => 'required|string|max:255',
                 'last_name'           => 'required|string|max:255',
                 'nationality'         => 'nullable|string|max:100',
-                'phone'               => 'required|string|max:20|unique:customers,phone',
+                'phone'               => 'required|digits:10|unique:customers,phone',
                 'contact_app'         => 'nullable|in:line,whatsapp,wechat,email',
                 'contact_app_handle'  => 'nullable|string|max:255',
-                'id_card'             => 'required|string|unique:customers,id_card',
                 'password'            => 'required|string|min:6|confirmed',
             ],
             // messages (ไทย)
             [
-                'required' => ':attribute จำเป็นต้องกรอก',
-                'string'   => ':attribute ต้องเป็นตัวอักษร',
-                'max'      => ':attribute ต้องไม่เกิน :max ตัวอักษร',
-                'unique'   => ':attribute นี้ถูกใช้ไปแล้ว',
-                'in'       => ':attribute ไม่ถูกต้อง',
-                'email'    => ':attribute รูปแบบไม่ถูกต้อง',
-                'min'      => ':attribute ต้องมีอย่างน้อย :min ตัวอักษร',
+                'required'  => ':attribute จำเป็นต้องกรอก',
+                'string'    => ':attribute ต้องเป็นตัวอักษร',
+                'max'       => ':attribute ต้องไม่เกิน :max ตัวอักษร',
+                'unique'    => ':attribute นี้ถูกใช้ไปแล้ว',
+                'in'        => ':attribute ไม่ถูกต้อง',
+                'email'     => ':attribute รูปแบบไม่ถูกต้อง',
+                'min'       => ':attribute ต้องมีอย่างน้อย :min ตัวอักษร',
                 'confirmed' => 'ยืนยันรหัสผ่านไม่ตรงกัน',
+                'digits'    => ':attribute ต้องเป็นตัวเลข :digits หลัก',
+                'regex'     => ':attribute รูปแบบไม่ถูกต้อง',
             ],
             // attributes (label ไทย)
             [
@@ -87,10 +85,10 @@ class CustomerLoginController extends Controller
                 'phone'              => 'เบอร์โทร',
                 'contact_app'        => 'แอปติดต่อ',
                 'contact_app_handle' => 'ไอดี/เบอร์ในแอป',
-                'id_card'            => 'หมายเลขบัตร/Username',
                 'password'           => 'รหัสผ่าน',
             ]
         );
+
 
         $user = Customer::create([
             'name'               => (string) $request->first_name . ' ' . (string) $request->last_name,
@@ -100,7 +98,6 @@ class CustomerLoginController extends Controller
             'phone'              => (string) $request->phone,
             'contact_app'        => $request->contact_app ? (string) $request->contact_app : null,
             'contact_app_handle' => $request->contact_app_handle ? (string) $request->contact_app_handle : null,
-            'id_card'            => (string) $request->id_card,
             'password'           => Hash::make((string) $request->password),
             'ref_branch_id' => 1
         ]);

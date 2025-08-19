@@ -43,12 +43,11 @@
                             @csrf
 
                             <div class="mb-3">
-                                <label for="id_card" class="form-label fs-14 mb-0">ID card number or Username</label>
-                                <input type="text" name="id_card"
-                                    class="form-control @error('id_card') is-invalid @enderror" id="id_card"
-                                    value="{{ old('id_card') }}"
-                                    placeholder="Please enter your ID card number or username.">
-                                @error('id_card')
+                                <label for="phone" class="form-label fs-14 mb-0">Phone Number</label>
+                                <input type="text" name="phone"
+                                    class="form-control @error('phone') is-invalid @enderror" id="phone"
+                                    value="{{ old('phone') }}" placeholder="Please enter your phone number">
+                                @error('phone')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -71,6 +70,7 @@
                                 สมัครสมาชิก
                             </a>
                         </form>
+
 
                     </div>
                 </div>
