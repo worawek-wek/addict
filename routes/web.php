@@ -93,6 +93,10 @@ Route::middleware('auth:customer')->group(function () {
         Route::get('dashboard/overdue', 'overdue')->name('dashboard.overdue');
         Route::get('dashboard/overdue/{id}', 'invoice')->name('dashboard.invoice');
         // Route::get('dashboard/{branch_id}', 'index')->name('dashboard');
+
+        Route::get('check-availability/{branchId}', 'checkAvailability')->name('check-availability');
+        Route::get('check-room-availability/{branchId}', 'checkRoomAvailability')->name('check-room-availability');
+
     });
 
     Route::controller(FrontClockInController::class)->group(function () {
@@ -121,15 +125,15 @@ Route::prefix('admin')->group(function () {
         Route::post('register', 'register')->name('register.store');
     });
     Route::middleware('auth')->group(function () {
-       Route::controller(CustomerController::class)->group(function () {
-        Route::get('customer', 'index')->name('customer.index');
-        Route::get('customer/datatable', 'datatable')->name('customer.datatable');
-        Route::post('customer', 'store')->name('customer.store'); // ✅ เพิ่มลูกค้า
-        Route::get('customer/{id}', 'show')->name('customer.show'); // ✅ โหลดข้อมูล
-        Route::put('customer/{id}', 'updateCus')->name('customer.update'); // ✅ อัปเดต
-        Route::post('customer/{customer}/lock', 'lock')->name('customer.lock');
-        Route::post('customer/{customer}/unlock', 'unlock')->name('customer.unlock');
-    });
+        Route::controller(CustomerController::class)->group(function () {
+            Route::get('customer', 'index')->name('customer.index');
+            Route::get('customer/datatable', 'datatable')->name('customer.datatable');
+            Route::post('customer', 'store')->name('customer.store'); // ✅ เพิ่มลูกค้า
+            Route::get('customer/{id}', 'show')->name('customer.show'); // ✅ โหลดข้อมูล
+            Route::put('customer/{id}', 'updateCus')->name('customer.update'); // ✅ อัปเดต
+            Route::post('customer/{customer}/lock', 'lock')->name('customer.lock');
+            Route::post('customer/{customer}/unlock', 'unlock')->name('customer.unlock');
+        });
         Route::prefix('order-rooms')->group(function () {
             Route::get('/', [OrderRoomController::class, 'index'])->name('order-rooms.index');
             Route::get('/datatable', [OrderRoomController::class, 'datatable'])->name('order-rooms.datatable');

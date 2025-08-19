@@ -406,4 +406,66 @@ class FrontHomeController extends Controller
         ];
         return str_replace($monthEN[$m], $monthTH[$m], $thaiDate);
     }
+
+    public function checkAvailability(Request $request, $branchId)
+    {
+        $bookingDate = $request->booking_date;
+        $startTime   = $request->start_time;
+        $endTime     = $request->end_time;
+
+        $users = User::where('ref_status_id', 1)
+            ->where('ref_branch_id', $branchId)
+            ->get()
+            ->map(function ($user) use ($bookingDate, $startTime, $endTime) {
+                $hasConflict = Order::where('ref_user_id', $user->id)
+                    ->where('booking_date', $bookingDate)
+                    ->where('ref_status_id', '!=', 4) // 👈 ข้าม order ที่ถูกยกเลิก
+                    ->where(function ($query) use ($startTime, $endTime) {
+                        $query->where('start_time', '<', $endTime)
+                            ->where('end_time', '>', $startTime);
+                    })
+                    ->exists();
+
+                return [
+                    'id'        => $user->id,
+                    'name'      => $user->name,
+                    'nickname'  => $user->nickname,
+                    'salary'    => $user->salary,
+                    'image'     => $user->image_name ?? 'default.png',
+                    'available' => !$hasConflict,
+                ];
+            });
+
+        return response()->json($users);
+    }
+
+    public function checkRoomAvailability(Request $request, $branchId)
+    {
+        $bookingDate = $request->booking_date;
+        $startTime   = $request->start_time;
+        $endTime     = $request->end_time;
+
+        $rooms = Room::where('ref_branch_id', $branchId)->get()
+            ->map(function ($room) use ($bookingDate, $startTime, $endTime) {
+                $hasConflict = Order::where('ref_room_id', $room->id)
+                    ->where('booking_date', $bookingDate)
+                    ->where('ref_status_id', '!=', 4) // 👈 ข้าม order ที่ถูกยกเลิก
+                    ->where(function ($query) use ($startTime, $endTime) {
+                        $query->where('start_time', '<', $endTime)
+                            ->where('end_time', '>', $startTime);
+                    })
+                    ->exists();
+
+                return [
+                    'id'        => $room->id,
+                    'name'      => $room->name,
+                    'forty'     => $room->forty_minutes,
+                    'sixty'     => $room->sixty_minutes,
+                    'ninety'    => $room->ninety_minutes,
+                    'available' => !$hasConflict,
+                ];
+            });
+
+        return response()->json($rooms);
+    }
 }
