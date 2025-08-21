@@ -8,35 +8,37 @@
     <title>Dashboard - CRM | Vuexy - Bootstrap Admin Template</title>
 </head>
 <style>
-.table th {
-    font-size: 15px;
-    font-weight: bold;
-}
-.table td {
-    padding-top: 14px;
-    padding-bottom: 14px;
-}
-.modalHeadDecor .modal-header {
-    padding: 0;
-}
+    .table th {
+        font-size: 15px;
+        font-weight: bold;
+    }
 
-.modalHeadDecor .modal-title {
-    padding: 1.25rem 1.5rem 1.25rem;
-    color: white;
-    background-color: #54BAB9;
-    position: relative;
-}
+    .table td {
+        padding-top: 14px;
+        padding-bottom: 14px;
+    }
 
-.modalHeadDecor .modal-title::after {
-    position: absolute;
-    top: 0;
-    right: -65px;
-    content: '';
-    width: 0;
-    height: 0;
-    border-top: 65px solid #54BAB9;
-    border-right: 65px solid transparent;
-}
+    .modalHeadDecor .modal-header {
+        padding: 0;
+    }
+
+    .modalHeadDecor .modal-title {
+        padding: 1.25rem 1.5rem 1.25rem;
+        color: white;
+        background-color: #54BAB9;
+        position: relative;
+    }
+
+    .modalHeadDecor .modal-title::after {
+        position: absolute;
+        top: 0;
+        right: -65px;
+        content: '';
+        width: 0;
+        height: 0;
+        border-top: 65px solid #54BAB9;
+        border-right: 65px solid transparent;
+    }
 </style>
 
 
@@ -72,23 +74,36 @@
                                                     ห้อง
                                                 </h4>
                                             </div>
-                                            <div class="col-sm-12">
+                                            <div class="col-sm-3">
+                                                <select name="ref_branch_id" class="form-select p_search"
+                                                    onchange='loadData("{{ $page_url }}/datatable")' required>
+                                                    @if (Auth::user()->work_status == 3)
+                                                        <option value="">ทั้งหมด</option>
+                                                    @endif
+                                                    @foreach ($branch as $bra)
+                                                        <option value="{{ $bra->id }}">{{ $bra->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
+                                            <div class="col-sm-9">
                                                 <div class="row">
-                                                        <div class="input-group input-group-merge">
-                                                            <span class="input-group-text" id="basic-addon-search31"><i class="ti ti-search"></i></span>
-                                                            <input
-                                                            name="search"
-                                                            type="text"
+                                                    <div class="input-group input-group-merge">
+                                                        <span class="input-group-text" id="basic-addon-search31">
+                                                            <i class="ti ti-search"></i>
+                                                        </span>
+                                                        <input name="search" type="text"
                                                             class="form-control p_search"
                                                             placeholder="ค้นหาคีเวิร์ดที่ต้องการ"
                                                             aria-label="ค้นหาคีเวิร์ดที่ต้องการ"
-                                                            aria-describedby="basic-addon-search31" />
-                                                        </div>
+                                                            aria-describedby="basic-addon-search31"
+                                                            oninput='loadData("{{ $page_url }}/datatable")' />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="card-body">
                                         <div class="tab-content p-0">
                                             <div class="tab-pane fade show active" id="navs-pills-top-home"
@@ -97,7 +112,9 @@
                                                     <div class="col-lg-4">
                                                         <div class="d-flex align-items-center mb-2 mb-md-0">
                                                             <label class="">Show</label>
-                                                            <select onchange='loadData("{{$page_url}}/datatable")' name="limit" class="form-select ms-2 me-2 p_search" style="width:100px">
+                                                            <select onchange='loadData("{{ $page_url }}/datatable")'
+                                                                name="limit" class="form-select ms-2 me-2 p_search"
+                                                                style="width:100px">
                                                                 <option value="5">5</option>
                                                                 <option value="10">10</option>
                                                                 <option value="15">15</option>
@@ -106,32 +123,32 @@
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-8 flex text-end" style="padding-right: unset !important;">
-                                                        <button
-                                                                style="padding-right: 14px;padding-left: 14px;"
-                                                                class="btn btn-success buttons-collection btn-warning waves-effect waves-light me-2"
-                                                                tabindex="0" aria-controls="DataTables_Table_0"
-                                                                type="button" aria-haspopup="dialog"
-                                                                aria-expanded="false">
-                                                                <span>
-                                                                    <i class="ti ti-upload"></i> 
-                                                                    ดาวน์โหลด Excel
-                                                                </span>
+                                                    <div class="col-md-8 flex text-end"
+                                                        style="padding-right: unset !important;">
+                                                        <button style="padding-right: 14px;padding-left: 14px;"
+                                                            class="btn btn-success buttons-collection btn-warning waves-effect waves-light me-2"
+                                                            tabindex="0" aria-controls="DataTables_Table_0"
+                                                            type="button" aria-haspopup="dialog" aria-expanded="false">
+                                                            <span>
+                                                                <i class="ti ti-upload"></i>
+                                                                ดาวน์โหลด Excel
+                                                            </span>
                                                         </button>
                                                         <button
-                                                                style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
-                                                                class="btn btn-success buttons-collection  btn-info waves-effect waves-light"
-                                                                tabindex="0" aria-controls="DataTables_Table_0"
-                                                                type="button" aria-haspopup="dialog"
-                                                                aria-expanded="false" data-bs-toggle="modal" data-bs-target="#addserviceModal">
+                                                            style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
+                                                            class="btn btn-success buttons-collection  btn-info waves-effect waves-light"
+                                                            tabindex="0" aria-controls="DataTables_Table_0"
+                                                            type="button" aria-haspopup="dialog" aria-expanded="false"
+                                                            data-bs-toggle="modal" data-bs-target="#addserviceModal">
                                                             <span><i class="ti ti-plus"></i> เพิ่มห้อง</span>
                                                         </button>
                                                     </div>
                                                 </div>
                                                 <div class="card-body px-0 pt-0">
                                                     <div class="tab-content p-0" id="pills-tabContent">
-                                                        <div class="tab-pane fade show active" id="pills-profile" role="tabpanel"
-                                                            aria-labelledby="pills-profile-tab" tabindex="0">
+                                                        <div class="tab-pane fade show active" id="pills-profile"
+                                                            role="tabpanel" aria-labelledby="pills-profile-tab"
+                                                            tabindex="0">
 
                                                             <div id="table-data">
 
@@ -181,11 +198,14 @@
                     <div class="modal-body">
                         <div class="row g-3 p-4">
                             <div class="col-sm-12">
-                                <label for="" class="form-label">สาขา</label><span class="text-danger"> *</span><br>
-                                  <input class="form-check-input" type="radio" name="ref_branch_id" id="inlineRadio1" value="1" checked>
-                                  <label class="form-check-label me-4" for="inlineRadio1">อ่อนนุช</label>
-                                  <input class="form-check-input" type="radio" name="ref_branch_id" id="inlineRadio2" value="2">
-                                  <label class="form-check-label" for="inlineRadio2">ทองหล่อ</label>
+                                <label for="" class="form-label">สาขา</label><span class="text-danger">
+                                    *</span><br>
+                                <input class="form-check-input" type="radio" name="ref_branch_id"
+                                    id="inlineRadio1" value="1" checked>
+                                <label class="form-check-label me-4" for="inlineRadio1">อ่อนนุช</label>
+                                <input class="form-check-input" type="radio" name="ref_branch_id"
+                                    id="inlineRadio2" value="2">
+                                <label class="form-check-label" for="inlineRadio2">ทองหล่อ</label>
                             </div>
                             {{-- <div class="col-sm-12"></div> --}}
                             {{-- <div class="col-sm-6">
@@ -195,16 +215,22 @@
                             <div class="col-sm-6">
                             </div>
                             <div class="col-sm-6">
-                                <label for="" class="form-label">ชื่อห้อง</label><span class="text-danger"> *</span>
-                                <input name="name" type="text" class="form-control" placeholder="ชื่อห้อง" required />
+                                <label for="" class="form-label">ชื่อห้อง</label><span class="text-danger">
+                                    *</span>
+                                <input name="name" type="text" class="form-control" placeholder="ชื่อห้อง"
+                                    required />
                             </div>
                             <div class="col-sm-6">
-                                <label for="" class="form-label">ราคา 1 ชั่วโมง/บริการ</label><span class="text-danger"> *</span>
-                                <input name="sixty_minutes" type="text" class="form-control" placeholder="ราคา 1 ชั่วโมง/บริการ" required />
+                                <label for="" class="form-label">ราคา 1 ชั่วโมง/บริการ</label><span
+                                    class="text-danger"> *</span>
+                                <input name="sixty_minutes" type="text" class="form-control"
+                                    placeholder="ราคา 1 ชั่วโมง/บริการ" required />
                             </div>
                             <div class="col-sm-6">
-                                <label for="" class="form-label">ราคา 1 ชั่วโมงครึ่ง/บริการ</label><span class="text-danger"> *</span>
-                                <input name="ninety_minutes" type="text" class="form-control" placeholder="ราคา 1 ชั่วโมงครึ่ง/บริการ" required />
+                                <label for="" class="form-label">ราคา 1 ชั่วโมงครึ่ง/บริการ</label><span
+                                    class="text-danger"> *</span>
+                                <input name="ninety_minutes" type="text" class="form-control"
+                                    placeholder="ราคา 1 ชั่วโมงครึ่ง/บริการ" required />
                             </div>
                             <script>
                                 //// ทำ input เงินเดือน เริ่ม
@@ -217,8 +243,7 @@
                                         input.value = ''; // ถ้าไม่ใช่ตัวเลขให้ลบค่าที่ป้อน
                                     }
                                 }
-
-                            </script> 
+                            </script>
                             <div class="col-sm-12">
                                 <label for="" class="form-label">หมายเหตุ</label>
                                 <textarea name="remark" class="form-control"></textarea>
@@ -235,45 +260,41 @@
     </div>
     <div class="modal fade modalHeadDecor" id="insurance" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document" id="view">
-            
+
         </div>
     </div>
-    
+
     <!--set rent Modal -->
-    
+
     <!-- / Layout wrapper -->
     @include('admin/layout/inc_js')
     <script>
-        var page = "{{$page_url}}/datatable";
+        var page = "{{ $page_url }}/datatable";
         var searchData = {};
         loadData(page);
-        
-        function loadData(pages){
-            
-            $('.p_search').each(function() {
-                var inputName = $(this).attr('name'); // ดึงชื่อ attribute 'name' ของ input
-                var inputValue = $(this).val(); // ดึงค่า value ของ input
-                
-                searchData[inputName] = inputValue; // เก็บข้อมูลลงในออบเจ็กต์ searchData
-            });
 
-            // alert(page);
-            page = pages;
+    function loadData(pages) {
+        $('.p_search').each(function() {
+            var inputName = $(this).attr('name');
+            var inputValue = $(this).val();
+            searchData[inputName] = inputValue;
+        });
+
+        page = pages;
+        $.ajax({
+            type: "GET",
+            url: pages,
+            data: searchData,
+            success: function(data) {
+                $("#table-data").html(data);
+            }
+        });
+    }
+
+        function view(id) {
             $.ajax({
                 type: "GET",
-                url: pages,
-                data: searchData,
-                success: function(data) {
-                    $("#table-data").html(data);
-                }
-            });
-            // alert(page);
-        }
-
-        function view(id){
-            $.ajax({
-                type: "GET",
-                url: "{{ $page_url }}/"+id,
+                url: "{{ $page_url }}/" + id,
                 success: function(data) {
                     $("#view").html(data);
                 }
@@ -303,7 +324,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: '{{$page_url}}',
+                        url: '{{ $page_url }}',
                         type: 'POST',
                         data: formData,
                         contentType: false, // ✅ ต้องมี
@@ -326,17 +347,16 @@
         });
 
 
-        
+
         // window.onload = function() {
         //     $('#addserviceModal').modal('show');
         // };
         $('#bs-datepicker-format').datepicker({
             format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
-            autoclose: true,      // ปิด datepicker เมื่อเลือกวันที่
-            todayHighlight: true  // ไฮไลต์วันที่ปัจจุบัน
+            autoclose: true, // ปิด datepicker เมื่อเลือกวันที่
+            todayHighlight: true // ไฮไลต์วันที่ปัจจุบัน
         });
         $('#select2Position1').select2();
-
     </script>
 </body>
 

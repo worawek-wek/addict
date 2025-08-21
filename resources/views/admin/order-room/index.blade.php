@@ -30,7 +30,6 @@
                                                 <div class="col-sm-3">
                                                     <select name="branch_id" class="form-select p_search"
                                                         onchange='loadData("{{ route('order-rooms.datatable') }}")'>
-                                                        <option value="">-- สาขา --</option>
                                                         @foreach ($branches as $branch)
                                                             <option value="{{ $branch->id }}">{{ $branch->name }}
                                                             </option>

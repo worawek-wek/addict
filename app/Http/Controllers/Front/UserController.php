@@ -22,14 +22,14 @@ DB::beginTransaction();
 
 class UserController extends Controller
 {
-    
+
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-        // สร้าง instance ของ mPDF
-        
+    // สร้าง instance ของ mPDF
+
     public function index()
     {
 
@@ -37,15 +37,15 @@ class UserController extends Controller
         $data['page'] = 'พนักงานนวด';
         $data['position'] = Position::get();
         // $data['title'] = 'Profile';
-        
+
         return view('admin/user/index', $data);
     }
 
     public function profile($id = null)
     {
-        if($id){
+        if ($id) {
             $user = User::find($id);
-        }else{
+        } else {
             $user = Auth::user();
         }
 
@@ -56,7 +56,7 @@ class UserController extends Controller
         $data['page_url'] = 'admin/user';
         $data['title'] = 'Profile';
         $data['user'] = $user;
-        
+
         return view('admin/user/profile', $data);
     }
     public function ChangeDateToTH($date)
@@ -71,54 +71,54 @@ class UserController extends Controller
 
         // แปลงวันที่เป็นรูปแบบไทย
         $thaiDate = $date->formatLocalized('%e %B ' . $buddhistYear);
-        
-        $monthTH = [ 
-                "01" => "มกราคม",
-                "02" => "กุมภาพันธ์",
-                "03" => "มีนาคม",
-                "04" => "เมษายน",
-                "05" => "พฤษภาคม",
-                "06" => "มิถุนายน",
-                "07" => "กรกฎาคม",
-                "08" => "สิงหาคม",
-                "09" => "กันยายน",
-                "10" => "ตุลาคม",
-                "11" => "พฤศจิกายน",
-                "12" => "ธันวาคม"
+
+        $monthTH = [
+            "01" => "มกราคม",
+            "02" => "กุมภาพันธ์",
+            "03" => "มีนาคม",
+            "04" => "เมษายน",
+            "05" => "พฤษภาคม",
+            "06" => "มิถุนายน",
+            "07" => "กรกฎาคม",
+            "08" => "สิงหาคม",
+            "09" => "กันยายน",
+            "10" => "ตุลาคม",
+            "11" => "พฤศจิกายน",
+            "12" => "ธันวาคม"
         ];
-        $monthEN = [    
-                "01" => "January",
-                "02" => "February",
-                "03" => "March",
-                "04" => "April",
-                "05" => "May",
-                "06" => "June",
-                "07" => "July",
-                "08" => "August",
-                "09" => "September",
-                "10" => "October",
-                "11" => "November",
-                "12" => "December"
+        $monthEN = [
+            "01" => "January",
+            "02" => "February",
+            "03" => "March",
+            "04" => "April",
+            "05" => "May",
+            "06" => "June",
+            "07" => "July",
+            "08" => "August",
+            "09" => "September",
+            "10" => "October",
+            "11" => "November",
+            "12" => "December"
         ];
         return str_replace($monthEN[$m], $monthTH[$m], $thaiDate);
     }
 
     public function datatable(Request $request)
     {
-        $results = User::orderBy('id','DESC');
-        
-        if(@$request->search){
+        $results = User::orderBy('id', 'DESC');
+
+        if (@$request->search) {
             $results = $results->orWhere(function ($query) use ($request) {
-                                    $query->where('name','LIKE','%'.$request->search.'%')
-                                        ->orWhere('email','LIKE','%'.$request->search.'%')
-                                        ->orWhere('salary','LIKE','%'.$request->search.'%')
-                                        ->orWhere('phone','LIKE','%'.$request->search.'%')
-                                        ->orWhere('remark','LIKE','%'.$request->search.'%');
-                                });
+                $query->where('name', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('email', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('salary', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('remark', 'LIKE', '%' . $request->search . '%');
+            });
         }
 
         $limit = 15;
-        if(@$request['limit']){
+        if (@$request['limit']) {
             $limit = $request['limit'];
         }
 
@@ -149,9 +149,9 @@ class UserController extends Controller
         $data['boss'] = User::get();
         $data['action'] = route('user.store');
         $data['user'] = [
-                            'leave_just_id' => ["1","2","3","9"],
-                            'leave_id_number' => ["1"=>"6","2"=>"30","3"=>"6","9"=>"10"]
-                        ];
+            'leave_just_id' => ["1", "2", "3", "9"],
+            'leave_id_number' => ["1" => "6", "2" => "30", "3" => "6", "9" => "10"]
+        ];
         // return $data['user'];
         return view('admin/user/form', $data);
         //
@@ -165,9 +165,9 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        
+
         $work_start_date = Carbon::createFromFormat('d/m/Y', $request->work_start_date)->format('Y-m-d');
-        try{
+        try {
             $user = new User;
             $user->name  =  $request->name;
             $user->username  =  $request->username;
@@ -177,10 +177,10 @@ class UserController extends Controller
             $user->work_start_date  =  $work_start_date;
             $user->ref_position_id  =  $request->ref_position_id;
             $user->remark  =  $request->remark;
-            $user->ref_branch_id  =  session("branch_id")?session("branch_id"):1;
+            $user->ref_branch_id  =  session("branch_id") ? session("branch_id") : 1;
             $user->password = Hash::make($request->password);
             $user->save();
-            
+
             DB::commit();
             return 1;
         } catch (QueryException $err) {
@@ -188,7 +188,7 @@ class UserController extends Controller
         }
         //
     }
-    
+
     /**
      * Display the specified resource.
      *
@@ -200,7 +200,7 @@ class UserController extends Controller
         //
     }
     public function ChangeDateFormat($date)
-    { 
+    {
         $dateCreate = date_create_from_format('d F, Y', $date);
         $formattedDate = date_format($dateCreate, 'Y-m-d');
         return $formattedDate;
@@ -212,15 +212,15 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    
-     public function edit($id)
-     {
+
+    public function edit($id)
+    {
         $data['page_url'] = 'admin/user';
         $data['position'] = Position::get();
         $data['user'] = User::find($id);
         return view('admin/user/view', $data);
-     }
- 
+    }
+
 
     /**
      * Update the specified resource in storage.
@@ -231,8 +231,8 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
-        try{
+
+        try {
 
             // $work_start_date = Carbon::createFromFormat('d/m/Y', $request->work_start_date)->format('Y-m-d');
 
@@ -245,11 +245,11 @@ class UserController extends Controller
             // $user->work_start_date  =  $work_start_date;
             $user->ref_position_id  =  $request->ref_position_id;
             $user->remark  =  $request->remark;
-            if(!empty($request->password)){
+            if (!empty($request->password)) {
                 $user->password = Hash::make($request->password);
             }
             $user->save();
-            
+
             DB::commit();
             return 1;
         } catch (QueryException $err) {
@@ -259,33 +259,31 @@ class UserController extends Controller
     public function check_password(Request $request)
     {
         $user = Auth::user();
-        if(Hash::check($request->password, $user->password)){
+        if (Hash::check($request->password, $user->password)) {
             return true;
         }
         return false;
-
     }
     public function change_password(Request $request)
     {
-        try{
+        try {
             $user = Auth::user();
             $user->password = Hash::make($request->password);
             $user->save();
             // return $user->password;
             DB::commit();
-            return redirect('/')->with('message', 'Insert Employee "'.$request->name.'" success');
+            return redirect('/')->with('message', 'Insert Employee "' . $request->name . '" success');
         } catch (QueryException $err) {
             DB::rollBack();
         }
-
     }
-    public function edit_news(Request $request,$id = 1)
+    public function edit_news(Request $request, $id = 1)
     {
-        try{
+        try {
             $news = News::find($id);
             $news->detail = $request->detail;
             $news->save();
-            
+
             DB::commit();
             // $data['news_detail'] = $user->detail;
             return $news->detail;
@@ -302,7 +300,7 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        try{
+        try {
             $user = User::find($id);
             $user->status = "0";
             $user->save();
@@ -323,4 +321,3 @@ class UserController extends Controller
 // $spreadSheet = $Reader->load('upload/excel/'.$targetPath);
 // $excelSheet = $spreadSheet->getActiveSheet();
 // return $spreadSheetAry = $excelSheet->toArray();
-

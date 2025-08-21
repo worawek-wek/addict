@@ -26,7 +26,7 @@
             </div>
             <p align="right" id="ViewNewsAll" class="mr-1 mt-2" style="color: blue;">
                 <a href="javascript:void();" onclick="ViewNewsAll()">
-                ... ดูเพิ่มเติม 
+                ... ดูเพิ่มเติม
                 </a>
             </p>
 
@@ -103,7 +103,7 @@
                     </button>
                 </form>
             {{-- /////  จบ แก้ไข  ///// --}}
-            
+
         </div>
     </div>
 </div>

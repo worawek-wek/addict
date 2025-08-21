@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use Illuminate\Http\Request;
 use App\Models\Room;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 DB::beginTransaction();
@@ -20,32 +22,49 @@ class RoomController extends Controller
     {
         $data['page_url'] = 'admin/room';
         $data['page'] = 'สินค้า';
-        
+        $user = Auth::user();
+
+        if ($user->work_status == 3) {
+            // super admin เห็นทุก branch
+            $data['branch'] = Branch::orderBy('name')->get();
+        } else {
+            // เห็นเฉพาะสาขาของตัวเอง
+            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        }
         return view('admin/room/index', $data);
     }
 
     public function datatable(Request $request)
     {
-        $results = Room::orderBy('id','DESC');
-        // if(@$request->brand_name){
-        //     $results = $results->Where('brand_name','LIKE','%'.$request->brand_name.'%');
-        // }
-        $limit = 15;
-        if(@$request['limit']){
-            $limit = $request['limit'];
+        $results = Room::orderBy('id', 'DESC');
+
+        // 🔍 search
+        if (!empty($request->search)) {
+            $results = $results->where(function ($q) use ($request) {
+                $q->where('name', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('remark', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('sixty_minutes', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('ninety_minutes', 'LIKE', '%' . $request->search . '%');
+            });
         }
 
+        // 🔍 filter branch
+        if (!empty($request->ref_branch_id)) {
+            $results = $results->where('ref_branch_id', $request->ref_branch_id);
+        }
+
+        $limit = $request->limit ?? 15;
         $results = $results->paginate($limit);
 
         $data['list_data'] = $results->appends(request()->query());
         $data['query'] = request()->query();
         $data['query']['limit'] = $limit;
-
         $data['page_url'] = 'admin/room';
-        $data['list_data'] = $results;
 
         return view('admin/room/table', $data);
     }
+
+
     /**
      * Show the form for creating a new resource.
      *
@@ -68,7 +87,7 @@ class RoomController extends Controller
      */
     public function store(Request $request)
     {
-        try{
+        try {
             $room = new Room;
             $room->ref_branch_id = $request->ref_branch_id;
             $room->name = $request->name;
@@ -76,7 +95,7 @@ class RoomController extends Controller
             $room->ninety_minutes = $request->ninety_minutes;
             $room->remark = $request->remark;
             $room->save();
-            
+
             DB::commit();
             return true;
         } catch (QueryException $err) {
@@ -104,7 +123,7 @@ class RoomController extends Controller
      */
     public function edit($id)
     {
-        
+
         $data['page_url'] = 'admin/room';
         $data['room'] = Room::find($id);
         return view('admin/room/view', $data);
@@ -120,7 +139,7 @@ class RoomController extends Controller
     public function update(Request $request, $id)
     {
         //
-        try{
+        try {
             $room = Room::find($id);
             $room->ref_branch_id = $request->ref_branch_id;
             $room->name = $request->name;
@@ -144,7 +163,7 @@ class RoomController extends Controller
      */
     public function destroy($id)
     {
-        try{
+        try {
             Room::destroy($id);
             DB::commit();
             return true;
@@ -153,5 +172,4 @@ class RoomController extends Controller
         }
         //
     }
-    
 }

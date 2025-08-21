@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\CardStocks;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 DB::beginTransaction();
@@ -21,52 +23,69 @@ class ProductController extends Controller
     {
         $data['page_url'] = 'admin/product';
         $data['page'] = 'สินค้า';
-        
+        $user = Auth::user();
+
+        if ($user->work_status == 3) {
+            // super admin เห็นทุก branch
+            $data['branch'] = Branch::orderBy('name')->get();
+        } else {
+            // เห็นเฉพาะสาขาของตัวเอง
+            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        }
         return view('admin/product/index', $data);
     }
 
     public function datatable(Request $request)
     {
-        $results = Product::orderBy('id','DESC');
-        // if(@$request->brand_name){
-        //     $results = $results->Where('brand_name','LIKE','%'.$request->brand_name.'%');
-        // }
-        $limit = 15;
-        if(@$request['limit']){
-            $limit = $request['limit'];
+        $results = Product::orderBy('id', 'DESC');
+        if (!empty($request->search)) {
+            $results->where(function ($q) use ($request) {
+                $q->where('name', 'LIKE', "%{$request->search}%")
+                    ->orWhere('remark', 'LIKE', "%{$request->search}%")
+                    ->orWhere('price', 'LIKE', "%{$request->search}%")
+                    ->orWhere('cost', 'LIKE', "%{$request->search}%");
+            });
         }
+
+        // 🔎 ถ้ามีเลือกสาขา และไม่ใช่ all → filter
+        if ($request->filled('ref_branch_id') && $request->ref_branch_id !== 'all') {
+            $results = $results->where('ref_branch_id', $request->ref_branch_id);
+        }
+        // ถ้าไม่ส่ง ref_branch_id หรือเป็น all → ข้าม ไม่ filter
+
+        $limit = $request->limit ?? 15;
 
         $results = $results->paginate($limit);
 
-        $data['list_data'] = $results->appends(request()->query());
-        $data['query'] = request()->query();
+        $data['list_data'] = $results->appends($request->query());
+        $data['query'] = $request->query();
         $data['query']['limit'] = $limit;
 
         $data['page_url'] = 'admin/product';
-        $data['list_data'] = $results;
 
         return view('admin/product/table', $data);
     }
+
     public function card_stock_report()
     {
         $data['product'] = Product::get();
         $data['page_url'] = 'admin/card_stock_report';
         $data['page'] = 'สินค้า';
-        
+
         return view('admin/product/card_stock_report', $data);
     }
 
     public function card_stock_report_datatable(Request $request)
     {
         $results = CardStocks::select('card_stocks.*', 'products.name as product_name', 'branchs.name as branch_name')
-                                ->orderBy('id','DESC')
-                                ->leftjoin('products', 'card_stocks.ref_product_id', '=', 'products.id')
-                                ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id');
+            ->orderBy('id', 'DESC')
+            ->leftjoin('products', 'card_stocks.ref_product_id', '=', 'products.id')
+            ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id');
         // if(@$request->brand_name){
         //     $results = $results->Where('brand_name','LIKE','%'.$request->brand_name.'%');
         // }
         $limit = 15;
-        if(@$request['limit']){
+        if (@$request['limit']) {
             $limit = $request['limit'];
         }
 
@@ -103,7 +122,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        try{
+        try {
             $product = new Product;
             $product->ref_branch_id = $request->ref_branch_id;
             $product->name = $request->name;
@@ -111,7 +130,7 @@ class ProductController extends Controller
             $product->cost = $request->cost;
             $product->remark = $request->remark;
             $product->save();
-            
+
             DB::commit();
             return true;
         } catch (QueryException $err) {
@@ -122,21 +141,21 @@ class ProductController extends Controller
     public function card_stock_report_store(Request $request)
     {
         $card_stocks = CardStocks::where('ref_product_id', $request->ref_product_id)->latest()->first();
-        if(!$card_stocks){
+        if (!$card_stocks) {
             $remain = 0;
-        }else{
+        } else {
             $remain = $card_stocks->remain;
         }
-        try{
+        try {
             $card_stocks = new CardStocks;
             $card_stocks->ref_product_id = $request->ref_product_id;
             $card_stocks->type = 1;
             $card_stocks->label = $request->label;
             $card_stocks->quantity = $request->quantity;
-            $card_stocks->remain = $remain+$request->quantity;
+            $card_stocks->remain = $remain + $request->quantity;
             $card_stocks->remark = $request->remark;
             $card_stocks->save();
-            
+
             DB::commit();
             return true;
         } catch (QueryException $err) {
@@ -164,9 +183,18 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
-        
+
         $data['page_url'] = 'admin/product';
         $data['product'] = Product::find($id);
+        $user = Auth::user();
+
+        if ($user->work_status == 3) {
+            // super admin เห็นทุก branch
+            $data['branch'] = Branch::orderBy('name')->get();
+        } else {
+            // เห็นเฉพาะสาขาของตัวเอง
+            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        }        // $data['title'] = 'Profile';
         return view('admin/product/view', $data);
     }
 
@@ -180,13 +208,13 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         //
-        try{
+        try {
             $product = Product::find($id);
             $product->ref_branch_id = $request->ref_branch_id;
             $product->name = $request->name;
             $product->price = $request->price;
             $product->cost = $request->cost;
-            $product->stock = $request->stock;
+            // $product->stock = $request->stock;
             $product->remark = $request->remark;
             $product->save();
 
@@ -205,7 +233,7 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        try{
+        try {
             Product::destroy($id);
             DB::commit();
             return true;
@@ -214,5 +242,4 @@ class ProductController extends Controller
         }
         //
     }
-    
 }
