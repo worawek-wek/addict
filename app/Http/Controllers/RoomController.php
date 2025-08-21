@@ -126,6 +126,15 @@ class RoomController extends Controller
 
         $data['page_url'] = 'admin/room';
         $data['room'] = Room::find($id);
+          $user = Auth::user();
+
+        if ($user->work_status == 3) {
+            // super admin เห็นทุก branch
+            $data['branch'] = Branch::orderBy('name')->get();
+        } else {
+            // เห็นเฉพาะสาขาของตัวเอง
+            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        }
         return view('admin/room/view', $data);
     }
 

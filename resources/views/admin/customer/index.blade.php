@@ -61,10 +61,24 @@
                                                     ลูกค้า
                                                 </h4>
                                             </div>
-                                            <div class="col-sm-12">
+                                            <div class="col-sm-3">
+                                                <select name="ref_branch_id" class="form-select p_search"
+                                                    onchange='loadData("{{ $page_url }}/datatable")' required>
+                                                    @if (Auth::user()->work_status == 3)
+                                                        <option value="">ทั้งหมด</option>
+                                                    @endif
+                                                    @foreach ($branches as $bra)
+                                                        <option value="{{ $bra->id }}">{{ $bra->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
+
+                                            <div class="col-sm-9">
                                                 <div class="row">
                                                     <div class="input-group input-group-merge">
-                                                        <span class="input-group-text"><i class="ti ti-search"></i></span>
+                                                        <span class="input-group-text"><i
+                                                                class="ti ti-search"></i></span>
                                                         <input oninput='loadData("{{ $page_url }}/datatable")'
                                                             name="search" type="text" class="form-control p_search"
                                                             placeholder="ค้นหา..." />

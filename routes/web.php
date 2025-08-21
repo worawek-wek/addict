@@ -34,6 +34,7 @@ use App\Http\Controllers\ExportExcelController;
 use App\Http\Controllers\AnnualHolidayController;
 use App\Http\Controllers\ColorSchemeController;
 use App\Http\Controllers\Front\OrderCusController;
+use App\Http\Controllers\pos\POSController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,6 +56,11 @@ Route::get('/clc', function () {
 
     return "Cleared!";
 });
+Route::get('/pos', [POSController::class, 'index'])->name('pos.index');
+Route::post('/pos/add/{id}', [POSController::class, 'addToCart'])->name('pos.add');
+Route::post('/pos/update/{id}', [POSController::class, 'updateCart'])->name('pos.update');
+Route::post('/pos/remove/{id}', [POSController::class, 'removeFromCart'])->name('pos.remove');
+
 Route::get('/', function () {
     return redirect('login');
 });

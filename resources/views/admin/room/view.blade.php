@@ -21,7 +21,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
     <div class="modal-body pb-5" style="padding: 1em 3em;">
-        
+
         <div class="col-md-12" style="padding-right: unset !important;">
 
         <div class="card shadow-none bg-transparent border mb-3">
@@ -35,7 +35,7 @@
                       </li>
                       <li class="nav-item" role="presentation">
                         <button
-                            class="buttons-collection btn-label-warning waves-effect waves-light nav-link" 
+                            class="buttons-collection btn-label-warning waves-effect waves-light nav-link"
                             role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-top-edit" aria-controls="navs-pills-top-edit" aria-selected="false" tabindex="-1">
                             <span>
                                 <i class="ti ti-pencil"></i> แก้ไข
@@ -80,14 +80,18 @@
                         </div>
                         <form id="edit_room" enctype="multipart/form-data">
                             @csrf
-                            
+
                             <div class="row g-3 p-4">
                                 <div class="col-sm-12">
                                     <label for="" class="form-label">สาขา</label><span class="text-danger"> *</span><br>
-                                      <input class="form-check-input" type="radio" name="ref_branch_id" id="inlineRadio3" value="1" @if ($room->ref_branch_id == 1) checked @endif>
-                                      <label class="form-check-label me-4" for="inlineRadio3">อ่อนนุช</label>
-                                      <input class="form-check-input" type="radio" name="ref_branch_id" id="inlineRadio4" value="2" @if ($room->ref_branch_id == 2) checked @endif>
-                                      <label class="form-check-label" for="inlineRadio4">ทองหล่อ</label>
+                                      @foreach ($branch as $bra)
+                                                <input class="form-check-input" type="radio" name="ref_branch_id"
+                                                    id="branch{{ $bra->id }}" value="{{ $bra->id }}"
+                                                    {{ $loop->first ? 'checked' : '' }}>
+                                                <label class="form-check-label me-4" for="branch{{ $bra->id }}">
+                                                    {{ $bra->name }}
+                                                </label>
+                                            @endforeach
                                 </div>
                                 <div class="col-sm-6">
                                 </div>
@@ -114,7 +118,7 @@
                                             input.value = ''; // ถ้าไม่ใช่ตัวเลขให้ลบค่าที่ป้อน
                                         }
                                     }
-                                </script> 
+                                </script>
                                 <div class="col-sm-12">
                                     <label for="" class="form-label">หมายเหตุ</label>
                                     <textarea name="remark" class="form-control">{{ $room->remark }}</textarea>
@@ -136,13 +140,13 @@
                         type="button" aria-haspopup="dialog"
                         aria-expanded="false">
                         <span>
-                            <i class="ti ti-upload"></i> 
+                            <i class="ti ti-upload"></i>
                             ดาวน์โหลด Excel
                         </span>
                 </button> --}}
-                
+
         </div>
-        
+
         {{-- <div class="col-sm-12">
             <div class="card shadow-none bg-transparent border mb-3">
                 <div class="card-body">
@@ -155,7 +159,7 @@
 </div>
 </div>
 <script>
-    
+
     $('#edit_room').on('submit', function(event) {
             event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
             if(!this.checkValidity()) {
@@ -164,7 +168,7 @@
                 return console.log('ฟอร์มไม่ถูกต้อง');
             }
             // return alert(123);
-            
+
             var formData = new FormData(this);
             Swal.fire({
                 title: 'ยืนยันการดำเนินการ?',
@@ -203,7 +207,7 @@
                 }
             });
         });
-        
+
         $(document).ready(function() {
             $('#select2Position2').select2({
                 placeholder: 'เลือกตำแหน่ง',

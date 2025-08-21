@@ -200,12 +200,14 @@
                             <div class="col-sm-12">
                                 <label for="" class="form-label">สาขา</label><span class="text-danger">
                                     *</span><br>
-                                <input class="form-check-input" type="radio" name="ref_branch_id"
-                                    id="inlineRadio1" value="1" checked>
-                                <label class="form-check-label me-4" for="inlineRadio1">อ่อนนุช</label>
-                                <input class="form-check-input" type="radio" name="ref_branch_id"
-                                    id="inlineRadio2" value="2">
-                                <label class="form-check-label" for="inlineRadio2">ทองหล่อ</label>
+                               @foreach ($branch as $bra)
+                                    <input class="form-check-input" type="radio" name="ref_branch_id"
+                                        id="branch{{ $bra->id }}" value="{{ $bra->id }}"
+                                        {{ $loop->first ? 'checked' : '' }}>
+                                    <label class="form-check-label me-4" for="branch{{ $bra->id }}">
+                                        {{ $bra->name }}
+                                    </label>
+                                @endforeach
                             </div>
                             {{-- <div class="col-sm-12"></div> --}}
                             {{-- <div class="col-sm-6">
