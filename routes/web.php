@@ -35,6 +35,7 @@ use App\Http\Controllers\AnnualHolidayController;
 use App\Http\Controllers\ColorSchemeController;
 use App\Http\Controllers\Front\OrderCusController;
 use App\Http\Controllers\pos\POSController;
+use App\Http\Controllers\pos\RoomPOSController;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,15 +57,22 @@ Route::get('/clc', function () {
 
     return "Cleared!";
 });
-Route::middleware('auth')->group(function () {
-    Route::get('/pos', [POSController::class, 'index'])->name('pos.index');
-    Route::post('/pos/add/{id}', [POSController::class, 'addToCart'])->name('pos.add');
-    Route::post('/pos/update/{id}', [POSController::class, 'updateCart'])->name('pos.update');
-    Route::post('/pos/remove/{id}', [POSController::class, 'removeFromCart'])->name('pos.remove');
-    Route::post('/pos/checkout', [POSController::class, 'checkout'])->name('pos.checkout');
-    Route::get('/pos/room/{roomId}/customers', [POSController::class, 'getActiveCustomersInRoom'])
-        ->name('pos.room.customers');
+
+
+Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
+
+    // ✅ POS Controller
+    Route::get('/', [POSController::class, 'index'])->name('index');
+    Route::post('/add/{id}', [POSController::class, 'addToCart'])->name('add');
+    Route::post('/update/{id}', [POSController::class, 'updateCart'])->name('update');
+    Route::post('/remove/{id}', [POSController::class, 'removeFromCart'])->name('remove');
+    Route::post('/checkout', [POSController::class, 'checkout'])->name('checkout');
+
+    // ✅ Room Controller
+    Route::get('/room', [RoomPOSController::class, 'index'])->name('room.index');
+    Route::get('/room/{roomId}/customers', [RoomPOSController::class, 'getCustomers'])->name('room.customers');
 });
+
 
 
 Route::get('/', function () {

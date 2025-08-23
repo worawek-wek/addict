@@ -87,13 +87,19 @@
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
         </div>
         <div class="offcanvas-body">
-            <a href="#" class="btn menu-btn active">
+
+            {{-- Cashier --}}
+            <a href="{{ route('pos.index') }}"
+                class="btn menu-btn {{ request()->routeIs('pos.index') ? 'active' : '' }}">
                 <i class="bi bi-calculator"></i> Cashier
             </a>
 
-            <a href="#" class="btn menu-btn">
+            {{-- Room --}}
+            <a href="{{ route('pos.room.index') }}"
+                class="btn menu-btn {{ request()->routeIs('pos.room.index') ? 'active' : '' }}">
                 <i class="bi bi-door-open"></i> Room
             </a>
+
         </div>
     </div>
 

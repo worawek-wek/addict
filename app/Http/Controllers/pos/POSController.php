@@ -195,7 +195,7 @@ class POSController extends Controller
         $total    = $subtotal - $discount + $tax;
 
         $order->update([
-            'total_price' => $total,
+            'total_price' => $order->total_price + $total,
             'updated_at'  => now(),
         ]);
 
