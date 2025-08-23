@@ -40,4 +40,8 @@ class Order extends Model
     {
         return $this->belongsTo(Customer::class, 'ref_customer_id');
     }
+    public function products()
+    {
+        return $this->hasMany(OrderHasProduct::class, 'ref_order_id');
+    }
 }

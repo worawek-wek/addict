@@ -3,6 +3,8 @@
         window.location.href = '/branch/manage';  // ทำการ redirect ถ้าไม่มี branch_id
     }
 </script> --}}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
 <style>
     .active .menu-link i {
         color: #ffffff !important;
@@ -188,6 +190,12 @@
                 <div data-i18n="ยานพาหนะ">ยานพาหนะ</div>
             </a>
         </li> --}}
+       <li class="menu-item">
+    <a href="/pos" class="menu-link">
+        <i class="menu-icon tf-icons ti ti-shopping-cart"></i>
+        <div data-i18n="POS (ขายสินค้า)">POS (ขายสินค้า)</div>
+    </a>
+</li>
         <li class="menu-item">
             <a href="/admin/order-rooms" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-file-invoice"></i>

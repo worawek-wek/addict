@@ -56,10 +56,16 @@ Route::get('/clc', function () {
 
     return "Cleared!";
 });
-Route::get('/pos', [POSController::class, 'index'])->name('pos.index');
-Route::post('/pos/add/{id}', [POSController::class, 'addToCart'])->name('pos.add');
-Route::post('/pos/update/{id}', [POSController::class, 'updateCart'])->name('pos.update');
-Route::post('/pos/remove/{id}', [POSController::class, 'removeFromCart'])->name('pos.remove');
+Route::middleware('auth')->group(function () {
+    Route::get('/pos', [POSController::class, 'index'])->name('pos.index');
+    Route::post('/pos/add/{id}', [POSController::class, 'addToCart'])->name('pos.add');
+    Route::post('/pos/update/{id}', [POSController::class, 'updateCart'])->name('pos.update');
+    Route::post('/pos/remove/{id}', [POSController::class, 'removeFromCart'])->name('pos.remove');
+    Route::post('/pos/checkout', [POSController::class, 'checkout'])->name('pos.checkout');
+    Route::get('/pos/room/{roomId}/customers', [POSController::class, 'getActiveCustomersInRoom'])
+        ->name('pos.room.customers');
+});
+
 
 Route::get('/', function () {
     return redirect('login');
@@ -102,7 +108,6 @@ Route::middleware('auth:customer')->group(function () {
 
         Route::get('check-availability/{branchId}', 'checkAvailability')->name('check-availability');
         Route::get('check-room-availability/{branchId}', 'checkRoomAvailability')->name('check-room-availability');
-
     });
 
     Route::controller(FrontClockInController::class)->group(function () {
