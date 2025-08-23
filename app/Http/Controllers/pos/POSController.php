@@ -193,11 +193,12 @@ class POSController extends Controller
         $discount = 0;
         $tax      = 0;
         $total    = $subtotal - $discount + $tax;
+        $total_price = $order->total_price + $total;
 
-        $order->update([
-            'total_price' => $order->total_price + $total,
-            'updated_at'  => now(),
-        ]);
+      $order->total_price = $total_price;
+$order->updated_at  = now();
+$order->save();
+
 
         Session::forget('cart');
 
