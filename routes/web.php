@@ -36,6 +36,7 @@ use App\Http\Controllers\ColorSchemeController;
 use App\Http\Controllers\Front\OrderCusController;
 use App\Http\Controllers\pos\POSController;
 use App\Http\Controllers\pos\RoomPOSController;
+use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +61,19 @@ Route::get('/clc', function () {
 
 
 Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
+    Route::get('/api/search-users', function (Request $request) {
+        $q = $request->get('q', '');
+        $users = \App\Models\Customer::query()
+            ->where('phone', 'like', "%{$q}%")
+            ->orWhere('name', 'like', "%{$q}%")
+            ->limit(20)
+            ->get(['id', 'name', 'phone']);
+
+        return response()->json($users);
+    });
+    Route::get('/api/search-staff', [POSController::class, 'searchStaff'])->name('api.searchStaff');
+    Route::get('/api/search-addons', [PosController::class, 'searchAddons'])->name('api.searchAddons');
+    Route::get('/api/sales-staff', [PosController::class, 'searchSalesStaff'])->name('api.searchSalesStaff');
 
     // ✅ POS Controller
     Route::get('/', [POSController::class, 'index'])->name('index');
@@ -71,6 +85,9 @@ Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
     // ✅ Room Controller
     Route::get('/room', [RoomPOSController::class, 'index'])->name('room.index');
     Route::get('/room/{roomId}/customers', [RoomPOSController::class, 'getCustomers'])->name('room.customers');
+
+    Route::post('/api/calculate-summary', [PosController::class, 'calculateSummary'])->name('api.calculateSummary');
+
 });
 
 
@@ -144,6 +161,7 @@ Route::prefix('admin')->group(function () {
         Route::post('register', 'register')->name('register.store');
     });
     Route::middleware('auth')->group(function () {
+
         Route::controller(CustomerController::class)->group(function () {
             Route::get('customer', 'index')->name('customer.index');
             Route::get('customer/datatable', 'datatable')->name('customer.datatable');
