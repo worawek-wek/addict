@@ -93,6 +93,7 @@ class RoomController extends Controller
             $room->name = $request->name;
             $room->sixty_minutes = $request->sixty_minutes;
             $room->ninety_minutes = $request->ninety_minutes;
+            $room->forty_minutes = $request->forty_minutes;
             $room->remark = $request->remark;
             $room->save();
 
@@ -126,7 +127,7 @@ class RoomController extends Controller
 
         $data['page_url'] = 'admin/room';
         $data['room'] = Room::find($id);
-          $user = Auth::user();
+        $user = Auth::user();
 
         if ($user->work_status == 3) {
             // super admin เห็นทุก branch
@@ -152,6 +153,7 @@ class RoomController extends Controller
             $room = Room::find($id);
             $room->ref_branch_id = $request->ref_branch_id;
             $room->name = $request->name;
+            $room->forty_minutes = $request->forty_minutes;
             $room->sixty_minutes = $request->sixty_minutes;
             $room->ninety_minutes = $request->ninety_minutes;
             $room->remark = $request->remark;

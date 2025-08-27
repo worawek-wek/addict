@@ -200,7 +200,7 @@ class UserController extends Controller
             $user->email  =  $request->email;
             $user->ref_position_id  =  $request->ref_position_id;
             $user->remark  =  $request->remark;
-
+            $user->salary  =  $request->salary;
             $user->image_name = $image_name;
             $user->ref_branch_id  =  $request->ref_branch_id;
             // $user->ref_branch_id  =  session("branch_id");
@@ -224,7 +224,9 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        //
+        $user = User::with(['branch', 'position'])->findOrFail($id);
+
+        return view('admin/user/show', compact('user'));
     }
     public function ChangeDateFormat($date)
     {
@@ -291,6 +293,7 @@ class UserController extends Controller
             $user->ref_position_id  =  $request->ref_position_id;
             $user->ref_branch_id  =  $request->ref_branch_id;
             $user->remark  =  $request->remark;
+             $user->salary  =  $request->salary;
             if (!empty($request->password)) {
                 $user->password = Hash::make($request->password);
             }

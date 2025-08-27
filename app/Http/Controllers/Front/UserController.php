@@ -231,7 +231,6 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-
         try {
 
             // $work_start_date = Carbon::createFromFormat('d/m/Y', $request->work_start_date)->format('Y-m-d');

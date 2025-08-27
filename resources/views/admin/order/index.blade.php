@@ -89,7 +89,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="card-body">
                                         <div class="tab-content p-0">
                                             <div class="tab-pane fade show active" id="navs-pills-top-home"
@@ -108,17 +108,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="col-md-8 flex text-end" style="padding-right: unset !important;">
-                                                        <button
-                                                                style="padding-right: 14px;padding-left: 14px;"
-                                                                class="btn btn-success buttons-collection btn-warning waves-effect waves-light me-2"
-                                                                tabindex="0" aria-controls="DataTables_Table_0"
-                                                                type="button" aria-haspopup="dialog"
-                                                                aria-expanded="false">
-                                                                <span>
-                                                                    <i class="ti ti-upload"></i> 
-                                                                    ดาวน์โหลด Excel
-                                                                </span>
-                                                        </button>
+
                                                         {{-- <button
                                                                 style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
                                                                 class="btn btn-success buttons-collection  btn-info waves-effect waves-light"
@@ -223,7 +213,7 @@
                                     }
                                 }
 
-                            </script> 
+                            </script>
                             <div class="col-sm-12">
                                 <label for="" class="form-label">หมายเหตุ</label>
                                 <textarea name="remark" class="form-control"></textarea>
@@ -240,25 +230,25 @@
     </div>
     <div class="modal fade modalHeadDecor" id="insurance" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document" id="view">
-            
+
         </div>
     </div>
-    
+
     <!--set rent Modal -->
-    
+
     <!-- / Layout wrapper -->
     @include('admin/layout/inc_js')
     <script>
         var page = "{{$page_url}}/datatable";
         var searchData = {};
         loadData(page);
-        
+
         function loadData(pages){
-            
+
             $('.p_search').each(function() {
                 var inputName = $(this).attr('name'); // ดึงชื่อ attribute 'name' ของ input
                 var inputValue = $(this).val(); // ดึงค่า value ของ input
-                
+
                 searchData[inputName] = inputValue; // เก็บข้อมูลลงในออบเจ็กต์ searchData
             });
 
@@ -331,7 +321,7 @@
         });
 
 
-        
+
         // window.onload = function() {
         //     $('#addserviceModal').modal('show');
         // };

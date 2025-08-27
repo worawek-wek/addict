@@ -105,9 +105,9 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-8 text-end">
-                                                <button class="btn btn-warning me-2">
+                                                {{-- <button class="btn btn-warning me-2">
                                                     <i class="ti ti-upload"></i> ดาวน์โหลด Excel
-                                                </button>
+                                                </button> --}}
                                                 <button class="btn btn-main" data-bs-toggle="modal"
                                                     data-bs-target="#addserviceModal">
                                                     <i class="ti ti-plus"></i> เพิ่มลูกค้า

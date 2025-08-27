@@ -127,7 +127,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="col-sm-5 col-lg-5">
                                             <div class="card card-border-shadow-success">
                                                 <div class="card-body">
@@ -245,7 +245,7 @@
                                                         >
                                                     <span><i class="ti ti-send"></i> ชำระเงิน</span>
                                                 </button>
-                                                <button
+                                                {{-- <button
                                                         style="padding-right: 14px;padding-left: 14px;"
                                                         class="btn btn-success buttons-collection btn-warning waves-effect waves-light me-2"
                                                         tabindex="0" aria-controls="DataTables_Table_0"
@@ -253,7 +253,7 @@
                                                         aria-expanded="false">
                                                     <span>
                                                     <i class="ti ti-upload"></i> ดาวน์โหลด Excel</span>
-                                                </button>
+                                                </button> --}}
                                                 <button
                                                         style="padding-right: 14px;padding-left: 14px;"
                                                         class="btn btn-success buttons-collection btn-primary waves-effect waves-light me-2"
@@ -312,18 +312,18 @@
                                         <div class="col-md-2" style="padding-right: unset !important;">
                                             <input type="month" class="form-control" id="exampleFormControlInput1" placeholder="" />
                                         </div>
-                                        
+
                                     </div>
                                 </div>
-                                
+
                                 <div class="card-body px-0 pt-0">
                                     <div class="tab-content p-0" id="pills-tabContent">
-                                        
+
                                         {{-- table อยู่ตรงนี้ครับ --}}
 
                                     </div>
                                 </div>
-                                
+
                                 </div>
                             </div>
                         </div>
@@ -351,7 +351,7 @@
     <div class="modal fade modalHeadDecor" id="invoice" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content rounded-0" id="viewInvoice">
-                
+
             </div>
         </div>
     </div>
@@ -363,7 +363,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="detail">
-                    
+
                 </div>
                 <div class="modal-footer rounded-0 justify-content-center">
                     <button
@@ -390,7 +390,7 @@
                 $(targetBox).show();
             });
         });
-        
+
         function view(id,de){
             if(de == 'table'){
                 status_detail_waiting_confirm = 0;
@@ -473,17 +473,17 @@
         var page = "{{$page_url}}/datatable";
         var searchData = {};
         loadData(page);
-        
+
         var ch = "pills-profile";
         function ch_div(id_ch){
             ch = id_ch;
         }
         function loadData(pages){
-            
+
             $('.p_search').each(function() {
                 var inputName = $(this).attr('name'); // ดึงชื่อ attribute 'name' ของ input
                 var inputValue = $(this).val(); // ดึงค่า value ของ input
-                
+
                 searchData[inputName] = inputValue; // เก็บข้อมูลลงในออบเจ็กต์ searchData
             });
 
@@ -497,7 +497,7 @@
                     $("#pills-tabContent").html(data);
                     $('#'+ch).addClass('active');
                     summary();
-                    
+
                     // $("#table-data").html(data);
                 }
             });
@@ -571,7 +571,7 @@
             //     changeStatusBill(selectedValues, 2, "คอนเฟิร์มบิล");
             // }
         }
-        
+
     </script>
     <script src="assets/vendor/libs/select2/select2.js"></script>
     <script src="assets/vendor/libs/bootstrap-select/bootstrap-select.js"></script>

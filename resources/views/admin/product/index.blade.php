@@ -126,15 +126,7 @@
                                                     </div>
                                                     <div class="col-md-8 flex text-end"
                                                         style="padding-right: unset !important;">
-                                                        <button style="padding-right: 14px;padding-left: 14px;"
-                                                            class="btn btn-success buttons-collection btn-warning waves-effect waves-light me-2"
-                                                            tabindex="0" aria-controls="DataTables_Table_0"
-                                                            type="button" aria-haspopup="dialog" aria-expanded="false">
-                                                            <span>
-                                                                <i class="ti ti-upload"></i>
-                                                                ดาวน์โหลด Excel
-                                                            </span>
-                                                        </button>
+
                                                         <button
                                                             style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
                                                             class="btn btn-success buttons-collection  btn-info waves-effect waves-light"

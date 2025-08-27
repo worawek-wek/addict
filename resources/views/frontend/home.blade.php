@@ -270,8 +270,8 @@
                     const availableClass = room.available ? '' : 'opacity-50';
                     const disabled = room.available ? '' : 'disabled';
                     const statusMsg = room.available ?
-                        `<small class="text-success">✅ ว่าง</small>` :
-                        `<small class="text-danger">❌ ไม่ว่างเวลานี้</small>`;
+                        `<small class="text-success"> Available </small>` :
+                        `<small class="text-danger"> Booked </small>`;
 
                     html += `
                 <input type="radio" class="btn-check" name="roomType"
@@ -374,8 +374,8 @@
                     const availableClass = row.available ? '' : 'opacity-50';
                     const disabled = row.available ? '' : 'disabled';
                     const statusMsg = row.available ?
-                        `<small class="text-success">✅ ว่าง</small>` :
-                        `<small class="text-danger">❌ ไม่ว่างเวลานี้</small>`;
+                        `<small class="text-success"> Available </small>` :
+                        `<small class="text-danger"> Booked </small>`;
 
                     html += `
 <div class="col-6 col-sm-3 user-card ${availableClass}"

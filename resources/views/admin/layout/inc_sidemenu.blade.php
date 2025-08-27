@@ -190,12 +190,12 @@
                 <div data-i18n="ยานพาหนะ">ยานพาหนะ</div>
             </a>
         </li> --}}
-       <li class="menu-item">
-    <a href="/pos" class="menu-link">
-        <i class="menu-icon tf-icons ti ti-shopping-cart"></i>
-        <div data-i18n="POS (ขายสินค้า)">POS (ขายสินค้า)</div>
-    </a>
-</li>
+        <li class="menu-item">
+            <a href="/pos" class="menu-link" target="_blank" rel="noopener noreferrer">
+                <i class="menu-icon tf-icons ti ti-shopping-cart"></i>
+                <div data-i18n="POS (ขายสินค้า)">POS (ขายสินค้า)</div>
+            </a>
+        </li>
         <li class="menu-item">
             <a href="/admin/order-rooms" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-file-invoice"></i>
@@ -241,7 +241,7 @@
                 </li>
                 <li class="menu-item">
                     <a href="/admin/sales_report" class="menu-link">
-                        <div data-i18n="รายงานยอดขาย">รายงานยอดขาย</div>
+                        <div data-i18n="รายงานยอดขายสินค้าของสาขา">รายงานยอดขายสินค้าของสาขา</div>
                     </a>
                 </li>
                 <li class="menu-item">

@@ -415,6 +415,7 @@ class FrontHomeController extends Controller
 
         $users = User::where('ref_status_id', 1)
             ->where('ref_branch_id', $branchId)
+             ->where('ref_position_id', 2)
             ->get()
             ->map(function ($user) use ($bookingDate, $startTime, $endTime) {
                 $hasConflict = Order::where('ref_user_id', $user->id)
