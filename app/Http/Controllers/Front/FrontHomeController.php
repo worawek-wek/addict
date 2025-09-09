@@ -40,7 +40,12 @@ class FrontHomeController extends Controller
         $data['page_url'] = 'home';
         $data['rooms'] = Room::get();
         $data['products'] = Product::get();
-        $data['option'] = AddonOption::orderBy('price', 'asc')->get();
+        $branch_id = $id ?? session('branch_id');
+        if ($branch_id) {
+            $data['option'] = AddonOption::where('branch', $branch_id)->orderBy('price', 'asc')->get();
+        } else {
+            $data['option'] = collect();
+        }
         $data['branches'] = Branch::all();
 
         return view('frontend.home', $data);

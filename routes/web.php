@@ -1,5 +1,7 @@
+
 <?php
 
+use App\Http\Controllers\AddonOptionController;
 use App\Http\Controllers\Admin\OrderRoomController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -91,6 +93,10 @@ Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
 
 Route::get('/', function () {
     return redirect('login');
+});
+// API: Get AddonOption by branch
+Route::get('/api/addon-options/{branchId}', function($branchId) {
+    return \App\Models\AddonOption::where('branch', $branchId)->orderBy('price', 'asc')->get();
 });
 
 Route::get('/register', [CustomerLoginController::class, 'showRegisterForm'])
@@ -233,6 +239,15 @@ Route::prefix('admin')->group(function () {
             Route::get('branch/add', 'add')->name('branch.add');
             Route::post('branch/add', 'store')->name('branch.insert');
             Route::get('branch/manage', 'manage')->name('branch.manage');
+        });
+        // AddonOption CRUD
+        Route::controller(AddonOptionController::class)->group(function () {
+            Route::get('addon-options', 'index')->name('addon_options.index');
+            Route::get('addon-options/create', 'create')->name('addon_options.create');
+            Route::post('addon-options', 'store')->name('addon_options.store');
+            Route::get('addon-options/{id}/edit', 'edit')->name('addon_options.edit');
+            Route::post('addon-options/{id}', 'update')->name('addon_options.update');
+            Route::delete('addon-options/{id}', 'destroy')->name('addon_options.destroy');
         });
         Route::get('logout', [AuthController::class, 'logout'])->name('logout');
     });

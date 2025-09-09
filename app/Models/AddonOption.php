@@ -13,5 +13,6 @@ class AddonOption extends Model
     protected $fillable = [
         'name',
         'price',
+        'branch'
     ];
 }

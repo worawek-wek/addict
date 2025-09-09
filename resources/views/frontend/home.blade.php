@@ -133,17 +133,14 @@
                         <div class="col-12">
                             <h4 class="bg-cream ff-playfair p-2">Add-on Options</h4>
                         </div>
-
                         <div class="col-12">
-                            <div class="d-flex gap-2 flex-wrap">
+                            <div class="d-flex gap-2 flex-wrap" id="addon-options-list">
                                 @foreach ($option as $item)
                                     <div class="snack-item" style="position: relative; width: 19%; min-width: 200px;">
                                         <input type="checkbox" class="btn-check addon-checkbox" name="ref_option_id[]"
                                             id="addon{{ $item->id }}" value="{{ $item->id }}"
                                             data-name="{{ $item->name }}" data-price="{{ $item->price }}"
                                             autocomplete="off">
-
-
                                         <label
                                             class="btn btn-purple-check d-flex flex-column justify-content-center text-center"
                                             for="addon{{ $item->id }}">
@@ -154,7 +151,6 @@
                                                     stroke-linejoin="round" stroke-width="2"
                                                     d="M12.01 6.001C6.5 1 1 8 5.782 13.001L12.011 20l6.23-7C23 8 17.5 1 12.01 6.002Z" />
                                             </svg>
-
                                             {{ $item->name }}
                                             <br>
                                             <small>{{ number_format($item->price, 2) }} ฿</small>
@@ -163,6 +159,43 @@
                                 @endforeach
                             </div>
                         </div>
+    <script>
+        // โหลด Add-on Options ใหม่เมื่อเลือกสาขา
+        $(document).on('change', 'input[name="ref_branch_id"]', function() {
+            const branchId = $(this).val();
+            $.get('/api/addon-options/' + branchId, function(options) {
+                let html = '';
+                options.forEach(function(item) {
+                    html += `
+                        <div class="snack-item" style="position: relative; width: 19%; min-width: 200px;">
+                            <input type="checkbox" class="btn-check addon-checkbox" name="ref_option_id[]"
+                                id="addon${item.id}" value="${item.id}"
+                                data-name="${item.name}" data-price="${item.price}"
+                                autocomplete="off">
+                            <label
+                                class="btn btn-purple-check d-flex flex-column justify-content-center text-center"
+                                for="addon${item.id}">
+                                <svg class="w-6 h-6 text-gray-800 dark:text-white mx-auto mb-2"
+                                    aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+                                    height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round"
+                                        stroke-linejoin="round" stroke-width="2"
+                                        d="M12.01 6.001C6.5 1 1 8 5.782 13.001L12.011 20l6.23-7C23 8 17.5 1 12.01 6.002Z" />
+                                </svg>
+                                ${item.name}
+                                <br>
+                                <small>${parseFloat(item.price).toFixed(2)} ฿</small>
+                            </label>
+                        </div>
+                    `;
+                });
+                $('#addon-options-list').html(html);
+                // re-bind updateSummary
+                $('.addon-checkbox').on('change', updateSummary);
+                updateSummary();
+            });
+        });
+    </script>
 
 
                         <div class="col-12">

@@ -227,6 +227,12 @@
                 <div data-i18n="ลูกค้า">ลูกค้า</div>
             </a>
         </li>
+        <li class="menu-item">
+            <a href="/admin/addon-options" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-settings"></i>
+                <div data-i18n="Addon Options">Addon Options</div>
+            </a>
+        </li>
         <!-- ระบบรายงาน -->
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
