@@ -12,8 +12,11 @@ class RoomPOSController extends Controller
 {
     public function index()
     {
-
+        $user = auth()->user();
         $rooms = Room::select('id', 'name', 'ref_branch_id')
+            ->when($user && $user->ref_position_id != 0, function($q) use ($user) {
+                $q->where('ref_branch_id', $user->ref_branch_id);
+            })
             ->get()
             ->map(function ($room) {
                 $activeOrder = Order::where('ref_room_id', $room->id)

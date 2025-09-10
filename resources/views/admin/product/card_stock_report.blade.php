@@ -189,6 +189,8 @@
                                 </select>
                             </div>
                             <div class="col-sm-6">
+                                <label for="" class="form-label">ราคาต้นทุน</label><span class="text-danger"> *</span>
+                                <input name="cost_price" type="number" step="0.01" class="form-control" placeholder="ราคาต้นทุน" required />
                             </div>
                             <div class="col-sm-6">
                                 <label for="" class="form-label">รายการ</label><span class="text-danger"> *</span>

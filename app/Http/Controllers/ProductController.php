@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\CardStocks;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 DB::beginTransaction();
 
@@ -68,7 +69,14 @@ class ProductController extends Controller
 
     public function card_stock_report()
     {
-        $data['product'] = Product::get();
+        $user = Auth::user();
+        if ($user->ref_position_id == 0) {
+            // super admin เห็นทุก branch
+            $data['product'] = Product::get();
+        } else {
+            // เห็นเฉพาะสาขาของตัวเอง
+            $data['product'] = Product::where('ref_branch_id', $user->ref_branch_id)->get();
+        }
         $data['page_url'] = 'admin/card_stock_report';
         $data['page'] = 'สินค้า';
 
@@ -77,10 +85,16 @@ class ProductController extends Controller
 
     public function card_stock_report_datatable(Request $request)
     {
-        $results = CardStocks::select('card_stocks.*', 'products.name as product_name', 'branchs.name as branch_name')
-            ->orderBy('id', 'DESC')
+        $user = Auth::user();
+    $results = CardStocks::select('card_stocks.*', 'products.name as product_name', 'branchs.name as branch_name', 'card_stocks.cost_price')
+            ->orderBy('card_stocks.id', 'DESC')
             ->leftjoin('products', 'card_stocks.ref_product_id', '=', 'products.id')
             ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id');
+
+        if ($user->ref_position_id != 0) {
+            // filter เฉพาะสาขาของตัวเอง
+            $results = $results->where('products.ref_branch_id', $user->ref_branch_id);
+        }
         // if(@$request->brand_name){
         //     $results = $results->Where('brand_name','LIKE','%'.$request->brand_name.'%');
         // }
@@ -154,6 +168,7 @@ class ProductController extends Controller
             $card_stocks->quantity = $request->quantity;
             $card_stocks->remain = $remain + $request->quantity;
             $card_stocks->remark = $request->remark;
+            $card_stocks->cost_price = $request->cost_price;
             $card_stocks->save();
 
             DB::commit();

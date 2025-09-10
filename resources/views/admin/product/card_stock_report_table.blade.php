@@ -26,6 +26,9 @@
                 <th class="text-center">
                     สาขา
                 </th>
+                    <th class="text-center">
+                        ราคาต้นทุน
+                    </th>
                 <th class="text-center">
                     หมายเหตุ
                 </th>
@@ -58,6 +61,9 @@
                 <td class="text-center">
                     {{ $row->branch_name }}
                 </td>
+                    <td class="text-center">
+                        {{ number_format($row->cost_price, 2) }}
+                    </td>
                 <td class="text-center">
                     {{ $row->remark }}
                 </td>
@@ -68,4 +74,3 @@
 <!-- END: Data List -->
 <!-- BEGIN: Pagination -->
 @include('admin/layout/pagination')
-        

@@ -8,6 +8,7 @@ use App\Models\Branch;
 use App\Models\Order;
 use App\Models\OrderHasProduct;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 DB::beginTransaction();
 
@@ -22,7 +23,7 @@ class OrderController extends Controller
     {
         $data['page_url'] = 'admin/order';
         $data['page'] = 'รายงานการขายสินค้า';
-        
+
         return view('admin/order/index', $data);
     }
 
@@ -30,18 +31,22 @@ class OrderController extends Controller
     {
         $data['page_url'] = 'admin/sales_report';
         $data['page'] = 'รายงานยอดขาย';
-        
+
         return view('admin/order/sales_report', $data);
     }
 
     public function datatable(Request $request)
     {
+        $branchId = auth()->user()->ref_branch_id ?? null;
         $results = OrderHasProduct::select('order_has_products.*', 'products.name as product_name', 'customers.name as customer_name', 'orders.order_number', 'branchs.name as branch_name')
-                                    ->join('orders', 'order_has_products.ref_order_id', '=', 'orders.id')
-                                    ->join('branchs', 'orders.ref_branch_id', '=', 'branchs.id')
-                                    ->join('customers', 'orders.ref_customer_id', '=', 'customers.id')
-                                    ->join('products', 'order_has_products.ref_product_id', '=', 'products.id')
-                                    ->orderBy('order_has_products.id', 'DESC');
+            ->join('orders', 'order_has_products.ref_order_id', '=', 'orders.id')
+            ->join('branchs', 'orders.ref_branch_id', '=', 'branchs.id')
+            ->join('customers', 'orders.ref_customer_id', '=', 'customers.id')
+            ->join('products', 'order_has_products.ref_product_id', '=', 'products.id')
+            ->when($branchId, function($q) use ($branchId) {
+                $q->where('orders.ref_branch_id', $branchId);
+            })
+            ->orderBy('order_has_products.id', 'DESC');
 
         // ถ้ามี search
         if (@$request->search) {
@@ -72,11 +77,15 @@ class OrderController extends Controller
     }
     public function sales_report_datatable(Request $request)
     {
-        $results = Branch::select('branchs.id', 'branchs.name', 
+        $branchId = auth()->user()->ref_branch_id ?? null;
+        $results = Branch::select('branchs.id', 'branchs.name',
                             DB::raw('SUM(order_has_products.price * order_has_products.quantity) as total_sales'),
                             DB::raw('SUM(order_has_products.quantity) as total_quantity')) // ใช้ SUM() เพื่อคำนวณยอดขายรวม
                         ->leftjoin('orders', 'branchs.id', '=', 'orders.ref_branch_id')
                         ->leftjoin('order_has_products', 'orders.id', '=', 'order_has_products.ref_order_id')
+                        ->when($branchId, function($q) use ($branchId) {
+                            $q->where('branchs.id', $branchId);
+                        })
                         ->groupBy('branchs.id', 'branchs.name') // GROUP BY สาขา
                         ->orderBy('branchs.id', 'DESC');
 
@@ -130,7 +139,7 @@ class OrderController extends Controller
             $order->cost = $request->cost;
             $order->remark = $request->remark;
             $order->save();
-            
+
             DB::commit();
             return true;
         } catch (QueryException $err) {
@@ -158,7 +167,7 @@ class OrderController extends Controller
      */
     public function edit($id)
     {
-        
+
         $data['page_url'] = 'admin/order';
         $data['order'] = Order::find($id);
         return view('admin/order/view', $data);
@@ -207,5 +216,5 @@ class OrderController extends Controller
         }
         //
     }
-    
+
 }
