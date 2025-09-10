@@ -30,8 +30,10 @@ class POSController extends Controller
         // ---------------- Products + Search ----------------
         $q = trim((string) $request->get('q', ''));
 
+        $branchId = Auth::user()->ref_branch_id ?? null;
         $products = Product::with('latestStock')
             ->when($q !== '', fn($b) => $b->where('name', 'like', "%{$q}%"))
+            ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
             ->orderBy('name')
             ->get();
 
@@ -157,11 +159,11 @@ class POSController extends Controller
 
     public function checkout(Request $request)
     {
+
         $roomId  = $request->input('room_id');
         $orderId = $request->input('order_id');
-        $method  = $request->input('payment_method');
+        $method  = $request->input('payment_method_radio');
         $cash    = $request->input('cash_amount');
-
         $cart = Session::get('cart', []);
         $isWalkIn = ($orderId === 'walkin');
 
@@ -205,6 +207,7 @@ class POSController extends Controller
                 'start_time'      => Carbon::now()->format('H:i:s'),
                 'end_time'        => Carbon::now()->addMinutes($duration)->format('H:i:s'),
                 'total_price' => $request->input('total_price'),
+                'payment_method' => $method,
             ]);
             if ($request->filled('addon_id')) {
                 $addon = AddonOption::find($request->input('addon_id'));
@@ -307,9 +310,11 @@ class POSController extends Controller
     public function searchAddons(Request $request)
     {
         $query = $request->input('q');
+        $branchId = Auth::user()->ref_branch_id;
 
         $addons = AddonOption::select('id', 'name', 'price')
             ->where('name', 'like', "%{$query}%")
+            ->where('branch', $branchId)
             ->get();
 
         return response()->json($addons);

@@ -23,6 +23,7 @@ class Order extends Model
         'payment_method',
         'total_price',
         'duration_minutes',
+        'payment_method'
     ];
     public $timestamps = true;
     protected $primaryKey = 'id';

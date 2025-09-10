@@ -208,7 +208,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow rounded-4 p-3">
             <div class="modal-header border-0">
-                <h5 class="modal-title">Payment Method</h5>
+                <h5 class="modal-title">วิธีการชำระเงิน</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
@@ -217,7 +217,6 @@
                 <input type="hidden" name="room_id" id="formRoomId">
                 <input type="hidden" name="order_id" id="formOrderId">
                 <input type="hidden" name="payment_method" id="paymentMethod">
-                <input type="hidden" name="cash_amount" id="cashAmount">
                 <input type="hidden" name="customer_id" id="formCustomerId">
                 <input type="hidden" name="staff_id" id="formStaffId">
                 <input type="hidden" name="addon_id" id="formAddonId">
@@ -226,7 +225,6 @@
                 <input type="hidden" name="total_price" id="formTotalPrice">
 
                 <div class="modal-body">
-
                     <div class="mb-3">
                         <h6 class="fw-bold">สรุปรายการ</h6>
                         <div id="paymentSummary" class="border-top pt-2">
@@ -242,25 +240,32 @@
                     <hr class="my-3">
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Cash</label>
-                        <div class="d-flex flex-wrap gap-2 mb-2">
-                            <button type="button" class="cash-btn btn btn-outline-secondary">THB 20.00</button>
-                            <button type="button" class="cash-btn btn btn-outline-secondary">THB 50.00</button>
-                            <button type="button" class="cash-btn btn btn-outline-secondary">THB 100.00</button>
-                        </div>
-                        <input type="number" id="cashInput" class="form-control text-center fw-bold"
-                            placeholder="Enter cash amount">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Other</label>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-outline-secondary other-btn" data-method="qr">
-                                <i class="bi bi-qr-code me-1"></i> QR Code
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary other-btn" data-method="card">
-                                <i class="bi bi-credit-card me-1"></i> Credit Card
-                            </button>
+                        <label class="form-label fw-bold">เลือกวิธีการชำระเงิน</label>
+                        <div class="list-group">
+                            <label class="list-group-item">
+                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="cash">
+                                เงินสด (Cash)
+                            </label>
+                            <label class="list-group-item">
+                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="promptpay">
+                                โอน/สแกน QR Code (PromptPay)
+                            </label>
+                            <label class="list-group-item">
+                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="credit_card">
+                                บัตรเครดิต/เดบิต (Credit/Debit Card)
+                            </label>
+                            <label class="list-group-item">
+                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="wechat">
+                                WeChat Pay
+                            </label>
+                            <label class="list-group-item">
+                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="alipay">
+                                Alipay
+                            </label>
+                            <label class="list-group-item">
+                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="ewallet">
+                                TrueMoney Wallet / LINE Pay (E-Wallet)
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -493,39 +498,12 @@
         });
 
         // --- Payment Logic ---
-        const paymentMethod = document.getElementById('paymentMethod');
-        const cashAmount = document.getElementById('cashAmount');
-        const cashInput = document.getElementById('cashInput');
-        document.querySelectorAll('.cash-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.cash-btn, .other-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const val = btn.textContent.replace('THB','').trim();
-                cashInput.value = val;
-                paymentMethod.value = 'cash';
-                cashAmount.value = val;
-                confirmBtn.disabled = false;
-            });
-        });
-
-        cashInput.addEventListener('input', () => {
-            document.querySelectorAll('.cash-btn, .other-btn').forEach(b => b.classList.remove('active'));
-            if (cashInput.value) {
-                paymentMethod.value = 'cash';
-                cashAmount.value = cashInput.value;
-                confirmBtn.disabled = false;
-            } else {
-                confirmBtn.disabled = true;
-            }
-        });
-
-        document.querySelectorAll('.other-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.cash-btn, .other-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                paymentMethod.value = btn.dataset.method;
-                cashAmount.value = '';
-                cashInput.value = '';
+    const paymentMethod = document.getElementById('paymentMethod');
+    // const confirmBtn = document.getElementById('confirmBtn'); // Already declared above
+        // เมื่อเลือกวิธีการชำระเงิน ให้เซ็ตค่าและ enable ปุ่ม
+        document.querySelectorAll('input[name="payment_method_radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                paymentMethod.value = this.value;
                 confirmBtn.disabled = false;
             });
         });

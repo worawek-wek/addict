@@ -454,9 +454,13 @@
 
         // โหลดครั้งแรก
         $(document).ready(function() {
-            const branchId = $('input[name="ref_branch_id"]:checked').val();
-            loadUsers(branchId);
-            loadRooms(branchId); // ✅ โหลดห้องทันทีตอนเปิดหน้า
+            // เลือก branch แรก (ถ้ายังไม่ได้เลือก)
+            const $firstBranch = $('input[name="ref_branch_id"]').first();
+            if ($('input[name="ref_branch_id"]:checked').length === 0 && $firstBranch.length) {
+                $firstBranch.prop('checked', true);
+            }
+            // Trigger event change เพื่อโหลด Staff ทันที
+            $firstBranch.trigger('change');
         });
     </script>
     <script>

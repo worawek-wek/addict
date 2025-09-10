@@ -12,6 +12,7 @@ class RoomPOSController extends Controller
 {
     public function index()
     {
+
         $rooms = Room::select('id', 'name', 'ref_branch_id')
             ->get()
             ->map(function ($room) {
@@ -23,6 +24,18 @@ class RoomPOSController extends Controller
                     ->first();
 
                 $room->is_busy = $activeOrder ? true : false;
+                if ($activeOrder) {
+                    $staffName = null;
+                    if ($activeOrder->ref_user_id) {
+                        $staff = \App\Models\User::find($activeOrder->ref_user_id);
+                        $staffName = $staff ? ($staff->nickname ?? $staff->name) : null;
+                    }
+                    $room->active_order = (object) [
+                        'start_time' => $activeOrder->start_time,
+                        'end_time'   => $activeOrder->end_time,
+                        'staff_name' => $staffName,
+                    ];
+                }
                 return $room;
             });
 
