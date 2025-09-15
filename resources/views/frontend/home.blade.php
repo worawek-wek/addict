@@ -663,6 +663,7 @@
                                     });
                                 }, // ✅ เพิ่ม comma ตรงนี้
                                 error: function(xhr) {
+                                    console.log(xhr);
                                     Swal.close();
                                     Swal.fire({
                                         icon: 'error',

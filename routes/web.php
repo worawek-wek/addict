@@ -35,6 +35,7 @@ use App\Http\Controllers\WelfareController;
 use App\Http\Controllers\ExportExcelController;
 use App\Http\Controllers\AnnualHolidayController;
 use App\Http\Controllers\ColorSchemeController;
+use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\Front\OrderCusController;
 use App\Http\Controllers\pos\POSController;
 use App\Http\Controllers\pos\RoomPOSController;
@@ -146,6 +147,16 @@ Route::prefix('admin')->group(function () {
     Route::get('dark-mode-switcher', [DarkModeController::class, 'switch'])->name('dark-mode-switcher');
     Route::get('color-scheme-switcher/{color_scheme}', [ColorSchemeController::class, 'switch'])->name('color-scheme-switcher');
 
+    // Commission CRUD
+    Route::controller(CommissionController::class)->group(function () {
+        Route::get('commission', 'index')->name('commission.index');
+        Route::get('commission/create', 'create')->name('commission.create');
+        Route::post('commission', 'store')->name('commission.store');
+        Route::get('commission/{id}/edit', 'edit')->name('commission.edit');
+        Route::put('commission/{id}', 'update')->name('commission.update');
+        Route::delete('commission/{id}', 'destroy')->name('commission.destroy');
+    });
+
     Route::controller(AuthController::class)->middleware('loggedin')->group(function () {
         Route::get('login', 'loginView')->name('admin.login');
         Route::post('login', 'login')->name('login.check');
@@ -162,6 +173,7 @@ Route::prefix('admin')->group(function () {
             Route::put('customer/{id}', 'updateCus')->name('customer.update');
             Route::post('customer/{customer}/lock', 'lock')->name('customer.lock');
             Route::post('customer/{customer}/unlock', 'unlock')->name('customer.unlock');
+            Route::post('customer/{id}/reset-password', 'resetPassword');
         });
 
         Route::prefix('order-rooms')->group(function () {
@@ -169,6 +181,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/datatable', [OrderRoomController::class, 'datatable'])->name('order-rooms.datatable');
             Route::get('/{id}', [OrderRoomController::class, 'show'])->name('order-rooms.show');
             Route::post('/{id}/status', [OrderRoomController::class, 'updateStatus'])->name('order-rooms.update-status');
+            Route::post('/{id}/update-payment-method', [OrderRoomController::class, 'updatePaymentMethod'])->name('order-rooms.update-payment-method');
         });
 
         Route::controller(ReportController::class)->group(function () {

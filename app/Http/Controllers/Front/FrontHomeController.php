@@ -108,13 +108,13 @@ class FrontHomeController extends Controller
             $customer_find = Auth::guard('customer')->user();
 
 
-            $order_number = 1;
-            $latestOrder = Order::latest()->first();
-            if (@$latestOrder) {
-                $order_number = $latestOrder->order_number + 1;
-            }
+            // Generate order_number: BRANCHYYYYMMDDHHMMSS + random 3 digits
+            // สร้าง order_number ความยาว 13 ตัวอักษร: ONLINE + 7 ตัวเลขสุ่ม และต้องไม่ซ้ำใน db
+            do {
+                $order_number = 'ONLINE' . str_pad(strval(rand(0, 9999999)), 7, '0', STR_PAD_LEFT);
+            } while (Order::where('order_number', $order_number)->exists());
             $order = new Order;
-            $order->order_number = 1;
+            $order->order_number = $order_number;
             $order->ref_branch_id = $request->ref_branch_id;
 
             if (@$customer_find) {

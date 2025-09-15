@@ -27,7 +27,7 @@
                                                 </h4>
                                             </div>
                                             <div class="row g-3">
-                                                <div class="col-sm-3">
+                                                <div class="col-sm-3 mb-2">
                                                     <select name="branch_id" class="form-select p_search"
                                                         onchange='loadData("{{ route('order-rooms.datatable') }}")'>
                                                         @foreach ($branches as $branch)
@@ -36,16 +36,30 @@
                                                         @endforeach
                                                     </select>
                                                 </div>
-
-                                                <div class="col-sm-9">
+                                                <div class="col-sm-3 mb-2">
+                                                    <select name="date_range" class="form-select p_search" onchange='onDateRangeChange()'>
+                                                        <option value="">-- เลือกช่วงเวลา --</option>
+                                                        <option value="1">1 วัน</option>
+                                                        <option value="7">7 วัน</option>
+                                                        <option value="14">14 วัน</option>
+                                                        <option value="30">1 เดือน</option>
+                                                        <option value="custom">ระบุวันที่เอง</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-3 mb-2" id="custom-date-group" style="display:none;">
+                                                    <div class="input-group">
+                                                        <input type="date" name="start_date" class="form-control p_search" placeholder="เริ่มวันที่" />
+                                                        <span class="input-group-text">ถึง</span>
+                                                        <input type="date" name="end_date" class="form-control p_search" placeholder="ถึงวันที่" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-3 mb-2">
                                                     <div class="input-group input-group-merge">
-                                                        <span class="input-group-text"><i
-                                                                class="ti ti-search"></i></span>
+                                                        <span class="input-group-text"><i class="ti ti-search"></i></span>
                                                         <input
                                                             oninput='loadData("{{ route('order-rooms.datatable') }}")'
                                                             name="search" type="text" class="form-control p_search"
                                                             placeholder="ค้นหาชื่อลูกค้า..." />
-
                                                     </div>
                                                 </div>
                                             </div>
@@ -105,6 +119,12 @@
                 searchData[inputName] = inputValue;
             });
 
+            // If not custom, clear custom date fields
+            if ($('select[name="date_range"]').val() !== 'custom') {
+                searchData['start_date'] = '';
+                searchData['end_date'] = '';
+            }
+
             page = pages;
             $.ajax({
                 type: "GET",
@@ -121,6 +141,21 @@
                 }
             });
         }
+
+        function onDateRangeChange() {
+            var val = $('select[name="date_range"]').val();
+            if (val === 'custom') {
+                $('#custom-date-group').show();
+            } else {
+                $('#custom-date-group').hide();
+            }
+            loadData(page);
+        }
+
+        // If user changes custom date, reload
+        $(document).on('change', 'input[name="start_date"], input[name="end_date"]', function() {
+            loadData(page);
+        });
 
         function view(id) {
             $.ajax({

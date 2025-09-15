@@ -77,6 +77,8 @@
     {{-- <div class="menu-inner-shadow"></div> --}}
 
     <ul class="menu-inner py-3">
+
+
         {{-- <li class="menu-item">
             <a href="/admin/dashboard" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-smart-home"></i>
@@ -92,20 +94,18 @@
         <li class="menu-item">
             <a href="/admin/meter" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-id"></i>
-                <div data-i18n="มิเตอร์">มิเตอร์</div>
+                <!-- เมนูคอมมิชชั่นถูกย้ายออกไปเป็นเมนูหลัก -->
+        </li>
+
+        <!-- เมนูหลัก: คอมมิชชั่น -->
+        <li class="menu-item">
+            <a href="/admin/commission" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-currency-dollar"></i>
+                <div data-i18n="คอมมิชชั่น">คอมมิชชั่น</div>
             </a>
         </li>
-        <li class="menu-item">
-            <a href="/admin/bill" class="menu-link">
-                <i class="menu-icon tf-icons ti ti-license"></i>
-                <div data-i18n="บิลค่าเช่า">บิลค่าเช่า</div>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a href="/admin/income-expenses" class="menu-link">
-                <i class="menu-icon tf-icons ti ti-calculator"></i>
-                <div data-i18n="รายรับ-รายจ่าย">รายรับ-รายจ่าย</div>
-            </a>
+        <div data-i18n="รายรับ-รายจ่าย">รายรับ-รายจ่าย</div>
+        </a>
         </li> --}}
         {{-- <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -233,6 +233,29 @@
                 <div data-i18n="Addon Options">Addon Options</div>
             </a>
         </li>
+        <li class="menu-item">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons ti ti-adjustments-horizontal"></i>
+                <div data-i18n="คอมมิชัน">คอมมิชัน</div>
+            </a>
+            <ul class="menu-sub">
+
+                <!-- ค่าคอมมิชชั่น -->
+                <li class="menu-item">
+                    <a href="/admin/commission" class="menu-link">
+                        <i class="menu-icon tf-icons ti ti-currency-dollar"></i>
+                        <div data-i18n="จัดการค่าคอมมิชชั่น">จัดการค่าคอมมิชชั่น</div>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/admin/commission" class="menu-link">
+                        <i class="menu-icon tf-icons ti ti-currency-dollar"></i>
+                        <div data-i18n="ดูค่าคอมมิชชั่น">ดูค่าคอมมิชชั่น</div>
+                    </a>
+                </li>
+
+            </ul>
+        </li>
         <!-- ระบบรายงาน -->
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -255,6 +278,7 @@
                         <div data-i18n="รายงานสต็อกการ์ด">รายงานสต็อกการ์ด</div>
                     </a>
                 </li>
+
                 {{-- <li class="menu-item">
                     <a href="/admin/setting/room-layout" class="menu-link">
                         <div data-i18n="ผังห้อง">ผังห้อง</div>

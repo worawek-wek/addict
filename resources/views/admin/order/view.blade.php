@@ -21,7 +21,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
     <div class="modal-body pb-5" style="padding: 1em 3em;">
-        
+
         <div class="col-md-12" style="padding-right: unset !important;">
 
         <div class="card shadow-none bg-transparent border mb-3">
@@ -35,7 +35,7 @@
                       </li>
                       <li class="nav-item" role="presentation">
                         <button
-                            class="buttons-collection btn-label-warning waves-effect waves-light nav-link" 
+                            class="buttons-collection btn-label-warning waves-effect waves-light nav-link"
                             role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-top-edit" aria-controls="navs-pills-top-edit" aria-selected="false" tabindex="-1">
                             <span>
                                 <i class="ti ti-pencil"></i> แก้ไข
@@ -81,9 +81,9 @@
                                 <i class="ti ti-pencil"></i> แก้ไข
                             </h5>
                         </div>
-                        <form id="edit_product" enctype="multipart/form-data">		
+                        <form id="edit_product" enctype="multipart/form-data">
                             @csrf
-                            
+
                             <div class="row g-3 p-4">
                                 <div class="col-sm-6">
                                     <label for="" class="form-label">สาขา</label><span class="text-danger"> *</span><br>
@@ -121,7 +121,7 @@
                                             input.value = ''; // ถ้าไม่ใช่ตัวเลขให้ลบค่าที่ป้อน
                                         }
                                     }
-                                </script> 
+                                </script>
                                 <div class="col-sm-12">
                                     <label for="" class="form-label">หมายเหตุ</label>
                                     <textarea name="remark" class="form-control">{{ $product->remark }}</textarea>
@@ -143,13 +143,13 @@
                         type="button" aria-haspopup="dialog"
                         aria-expanded="false">
                         <span>
-                            <i class="ti ti-upload"></i> 
+                            <i class="ti ti-upload"></i>
                             ดาวน์โหลด Excel
                         </span>
                 </button> --}}
-                
+
         </div>
-        
+
         {{-- <div class="col-sm-12">
             <div class="card shadow-none bg-transparent border mb-3">
                 <div class="card-body">
@@ -162,7 +162,7 @@
 </div>
 </div>
 <script>
-    
+
     $('#edit_product').on('submit', function(event) {
             event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
             if(!this.checkValidity()) {
@@ -171,7 +171,7 @@
                 return console.log('ฟอร์มไม่ถูกต้อง');
             }
             // return alert(123);
-            
+
             var formData = new FormData(this);
             Swal.fire({
                 title: 'ยืนยันการดำเนินการ?',
@@ -210,7 +210,7 @@
                 }
             });
         });
-        
+
         $(document).ready(function() {
             $('#select2Position2').select2({
                 placeholder: 'เลือกตำแหน่ง',

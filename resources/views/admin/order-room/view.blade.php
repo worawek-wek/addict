@@ -22,7 +22,10 @@
             </div>
             <div class="row mb-3">
                 <div class="col-md-6"><strong>พนักงานนวด:</strong> {{ $orderRoom->user->name ?? '-' }}</div>
-                <div class="col-md-6"><strong>พนักงานขาย:</strong> {{ $orderRoom->seller->name ?? '-' }}</div>
+                <div class="col-md-6"><strong>พนักงานขาย:</strong> {{ $orderRoom->seller->name ?? 'ONLINE' }}</div>
+            </div>
+            <div class="row mb-3">
+                <!-- วิธีการชำระเงิน dropdown ย้ายไปด้านล่าง -->
             </div>
             <div class="row">
                 <div class="col-md-4"><strong>วันที่จอง:</strong>
@@ -108,7 +111,7 @@
         </div>
 
         {{-- Dropdown เปลี่ยนสถานะ --}}
-        <div class="bg-white p-3 rounded-3 shadow-sm">
+        {{-- <div class="bg-white p-3 rounded-3 shadow-sm mb-3">
             <label for="status" class="form-label">เปลี่ยนสถานะ</label>
             <select id="orderStatusSelect" class="form-select" data-id="{{ $orderRoom->id }}" data-current="{{ $orderRoom->ref_status_id }}">
                 @foreach ($statuses as $status)
@@ -118,12 +121,48 @@
                     </option>
                 @endforeach
             </select>
+        </div> --}}
+        <div class="bg-white p-3 rounded-3 shadow-sm">
+            <label for="payment_method_select" class="form-label">วิธีการชำระเงิน</label>
+            <form id="paymentMethodForm" action="#" method="post" onsubmit="return false;">
+                <select class="form-select mt-1" id="payment_method_select" name="payment_method" data-id="{{ $orderRoom->id }}">
+                    <option value="">-- เลือกวิธีการชำระเงิน --</option>
+                    <option value="เงินสด (Cash)" {{ $orderRoom->payment_method == 'เงินสด (Cash)' ? 'selected' : '' }}>เงินสด (Cash)</option>
+                    <option value="โอน/สแกน QR Code (PromptPay)" {{ $orderRoom->payment_method == 'โอน/สแกน QR Code (PromptPay)' ? 'selected' : '' }}>โอน/สแกน QR Code (PromptPay)</option>
+                    <option value="บัตรเครดิต/เดบิต (Credit/Debit Card)" {{ $orderRoom->payment_method == 'บัตรเครดิต/เดบิต (Credit/Debit Card)' ? 'selected' : '' }}>บัตรเครดิต/เดบิต (Credit/Debit Card)</option>
+                    <option value="WeChat Pay" {{ $orderRoom->payment_method == 'WeChat Pay' ? 'selected' : '' }}>WeChat Pay</option>
+                    <option value="Alipay" {{ $orderRoom->payment_method == 'Alipay' ? 'selected' : '' }}>Alipay</option>
+                    <option value="TrueMoney Wallet / LINE Pay (E-Wallet)" {{ $orderRoom->payment_method == 'TrueMoney Wallet / LINE Pay (E-Wallet)' ? 'selected' : '' }}>TrueMoney Wallet / LINE Pay (E-Wallet)</option>
+                </select>
+            </form>
         </div>
     </div>
 </div>
 
 {{-- Script --}}
 <script>
+    // Payment method change handler
+    document.getElementById('payment_method_select')?.addEventListener('change', function() {
+        let orderId = this.getAttribute('data-id');
+        let paymentMethod = this.value;
+        if (!orderId) return;
+        fetch(`/admin/order-rooms/${orderId}/update-payment-method`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ payment_method: paymentMethod })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire('สำเร็จ!', 'อัปเดตวิธีการชำระเงินเรียบร้อย', 'success');
+            } else {
+                Swal.fire('ผิดพลาด!', data.message || 'ไม่สามารถอัปเดตวิธีการชำระเงินได้', 'error');
+            }
+        });
+    });
     document.getElementById('orderStatusSelect')?.addEventListener('change', function() {
         let orderId = this.getAttribute('data-id');
         let statusId = this.value;

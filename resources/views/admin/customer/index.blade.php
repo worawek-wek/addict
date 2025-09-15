@@ -108,10 +108,10 @@
                                                 {{-- <button class="btn btn-warning me-2">
                                                     <i class="ti ti-upload"></i> ดาวน์โหลด Excel
                                                 </button> --}}
-                                                <button class="btn btn-main" data-bs-toggle="modal"
+                                                {{-- <button class="btn btn-main" data-bs-toggle="modal"
                                                     data-bs-target="#addserviceModal">
                                                     <i class="ti ti-plus"></i> เพิ่มลูกค้า
-                                                </button>
+                                                </button> --}}
                                             </div>
                                         </div>
 
@@ -202,8 +202,18 @@
                             <input type="text" name="phone" id="edit_phone" class="form-control">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">เลขบัตรประชาชน</label>
-                            <input type="text" name="id_card" id="edit_id_card" class="form-control">
+                            <label class="form-label">แอปติดต่อ</label>
+                            <select name="contact_app" id="edit_contact_app" class="form-select">
+                                <option value="">-- เลือกแอปติดต่อ --</option>
+                                <option value="line">LINE ID</option>
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="wechat">WeChat</option>
+                                <option value="email">Email</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">รหัส/ชื่อผู้ใช้ในแอป</label>
+                            <input type="text" name="contact_app_handle" id="edit_contact_app_handle" class="form-control">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">สาขา</label>
@@ -216,6 +226,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">ปิด</button>
+                        <button type="button" class="btn btn-warning" id="resetPasswordBtn">รีเซตรหัสผ่าน (ใช้เบอร์โทร)</button>
                         <button type="submit" class="btn btn-primary">บันทึก</button>
                     </div>
                 </form>
@@ -225,6 +236,44 @@
 
     @include('admin/layout/inc_js')
     <script>
+        // Reset password button handler
+        $('#resetPasswordBtn').on('click', function() {
+            var id = $('#customer_id').val();
+            var phone = $('#edit_phone').val();
+            if (!id || !phone) {
+                Swal.fire('กรุณากรอกเบอร์โทรก่อนรีเซตรหัสผ่าน', '', 'warning');
+                return;
+            }
+            Swal.fire({
+                title: 'ยืนยันรีเซตรหัสผ่าน?',
+                text: 'รหัสผ่านใหม่จะเป็นเบอร์โทรของลูกค้า',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'รีเซต',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `{{ $page_url }}/` + id + '/reset-password',
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            phone: phone
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire('รีเซตรหัสผ่านสำเร็จ', '', 'success');
+                            } else {
+                                Swal.fire('เกิดข้อผิดพลาด', res.message || '', 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        }
+                    });
+                }
+            });
+        });
         var page = "{{ $page_url }}/datatable";
         var searchData = {};
         loadData(page);
@@ -248,7 +297,8 @@
                     $('#edit_first_name').val(data.first_name);
                     $('#edit_last_name').val(data.last_name);
                     $('#edit_phone').val(data.phone);
-                    $('#edit_id_card').val(data.id_card);
+                    $('#edit_contact_app').val(data.contact_app);
+                    $('#edit_contact_app_handle').val(data.contact_app_handle);
                     $('#edit_branch').val(data.ref_branch_id);
                 },
                 error: function(err) {
@@ -277,20 +327,31 @@
             });
         });
 
-        // ✅ Update
+        // ✅ Update with confirmation
         $('#edit_customer_form').on('submit', function(e) {
             e.preventDefault();
-            var id = $('#customer_id').val();
-            $.ajax({
-                url: `{{ $page_url }}/${id}`, // PUT /admin/customer/{id}
-                method: 'PUT',
-                data: $(this).serialize(),
-                success: function(res) {
-                    if (res === true) {
-                        $('#editCustomerModal').modal('hide');
-                        Swal.fire('แก้ไขเรียบร้อย', '', 'success');
-                        loadData(page);
-                    }
+            var form = this;
+            Swal.fire({
+                title: 'ยืนยันการแก้ไขข้อมูลลูกค้า?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'บันทึก',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    var id = $('#customer_id').val();
+                    $.ajax({
+                        url: `{{ $page_url }}/${id}`,
+                        method: 'PUT',
+                        data: $(form).serialize(),
+                        success: function(res) {
+                            if (res === true) {
+                                $('#editCustomerModal').modal('hide');
+                                Swal.fire('แก้ไขเรียบร้อย', '', 'success');
+                                loadData(page);
+                            }
+                        }
+                    });
                 }
             });
         });

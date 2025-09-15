@@ -51,7 +51,6 @@ class RoomPOSController extends Controller
     {
         $orders = Order::with('customer')
             ->where('ref_room_id', $roomId)
-            ->where('ref_status_id', 2) // กำลังใช้งาน
             ->whereDate('booking_date', Carbon::today())
             ->whereTime('start_time', '<=', Carbon::now()->format('H:i:s'))
             ->whereTime('end_time', '>=', Carbon::now()->format('H:i:s'))

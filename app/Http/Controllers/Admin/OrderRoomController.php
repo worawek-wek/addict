@@ -76,12 +76,29 @@ class OrderRoomController extends Controller
             $query->where('ref_branch_id', request()->branch_id);
         }
 
+
         // filter ค้นหา
         if (request()->filled('search')) {
             $search = request()->search;
             $query->whereHas('customer', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%");
             });
+        }
+
+        // filter by booking_date (date_range, start_date, end_date)
+        $dateRange = request('date_range');
+        $startDate = request('start_date');
+        $endDate = request('end_date');
+        if ($dateRange && $dateRange !== 'custom') {
+            // 1, 7, 14, 30 days
+            $days = intval($dateRange);
+            if ($days > 0) {
+                $from = Carbon::today()->subDays($days - 1)->format('Y-m-d');
+                $to = Carbon::today()->format('Y-m-d');
+                $query->whereBetween('booking_date', [$from, $to]);
+            }
+        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
+            $query->whereBetween('booking_date', [$startDate, $endDate]);
         }
 
         $orderRooms = $query->paginate($limit);
@@ -93,7 +110,10 @@ class OrderRoomController extends Controller
             $startDateTime = Carbon::parse($order->booking_date . ' ' . $order->start_time);
             $endDateTime   = Carbon::parse($order->booking_date . ' ' . $order->end_time);
 
-            if ($order->ref_status_id == 2) {
+            if (!empty($order->payment_method)) {
+                $order->badge_class = 'bg-info';
+                $order->status_label = $order->payment_method;
+            } elseif ($order->ref_status_id == 2) {
                 $order->badge_class = 'bg-success';
                 $order->status_label = 'อยู่ระหว่างใช้บริการ';
             } elseif ($order->ref_status_id == 1 && $nowCarbon->between($startDateTime, $endDateTime)) {
@@ -108,6 +128,9 @@ class OrderRoomController extends Controller
             } elseif ($order->ref_status_id == 3) {
                 $order->badge_class = 'bg-secondary';
                 $order->status_label = 'ใช้บริการเสร็จสิ้น';
+            } elseif ($order->ref_status_id == 4) {
+                $order->badge_class = 'bg-danger';
+                $order->status_label = 'ยกเลิก';
             } else {
                 $order->badge_class = 'bg-dark';
                 $order->status_label = 'ไม่ระบุ';
@@ -134,7 +157,10 @@ class OrderRoomController extends Controller
         $isOngoing  = $now->between($startDateTime, $endDateTime);
         $isOvertime = $now->greaterThan($endDateTime);
 
-        if ($statusId === 2 || $isOngoing) {
+        if (!empty($orderRoom->payment_method)) {
+            $orderRoom->badge_class = 'bg-info';
+            $orderRoom->status_label = $orderRoom->payment_method;
+        } elseif ($statusId === 2 || $isOngoing) {
             $orderRoom->badge_class = 'bg-success';
             $orderRoom->status_label = $statusName;
         } elseif ($isOvertime) {
@@ -168,6 +194,22 @@ class OrderRoomController extends Controller
             'success' => true,
             'message' => 'อัปเดตสถานะเรียบร้อยแล้ว',
             'status'  => $order->status->name
+        ]);
+    }
+    public function updatePaymentMethod(Request $request, $id)
+    {
+        $request->validate([
+            'payment_method' => 'nullable|string|max:100'
+        ]);
+
+        $order = Order::findOrFail($id);
+        $order->payment_method = $request->payment_method;
+        $order->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'อัปเดตวิธีการชำระเงินเรียบร้อยแล้ว',
+            'payment_method' => $order->payment_method
         ]);
     }
 }

@@ -24,7 +24,15 @@
                 <td>{{ $order->end_time }}</td>
                 <td><span class="badge {{ $order->badge_class }}">{{ $order->status_label }}</span></td>
                 <td>
-                    <button class="btn btn-info btn-sm" onclick="view({{ $order->id }})">ดู</button>
+                    <div class="dropdown">
+                        <button class="btn btn-info btn-sm dropdown-toggle" type="button" id="actionDropdown{{ $order->id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                            จัดการ
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="actionDropdown{{ $order->id }}">
+                            <li><a class="dropdown-item" href="#" onclick="view({{ $order->id }}); return false;">ดู</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="cancelOrder({{ $order->id }}); return false;">ยกเลิกการจอง</a></li>
+                        </ul>
+                    </div>
                 </td>
             </tr>
         @endforeach
@@ -35,6 +43,42 @@
         @endif
 
     </tbody>
+</table>
+
+<script>
+function cancelOrder(orderId) {
+    Swal.fire({
+        title: 'ยืนยันการยกเลิกการจอง?',
+        text: 'คุณต้องการยกเลิกการจองนี้หรือไม่',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'ใช่, ยกเลิกการจอง',
+        cancelButtonText: 'ไม่ยกเลิก'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/admin/order-rooms/${orderId}/status`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status_id: 4 })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('สำเร็จ!', 'ยกเลิกการจองเรียบร้อย', 'success')
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire('ผิดพลาด!', data.message || 'ไม่สามารถยกเลิกการจองได้', 'error');
+                }
+            });
+        }
+    });
+}
+</script>
 </table>
 
 {{-- Pagination --}}

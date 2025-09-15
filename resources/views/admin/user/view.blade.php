@@ -116,15 +116,11 @@
                       </select>
                     </div>
 
-                    {{-- ถ้าเป็นพนักงานนวด ให้แก้ไขราคานวดได้ --}}
-                    @if ($user->position->position_name == 'พนักงานนวด')
-                    <div class="col-sm-6">
+                    <div class="col-sm-6" id="salary-input-group" style="display: {{ $user->ref_position_id == 2 ? 'block' : 'none' }};">
                       <label class="form-label">ราคานวด (บาท)</label>
-                      {{-- แก้ไขตรงนี้ --}}
                       <input name="salary" value="{{ $user->salary ?? 0 }}" type="number"
                              class="form-control" min="0" />
                     </div>
-                    @endif
 
                     <div class="col-sm-10 mt-3">
                       <label>รูปภาพ</label>
@@ -213,6 +209,14 @@
   $(document).ready(function() {
     $('#select2EditPosition').select2({
       dropdownParent: $('#insurance')
+    });
+    // toggle salary input by position
+    $('#select2EditPosition').on('change', function() {
+      if ($(this).val() == '2') {
+        $('#salary-input-group').show();
+      } else {
+        $('#salary-input-group').hide();
+      }
     });
   });
 </script>

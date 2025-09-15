@@ -9,10 +9,29 @@ use App\Models\Customer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-DB::beginTransaction();
-
 class CustomerController extends Controller
 {
+    /**
+     * Reset the customer's password to their phone number.
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function resetPassword(Request $request, $id)
+    {
+        $customer = Customer::find($id);
+        if (!$customer) {
+            return response()->json(['success' => false, 'message' => 'ไม่พบลูกค้า'], 404);
+        }
+        $phone = $request->input('phone');
+        if (!$phone) {
+            return response()->json(['success' => false, 'message' => 'กรุณาระบุเบอร์โทร'], 400);
+        }
+        // Update password to phone (hash for security)
+        $customer->password = bcrypt($phone);
+        $customer->save();
+        return response()->json(['success' => true]);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -34,38 +53,38 @@ class CustomerController extends Controller
         return view('admin/customer/index', $data);
     }
 
-  public function datatable(Request $request)
-{
-    $results = Customer::withCount('orders')->orderBy('id', 'DESC');
+    public function datatable(Request $request)
+    {
+        $results = Customer::withCount('orders')->orderBy('id', 'DESC');
 
-    // ✅ filter ด้วยสาขา
-    if ($request->filled('ref_branch_id') && $request->ref_branch_id !== '') {
-        $results->where('ref_branch_id', $request->ref_branch_id);
+        // ✅ filter ด้วยสาขา
+        if ($request->filled('ref_branch_id') && $request->ref_branch_id !== '') {
+            $results->where('ref_branch_id', $request->ref_branch_id);
+        }
+
+        // ✅ filter ด้วย search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $results->where(function ($query) use ($search) {
+                $query->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('first_name', 'LIKE', "%{$search}%")
+                    ->orWhere('last_name', 'LIKE', "%{$search}%")
+                    ->orWhere('phone', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // ✅ Limit
+        $limit = $request->limit ?? 15;
+
+        $results = $results->paginate($limit);
+
+        $data['list_data'] = $results->appends($request->query());
+        $data['query'] = $request->query();
+        $data['query']['limit'] = $limit;
+        $data['page_url'] = 'admin/customer';
+
+        return view('admin/customer/table', $data);
     }
-
-    // ✅ filter ด้วย search
-    if ($request->filled('search')) {
-        $search = $request->search;
-        $results->where(function ($query) use ($search) {
-            $query->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('first_name', 'LIKE', "%{$search}%")
-                  ->orWhere('last_name', 'LIKE', "%{$search}%")
-                  ->orWhere('phone', 'LIKE', "%{$search}%");
-        });
-    }
-
-    // ✅ Limit
-    $limit = $request->limit ?? 15;
-
-    $results = $results->paginate($limit);
-
-    $data['list_data'] = $results->appends($request->query());
-    $data['query'] = $request->query();
-    $data['query']['limit'] = $limit;
-    $data['page_url'] = 'admin/customer';
-
-    return view('admin/customer/table', $data);
-}
 
     /**
      * Show the form for creating a new resource.
@@ -155,20 +174,14 @@ class CustomerController extends Controller
     public function update(Request $request, $id)
     {
         //
-        try {
-            $customer = Customer::find($id);
-            $customer->name = $request->name;
-            $customer->price = $request->price;
-            $customer->cost = $request->cost;
-            $customer->stock = $request->stock;
-            $customer->remark = $request->remark;
-            $customer->save();
-
-            DB::commit();
-            return true;
-        } catch (QueryException $err) {
-            DB::rollBack();
-        }
+    $customer = Customer::find($id);
+    $customer->name = $request->name;
+    $customer->price = $request->price;
+    $customer->cost = $request->cost;
+    $customer->stock = $request->stock;
+    $customer->remark = $request->remark;
+    $customer->save();
+    return true;
     }
 
     /**
@@ -179,39 +192,21 @@ class CustomerController extends Controller
      */
     public function destroy($id)
     {
-        try {
-            Customer::destroy($id);
-            DB::commit();
-            return true;
-        } catch (QueryException $err) {
-            DB::rollBack();
-        }
-        //
+    Customer::destroy($id);
+    return true;
     }
     public function lock(Customer $customer)
     {
-        try {
-            $customer->status = 0; // 0 = locked
-            $customer->save();
-            DB::commit();
-
-            return response()->json(['success' => true]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
-        }
+    $customer->status = 0; // 0 = locked
+    $customer->save();
+    return response()->json(['success' => true]);
     }
 
     public function unlock(Customer $customer)
     {
-        try {
-            $customer->status = 1; // 1 = unlocked
-            $customer->save();
-            DB::commit();
-
-            return response()->json(['success' => true]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
-        }
+    $customer->status = 1; // 1 = unlocked
+    $customer->save();
+    return response()->json(['success' => true]);
     }
 
     public function updateCus(Request $request, $id)
@@ -227,7 +222,7 @@ class CustomerController extends Controller
             'ref_branch_id'
         ]));
 
-        DB::commit();
+    // DB::commit();
 
         return response()->json(true);
     }
