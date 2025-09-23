@@ -10,6 +10,9 @@ class Position extends Model
     // use HasFactory;
     protected $fillable = [
         'position_name',
+        'is_uniform_commission',
+        'commission_type',
+        'commission_value',
     ];
 
     public $timestamps = true;

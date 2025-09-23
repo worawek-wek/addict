@@ -39,6 +39,7 @@ use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\Front\OrderCusController;
 use App\Http\Controllers\pos\POSController;
 use App\Http\Controllers\pos\RoomPOSController;
+use App\Http\Controllers\SalesCommissionTierController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 
@@ -144,6 +145,12 @@ Route::get('dark-mode-switcher', [DarkModeController::class, 'switch'])->name('d
 Route::get('color-scheme-switcher/{color_scheme}', [ColorSchemeController::class, 'switch'])->name('color-scheme-switcher');
 
 Route::prefix('admin')->group(function () {
+    // Sales Commission Tier CRUD
+    Route::controller(SalesCommissionTierController::class)->group(function () {
+        Route::get('sales-commission-tier', 'index')->name('sales_commission_tier.index');
+        Route::post('sales-commission-tier', 'store')->name('sales_commission_tier.store');
+        Route::delete('sales-commission-tier/{id}', 'destroy')->name('sales_commission_tier.destroy');
+    });
     Route::get('dark-mode-switcher', [DarkModeController::class, 'switch'])->name('dark-mode-switcher');
     Route::get('color-scheme-switcher/{color_scheme}', [ColorSchemeController::class, 'switch'])->name('color-scheme-switcher');
 
@@ -155,6 +162,7 @@ Route::prefix('admin')->group(function () {
         Route::get('commission/{id}/edit', 'edit')->name('commission.edit');
         Route::put('commission/{id}', 'update')->name('commission.update');
         Route::delete('commission/{id}', 'destroy')->name('commission.destroy');
+        Route::get('commission/view', 'view')->name('commission.view');
     });
 
     Route::controller(AuthController::class)->middleware('loggedin')->group(function () {

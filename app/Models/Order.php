@@ -11,7 +11,7 @@ class Order extends Model
      protected $fillable = [
         'ref_branch_id',
         'order_number',
-        'ref_customer_id', // <-- แก้ไขตรงนี้
+        'ref_customer_id',
         'ref_user_id',
         'ref_seller_id',
         'ref_room_id',
@@ -23,7 +23,9 @@ class Order extends Model
         'payment_method',
         'total_price',
         'duration_minutes',
-        'payment_method'
+        'payment_method',
+        'sales_commission',
+        'massage_commission',
     ];
     public $timestamps = true;
     protected $primaryKey = 'id';

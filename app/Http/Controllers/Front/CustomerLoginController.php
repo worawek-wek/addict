@@ -33,7 +33,8 @@ class CustomerLoginController extends Controller
             }
 
             Auth::guard('customer')->login($customer);
-            return redirect()->intended('/home');
+            // Redirect ไปหน้า customer dashboard หลัง login
+            return redirect()->route('dashboard');
         }
 
         return back()->withErrors([

@@ -36,36 +36,37 @@
                                                     ค่าคอมมิชชั่น
                                                 </h4>
                                             </div>
-                                            <div class="col-sm-3">
-                                                <!-- future: filter/search -->
-                                            </div>
-                                            <div class="col-sm-9 text-end">
-                                                <a href="{{ route('commission.create') }}" class="btn btn-main">
-                                                    <i class="ti ti-plus"></i> เพิ่มค่าคอมมิชชั่น
-                                                </a>
-                                            </div>
+                                            <!-- DataTable search box will be used instead of manual filter form -->
+                                                <div class="col-sm-12 d-flex justify-content-end gap-2">
+                                                    <a href="{{ route('commission.create') }}" class="btn btn-main">
+                                                        <i class="ti ti-plus"></i> เพิ่มค่าคอมมิชชั่น
+                                                    </a>
+                                                    <a href="{{ route('sales_commission_tier.index') }}" class="btn btn-info">
+                                                        <i class="ti ti-settings"></i> ตั้งค่าคอมมิชชั่นพนักงานขาย
+                                                    </a>
+                                                </div>
                                         </div>
                                     </div>
                                     <div class="card-body px-0 pt-0">
                                         <div class="table-responsive">
-                                            <table class="table table-bordered table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>ชื่อพนักงาน</th>
-                                                        <th>สาขา</th>
-                                                        <th>ชื่อตำแหน่ง</th>
-                                                        <th>ชื่อบริการ</th>
-                                                        <th>ระยะเวลา</th>
-                                                        <th>จำนวนเงินคอมมิชชั่น</th>
-                                                        <th>จัดการ</th>
+                                            <table class="datatables-basic table dataTable no-footer dtr-column" id="commission-table" aria-describedby="commission-table_info">
+                                                <thead class="border-top">
+                                                    <tr class="table-info">
+                                                        <th class="text-center" style="width: 10px;">#</th>
+                                                        <th class="text-center">ชื่อพนักงาน</th>
+                                                        <th class="text-center">สาขา</th>
+                                                        <th class="text-center">ชื่อตำแหน่ง</th>
+                                                        <th class="text-center">ชื่อบริการ</th>
+                                                        <th class="text-center">ระยะเวลา</th>
+                                                        <th class="text-center">จำนวนเงินคอมมิชชั่น</th>
+                                                        <th class="text-center">จัดการ</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     @forelse($commissions as $item)
                                                     <tr>
-                                                        <td>{{ $loop->iteration }}</td>
-                                                        <td>
+                                                        <td class="text-center">{{ $loop->iteration }}</td>
+                                                        <td class="text-center">
                                                             @if($item->user)
                                                                 {{ $item->user->name }}
                                                                 @if($item->user->nickname)
@@ -75,24 +76,32 @@
                                                                 -
                                                             @endif
                                                         </td>
-                                                        <td>
+                                                        <td class="text-center">
                                                             @if($item->user && $item->user->branch)
                                                                 {{ $item->user->branch->name }}
                                                             @else
                                                                 -
                                                             @endif
                                                         </td>
-                                                        <td>
+                                                        <td class="text-center">
                                                             @if($item->position)
                                                                 {{ $item->position->position_name }}
                                                             @else
                                                                 -
                                                             @endif
                                                         </td>
-                                                        <td>{{ $item->service_name }}</td>
-                                                        <td>{{ $item->service_duration }}</td>
-                                                        <td>{{ number_format($item->commission_amount,2) }}</td>
-                                                        <td>
+                                                        <td class="text-center">{{ $item->service_name }}</td>
+                                                        <td class="text-center">{{ $item->service_duration }}</td>
+                                                        <td class="text-center">
+                                                            @if($item->commission_amount)
+                                                                {{ number_format($item->commission_amount,2) }} บาท
+                                                            @elseif($item->commission_percent)
+                                                                {{ number_format($item->commission_percent,2) }} %
+                                                            @else
+                                                                -
+                                                            @endif
+                                                        </td>
+                                                        <td class="text-center">
                                                             <a href="{{ route('commission.edit', $item->id) }}" class="btn btn-sm btn-warning">แก้ไข</a>
                                                             <form action="{{ route('commission.destroy', $item->id) }}" method="POST" style="display:inline-block;">
                                                                 @csrf
@@ -103,12 +112,30 @@
                                                     </tr>
                                                     @empty
                                                     <tr>
-                                                        <td colspan="7" class="text-center">- ไม่มีข้อมูล -</td>
+                                                        <td colspan="8" class="text-center">- ไม่มีข้อมูล -</td>
                                                     </tr>
                                                     @endforelse
                                                 </tbody>
                                             </table>
+                                            {{-- @include('admin/layout/pagination') --}}
                                         </div>
+                                        <!-- DataTables JS/CSS -->
+                                        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+                                        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                                        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+                                        <script>
+                                            $(document).ready(function() {
+                                                $('#commission-table').DataTable({
+                                                    language: {
+                                                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/th.json'
+                                                    },
+                                                    pageLength: 10,
+                                                    ordering: true,
+                                                    searching: true,
+                                                    lengthChange: false
+                                                });
+                                            });
+                                        </script>
                                     </div>
                                 </div>
                             </div>

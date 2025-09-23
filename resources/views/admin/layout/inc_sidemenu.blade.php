@@ -248,7 +248,7 @@
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="/admin/commission" class="menu-link">
+                    <a href="/admin/commission/view" class="menu-link">
                         <i class="menu-icon tf-icons ti ti-currency-dollar"></i>
                         <div data-i18n="ดูค่าคอมมิชชั่น">ดูค่าคอมมิชชั่น</div>
                     </a>
@@ -328,7 +328,9 @@
         var currentUrl = window.location.pathname;
 
         links.forEach(function(link) {
-            if (link.getAttribute("href") === currentUrl) {
+            var href = link.getAttribute("href");
+            // กำหนด active เฉพาะเมนูที่ตรงกับ URL จริง
+            if (href === currentUrl) {
                 link.parentElement.classList.add("active");
             }
         });

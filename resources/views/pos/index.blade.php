@@ -470,7 +470,7 @@
                 processResults: data => ({
                     results: data.map(u => ({
                         id: u.id,
-                        text: `${u.nickname ?? ''} | Salary: ${u.salary ?? 0}฿`
+                        text: `${u.user_code ? '['+u.user_code+'] ' : ''}${u.nickname ?? ''} | Salary: ${u.salary ?? 0}฿`
                     }))
                 })
             }
