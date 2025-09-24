@@ -1,4 +1,3 @@
-
 <?php
 
 use App\Http\Controllers\AddonOptionController;
@@ -97,7 +96,7 @@ Route::get('/', function () {
     return redirect('login');
 });
 // API: Get AddonOption by branch
-Route::get('/api/addon-options/{branchId}', function($branchId) {
+Route::get('/api/addon-options/{branchId}', function ($branchId) {
     return \App\Models\AddonOption::where('branch', $branchId)->orderBy('price', 'asc')->get();
 });
 
@@ -145,6 +144,12 @@ Route::get('dark-mode-switcher', [DarkModeController::class, 'switch'])->name('d
 Route::get('color-scheme-switcher/{color_scheme}', [ColorSchemeController::class, 'switch'])->name('color-scheme-switcher');
 
 Route::prefix('admin')->group(function () {
+    // Massage Default Setting CRUD
+    Route::controller(App\Http\Controllers\MassageDefaultSettingController::class)->group(function () {
+        Route::get('massage-default-setting', 'index')->name('massage_default_setting.index');
+        Route::post('massage-default-setting', 'store')->name('massage_default_setting.store');
+        Route::put('massage-default-setting/{id}', 'update')->name('massage_default_setting.update');
+    });
     // Sales Commission Tier CRUD
     Route::controller(SalesCommissionTierController::class)->group(function () {
         Route::get('sales-commission-tier', 'index')->name('sales_commission_tier.index');
@@ -162,7 +167,10 @@ Route::prefix('admin')->group(function () {
         Route::get('commission/{id}/edit', 'edit')->name('commission.edit');
         Route::put('commission/{id}', 'update')->name('commission.update');
         Route::delete('commission/{id}', 'destroy')->name('commission.destroy');
-        Route::get('commission/view', 'view')->name('commission.view');
+        Route::get('commission/view-massage', 'view_massage')->name('commission.view_massage');
+        Route::get('commission/view-sales', 'view_sales')->name('commission.view_sales');
+        Route::get('commission/sales-orders', 'salesOrders')->name('commission.sales_orders');
+        Route::get('commission/massage-orders', 'massageOrders')->name('commission.massage_orders');
     });
 
     Route::controller(AuthController::class)->middleware('loggedin')->group(function () {
@@ -275,3 +283,4 @@ Route::prefix('admin')->group(function () {
 });
 
 Route::get('change_date_format/{date}', [UserController::class, 'ChangeDateFormat'])->name('change_date_format');
+Route::get('admin/commission/order-detail/{orderId}', [CommissionController::class, 'orderDetailAjax']);

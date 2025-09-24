@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
+use App\Models\CommissionsHistory;
 use App\Models\Order;
 use App\Models\OrderStatus;
 use Illuminate\Http\Request;
@@ -53,13 +54,14 @@ class OrderRoomController extends Controller
             ->select('orders.*')
             ->orderByRaw("
             CASE
-                WHEN ref_status_id = 2 THEN 1
-                WHEN ref_status_id = 1
-                     AND CONCAT(booking_date, ' ', end_time) >= '{$now}' THEN 2
-                WHEN ref_status_id = 1
-                     AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3
-                WHEN ref_status_id = 3 THEN 4
-                ELSE 5
+                WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
+                WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
+                WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
+                WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
+                WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
+                WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
+                WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
+                ELSE 8 -- ไม่ระบุ
             END
         ")
             ->orderBy('booking_date')
@@ -204,12 +206,88 @@ class OrderRoomController extends Controller
 
         $order = Order::findOrFail($id);
         $order->payment_method = $request->payment_method;
+
+        // --- คำนวณค่าคอมมิชชั่นพนักงานนวด ---
+        $commission_value = 0;
+        // 1. คำนวณจาก AddonOption
+        if ($order->user && $order->addons && $order->addons->count()) {
+            foreach ($order->addons as $addonItem) {
+                $commission = \App\Models\MassageCommission::where('ref_user_id', $order->user->id)
+                    ->where('addon_options_id', $addonItem->ref_option_id)
+                    ->where('ref_branch_id', $order->ref_branch_id)
+                    ->first();
+                // ถ้าไม่เจอ ให้ใช้ค่าเริ่มต้น (ref_user_id = null)
+                if (!$commission) {
+                    $commission = \App\Models\MassageCommission::whereNull('ref_user_id')
+                        ->where('addon_options_id', $addonItem->ref_option_id)
+                        ->where('ref_branch_id', $order->ref_branch_id)
+                        ->first();
+                }
+                if ($commission) {
+                    if ($commission->commission_amount) {
+                        $commission_value += $commission->commission_amount;
+                    } elseif ($commission->commission_percent) {
+                        $commission_value += ($commission->commission_percent / 100) * $addonItem->price;
+                    }
+                }
+            }
+        }
+        // 2. คำนวณจาก service_duration
+        if ($order->user && $order->service_laundry_cost) {
+            $duration = null;
+            switch ($order->service_laundry_cost) {
+                case 'forty_minutes': $duration = 40; break;
+                case 'sixty_minutes': $duration = 60; break;
+                case 'ninety_minutes': $duration = 90; break;
+            }
+            if ($duration) {
+                $commission = \App\Models\MassageCommission::where('ref_user_id', $order->user->id)
+                    ->where('service_duration', $duration)
+                    ->where('ref_branch_id', $order->ref_branch_id)
+                    ->first();
+                // ถ้าไม่เจอ ให้ใช้ค่าเริ่มต้น (ref_user_id = null)
+                if (!$commission) {
+                    $commission = \App\Models\MassageCommission::whereNull('ref_user_id')
+                        ->where('service_duration', $duration)
+                        ->where('ref_branch_id', $order->ref_branch_id)
+                        ->first();
+                }
+                if ($commission) {
+                    if ($commission->commission_amount) {
+                        $commission_value += $commission->commission_amount;
+                    } elseif ($commission->commission_percent) {
+                        $room_price = 0;
+                        if ($order->room) {
+                            if ($duration == 40) $room_price = $order->room->forty_minutes;
+                            if ($duration == 60) $room_price = $order->room->sixty_minutes;
+                            if ($duration == 90) $room_price = $order->room->ninety_minutes;
+                        }
+                        $staff_salary = $order->user->salary ?? 0;
+                        $commission_base = $room_price + $staff_salary;
+                        $commission_value += ($commission->commission_percent / 100) * $commission_base;
+                    }
+                }
+            }
+        }
+        // --- บันทึกค่าคอมมิชชั่นลง commissions_history ---
         $order->save();
+
+        CommissionsHistory::updateOrCreate(
+            [
+                'order_id' => $order->id,
+                'user_message_id' => $order->ref_user_id ?? null,
+            ],
+            [
+                'commission_massage_amount' => $commission_value,
+                'user_sales_id' => $order->ref_seller_id ?? null,
+            ]
+        );
 
         return response()->json([
             'success' => true,
-            'message' => 'อัปเดตวิธีการชำระเงินเรียบร้อยแล้ว',
-            'payment_method' => $order->payment_method
+            'message' => 'อัปเดตวิธีการชำระเงินและค่าคอมมิชชั่นเรียบร้อยแล้ว',
+            'payment_method' => $order->payment_method,
+            'massage_commission' => $commission_value
         ]);
     }
 }

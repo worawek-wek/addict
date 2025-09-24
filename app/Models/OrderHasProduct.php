@@ -22,4 +22,8 @@ class OrderHasProduct extends Model
     {
         return $this->belongsTo(Order::class, 'ref_order_id');
     }
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'ref_product_id');
+    }
 }

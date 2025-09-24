@@ -87,9 +87,7 @@ class FrontHomeController extends Controller
     {
         $id = $request->selected_user;
         try {
-            // return $request;
-            $ref_seller_id = Auth::guard('customer')->user()->id;  // $ref_seller_id = User::where('user_code', $request->ref_seller_id)->first()->id;
-
+            $ref_seller_id = Auth::guard('customer')->user()->id;
             $user = User::find($id);
             $room = Room::find($request->roomType);
             $price = $this->calculate_all($request);
@@ -105,56 +103,9 @@ class FrontHomeController extends Controller
                 $service = null;
             }
 
-            // คำนวณค่าคอมมิชชั่น
-            $commission_value = 0;
-            // 1. คำนวณค่าคอมมิชชั่นจาก AddonOption ทั้งหมด
-            if (!empty($request->ref_option_id)) {
-                $addon_ids = is_array($request->ref_option_id) ? $request->ref_option_id : [$request->ref_option_id];
-                foreach ($addon_ids as $addon_id) {
-                    $commission = \App\Models\Commission::where('ref_user_id', $id)
-                        ->where('ref_addon_options_id', $addon_id)
-                        ->first();
-                    $addon = \App\Models\AddonOption::find($addon_id);
-                    if ($commission && $addon) {
-                        if ($commission->commission_amount) {
-                            $commission_value += $commission->commission_amount;
-                        } elseif ($commission->commission_percent) {
-                            $commission_value += ($commission->commission_percent / 100) * $addon->price;
-                        }
-                    }
-                }
-            }
-            // 2. คำนวณค่าคอมมิชชั่นจาก service_duration ถ้ามี
-            if ($service) {
-                $commission = \App\Models\Commission::where('ref_user_id', $id)
-                    ->where('service_duration', $service)
-                    ->first();
-                if ($commission) {
-                    if ($commission->commission_amount) {
-                        $commission_value += $commission->commission_amount;
-                    } elseif ($commission->commission_percent) {
-                        $room_price = 0;
-                        if ($room) {
-                            if ($service == '40') {
-                                $room_price = $room->forty_minutes;
-                            } elseif ($service == '60') {
-                                $room_price = $room->sixty_minutes;
-                            } elseif ($service == '90') {
-                                $room_price = $room->ninety_minutes;
-                            }
-                        }
-                        $staff_salary = $user ? $user->salary : 0;
-                        $commission_base = $room_price + $staff_salary;
-                        $commission_value += ($commission->commission_percent / 100) * $commission_base;
-                    }
-                }
-            }
-            // $commission_value คือค่าคอมมิชชั่นที่คำนวณได้
             $customer_find = Auth::guard('customer')->user();
 
-
-            // Generate order_number: BRANCHYYYYMMDDHHMMSS + random 3 digits
-            // สร้าง order_number ความยาว 13 ตัวอักษร: ONLINE + 7 ตัวเลขสุ่ม และต้องไม่ซ้ำใน db
+            // Generate order_number: ONLINE + 7 random digits, must be unique
             do {
                 $order_number = 'ONLINE' . str_pad(strval(rand(0, 9999999)), 7, '0', STR_PAD_LEFT);
             } while (Order::where('order_number', $order_number)->exists());
@@ -162,23 +113,16 @@ class FrontHomeController extends Controller
             $order->order_number = $order_number;
             $order->ref_branch_id = $request->ref_branch_id;
 
-            // บันทึกค่าคอมมิชชั่นลงในฟิลด์ใหม่
-            $order->massage_commission = $commission_value;
-
-
             if (@$customer_find) {
                 $order->ref_customer_id = $customer_find->id;
             } else {
-
                 $customer = new Customer;
                 $customer->name = $request->customer_name;
                 $customer->ref_branch_id = 1;
                 $customer->save();
-
                 $order->ref_customer_id = $customer->id;
             }
             $order->ref_user_id = $id;
-            // $order->ref_seller_id = $ref_seller_id;
             $order->ref_room_id = $request->roomType;
             $order->service_laundry_cost = $request->timeService;
             $order->ref_status_id = 1;
@@ -203,17 +147,12 @@ class FrontHomeController extends Controller
 
             $order->end_time = $end->format('H:i');
 
-
             $order->save();
             $td = '';
             if (@$request->ref_product_id) {
-
                 foreach ($request->ref_product_id as $product) {
-
                     $pro = Product::find($product);
-
                     $td .= "+$pro->name(" . $request->product_qty[$product] . ')';
-
                     $order_product = new OrderHasProduct;
                     $order_product->ref_order_id = $order->id;
                     $order_product->ref_product_id = $product;
@@ -225,10 +164,7 @@ class FrontHomeController extends Controller
             if (@$request->ref_option_id) {
                 foreach ($request->ref_option_id as $option_id) {
                     $option = AddonOption::find($option_id);
-
-                    // ต่อข้อความสำหรับแสดงในใบเสร็จหรือหน้าจอ
                     $td .= "+$option->name";
-
                     $order_option = new OrderHasAddonOption();
                     $order_option->ref_order_id = $order->id;
                     $order_option->ref_option_id = $option_id;

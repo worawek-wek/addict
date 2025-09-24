@@ -233,13 +233,13 @@
                 <div data-i18n="Addon Options">Addon Options</div>
             </a>
         </li>
+        @if(auth()->user() && auth()->user()->ref_position_id == 3)
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-adjustments-horizontal"></i>
                 <div data-i18n="คอมมิชัน">คอมมิชัน</div>
             </a>
             <ul class="menu-sub">
-
                 <!-- ค่าคอมมิชชั่น -->
                 <li class="menu-item">
                     <a href="/admin/commission" class="menu-link">
@@ -248,14 +248,20 @@
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="/admin/commission/view" class="menu-link">
-                        <i class="menu-icon tf-icons ti ti-currency-dollar"></i>
-                        <div data-i18n="ดูค่าคอมมิชชั่น">ดูค่าคอมมิชชั่น</div>
+                    <a href="/admin/commission/view-massage" class="menu-link">
+                        <i class="menu-icon tf-icons ti ti-user"></i>
+                        <div data-i18n="ค่าคอมพนักงานนวด">ค่าคอมพนักงานนวด</div>
                     </a>
                 </li>
-
+                <li class="menu-item">
+                    <a href="/admin/commission/view-sales" class="menu-link">
+                        <i class="menu-icon tf-icons ti ti-user-dollar"></i>
+                        <div data-i18n="ค่าคอมพนักงานขาย">ค่าคอมพนักงานขาย</div>
+                    </a>
+                </li>
             </ul>
         </li>
+        @endif
         <!-- ระบบรายงาน -->
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link menu-toggle">

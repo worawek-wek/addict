@@ -39,12 +39,8 @@
                                             <div class="row g-3">
                                                 <div class="col-md-6">
                                                     <label class="form-label">สาขา</label>
-                                                    <select name="ref_branch_id" id="ref_branch_id" class="form-select select2-branch" required>
-                                                        <option value="">-- เลือกสาขา --</option>
-                                                        @foreach($branches as $branch)
-                                                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                                        @endforeach
-                                                    </select>
+                                                    <input type="text" class="form-control" value="{{ auth()->user()->branch->name ?? '-' }}" readonly>
+                                                    <input type="hidden" name="ref_branch_id" value="{{ auth()->user()->ref_branch_id }}">
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">ยอดขายขั้นต่ำ</label>
@@ -67,13 +63,8 @@
                                         <hr>
                                         <h5 class="mt-4 mb-2">รายการคอมมิชชั่นแบบขั้นบันได</h5>
                                         <div class="mb-3">
-                                            <label class="form-label">กรองตามสาขา</label>
-                                            <select id="filter_branch_id" class="form-select select2-branch" style="max-width:300px;">
-                                                <option value="">-- แสดงทุกสาขา --</option>
-                                                @foreach($branches as $branch)
-                                                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                                @endforeach
-                                            </select>
+                                            <label class="form-label">สาขาที่กำลังใช้งาน</label>
+                                            <input type="text" class="form-control" value="{{ auth()->user()->branch->name ?? '-' }}" readonly>
                                         </div>
                                         <div class="table-responsive">
                                             <table class="table table-bordered" id="tier-table">
@@ -88,7 +79,8 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody id="tier-table-body">
-                                                    @foreach($tiers as $tier)
+                                                    @php $userBranchId = auth()->user()->ref_branch_id ?? null; @endphp
+                                                    @foreach($tiers->where('ref_branch_id', $userBranchId) as $tier)
                                                     <tr data-branch="{{ $tier->ref_branch_id }}">
                                                         <td class="text-center">{{ $loop->iteration }}</td>
                                                         <td class="text-center">{{ optional($branchMap[$tier->ref_branch_id] ?? null)->name ?? '-' }}</td>
@@ -127,30 +119,7 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
-            // กำหนด dropdownParent ให้แต่ละ select2 ใช้ container เฉพาะตัวเอง
-            $('#ref_branch_id').select2({
-                width: '100%',
-                placeholder: '-- เลือกสาขา --',
-                allowClear: true,
-                dropdownParent: $('#ref_branch_id').closest('.col-md-6')
-            });
-            $('#filter_branch_id').select2({
-                width: '100%',
-                placeholder: '-- แสดงทุกสาขา --',
-                allowClear: true,
-                dropdownParent: $('#filter_branch_id').parent()
-            });
-
-            $('#filter_branch_id').on('change', function() {
-                var branchId = $(this).val();
-                $('#tier-table-body tr').each(function() {
-                    if (!branchId || $(this).data('branch') == branchId) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
-                    }
-                });
-            });
+            // ...existing code...
 
             @if(session('success'))
                 Swal.fire({

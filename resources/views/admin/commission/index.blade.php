@@ -44,10 +44,14 @@
                                                     <a href="{{ route('sales_commission_tier.index') }}" class="btn btn-info">
                                                         <i class="ti ti-settings"></i> ตั้งค่าคอมมิชชั่นพนักงานขาย
                                                     </a>
+                                                    <a href="{{ route('massage_default_setting.index') }}" class="btn btn-secondary">
+                                                        <i class="ti ti-user"></i> ตั้งค่าเริ่มต้นพนักงานนวด
+                                                    </a>
                                                 </div>
                                         </div>
                                     </div>
                                     <div class="card-body px-0 pt-0">
+                                        <!-- ตารางนี้แสดงข้อมูลจาก massage_commissions -->
                                         <div class="table-responsive">
                                             <table class="datatables-basic table dataTable no-footer dtr-column" id="commission-table" aria-describedby="commission-table_info">
                                                 <thead class="border-top">
@@ -112,7 +116,14 @@
                                                     </tr>
                                                     @empty
                                                     <tr>
-                                                        <td colspan="8" class="text-center">- ไม่มีข้อมูล -</td>
+                                                        <td class="text-center">-</td>
+                                                        <td class="text-center">- ไม่มีข้อมูล -</td>
+                                                        <td class="text-center">-</td>
+                                                        <td class="text-center">-</td>
+                                                        <td class="text-center">-</td>
+                                                        <td class="text-center">-</td>
+                                                        <td class="text-center">-</td>
+                                                        <td class="text-center">-</td>
                                                     </tr>
                                                     @endforelse
                                                 </tbody>

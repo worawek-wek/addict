@@ -40,9 +40,6 @@
                                         <form action="{{ route('commission.store') }}" method="POST">
                                             @csrf
                                             <div class="row g-3">
-                                                <div class="col-md-6" id="addon-option-group" style="display:none;">
-                                                    <!-- AddonOption dropdown removed, now merged into service_name -->
-                                                </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">พนักงาน</label>
                                                     <select name="ref_user_id" id="ref_user_id" class="form-select" required>
@@ -58,6 +55,9 @@
                                                             <option value="">*** ไม่มีข้อมูลพนักงานในระบบ ***</option>
                                                         @endforelse
                                                     </select>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div id="addon-option-group" style="display:none;"></div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">ตำแหน่ง</label>
@@ -104,9 +104,7 @@
                                                         <option value="">-- เลือกบริการ --</option>
                                                         <option value="การบริการลูกค้า">การบริการลูกค้า</option>
                                                         <option value="บริการนวด">บริการนวด</option>
-                                                        <option value="บริการทำความสะอาด">บริการทำความสะอาด</option>
-                                                        <option value="บริการซ่อมบำรุง">บริการซ่อมบำรุง</option>
-                                                        <option value="อื่น ๆ">อื่น ๆ</option>
+
                                                     </select>
                                                     <input type="hidden" name="ref_addon_options_id" id="ref_addon_options_id" value="">
                                                 </div>
@@ -214,16 +212,10 @@
                     $serviceSelect.append('<option value="อื่น ๆ">อื่น ๆ</option>');
                 }
                 $serviceSelect.prop('disabled', false);
-
-                // ซ่อน/แสดงฟิลด์ระยะเวลา เฉพาะเมื่อเลือกบริการนวด
-                if ($serviceSelect.val() == 'บริการนวด') {
-                    $('#duration-group').show();
-                } else {
-                    $('#duration-group').hide();
-                }
-
                 // Set ref_addon_options_id hidden field
                 setAddonOptionId();
+                // Always trigger change event to update duration-group visibility
+                $serviceSelect.trigger('change');
             }
 
             function setAddonOptionId() {
@@ -232,7 +224,7 @@
                     var addonId = val.replace('addon_', '');
                     $('#ref_addon_options_id').val(addonId);
                     // เซ็ต hidden service_name เป็นชื่อ Addon จริง
-                    var addon = addonOptions.find(function(opt){ return opt.id == addonId; });
+                    var addon = addonOptions.find(function(opt){ return opt.id == parseInt(addonId); });
                     if (addon) {
                         // สร้าง hidden input ถ้ายังไม่มี
                         if ($('#hidden_service_name').length == 0) {

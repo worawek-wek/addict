@@ -25,7 +25,6 @@ class Order extends Model
         'duration_minutes',
         'payment_method',
         'sales_commission',
-        'massage_commission',
     ];
     public $timestamps = true;
     protected $primaryKey = 'id';

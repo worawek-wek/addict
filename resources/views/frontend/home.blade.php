@@ -14,128 +14,133 @@
             <div class="card-body">
                 <h1 class="text-center ff-playfair">Booking</h1>
                 {{-- <form id="insert_service" method="POST" action="{{ route('insert') }}"> --}}
-                <form id="insert_service" method="POST">
+                    <form id="insert_service" method="POST">
 
-                    @csrf
-                    <div class="row g-3">
-                        <div class="col-sm-6">
-                            <label for="exampleFormControlInput1" class="form-label fs-14 mb-0">Date</label>
-                            <input type="date" class="form-control" id="inputDate" name="booking_date"
-                                value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
-                        </div>
-                        <div class="col-sm-6">
-                            <label for="exampleFormControlInput1" class="form-label fs-14 mb-0">Time</label>
-                            <input type="time" class="form-control" id="inputTime" name="booking_time"
-                                value="{{ \Carbon\Carbon::now()->format('H:i') }}">
-                        </div>
-                        <div class="col-12">
-                            <h4 class="bg-cream ff-playfair p-2">Branch</h4>
-                        </div>
+                        @csrf
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label for="exampleFormControlInput1" class="form-label fs-14 mb-0">Date</label>
+                                <input type="date" class="form-control" id="inputDate" name="booking_date"
+                                    value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="exampleFormControlInput1" class="form-label fs-14 mb-0">Time</label>
+                                <input type="time" class="form-control" id="inputTime" name="booking_time"
+                                    value="{{ \Carbon\Carbon::now()->format('H:i') }}">
+                            </div>
+                            <div class="col-12">
+                                <h4 class="bg-cream ff-playfair p-2">Branch</h4>
+                            </div>
 
-                        <div class="col-12">
-                            <label class="form-label fs-14 mb-0">Select Branch</label>
-                            <div class="d-flex gap-2 flex-wrap" id="branch-selector">
-                                @foreach ($branches as $branch)
+                            <div class="col-12">
+                                <label class="form-label fs-14 mb-0">Select Branch</label>
+                                <div class="d-flex gap-2 flex-wrap" id="branch-selector">
+                                    @foreach ($branches as $branch)
                                     <input type="radio" class="btn-check" name="ref_branch_id"
-                                        id="branch{{ $branch->id }}" value="{{ $branch->id }}" autocomplete="off"
-                                        {{ $loop->first ? 'checked' : '' }}>
+                                        id="branch{{ $branch->id }}" value="{{ $branch->id }}" autocomplete="off" {{
+                                        $loop->first ? 'checked' : '' }}>
                                     <label class="btn btn-purple-check flex-fill" for="branch{{ $branch->id }}">
                                         {{ $branch->name }}
                                     </label>
-                                @endforeach
+                                    @endforeach
+                                </div>
+
                             </div>
 
-                        </div>
-
-                        <div class="col-12">
-                            <h4 class="bg-cream ff-playfair p-2">Staff</h4>
-                            <div class="search-container mb-3">
-                                <input type="text" id="search-bar" placeholder="Search">
-                                <a href="#"><i class="search-icon fi fi-rr-search"></i></a>
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <div class="scroll">
-                                <div class="row g-3" id="user-list">
-                                    {{-- Staff จะถูกโหลดผ่าน AJAX --}}
+                            <div class="col-12">
+                                <h4 class="bg-cream ff-playfair p-2">Staff</h4>
+                                <div class="search-container mb-3">
+                                    <input type="text" id="search-bar" placeholder="Search">
+                                    <a href="#"><i class="search-icon fi fi-rr-search"></i></a>
                                 </div>
                             </div>
-                        </div>
 
-                        {{-- <div class="col-12">
-                            <h4 class="bg-cream ff-playfair p-2">Service Course</h4>
-                        </div>
-                        <div class="col-12">
-                            <label for="exampleFormControlInput1" class="form-label fs-14 mb-0">Service
-                                Course</label>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <input type="radio" class="btn-check" name="options" id="option1" autocomplete="off"
-                                    checked>
-                                <label class="btn btn-purple-check flex-fill rounded-0" for="option1">Service A</label>
-
-                                <input type="radio" class="btn-check" name="options" id="option2"
-                                    autocomplete="off">
-                                <label class="btn btn-purple-check flex-fill rounded-0" for="option2">Service B</label>
-
-                                <input type="radio" class="btn-check" name="options" id="option3"
-                                    autocomplete="off">
-                                <label class="btn btn-purple-check flex-fill rounded-0" for="option3">Service C</label>
-
-                                <input type="radio" class="btn-check" name="options" id="option4"
-                                    autocomplete="off">
-                                <label class="btn btn-purple-check flex-fill rounded-0" for="option4">Service D</label>
-
+                            <div class="col-12">
+                                <div class="scroll">
+                                    <div class="row g-3" id="user-list">
+                                        {{-- Staff จะถูกโหลดผ่าน AJAX --}}
+                                    </div>
+                                </div>
                             </div>
-                        </div> --}}
-                        <div class="col-12">
-                            <h4 class="bg-cream ff-playfair p-2">Room</h4>
-                            <div class="d-flex gap-2 flex-wrap" id="room-selector">
-                                {{-- ห้องจะถูก inject โดย JS --}}
+
+                            {{-- <div class="col-12">
+                                <h4 class="bg-cream ff-playfair p-2">Service Course</h4>
                             </div>
-                        </div>
+                            <div class="col-12">
+                                <label for="exampleFormControlInput1" class="form-label fs-14 mb-0">Service
+                                    Course</label>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <input type="radio" class="btn-check" name="options" id="option1" autocomplete="off"
+                                        checked>
+                                    <label class="btn btn-purple-check flex-fill rounded-0" for="option1">Service
+                                        A</label>
 
-                        {{-- <div class="col-12">
-                            <label for="exampleFormControlInput1" class="form-label fs-14 mb-0">2.Room number</label>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <input type="radio" class="btn-check" name="roomNumber" id="roomNumber1"
-                                    autocomplete="off" checked>
-                                <label class="btn btn-purple-check flex-fill rounded-0"
-                                    for="roomNumber1">FR001</label>
+                                    <input type="radio" class="btn-check" name="options" id="option2"
+                                        autocomplete="off">
+                                    <label class="btn btn-purple-check flex-fill rounded-0" for="option2">Service
+                                        B</label>
 
-                                <input type="radio" class="btn-check" name="roomNumber" id="roomType2"
-                                    autocomplete="off">
-                                <label class="btn btn-purple-check flex-fill rounded-0"
-                                    for="roomNumber2">FR002</label>
+                                    <input type="radio" class="btn-check" name="options" id="option3"
+                                        autocomplete="off">
+                                    <label class="btn btn-purple-check flex-fill rounded-0" for="option3">Service
+                                        C</label>
 
-                                <input type="radio" class="btn-check" name="roomNumber" id="roomNumber3"
-                                    autocomplete="off">
-                                <label class="btn btn-purple-check flex-fill rounded-0"
-                                    for="roomNumber3">FR003</label>
-                                <input type="radio" class="btn-check" name="roomNumber" id="roomNumber4"
-                                    autocomplete="off">
-                                <label class="btn btn-purple-check flex-fill rounded-0"
-                                    for="roomNumber4">FR004</label>
+                                    <input type="radio" class="btn-check" name="options" id="option4"
+                                        autocomplete="off">
+                                    <label class="btn btn-purple-check flex-fill rounded-0" for="option4">Service
+                                        D</label>
 
-                                <input type="radio" class="btn-check" name="roomNumber" id="roomType5"
-                                    autocomplete="off">
-                                <label class="btn btn-purple-check flex-fill rounded-0"
-                                    for="roomNumber5">FR005</label>
-
-                                <input type="radio" class="btn-check" name="roomNumber" id="roomNumber6"
-                                    autocomplete="off">
-                                <label class="btn btn-purple-check flex-fill rounded-0"
-                                    for="roomNumber6">FR006</label>
+                                </div>
+                            </div> --}}
+                            <div class="col-12">
+                                <h4 class="bg-cream ff-playfair p-2">Room</h4>
+                                <div class="d-flex gap-2 flex-wrap" id="room-selector">
+                                    {{-- ห้องจะถูก inject โดย JS --}}
+                                </div>
                             </div>
-                        </div> --}}
 
-                        <div class="col-12">
-                            <h4 class="bg-cream ff-playfair p-2">Add-on Options</h4>
-                        </div>
-                        <div class="col-12">
-                            <div class="d-flex gap-2 flex-wrap" id="addon-options-list">
-                                @foreach ($option as $item)
+                            {{-- <div class="col-12">
+                                <label for="exampleFormControlInput1" class="form-label fs-14 mb-0">2.Room
+                                    number</label>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <input type="radio" class="btn-check" name="roomNumber" id="roomNumber1"
+                                        autocomplete="off" checked>
+                                    <label class="btn btn-purple-check flex-fill rounded-0"
+                                        for="roomNumber1">FR001</label>
+
+                                    <input type="radio" class="btn-check" name="roomNumber" id="roomType2"
+                                        autocomplete="off">
+                                    <label class="btn btn-purple-check flex-fill rounded-0"
+                                        for="roomNumber2">FR002</label>
+
+                                    <input type="radio" class="btn-check" name="roomNumber" id="roomNumber3"
+                                        autocomplete="off">
+                                    <label class="btn btn-purple-check flex-fill rounded-0"
+                                        for="roomNumber3">FR003</label>
+                                    <input type="radio" class="btn-check" name="roomNumber" id="roomNumber4"
+                                        autocomplete="off">
+                                    <label class="btn btn-purple-check flex-fill rounded-0"
+                                        for="roomNumber4">FR004</label>
+
+                                    <input type="radio" class="btn-check" name="roomNumber" id="roomType5"
+                                        autocomplete="off">
+                                    <label class="btn btn-purple-check flex-fill rounded-0"
+                                        for="roomNumber5">FR005</label>
+
+                                    <input type="radio" class="btn-check" name="roomNumber" id="roomNumber6"
+                                        autocomplete="off">
+                                    <label class="btn btn-purple-check flex-fill rounded-0"
+                                        for="roomNumber6">FR006</label>
+                                </div>
+                            </div> --}}
+
+                            <div class="col-12">
+                                <h4 class="bg-cream ff-playfair p-2">Add-on Options</h4>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex gap-2 flex-wrap" id="addon-options-list">
+                                    @foreach ($option as $item)
                                     <div class="snack-item" style="position: relative; width: 19%; min-width: 200px;">
                                         <input type="checkbox" class="btn-check addon-checkbox" name="ref_option_id[]"
                                             id="addon{{ $item->id }}" value="{{ $item->id }}"
@@ -156,11 +161,11 @@
                                             <small>{{ number_format($item->price, 2) }} ฿</small>
                                         </label>
                                     </div>
-                                @endforeach
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
-    <script>
-        // โหลด Add-on Options ใหม่เมื่อเลือกสาขา
+                            <script>
+                                // โหลด Add-on Options ใหม่เมื่อเลือกสาขา
         $(document).on('change', 'input[name="ref_branch_id"]', function() {
             const branchId = $(this).val();
             $.get('/api/addon-options/' + branchId, function(options) {
@@ -195,84 +200,84 @@
                 updateSummary();
             });
         });
-    </script>
+                            </script>
 
 
-                        <div class="col-12">
-                            <h4 class="bg-cream ff-playfair p-2">Time Period</h4>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label fs-14 mb-0">Duration of service use</label>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <input type="radio" class="btn-check" name="timeService" id="40min"
-                                    value="forty_minutes" autocomplete="off">
-                                <label class="btn btn-purple-check flex-fill rounded-0" for="40min">
-                                    40 minutes/service
-                                </label>
+                            <div class="col-12">
+                                <h4 class="bg-cream ff-playfair p-2">Time Period</h4>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fs-14 mb-0">Duration of service use</label>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <input type="radio" class="btn-check" name="timeService" id="40min"
+                                        value="forty_minutes" autocomplete="off">
+                                    <label class="btn btn-purple-check flex-fill rounded-0" for="40min">
+                                        40 minutes/service
+                                    </label>
 
-                                <input type="radio" class="btn-check" name="timeService" id="60min"
-                                    value="sixty_minutes" autocomplete="off" checked>
-                                <label class="btn btn-purple-check flex-fill rounded-0" for="60min">
-                                    60 minutes/service
-                                </label>
+                                    <input type="radio" class="btn-check" name="timeService" id="60min"
+                                        value="sixty_minutes" autocomplete="off" checked>
+                                    <label class="btn btn-purple-check flex-fill rounded-0" for="60min">
+                                        60 minutes/service
+                                    </label>
 
-                                <input type="radio" class="btn-check" name="timeService" id="90min"
-                                    value="ninety_minutes" autocomplete="off">
-                                <label class="btn btn-purple-check flex-fill rounded-0" for="90min">
-                                    90 minutes/service
-                                </label>
+                                    <input type="radio" class="btn-check" name="timeService" id="90min"
+                                        value="ninety_minutes" autocomplete="off">
+                                    <label class="btn btn-purple-check flex-fill rounded-0" for="90min">
+                                        90 minutes/service
+                                    </label>
+                                </div>
+
                             </div>
 
-                        </div>
 
+                            <div class="col-12">
+                                <div class="card card-body">
+                                    <h4 class="ff-playfair">Summary</h4>
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <h6>Date and time of service use</h6>
+                                            <ul>
+                                                <li id="summary-date">dd/mm/yyyy</li>
+                                                <li id="summary-time">hh:mm</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            {{-- <h6>Service</h6>
+                                            <ul>
+                                                <li id="summary-service">Service A</li>
+                                            </ul> --}}
+                                            <h6>Room</h6>
+                                            <ul>
+                                                <li id="summary-room-type">Type room - First room</li>
+                                                {{-- <li id="summary-room-number">Room number - FR001</li> --}}
+                                            </ul>
+                                            <h6>Add-on Options</h6>
+                                            <ul id="summary-addons"></ul>
 
-                        <div class="col-12">
-                            <div class="card card-body">
-                                <h4 class="ff-playfair">Summary</h4>
-                                <div class="row">
-                                    <div class="col-sm-4">
-                                        <h6>Date and time of service use</h6>
-                                        <ul>
-                                            <li id="summary-date">dd/mm/yyyy</li>
-                                            <li id="summary-time">hh:mm</li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-sm-4">
-                                        {{-- <h6>Service</h6>
-                                        <ul>
-                                            <li id="summary-service">Service A</li>
-                                        </ul> --}}
-                                        <h6>Room</h6>
-                                        <ul>
-                                            <li id="summary-room-type">Type room - First room</li>
-                                            {{-- <li id="summary-room-number">Room number - FR001</li> --}}
-                                        </ul>
-                                        <h6>Add-on Options</h6>
-                                        <ul id="summary-addons"></ul>
+                                            <h6>Time Period</h6>
+                                            <ul>
+                                                <li id="summary-duration">60 mins/service</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div id="selected-staff-list"></div>
 
-                                        <h6>Time Period</h6>
-                                        <ul>
-                                            <li id="summary-duration">60 mins/service</li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-sm-4">
-                                        <div id="selected-staff-list"></div>
+                                        </div>
 
-                                    </div>
-
-                                    <div class="col-sm-12">
-                                        <h4 class="text-end text-purple">
-                                            <span class="fs-12 fw-normal">THB</span>
-                                            <span id="summary-price">0.00</span>
-                                        </h4>
-                                        <button class="btn btn-purple rounded-0 w-100"
-                                            type="submit">Checkout</button>
+                                        <div class="col-sm-12">
+                                            <h4 class="text-end text-purple">
+                                                <span class="fs-12 fw-normal">THB</span>
+                                                <span id="summary-price">0.00</span>
+                                            </h4>
+                                            <button class="btn btn-purple rounded-0 w-100"
+                                                type="submit">Checkout</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
             </div>
         </div>
     </div>

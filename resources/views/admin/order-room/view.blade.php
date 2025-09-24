@@ -125,9 +125,9 @@
         <div class="bg-white p-3 rounded-3 shadow-sm">
             <label for="payment_method_select" class="form-label">วิธีการชำระเงิน</label>
             <form id="paymentMethodForm" action="#" method="post" onsubmit="return false;">
-                <select class="form-select mt-1" id="payment_method_select" name="payment_method" data-id="{{ $orderRoom->id }}">
+                <select class="form-select mt-1" id="payment_method_select" name="payment_method" data-id="{{ $orderRoom->id }}" @if($orderRoom->payment_method) disabled @endif>
                     <option value="">-- เลือกวิธีการชำระเงิน --</option>
-                    <option value="เงินสด (Cash)" {{ $orderRoom->payment_method == 'เงินสด (Cash)' ? 'selected' : '' }}>เงินสด (Cash)</option>
+                    <option value="cash" {{ $orderRoom->payment_method == 'cash' ? 'selected' : '' }}>เงินสด (Cash)</option>
                     <option value="โอน/สแกน QR Code (PromptPay)" {{ $orderRoom->payment_method == 'โอน/สแกน QR Code (PromptPay)' ? 'selected' : '' }}>โอน/สแกน QR Code (PromptPay)</option>
                     <option value="บัตรเครดิต/เดบิต (Credit/Debit Card)" {{ $orderRoom->payment_method == 'บัตรเครดิต/เดบิต (Credit/Debit Card)' ? 'selected' : '' }}>บัตรเครดิต/เดบิต (Credit/Debit Card)</option>
                     <option value="WeChat Pay" {{ $orderRoom->payment_method == 'WeChat Pay' ? 'selected' : '' }}>WeChat Pay</option>
@@ -157,7 +157,9 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                Swal.fire('สำเร็จ!', 'อัปเดตวิธีการชำระเงินเรียบร้อย', 'success');
+                Swal.fire('สำเร็จ!', 'อัปเดตวิธีการชำระเงินเรียบร้อย', 'success').then(() => {
+                    window.location.href = '{{ route('order-rooms.index') }}';
+                });
             } else {
                 Swal.fire('ผิดพลาด!', data.message || 'ไม่สามารถอัปเดตวิธีการชำระเงินได้', 'error');
             }

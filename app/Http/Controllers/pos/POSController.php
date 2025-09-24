@@ -193,68 +193,12 @@ class POSController extends Controller
                 default => null,
             };
 
-            // คำนวณค่าคอมมิชชั่น
-            $commission_value = 0;
-            // 1. คำนวณค่าคอมมิชชั่นจาก AddonOption ทั้งหมด
+            // สร้าง Order ใหม่แบบง่ายๆ ก่อน
             $addon_ids = [];
             if ($request->filled('addon_id')) {
                 $addon_ids = is_array($request->input('addon_id')) ? $request->input('addon_id') : [$request->input('addon_id')];
             }
-            foreach ($addon_ids as $addon_id) {
-                $commission = \App\Models\Commission::where('ref_user_id', $request->input('staff_id'))
-                    ->where('ref_addon_options_id', $addon_id)
-                    ->first();
-                $addon = \App\Models\AddonOption::find($addon_id);
-                if ($commission && $addon) {
-                    if ($commission->commission_amount) {
-                        $commission_value += $commission->commission_amount;
-                    } elseif ($commission->commission_percent) {
-                        $commission_value += ($commission->commission_percent / 100) * $addon->price;
-                    }
-                }
-            }
-            // 2. คำนวณค่าคอมมิชชั่นจาก service_duration ถ้ามี
-            if ($duration) {
-                $commission = \App\Models\Commission::where('ref_user_id', $request->input('staff_id'))
-                    ->where('service_duration', $duration)
-                    ->first();
-                if ($commission) {
-                    if ($commission->commission_amount) {
-                        $commission_value += $commission->commission_amount;
-                    } elseif ($commission->commission_percent) {
-                        $room_price = 0;
-                        $room = \App\Models\Room::find($roomId);
-                        if ($room) {
-                            if ($duration == '40') {
-                                $room_price = $room->forty_minutes;
-                            } elseif ($duration == '60') {
-                                $room_price = $room->sixty_minutes;
-                            } elseif ($duration == '90') {
-                                $room_price = $room->ninety_minutes;
-                            }
-                        }
-                        $user = \App\Models\User::find($request->input('staff_id'));
-                        $staff_salary = $user ? $user->salary : 0;
-                        $commission_base = $room_price + $staff_salary;
-                        $commission_value += ($commission->commission_percent / 100) * $commission_base;
-                    }
-                }
-            }
-            // คำนวณ commission ของ seller (mama)
-            $sales_commission = 0;
             $mama_id = $request->input('mama_id');
-            if ($mama_id) {
-                $seller_commission = \App\Models\Commission::where('ref_user_id', $mama_id)->first();
-                if ($seller_commission) {
-                    if ($seller_commission->commission_amount) {
-                        $sales_commission = $seller_commission->commission_amount;
-                    } elseif ($seller_commission->commission_percent) {
-                        // กรณี percent ให้คูณกับ total_price
-                        $sales_commission = ($seller_commission->commission_percent / 100) * floatval($request->input('total_price'));
-                    }
-                }
-            }
-            // สร้าง Order ใหม่แบบง่ายๆ ก่อน
             $order = Order::create([
                 'ref_branch_id'      => Auth::user()->ref_branch_id,
                 'order_number'    => Auth::user()->ref_branch_id . strtoupper(uniqid()),
@@ -269,8 +213,6 @@ class POSController extends Controller
                 'end_time'        => Carbon::now()->addMinutes($duration)->format('H:i:s'),
                 'total_price' => $request->input('total_price'),
                 'payment_method' => $method,
-                'massage_commission' => $commission_value,
-                'sales_commission' => $sales_commission,
             ]);
             // เพิ่ม addon option ใน order_has_addon_options
             foreach ($addon_ids as $addon_id) {
