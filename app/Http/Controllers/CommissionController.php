@@ -41,10 +41,14 @@ class CommissionController extends Controller
             $startDate = date('Y-m-d', strtotime($start));
             $endDate = date('Y-m-d', strtotime($end));
         } elseif ($range === 'today' || !$request->has('range')) {
-            $startDate = $today->copy()->subDays(1 - 1)->format('Y-m-d');
+            $startDate = $today->format('Y-m-d');
             $endDate = $today->format('Y-m-d');
+        } elseif ($range === '1') {
+            $yesterday = $today->copy()->subDay();
+            $startDate = $yesterday->format('Y-m-d');
+            $endDate = $yesterday->format('Y-m-d');
         } else {
-            $days = in_array($range, ['1', '7', '14', '30']) ? (int)$range : 1;
+            $days = in_array($range, ['7', '14', '30']) ? (int)$range : 1;
             $startDate = $today->copy()->subDays($days - 1)->format('Y-m-d');
             $endDate = $today->format('Y-m-d');
         }
@@ -290,8 +294,12 @@ class CommissionController extends Controller
         if ($range === 'custom' && $start && $end) {
             $startDate = date('Y-m-d', strtotime($start));
             $endDate = date('Y-m-d', strtotime($end));
+        } elseif ($range === '1') {
+            $yesterday = $today->copy()->subDay();
+            $startDate = $yesterday->format('Y-m-d');
+            $endDate = $yesterday->format('Y-m-d');
         } else {
-            $days = in_array($range, ['1', '7', '14', '30']) ? (int)$range : 1;
+            $days = in_array($range, ['7', '14', '30']) ? (int)$range : 1;
             $startDate = $today->copy()->subDays($days - 1)->format('Y-m-d');
             $endDate = $today->format('Y-m-d');
         }
