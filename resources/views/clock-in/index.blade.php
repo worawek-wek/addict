@@ -639,7 +639,7 @@
                       <form id="clockin">
                         @csrf
                         <div class="d-flex align-items-center justify-content-between app-academy-md-80">
-                          <input name="user_code" type="password" id="ClockIn" placeholder="ชื่อ, สาขา" class="form-control me-2"/>
+                          <input name="user_code" type="password" id="ClockIn" placeholder="แสกนบัตรพนักงาน" class="form-control me-2"/>
                         </div>
                         {{-- <button type="submit" class="btn btn-primary mt-2" onclick="focusInput()">คลิ๊กที่นี่เมื่อแตะบัตรไม่ได้</button> --}}
                       </form>

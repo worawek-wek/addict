@@ -83,6 +83,7 @@ Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
         Route::post('/update/{id}', 'updateCart')->name('update');
         Route::post('/remove/{id}', 'removeFromCart')->name('remove');
         Route::post('/checkout', 'checkout')->name('checkout');
+        Route::get('/get-user', 'get_user')->name('pos-get-user');
         Route::post('/api/calculate-summary', 'calculateSummary')->name('api.calculateSummary');
     });
 

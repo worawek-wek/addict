@@ -74,6 +74,27 @@ class POSController extends Controller
         ));
     }
 
+    public function get_user(Request $request)
+    {
+        try{
+            $find = User::where('user_code',$request->user_code)->first();
+
+            if(!$find){
+                return "เข้างานผิดพลาด ไม่พบพนักงาน";
+            }
+            $user = User::find($find->id);
+            $user->work_status = 1;
+            $user->ref_status_id = 1;
+            $user->save();
+        
+            DB::commit();
+
+            return "$user->name";
+
+        } catch (QueryException $err) {
+            DB::rollBack();
+        }
+    }
 
 
     public function addToCart(Request $request, $id)

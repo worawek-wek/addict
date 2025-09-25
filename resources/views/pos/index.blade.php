@@ -168,7 +168,14 @@
                     <label class="form-label fw-bold">เลือกพนักงาน (บังคับ)</label>
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-person-badge fs-5 text-muted"></i>
-                        <select id="walkinStaffSelect" class="form-select" style="width: 100%"></select>
+                        
+                      <form id="clockin">
+                        <div class="d-flex align-items-center justify-content-between app-academy-md-80">
+                          <input name="user_code" type="text" id="user" placeholder="แสกนบัตรพนักงาน" onclick="clearInput('user')" class="form-control me-2"/>
+                        </div>
+                        {{-- <button type="submit" class="btn btn-primary mt-2" onclick="focusInput()">คลิ๊กที่นี่เมื่อแตะบัตรไม่ได้</button> --}}
+                      </form>
+                        {{-- <select id="walkinStaffSelect" class="form-select" style="width: 100%"></select> --}}
                     </div>
                 </div>
 
@@ -619,8 +626,35 @@
             confirmBtn.disabled = true;
         });
     });
+    
 </script>
 
+<script>
+    function clearInput(id) {
+        document.getElementById(id).value = '';
+    }
+      $('#clockin').on('submit', function(event) {
+            event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
+            if(!this.checkValidity()) {
+                // ถ้าฟอร์มไม่ถูกต้อง
+                this.reportValidity();
+                return console.log('ฟอร์มไม่ถูกต้อง');
+            }
+            $.ajax({
+                url: '/pos/get-user', // เปลี่ยน URL เป็นจุดหมายที่ต้องการ
+                type: 'GET',
+                data: $(this).serialize(),
+                success: function(response) {
+                    document.getElementById("user").value = response;
+                    document.getElementById('user').blur(); 
+                },
+                error: function(error) {
+                    Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    console.error('เกิดข้อผิดพลาด:', error);
+                }
+            });
+        });
+</script>
 <script>
     @if(session('error'))
     Swal.fire({ icon:'error', title:'Error', text:@json(session('error')), confirmButtonColor:'#5e2a5f' })
