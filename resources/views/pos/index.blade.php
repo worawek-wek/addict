@@ -168,7 +168,7 @@
                     <label class="form-label fw-bold">เลือกพนักงาน (บังคับ)</label>
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-person-badge fs-5 text-muted"></i>
-                        
+
                       <form id="clockin">
                         <div class="d-flex align-items-center justify-content-between app-academy-md-80">
                           <input name="user_code" type="text" id="user" placeholder="แสกนบัตรพนักงาน" onclick="clearInput('user')" class="form-control me-2"/>
@@ -346,7 +346,7 @@
         };
 
         const checkWalkinNextBtnStatus = () => {
-            const isStaffSelected = $('#walkinStaffSelect').val();
+            const isStaffSelected = document.getElementById('walkinStaffSelect').value;
             const isTimeSelected = walkinTimeSelect.value;
             walkinNextBtn.disabled = !(isStaffSelected && isTimeSelected);
         };
@@ -485,7 +485,8 @@
         // }).on('select2:select', checkWalkinNextBtnStatus)
         //   .on('select2:clear', checkWalkinNextBtnStatus);
 
-        walkinTimeSelect.addEventListener('change', checkWalkinNextBtnStatus);
+    walkinTimeSelect.addEventListener('change', checkWalkinNextBtnStatus);
+    document.getElementById('walkinStaffSelect').addEventListener('input', checkWalkinNextBtnStatus);
 
         $('#walkinAddonSelect').select2({
             dropdownParent: $("#walkinModal"),
@@ -627,7 +628,7 @@
             confirmBtn.disabled = true;
         });
     });
-    
+
 </script>
 
 <script>
@@ -648,8 +649,8 @@
                 success: function(response) {
                     document.getElementById("user").value = response.name;
                     document.getElementById("walkinStaffSelect").value = response.id;
-                    document.getElementById('user').blur(); 
-                    walkinNextBtn.disabled = false;
+                    document.getElementById('user').blur();
+                    checkWalkinNextBtnStatus();
 
                 },
                 error: function(error) {

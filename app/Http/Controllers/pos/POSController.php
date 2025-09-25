@@ -86,7 +86,7 @@ class POSController extends Controller
             $user->work_status = 1;
             $user->ref_status_id = 1;
             $user->save();
-        
+
             DB::commit();
 
             return [
@@ -249,6 +249,100 @@ class POSController extends Controller
                     ]);
                 }
             }
+
+            // --- คำนวณค่าคอมมิชชั่นและค่าเชียร์ ---
+            $commission_value = 0;
+            $commission_options_value = 0;
+            $price_options_sales = 0;
+            // Massage commission (service_duration)
+            if ($order->ref_user_id && $serviceCostName) {
+                $duration = null;
+                switch ($serviceCostName) {
+                    case 'forty_minutes': $duration = 40; break;
+                    case 'sixty_minutes': $duration = 60; break;
+                    case 'ninety_minutes': $duration = 90; break;
+                }
+                if ($duration) {
+                    $commission = \App\Models\MassageCommission::where('ref_user_id', $order->ref_user_id)
+                        ->where('service_duration', $duration)
+                        ->where('ref_branch_id', $order->ref_branch_id)
+                        ->first();
+                    if (!$commission) {
+                        $commission = \App\Models\MassageCommission::whereNull('ref_user_id')
+                            ->where('service_duration', $duration)
+                            ->where('ref_branch_id', $order->ref_branch_id)
+                            ->first();
+                    }
+                    if ($commission) {
+                        if ($commission->commission_amount) {
+                            $commission_value += $commission->commission_amount;
+                        } elseif ($commission->commission_percent) {
+                            $room_price = 0;
+                            $room = Room::find($roomId);
+                            if ($room) {
+                                if ($duration == 40) $room_price = $room->forty_minutes;
+                                if ($duration == 60) $room_price = $room->sixty_minutes;
+                                if ($duration == 90) $room_price = $room->ninety_minutes;
+                            }
+                            $staff_salary = User::find($order->ref_user_id)->salary ?? 0;
+                            $commission_base = $room_price + $staff_salary;
+                            $commission_value += ($commission->commission_percent / 100) * $commission_base;
+                        }
+                    }
+                }
+            }
+            // Massage commission (addon options)
+            if ($order->ref_user_id && !empty($addon_ids)) {
+                foreach ($addon_ids as $addon_id) {
+                    $commission = \App\Models\MassageCommission::where('ref_user_id', $order->ref_user_id)
+                        ->where('addon_options_id', $addon_id)
+                        ->where('ref_branch_id', $order->ref_branch_id)
+                        ->first();
+                    if (!$commission) {
+                        $commission = \App\Models\MassageCommission::whereNull('ref_user_id')
+                            ->where('addon_options_id', $addon_id)
+                            ->where('ref_branch_id', $order->ref_branch_id)
+                            ->first();
+                    }
+                    $addon = AddonOption::find($addon_id);
+                    if ($commission && $addon) {
+                        if ($commission->commission_amount) {
+                            $commission_options_value += $commission->commission_amount;
+                        } elseif ($commission->commission_percent) {
+                            $commission_options_value += ($commission->commission_percent / 100) * $addon->price;
+                        }
+                    }
+                }
+            }
+            // CheerCharge for sales
+            if ($order->ref_seller_id && !empty($addon_ids)) {
+                foreach ($addon_ids as $addon_id) {
+                    $cheer = \App\Models\CheerCharge::where('ref_branch_id', $order->ref_branch_id)
+                        ->where('addon_options_id', $addon_id)
+                        ->first();
+                    $addon = AddonOption::find($addon_id);
+                    if ($cheer && $addon) {
+                        if ($cheer->type == 'baht') {
+                            $price_options_sales += $cheer->amount;
+                        } elseif ($cheer->type == 'percent') {
+                            $price_options_sales += ($cheer->amount / 100) * $addon->price;
+                        }
+                    }
+                }
+            }
+            // Save to commissions_history
+            \App\Models\CommissionsHistory::updateOrCreate(
+                [
+                    'order_id' => $order->id,
+                    'user_message_id' => $order->ref_user_id ?? null,
+                ],
+                [
+                    'commission_massage_amount' => $commission_value,
+                    'price_options_massage' => $commission_options_value,
+                    'user_sales_id' => $order->ref_seller_id ?? null,
+                    'price_options_sales' => $price_options_sales,
+                ]
+            );
         } else {
             // ถ้าเป็นลูกค้าปกติ ให้ค้นหา Order เดิม
             $order = Order::findOrFail($orderId);
