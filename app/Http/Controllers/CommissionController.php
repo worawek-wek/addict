@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Commission;
+use App\Models\CommissionsHistory;
 use App\Models\MassageCommission;
 use App\Models\User;
 use Exception;
@@ -26,20 +27,22 @@ class CommissionController extends Controller
     public function view_massage(Request $request)
     {
         $userBranchId = auth()->user()->ref_branch_id ?? null;
-        $usersQuery = \App\Models\User::with(['branch', 'position'])
+        $usersQuery = User::with(['branch', 'position'])
             ->where('ref_position_id', 2)
             ->where('ref_branch_id', $userBranchId); // เฉพาะพนักงานนวดในสาขาที่ login
         $users = $usersQuery->get();
 
         $staffData = [];
-        $range = $request->input('range', '1');
+        $range = $request->has('range') ? $request->input('range') : 'today';
         $start = $request->input('start');
         $end = $request->input('end');
         $today = now();
-
         if ($range === 'custom' && $start && $end) {
             $startDate = date('Y-m-d', strtotime($start));
             $endDate = date('Y-m-d', strtotime($end));
+        } elseif ($range === 'today' || !$request->has('range')) {
+            $startDate = $today->copy()->subDays(1 - 1)->format('Y-m-d');
+            $endDate = $today->format('Y-m-d');
         } else {
             $days = in_array($range, ['1', '7', '14', '30']) ? (int)$range : 1;
             $startDate = $today->copy()->subDays($days - 1)->format('Y-m-d');
@@ -47,7 +50,7 @@ class CommissionController extends Controller
         }
 
         foreach ($users as $user) {
-            $commission = \App\Models\CommissionsHistory::where('user_message_id', $user->id)
+            $commission = CommissionsHistory::where('user_message_id', $user->id)
                 ->whereDate('created_at', '>=', $startDate)
                 ->whereDate('created_at', '<=', $endDate)
                 ->sum('commission_massage_amount');

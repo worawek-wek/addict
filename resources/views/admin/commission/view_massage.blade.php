@@ -47,10 +47,11 @@
                                                     <!-- ลบ dropdown เลือกสาขาออก -->
                                                     <div class="col-auto">
                                                         <select class="form-select" id="date-range" name="range">
-                                                            <option value="1">1 วันล่าสุด</option>
-                                                            <option value="7">7 วันล่าสุด</option>
-                                                            <option value="14">14 วันล่าสุด</option>
-                                                            <option value="30">1 เดือนล่าสุด</option>
+                                                            <option value="today" selected>วันนี้</option>
+                                                            <option value="1">1 ย้อนหลัง</option>
+                                                            <option value="7">7 ย้อนหลัง</option>
+                                                            <option value="14">14 ย้อนหลัง</option>
+                                                            <option value="30">1 เดือน</option>
                                                             <option value="custom">ระบุวันที่เอง</option>
                                                         </select>
                                                     </div>
@@ -88,11 +89,7 @@
                                                         <td class="text-center">{{ $staff['branch'] }}</td>
                                                         <td class="text-center">{{ $staff['position'] }}</td>
                                                         <td class="text-center">
-                                                            @php
-                                                                $commission = \App\Models\CommissionsHistory::where('user_message_id', $staff['id'] ?? null)
-                                                                    ->sum('commission_massage_amount');
-                                                            @endphp
-                                                            {{ number_format($commission, 2) }} บาท
+                                                            {{ number_format($staff['commission'], 2) }} บาท
                                                         </td>
                                                         <td class="text-center">
                                                             <a href="{{ route('commission.massage_orders', ['user_id' => $staff['id'], 'start' => request('start'), 'end' => request('end'), 'range' => request('range')]) }}" class="btn btn-sm btn-outline-info" target="_blank">
