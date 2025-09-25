@@ -172,6 +172,7 @@
                       <form id="clockin">
                         <div class="d-flex align-items-center justify-content-between app-academy-md-80">
                           <input name="user_code" type="text" id="user" placeholder="แสกนบัตรพนักงาน" onclick="clearInput('user')" class="form-control me-2"/>
+                          <input type="hidden" id="walkinStaffSelect">
                         </div>
                         {{-- <button type="submit" class="btn btn-primary mt-2" onclick="focusInput()">คลิ๊กที่นี่เมื่อแตะบัตรไม่ได้</button> --}}
                       </form>
@@ -465,24 +466,24 @@
             }
         });
 
-        $('#walkinStaffSelect').select2({
-            dropdownParent: $("#walkinModal"),
-            placeholder: '-- ค้นหาพนักงาน --',
-            allowClear: true,
-            ajax: {
-                url: '{{ route("pos.api.searchStaff") }}',
-                dataType: 'json',
-                delay: 250,
-                data: params => ({ q: params.term }),
-                processResults: data => ({
-                    results: data.map(u => ({
-                        id: u.id,
-                        text: `${u.user_code ? '['+u.user_code+'] ' : ''}${u.nickname ?? ''} | Salary: ${u.salary ?? 0}฿`
-                    }))
-                })
-            }
-        }).on('select2:select', checkWalkinNextBtnStatus)
-          .on('select2:clear', checkWalkinNextBtnStatus);
+        // $('#walkinStaffSelect').select2({
+        //     dropdownParent: $("#walkinModal"),
+        //     placeholder: '-- ค้นหาพนักงาน --',
+        //     allowClear: true,
+        //     ajax: {
+        //         url: '{{ route("pos.api.searchStaff") }}',
+        //         dataType: 'json',
+        //         delay: 250,
+        //         data: params => ({ q: params.term }),
+        //         processResults: data => ({
+        //             results: data.map(u => ({
+        //                 id: u.id,
+        //                 text: `${u.user_code ? '['+u.user_code+'] ' : ''}${u.nickname ?? ''} | Salary: ${u.salary ?? 0}฿`
+        //             }))
+        //         })
+        //     }
+        // }).on('select2:select', checkWalkinNextBtnStatus)
+        //   .on('select2:clear', checkWalkinNextBtnStatus);
 
         walkinTimeSelect.addEventListener('change', checkWalkinNextBtnStatus);
 
@@ -645,8 +646,11 @@
                 type: 'GET',
                 data: $(this).serialize(),
                 success: function(response) {
-                    document.getElementById("user").value = response;
+                    document.getElementById("user").value = response.name;
+                    document.getElementById("walkinStaffSelect").value = response.id;
                     document.getElementById('user').blur(); 
+                    walkinNextBtn.disabled = false;
+
                 },
                 error: function(error) {
                     Swal.fire('เกิดข้อผิดพลาด', '', 'error');

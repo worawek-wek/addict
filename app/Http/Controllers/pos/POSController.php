@@ -89,7 +89,10 @@ class POSController extends Controller
         
             DB::commit();
 
-            return "$user->name";
+            return [
+                    "id" => $user->id,
+                    "name" => "$user->name"
+                    ];
 
         } catch (QueryException $err) {
             DB::rollBack();
