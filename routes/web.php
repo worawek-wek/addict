@@ -33,6 +33,7 @@ use App\Http\Controllers\WorkShiftController;
 use App\Http\Controllers\WelfareController;
 use App\Http\Controllers\ExportExcelController;
 use App\Http\Controllers\AnnualHolidayController;
+use App\Http\Controllers\CheerChargeController;
 use App\Http\Controllers\ColorSchemeController;
 use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\Front\OrderCusController;
@@ -156,6 +157,9 @@ Route::prefix('admin')->group(function () {
         Route::get('sales-commission-tier', 'index')->name('sales_commission_tier.index');
         Route::post('sales-commission-tier', 'store')->name('sales_commission_tier.store');
         Route::delete('sales-commission-tier/{id}', 'destroy')->name('sales_commission_tier.destroy');
+        // Cheer Charge CRUD
+        Route::post('cheer-charge', 'storeCheer')->name('cheer_charge.store');
+        Route::delete('cheer-charge/{id}', 'destroyCheer')->name('cheer_charge.destroy');
     });
     Route::get('dark-mode-switcher', [DarkModeController::class, 'switch'])->name('dark-mode-switcher');
     Route::get('color-scheme-switcher/{color_scheme}', [ColorSchemeController::class, 'switch'])->name('color-scheme-switcher');
@@ -173,7 +177,11 @@ Route::prefix('admin')->group(function () {
         Route::get('commission/sales-orders', 'salesOrders')->name('commission.sales_orders');
         Route::get('commission/massage-orders', 'massageOrders')->name('commission.massage_orders');
     });
-
+    Route::controller(CheerChargeController::class)->group(function () {
+        Route::get('cheer-charge', 'index')->name('cheer_charge.index');
+        Route::post('cheer-charge', 'store')->name('cheer_charge.store');
+        Route::delete('cheer-charge/{id}', 'destroy')->name('cheer_charge.destroy');
+    });
     Route::controller(AuthController::class)->middleware('loggedin')->group(function () {
         Route::get('login', 'loginView')->name('admin.login');
         Route::post('login', 'login')->name('login.check');

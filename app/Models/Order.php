@@ -21,6 +21,7 @@ class Order extends Model
         'start_time',
         'end_time',
         'payment_method',
+        'price',
         'total_price',
         'duration_minutes',
         'payment_method',

@@ -14,6 +14,8 @@ class CommissionsHistory extends Model
         'user_message_id',
         'user_sales_id',
         'order_id',
+        'price_options_massage',
+        'price_options_sales',
         'commission_massage_amount',
     ];
 

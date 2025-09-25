@@ -36,12 +36,26 @@
                                     <div class="card-body">
                                         <div class="mb-3">
                                             <span class="fw-bold">สาขา:</span>
-                                            <span class="text-main">
-                                                {{ auth()->user()->branch->name ?? '-' }}
-                                            </span>
+                                            @if(auth()->user()->ref_position_id == 0)
+                                                <form id="branch-form" method="GET" action="">
+                                                    <select name="branch_id" id="branch-select" class="form-control select2-branch" style="width: 250px; display: inline-block;">
+                                                        <option value="">ทุกสาขา</option>
+                                                        @foreach($branches as $branch)
+                                                            <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </form>
+                                            @else
+                                                <span class="text-main">
+                                                    {{ auth()->user()->branch->name ?? '-' }}
+                                                </span>
+                                            @endif
                                         </div>
                                         <form action="{{ route('massage_default_setting.store') }}" method="POST">
                                             @csrf
+                                            @if(auth()->user()->ref_position_id == 0)
+                                                <input type="hidden" name="branch_id" value="{{ request('branch_id') }}">
+                                            @endif
                                             <div class="row g-3">
                                                 <div class="col-md-6">
                                                     <label class="form-label">บริการ</label>
@@ -91,7 +105,7 @@
                                                 </thead>
                                                 <tbody>
                                                     @forelse($defaultSettings as $item)
-                                                    <tr>
+                                                    <tr data-branch="{{ $item->ref_branch_id }}">
                                                         <td class="text-center">{{ $loop->iteration }}</td>
                                                         <td class="text-center">
                                                             @if($item->addon_options_id)
@@ -149,6 +163,16 @@
                 placeholder: '-- เลือกบริการ --',
                 allowClear: true,
                 dropdownParent: $serviceSelect.closest('.col-md-6')
+            });
+
+            // Branch dropdown (เฉพาะ ref_position_id == 0)
+            $('.select2-branch').select2({
+                placeholder: 'เลือกสาขา',
+                allowClear: true
+            });
+            // Branch dropdown: reload page with branch_id param
+            $('#branch-select').on('change', function() {
+                $('#branch-form').submit();
             });
 
             // แสดง/ซ่อนระยะเวลาเมื่อเลือกบริการนวด

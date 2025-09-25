@@ -14,23 +14,40 @@ class CommissionController extends Controller
     // แสดงรายการคอมมิชชั่นทั้งหมด
     public function index()
     {
-        $userBranchId = auth()->user()->ref_branch_id ?? null;
-        $commissions = MassageCommission::with(['user.branch'])
-            ->whereHas('user', function ($q) use ($userBranchId) {
-                $q->where('ref_branch_id', $userBranchId);
-            })
-            ->orderBy('id', 'desc')
-            ->get();
+        $user = auth()->user();
+        if ($user->ref_position_id == 0) {
+            // แสดงทุกสาขา เฉพาะที่มี ref_user_id
+            $commissions = MassageCommission::with(['user.branch'])
+                ->whereNotNull('ref_user_id')
+                ->orderBy('id', 'desc')
+                ->get();
+        } else {
+            $userBranchId = $user->ref_branch_id ?? null;
+            $commissions = MassageCommission::with(['user.branch'])
+                ->whereNotNull('ref_user_id')
+                ->whereHas('user', function ($q) use ($userBranchId) {
+                    $q->where('ref_branch_id', $userBranchId);
+                })
+                ->orderBy('id', 'desc')
+                ->get();
+        }
         return view('admin.commission.index', compact('commissions'));
     }
     // แสดงค่าคอมมิชชั่นพนักงานนวด
     public function view_massage(Request $request)
     {
-        $userBranchId = auth()->user()->ref_branch_id ?? null;
-        $usersQuery = User::with(['branch', 'position'])
-            ->where('ref_position_id', 2)
-            ->where('ref_branch_id', $userBranchId); // เฉพาะพนักงานนวดในสาขาที่ login
-        $users = $usersQuery->get();
+        if (auth()->user()->ref_position_id == 0) {
+            // superadmin: แสดงพนักงานนวดทุกสาขา
+            $users = User::with(['branch', 'position'])
+                ->where('ref_position_id', 2)
+                ->get();
+        } else {
+            $userBranchId = auth()->user()->ref_branch_id ?? null;
+            $users = User::with(['branch', 'position'])
+                ->where('ref_position_id', 2)
+                ->where('ref_branch_id', $userBranchId)
+                ->get();
+        }
 
         $staffData = [];
         $range = $request->has('range') ? $request->input('range') : 'today';
@@ -58,6 +75,10 @@ class CommissionController extends Controller
                 ->whereDate('created_at', '>=', $startDate)
                 ->whereDate('created_at', '<=', $endDate)
                 ->sum('commission_massage_amount');
+            $cheer_charge = CommissionsHistory::where('user_message_id', $user->id)
+                ->whereDate('created_at', '>=', $startDate)
+                ->whereDate('created_at', '<=', $endDate)
+                ->sum('price_options_massage');
             $staffData[] = [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -65,6 +86,7 @@ class CommissionController extends Controller
                 'branch' => $user->branch ? $user->branch->name : null,
                 'position' => $user->position ? $user->position->position_name : null,
                 'commission' => $commission,
+                'cheer_charge' => $cheer_charge,
             ];
         }
         if ($request->ajax() || $request->input('ajax') == '1') {
@@ -115,6 +137,12 @@ class CommissionController extends Controller
                 $commission = $totalSales * ($tier->commission_rate / 100);
             }
 
+            // ดึง cheer_charge จาก commissions_history
+            $cheer_charge = CommissionsHistory::where('user_sales_id', $user->id)
+                ->whereDate('created_at', '>=', $startDate)
+                ->whereDate('created_at', '<=', $endDate)
+                ->sum('price_options_sales');
+
             $staffData[] = [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -122,6 +150,7 @@ class CommissionController extends Controller
                 'branch' => $user->branch ? $user->branch->name : null,
                 'position' => $user->position ? $user->position->position_name : null,
                 'commission' => $commission,
+                'cheer_charge' => $cheer_charge,
             ];
         }
         if ($request->ajax() || $request->input('ajax') == '1') {
@@ -132,16 +161,27 @@ class CommissionController extends Controller
     // แสดงฟอร์มสร้างใหม่
     public function create()
     {
-        // เฉพาะพนักงานนวด (ref_position_id = 2)
-        $userBranchId = auth()->user()->ref_branch_id ?? null;
-        $users = User::with('branch')
-            ->where('ref_position_id', 2)
-            ->where('ref_branch_id', $userBranchId)
-            ->leftJoin('branchs', 'users.ref_branch_id', '=', 'branchs.id')
-            ->orderBy('branchs.name')
-            ->orderBy('users.name')
-            ->select('users.*')
-            ->get();
+        $user = auth()->user();
+        if ($user->ref_position_id == 0) {
+            // แสดงพนักงานทุกคน (ref_position_id = 2)
+            $users = User::with('branch')
+                ->where('ref_position_id', 2)
+                ->leftJoin('branchs', 'users.ref_branch_id', '=', 'branchs.id')
+                ->orderBy('branchs.name')
+                ->orderBy('users.name')
+                ->select('users.*')
+                ->get();
+        } else {
+            $userBranchId = $user->ref_branch_id ?? null;
+            $users = User::with('branch')
+                ->where('ref_position_id', 2)
+                ->where('ref_branch_id', $userBranchId)
+                ->leftJoin('branchs', 'users.ref_branch_id', '=', 'branchs.id')
+                ->orderBy('branchs.name')
+                ->orderBy('users.name')
+                ->select('users.*')
+                ->get();
+        }
         $positions = \App\Models\Position::where('id', '!=', 0)->orderBy('position_name')->get();
         $addonOptions = \App\Models\AddonOption::all();
         // Pass all options, filter in JS by branch
@@ -181,8 +221,13 @@ class CommissionController extends Controller
                 return redirect()->route('commission.create')->withErrors(['commission_amount' => 'กรุณากรอกจำนวนเงินหรือเปอร์เซ็นต์คอมมิชชั่นอย่างน้อย 1 ช่อง'])->withInput();
             }
 
-            // เพิ่ม ref_branch_id จากผู้ใช้ที่ login
-            $validated['ref_branch_id'] = auth()->user()->ref_branch_id ?? null;
+            // เพิ่ม ref_branch_id จากผู้ใช้ที่เลือก
+            if (!empty($validated['ref_user_id'])) {
+                $userObj = User::find($validated['ref_user_id']);
+                $validated['ref_branch_id'] = $userObj ? $userObj->ref_branch_id : null;
+            } else {
+                $validated['ref_branch_id'] = null;
+            }
 
             // Use MassageCommission model instead of Commission
             $commission = MassageCommission::create($validated);

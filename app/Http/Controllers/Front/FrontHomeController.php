@@ -90,6 +90,24 @@ class FrontHomeController extends Controller
             $ref_seller_id = Auth::guard('customer')->user()->id;
             $user = User::find($id);
             $room = Room::find($request->roomType);
+            $user = User::find($id);
+            $room = Room::find($request->roomType);
+            $massage_price = $user ? $user->salary : 0;
+            $room_price = 0;
+            if (!empty($request->roomType) && $request->timeService) {
+                switch ($request->timeService) {
+                    case 'forty_minutes':
+                        $room_price = $room ? $room->forty_minutes : 0;
+                        break;
+                    case 'sixty_minutes':
+                        $room_price = $room ? $room->sixty_minutes : 0;
+                        break;
+                    case 'ninety_minutes':
+                        $room_price = $room ? $room->ninety_minutes : 0;
+                        break;
+                }
+            }
+            $order_price = $massage_price + $room_price;
             $price = $this->calculate_all($request);
 
             // กำหนดค่าระยะเวลาเป็นตัวเลข
@@ -129,6 +147,7 @@ class FrontHomeController extends Controller
             $order->booking_date = $request->booking_date;
             $order->start_time = $request->booking_time;
             $order->total_price = number_format($price, 2, '.', '');
+            $order->price = number_format($order_price, 2, '.', '');
             $start = \Carbon\Carbon::createFromFormat('H:i', $request->booking_time);
 
             switch ($request->timeService) {

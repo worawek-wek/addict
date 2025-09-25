@@ -13,7 +13,30 @@ class SalesCommissionTierController extends Controller
         $tiers = SalesCommissionTier::orderBy('min_sales_amount')->get();
         $branches = Branch::orderBy('name')->get();
         $branchMap = $branches->keyBy('id');
-        return view('admin.commission.sales_tier', compact('tiers', 'branches', 'branchMap'));
+        $addonOptions = \App\Models\AddonOption::orderBy('name')->get();
+        $cheerCharges = \App\Models\CheerCharge::where('ref_branch_id', auth()->user()->ref_branch_id)->get();
+        return view('admin.commission.sales_tier', compact('tiers', 'branches', 'branchMap', 'addonOptions', 'cheerCharges'));
+    }
+    public function storeCheer(Request $request)
+    {
+        $request->validate([
+            'addon_options_id' => 'required|exists:addon_options,id',
+            'type' => 'required|in:percent,baht',
+            'amount' => 'required|numeric',
+        ]);
+        \App\Models\CheerCharge::create([
+            'ref_branch_id' => auth()->user()->ref_branch_id,
+            'addon_options_id' => $request->addon_options_id,
+            'type' => $request->type,
+            'amount' => $request->amount,
+        ]);
+        return redirect()->route('sales_commission_tier.index')->with('success', 'บันทึก Cheer สำเร็จ');
+    }
+
+    public function destroyCheer($id)
+    {
+        \App\Models\CheerCharge::destroy($id);
+        return redirect()->route('sales_commission_tier.index')->with('success', 'ลบ Cheer สำเร็จ');
     }
 
     public function store(Request $request)

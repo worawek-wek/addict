@@ -30,8 +30,12 @@ class MassageCommission extends Model
         return $this->belongsTo(Branch::class, 'ref_branch_id');
     }
 
+    // public function position()
+    // {
+    //     return $this->user ? $this->user->position() : null;
+    // }
     public function position()
     {
-        return $this->user ? $this->user->position() : null;
+        return $this->belongsTo(Position::class, 'ref_position_id');
     }
 }

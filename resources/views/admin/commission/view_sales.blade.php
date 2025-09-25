@@ -76,6 +76,7 @@
                                                         <th class="text-center">สาขา</th>
                                                         <th class="text-center">ชื่อตำแหน่ง</th>
                                                         <th class="text-center">จำนวนเงินคอมมิชชั่น</th>
+                                                        <th class="text-center">ค่าเชียร์</th>
                                                         <th class="text-center">ดู Order</th>
                                                     </tr>
                                                 </thead>
@@ -87,6 +88,7 @@
                                                         <td class="text-center">{{ $staff['branch'] }}</td>
                                                         <td class="text-center">{{ $staff['position'] }}</td>
                                                         <td class="text-center">{{ number_format($staff['commission'], 2) }} บาท</td>
+                                                        <td class="text-center">{{ isset($staff['cheer_charge']) ? number_format($staff['cheer_charge'], 2) . ' บาท' : '0.00 บาท' }}</td>
                                                         <td class="text-center">
                                                             <a href="#" class="btn btn-sm btn-outline-info order-link-btn" data-base-url="{{ route('commission.sales_orders') }}" data-user-id="{{ $staff['id'] }}" target="_blank">
                                                                 ดู Order

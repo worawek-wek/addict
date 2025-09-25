@@ -233,7 +233,7 @@
                 <div data-i18n="Addon Options">Addon Options</div>
             </a>
         </li>
-        @if(auth()->user() && auth()->user()->ref_position_id == 3)
+    @if(auth()->user() && (auth()->user()->ref_position_id == 3 || auth()->user()->ref_position_id == 0))
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-adjustments-horizontal"></i>

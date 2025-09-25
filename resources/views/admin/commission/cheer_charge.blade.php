@@ -1,25 +1,16 @@
 <!doctype html>
 <html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed layout-compact" dir="ltr"
     data-theme="theme-default" data-assets-path="assets/" data-template="vertical-menu-template">
-
 <head>
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     @include('admin/layout/inc_header')
-    <title>ตั้งค่าคอมมิชชั่นพนักงานขาย - CRM</title>
+    <title>ตั้งค่าค่าเชียร์ - CRM</title>
 </head>
 <style>
-    .table th {
-        font-size: 15px;
-        font-weight: bold;
-    }
-
-    .table td {
-        padding-top: 14px;
-        padding-bottom: 14px;
-    }
+    .table th { font-size: 15px; font-weight: bold; }
+    .table td { padding-top: 14px; padding-bottom: 14px; }
 </style>
-
 <body>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -34,111 +25,96 @@
                             <div class="col-lg-8 col-md-10">
                                 <div class="card mb-4">
                                     <div class="card-header bg-main text-white">
-                                        <h5 class="mb-0"><i class="ti ti-currency-dollar"></i>
-                                            ตั้งค่าคอมมิชชั่นพนักงานขาย</h5>
+                                        <h5 class="mb-0"><i class="ti ti-settings"></i> ตั้งค่าค่าเชียร์</h5>
                                     </div>
                                     <div class="card-body">
-                                        <form action="{{ route('sales_commission_tier.store') }}" method="POST">
+                                        <form action="{{ route('cheer_charge.store') }}" method="POST">
                                             @csrf
                                             <div class="row g-3">
                                                 <div class="col-md-6">
                                                     <label class="form-label">สาขา</label>
                                                     @if(auth()->user()->ref_position_id == 0)
-                                                    <select name="ref_branch_id" class="form-control select2-branch"
-                                                        required>
+                                                    <select name="ref_branch_id" id="form-branch-select" class="form-control select2-branch" required>
                                                         <option value="">เลือกสาขา</option>
                                                         @foreach($branches as $branch)
                                                         <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                                                         @endforeach
                                                     </select>
                                                     @else
-                                                    <input type="text" class="form-control"
-                                                        value="{{ auth()->user()->branch->name ?? '-' }}" readonly>
-                                                    <input type="hidden" name="ref_branch_id"
-                                                        value="{{ auth()->user()->ref_branch_id }}">
+                                                    <input type="text" class="form-control" value="{{ auth()->user()->branch->name ?? '-' }}" readonly>
+                                                    <input type="hidden" name="ref_branch_id" value="{{ auth()->user()->ref_branch_id }}">
                                                     @endif
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <label class="form-label">ยอดขายขั้นต่ำ</label>
-                                                    <input type="number" step="0.01" name="min_sales_amount"
-                                                        class="form-control" required>
+                                                    <label class="form-label">บริการเสริม (AddonOption)</label>
+                                                    <select name="addon_options_id" id="form-addon-select" class="form-select" disabled>
+                                                        <option value="">-- เลือกบริการเสริม --</option>
+                                                    </select>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <label class="form-label">ยอดขายสูงสุด</label>
-                                                    <input type="number" step="0.01" name="max_sales_amount"
-                                                        class="form-control" required>
+                                                    <label class="form-label">ประเภท</label>
+                                                    <select name="type" class="form-select" required>
+                                                        <option value="baht">จำนวนเงิน (บาท)</option>
+                                                        <option value="percent">เปอร์เซ็นต์ (%)</option>
+                                                    </select>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <label class="form-label">อัตราคอมมิชชั่น (%)</label>
-                                                    <input type="number" step="0.01" name="commission_rate"
-                                                        class="form-control" required>
+                                                    <label class="form-label">จำนวน</label>
+                                                    <input type="number" step="0.01" name="amount" class="form-control" required>
                                                 </div>
                                             </div>
                                             <div class="mt-4 text-end">
-                                                <a href="{{ route('commission.index') }}"
-                                                    class="btn btn-label-secondary">ย้อนกลับ</a>
                                                 <button type="submit" class="btn btn-main ms-2">บันทึก</button>
                                             </div>
                                         </form>
                                         <hr>
-                                        <h5 class="mt-4 mb-2">รายการคอมมิชชั่นแบบขั้นบันได</h5>
+                                        <h5 class="mt-4 mb-2">รายการค่าเชียร์</h5>
                                         <div class="mb-3">
                                             <label class="form-label">สาขาที่กำลังใช้งาน</label>
                                             @if(auth()->user()->ref_position_id == 0)
-                                            <select id="active-branch-select" class="form-control select2-branch"
-                                                onchange="filterTierTable()">
+                                            <select id="active-branch-select" class="form-control select2-branch" onchange="filterCheerTable()">
                                                 <option value="">ทุกสาขา</option>
                                                 @foreach($branches as $branch)
                                                 <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                                                 @endforeach
                                             </select>
                                             @else
-                                            <input type="text" class="form-control"
-                                                value="{{ auth()->user()->branch->name ?? '-' }}" readonly>
+                                            <input type="text" class="form-control" value="{{ auth()->user()->branch->name ?? '-' }}" readonly>
                                             @endif
                                         </div>
                                         <div class="table-responsive">
-                                            <table class="table table-bordered" id="tier-table">
+                                            <table class="table table-bordered" id="cheer-table">
                                                 <thead>
                                                     <tr class="table-info">
                                                         <th class="text-center">#</th>
                                                         <th class="text-center">สาขา</th>
-                                                        <th class="text-center">ยอดขายขั้นต่ำ</th>
-                                                        <th class="text-center">ยอดขายสูงสุด</th>
-                                                        <th class="text-center">อัตราคอมมิชชั่น (%)</th>
+                                                        <th class="text-center">บริการเสริม</th>
+                                                        <th class="text-center">ประเภท</th>
+                                                        <th class="text-center">จำนวน</th>
                                                         <th class="text-center">จัดการ</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody id="tier-table-body">
-                                                    @foreach($tiers as $tier)
-                                                    <tr data-branch="{{ $tier->ref_branch_id }}">
+                                                <tbody id="cheer-table-body">
+                                                    @forelse($cheerCharges as $item)
+                                                    <tr data-branch="{{ $item->ref_branch_id }}">
                                                         <td class="text-center">{{ $loop->iteration }}</td>
-                                                        <td class="text-center">{{
-                                                            optional($branchMap[$tier->ref_branch_id] ?? null)->name ??
-                                                            '-' }}</td>
-                                                        <td class="text-center">{{
-                                                            number_format($tier->min_sales_amount,2) }}</td>
-                                                        <td class="text-center">{{
-                                                            number_format($tier->max_sales_amount,2) }}</td>
-                                                        <td class="text-center">{{
-                                                            number_format($tier->commission_rate,2) }}</td>
+                                                        <td class="text-center">{{ $item->branch->name ?? '-' }}</td>
+                                                        <td class="text-center">{{ $item->addonOption->name ?? '-' }}</td>
+                                                        <td class="text-center">{{ $item->type == 'percent' ? 'เปอร์เซ็นต์' : 'บาท' }}</td>
+                                                        <td class="text-center">{{ number_format($item->amount, 2) }}</td>
                                                         <td class="text-center">
-                                                            <form
-                                                                action="{{ route('sales_commission_tier.destroy', $tier->id) }}"
-                                                                method="POST" style="display:inline-block;">
+                                                            <form action="{{ route('cheer_charge.destroy', $item->id) }}" method="POST" style="display:inline-block;">
                                                                 @csrf
                                                                 @method('DELETE')
-                                                                <button type="submit" class="btn btn-sm btn-danger"
-                                                                    onclick="return confirm('ยืนยันการลบ?')">ลบ</button>
+                                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('ยืนยันการลบ?')">ลบ</button>
                                                             </form>
                                                         </td>
                                                     </tr>
-                                                    @endforeach
-                                                    @if($tiers->isEmpty())
+                                                    @empty
                                                     <tr>
-                                                        <td colspan="6" class="text-center">- ไม่มีข้อมูล -</td>
+                                                        <td class="text-center" colspan="6">- ไม่มีข้อมูล -</td>
                                                     </tr>
-                                                    @endif
+                                                    @endforelse
                                                 </tbody>
                                             </table>
                                         </div>
@@ -157,18 +133,14 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('.select2-addon').select2({
-                placeholder: 'ค้นหา Addon Option',
-                allowClear: true
-            });
             $('.select2-branch').select2({
                 placeholder: 'เลือกสาขา',
                 allowClear: true
             });
-            // ฟังก์ชัน filter ตาราง tier ตามสาขาที่เลือก
-            window.filterTierTable = function() {
+            // ฟังก์ชัน filter ตาราง cheer ตามสาขาที่เลือก
+            window.filterCheerTable = function() {
                 var branchId = $('#active-branch-select').val();
-                $('#tier-table-body tr').each(function() {
+                $('#cheer-table-body tr').each(function() {
                     var rowBranch = $(this).data('branch');
                     if (!branchId || branchId == rowBranch) {
                         $(this).show();
@@ -177,6 +149,30 @@
                     }
                 });
             };
+
+            // --- AddonOption dropdown logic ---
+            $('#form-branch-select').on('change', function() {
+                var branchId = $(this).val();
+                var $addonSelect = $('#form-addon-select');
+                $addonSelect.prop('disabled', true);
+                $addonSelect.html('<option value="">-- เลือกบริการเสริม --</option>');
+                if (branchId) {
+                    // AJAX ไป endpoint ที่ return AddonOption ของสาขานี้
+                    $.get('/api/addon-options/' + branchId, function(data) {
+                        if (Array.isArray(data)) {
+                            data.forEach(function(opt) {
+                                $addonSelect.append('<option value="'+opt.id+'">'+opt.name+' ('+parseFloat(opt.price).toFixed(2)+')</option>');
+                            });
+                            $addonSelect.prop('disabled', false);
+                        }
+                    });
+                }
+            });
+            // ถ้า reload page ให้ dropdown disabled ถ้ายังไม่เลือกสาขา
+            if (!$('#form-branch-select').val()) {
+                $('#form-addon-select').prop('disabled', true);
+            }
+
             @if(session('success'))
                 Swal.fire({
                     icon: 'success',
@@ -197,5 +193,4 @@
         });
     </script>
 </body>
-
 </html>

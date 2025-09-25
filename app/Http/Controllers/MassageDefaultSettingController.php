@@ -13,20 +13,36 @@ class MassageDefaultSettingController extends Controller
     {
         // ดึงรายชื่อพนักงานนวดทั้งหมด
         $users = User::where('ref_position_id', 2)->get();
-        // ดึงรายการ AddonOption เฉพาะสาขาที่เข้าสู่ระบบ
-        $branchId = auth()->user()->ref_branch_id ?? null;
-        $addonOptions = AddonOption::where('branch', $branchId)->get();
-        // ดึงค่าตั้งค่าเริ่มต้นจาก massage_commissions ที่ ref_user_id = null และ ref_branch_id = สาขาที่ login
-        $defaultSettings = \App\Models\MassageCommission::whereNull('ref_user_id')
-            ->where('ref_branch_id', $branchId)
-            ->get();
-        return view('admin.commission.massage_default_setting', compact('users', 'addonOptions', 'defaultSettings'));
+        $isSuperAdmin = auth()->user()->ref_position_id == 0;
+        if ($isSuperAdmin) {
+            $branches = \App\Models\Branch::all();
+            $selectedBranchId = request('branch_id');
+            if ($selectedBranchId) {
+                $addonOptions = AddonOption::where('branch', $selectedBranchId)->get();
+                $defaultSettings = \App\Models\MassageCommission::whereNull('ref_user_id')->where('ref_branch_id', $selectedBranchId)->get();
+            } else {
+                $addonOptions = collect();
+                $defaultSettings = collect();
+            }
+        } else {
+            $branchId = auth()->user()->ref_branch_id ?? null;
+            $branches = null;
+            $addonOptions = AddonOption::where('branch', $branchId)->get();
+            $defaultSettings = \App\Models\MassageCommission::whereNull('ref_user_id')
+                ->where('ref_branch_id', $branchId)
+                ->get();
+        }
+        return view('admin.commission.massage_default_setting', compact('users', 'addonOptions', 'defaultSettings', 'branches'));
     }
 
     // บันทึกค่าตั้งค่าเริ่มต้น
     public function store(Request $request)
     {
-        $branchId = auth()->user()->ref_branch_id ?? null;
+        if (auth()->user()->ref_position_id == 0) {
+            $branchId = $request->input('branch_id');
+        } else {
+            $branchId = auth()->user()->ref_branch_id ?? null;
+        }
         $validated = $request->validate([
             'service_name' => 'required|string|max:100',
             'service_duration' => 'nullable|string',

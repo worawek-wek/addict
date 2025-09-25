@@ -39,13 +39,16 @@
                                             <!-- DataTable search box will be used instead of manual filter form -->
                                                 <div class="col-sm-12 d-flex justify-content-end gap-2">
                                                     <a href="{{ route('commission.create') }}" class="btn btn-main">
-                                                        <i class="ti ti-plus"></i> เพิ่มค่าคอมมิชชั่น
+                                                        <i class="ti ti-plus"></i> เพิ่มค่าคอมมิชชั่นพนักงานนวด
                                                     </a>
                                                     <a href="{{ route('sales_commission_tier.index') }}" class="btn btn-info">
                                                         <i class="ti ti-settings"></i> ตั้งค่าคอมมิชชั่นพนักงานขาย
                                                     </a>
                                                     <a href="{{ route('massage_default_setting.index') }}" class="btn btn-secondary">
                                                         <i class="ti ti-user"></i> ตั้งค่าเริ่มต้นพนักงานนวด
+                                                    </a>
+                                                    <a href="{{ route('cheer_charge.index') }}" class="btn btn-warning">
+                                                        <i class="ti ti-star"></i> ตั้งค่าค่าเชียร์
                                                     </a>
                                                 </div>
                                         </div>

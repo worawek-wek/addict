@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
+use App\Models\CheerCharge;
 use App\Models\CommissionsHistory;
 use App\Models\Order;
 use App\Models\OrderStatus;
@@ -209,7 +210,8 @@ class OrderRoomController extends Controller
 
         // --- คำนวณค่าคอมมิชชั่นพนักงานนวด ---
         $commission_value = 0;
-        // 1. คำนวณจาก AddonOption
+        $commission_options_value = 0;
+        // 1. คำนวณจาก AddonOption (ถ้ามี addon_options จะไม่รวมกับ $commission_value)
         if ($order->user && $order->addons && $order->addons->count()) {
             foreach ($order->addons as $addonItem) {
                 $commission = \App\Models\MassageCommission::where('ref_user_id', $order->user->id)
@@ -225,14 +227,14 @@ class OrderRoomController extends Controller
                 }
                 if ($commission) {
                     if ($commission->commission_amount) {
-                        $commission_value += $commission->commission_amount;
+                        $commission_options_value += $commission->commission_amount;
                     } elseif ($commission->commission_percent) {
-                        $commission_value += ($commission->commission_percent / 100) * $addonItem->price;
+                        $commission_options_value += ($commission->commission_percent / 100) * $addonItem->price;
                     }
                 }
             }
         }
-        // 2. คำนวณจาก service_duration
+        // 2. คำนวณจาก service_duration (ถ้ามี addon_options จะไม่รวมกับ $commission_value)
         if ($order->user && $order->service_laundry_cost) {
             $duration = null;
             switch ($order->service_laundry_cost) {
@@ -269,9 +271,26 @@ class OrderRoomController extends Controller
                 }
             }
         }
+
+        // --- คำนวณ CheerCharge สำหรับ sales ---
+        $price_options_sales = 0;
+        if ($order->ref_seller_id && $order->addons && $order->addons->count()) {
+            foreach ($order->addons as $addonItem) {
+                $cheer = CheerCharge::where('ref_branch_id', $order->ref_branch_id)
+                    ->where('addon_options_id', $addonItem->ref_option_id)
+                    ->first();
+                if ($cheer) {
+                    if ($cheer->type == 'baht') {
+                        $price_options_sales += $cheer->amount;
+                    } elseif ($cheer->type == 'percent') {
+                        $price_options_sales += ($cheer->amount / 100) * $addonItem->price;
+                    }
+                }
+            }
+        }
+
         // --- บันทึกค่าคอมมิชชั่นลง commissions_history ---
         $order->save();
-
         CommissionsHistory::updateOrCreate(
             [
                 'order_id' => $order->id,
@@ -279,7 +298,9 @@ class OrderRoomController extends Controller
             ],
             [
                 'commission_massage_amount' => $commission_value,
+                'price_options_massage' => $commission_options_value,
                 'user_sales_id' => $order->ref_seller_id ?? null,
+                'price_options_sales' => $price_options_sales,
             ]
         );
 
@@ -287,7 +308,9 @@ class OrderRoomController extends Controller
             'success' => true,
             'message' => 'อัปเดตวิธีการชำระเงินและค่าคอมมิชชั่นเรียบร้อยแล้ว',
             'payment_method' => $order->payment_method,
-            'massage_commission' => $commission_value
+            'massage_commission' => $commission_value,
+            'options_commission' => $commission_options_value,
+            'sales_cheer_charge' => $price_options_sales
         ]);
     }
 }
