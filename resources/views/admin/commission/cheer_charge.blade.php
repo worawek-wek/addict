@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed layout-compact" dir="ltr"
     data-theme="theme-default" data-assets-path="assets/" data-template="vertical-menu-template">
+
 <head>
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -8,9 +9,17 @@
     <title>ตั้งค่าค่าเชียร์ - CRM</title>
 </head>
 <style>
-    .table th { font-size: 15px; font-weight: bold; }
-    .table td { padding-top: 14px; padding-bottom: 14px; }
+    .table th {
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    .table td {
+        padding-top: 14px;
+        padding-bottom: 14px;
+    }
 </style>
+
 <body>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -34,22 +43,38 @@
                                                 <div class="col-md-6">
                                                     <label class="form-label">สาขา</label>
                                                     @if(auth()->user()->ref_position_id == 0)
-                                                    <select name="ref_branch_id" id="form-branch-select" class="form-control select2-branch" required>
+                                                    <select name="ref_branch_id" id="form-branch-select"
+                                                        class="form-control select2-branch" required>
                                                         <option value="">เลือกสาขา</option>
                                                         @foreach($branches as $branch)
                                                         <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                                                         @endforeach
                                                     </select>
                                                     @else
-                                                    <input type="text" class="form-control" value="{{ auth()->user()->branch->name ?? '-' }}" readonly>
-                                                    <input type="hidden" name="ref_branch_id" value="{{ auth()->user()->ref_branch_id }}">
+                                                    <input type="text" class="form-control"
+                                                        value="{{ auth()->user()->branch->name ?? '-' }}" readonly>
+                                                    <input type="hidden" name="ref_branch_id"
+                                                        value="{{ auth()->user()->ref_branch_id }}">
                                                     @endif
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">บริการเสริม (AddonOption)</label>
-                                                    <select name="addon_options_id" id="form-addon-select" class="form-select" disabled>
+                                                    @if(auth()->user()->ref_position_id == 0)
+                                                    <select name="addon_options_id" id="form-addon-select"
+                                                        class="form-select" disabled required>
                                                         <option value="">-- เลือกบริการเสริม --</option>
                                                     </select>
+                                                    @else
+                                                    <select name="addon_options_id" id="form-addon-select"
+                                                        class="form-select" required>
+                                                        <option value="">-- เลือกบริการเสริม --</option>
+                                                        @foreach($addonOptions as $opt)
+                                                        @if($opt->branch == auth()->user()->ref_branch_id)
+                                                        <option value="{{ $opt->id }}">{{ $opt->name }} ({{ number_format($opt->price, 2) }})</option>
+                                                        @endif
+                                                        @endforeach
+                                                    </select>
+                                                    @endif
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">ประเภท</label>
@@ -60,7 +85,8 @@
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">จำนวน</label>
-                                                    <input type="number" step="0.01" name="amount" class="form-control" required>
+                                                    <input type="number" step="0.01" name="amount" class="form-control"
+                                                        required>
                                                 </div>
                                             </div>
                                             <div class="mt-4 text-end">
@@ -72,14 +98,16 @@
                                         <div class="mb-3">
                                             <label class="form-label">สาขาที่กำลังใช้งาน</label>
                                             @if(auth()->user()->ref_position_id == 0)
-                                            <select id="active-branch-select" class="form-control select2-branch" onchange="filterCheerTable()">
+                                            <select id="active-branch-select" class="form-control select2-branch"
+                                                onchange="filterCheerTable()">
                                                 <option value="">ทุกสาขา</option>
                                                 @foreach($branches as $branch)
                                                 <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                                                 @endforeach
                                             </select>
                                             @else
-                                            <input type="text" class="form-control" value="{{ auth()->user()->branch->name ?? '-' }}" readonly>
+                                            <input type="text" class="form-control"
+                                                value="{{ auth()->user()->branch->name ?? '-' }}" readonly>
                                             @endif
                                         </div>
                                         <div class="table-responsive">
@@ -99,14 +127,20 @@
                                                     <tr data-branch="{{ $item->ref_branch_id }}">
                                                         <td class="text-center">{{ $loop->iteration }}</td>
                                                         <td class="text-center">{{ $item->branch->name ?? '-' }}</td>
-                                                        <td class="text-center">{{ $item->addonOption->name ?? '-' }}</td>
-                                                        <td class="text-center">{{ $item->type == 'percent' ? 'เปอร์เซ็นต์' : 'บาท' }}</td>
-                                                        <td class="text-center">{{ number_format($item->amount, 2) }}</td>
+                                                        <td class="text-center">{{ $item->addonOption->name ?? '-' }}
+                                                        </td>
+                                                        <td class="text-center">{{ $item->type == 'percent' ?
+                                                            'เปอร์เซ็นต์' : 'บาท' }}</td>
+                                                        <td class="text-center">{{ number_format($item->amount, 2) }}
+                                                        </td>
                                                         <td class="text-center">
-                                                            <form action="{{ route('cheer_charge.destroy', $item->id) }}" method="POST" style="display:inline-block;">
+                                                            <form
+                                                                action="{{ route('cheer_charge.destroy', $item->id) }}"
+                                                                method="POST" style="display:inline-block;">
                                                                 @csrf
                                                                 @method('DELETE')
-                                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('ยืนยันการลบ?')">ลบ</button>
+                                                                <button type="submit" class="btn btn-sm btn-danger"
+                                                                    onclick="return confirm('ยืนยันการลบ?')">ลบ</button>
                                                             </form>
                                                         </td>
                                                     </tr>
@@ -151,6 +185,7 @@
             };
 
             // --- AddonOption dropdown logic ---
+            @if(auth()->user()->ref_position_id == 0)
             $('#form-branch-select').on('change', function() {
                 var branchId = $(this).val();
                 var $addonSelect = $('#form-addon-select');
@@ -172,6 +207,7 @@
             if (!$('#form-branch-select').val()) {
                 $('#form-addon-select').prop('disabled', true);
             }
+            @endif
 
             @if(session('success'))
                 Swal.fire({
@@ -193,4 +229,5 @@
         });
     </script>
 </body>
+
 </html>

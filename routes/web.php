@@ -42,6 +42,7 @@ use App\Http\Controllers\pos\RoomPOSController;
 use App\Http\Controllers\SalesCommissionTierController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Hash;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,12 +56,7 @@ use Illuminate\Support\Facades\Artisan;
 */
 
 Route::get('/clc', function () {
-    Artisan::call('cache:clear');
-    Artisan::call('config:clear');
-    Artisan::call('config:cache');
-    Artisan::call('view:clear');
-
-    return "Cleared!";
+   dd(Hash::make(123456));
 });
 
 Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
