@@ -71,13 +71,17 @@ class CommissionController extends Controller
         }
 
         foreach ($users as $user) {
-            $commission = CommissionsHistory::where('user_message_id', $user->id)
-                ->whereDate('created_at', '>=', $startDate)
-                ->whereDate('created_at', '<=', $endDate)
+            $commission = \App\Models\CommissionsHistory::where('user_message_id', $user->id)
+                ->whereHas('order', function ($q) use ($startDate, $endDate) {
+                    $q->whereDate('booking_date', '>=', $startDate)
+                        ->whereDate('booking_date', '<=', $endDate);
+                })
                 ->sum('commission_massage_amount');
-            $cheer_charge = CommissionsHistory::where('user_message_id', $user->id)
-                ->whereDate('created_at', '>=', $startDate)
-                ->whereDate('created_at', '<=', $endDate)
+            $cheer_charge = \App\Models\CommissionsHistory::where('user_message_id', $user->id)
+                ->whereHas('order', function ($q) use ($startDate, $endDate) {
+                    $q->whereDate('booking_date', '>=', $startDate)
+                        ->whereDate('booking_date', '<=', $endDate);
+                })
                 ->sum('price_options_massage');
             $staffData[] = [
                 'id' => $user->id,
@@ -137,10 +141,12 @@ class CommissionController extends Controller
                 $commission = $totalSales * ($tier->commission_rate / 100);
             }
 
-            // ดึง cheer_charge จาก commissions_history
+            // ดึง cheer_charge จาก commissions_history โดย filter ตาม booking_date ของ order
             $cheer_charge = CommissionsHistory::where('user_sales_id', $user->id)
-                ->whereDate('created_at', '>=', $startDate)
-                ->whereDate('created_at', '<=', $endDate)
+                ->whereHas('order', function ($q) use ($startDate, $endDate) {
+                    $q->whereDate('booking_date', '>=', $startDate)
+                        ->whereDate('booking_date', '<=', $endDate);
+                })
                 ->sum('price_options_sales');
 
             $staffData[] = [

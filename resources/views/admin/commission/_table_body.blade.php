@@ -10,6 +10,7 @@
     <td class="text-center">{{ $staff['branch'] ?? '-' }}</td>
     <td class="text-center">{{ $staff['position'] ?? '-' }}</td>
     <td class="text-center">{{ number_format($staff['commission'], 2) }} บาท</td>
+    <td class="text-center">{{ isset($staff['cheer_charge']) ? number_format($staff['cheer_charge'], 2) . ' บาท' : '0.00 บาท' }}</td>
     <td class="text-center">
         @php
             $isMassage = request()->routeIs('commission.view_massage');

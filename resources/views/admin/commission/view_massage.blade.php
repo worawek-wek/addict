@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed layout-compact" dir="ltr"
     data-theme="theme-default" data-assets-path="assets/" data-template="vertical-menu-template">
+
 <head>
     @include('admin/layout/inc_header')
     <title>ดูค่าคอมมิชชั่นพนักงานนวด - CRM</title>
@@ -10,11 +11,13 @@
         font-size: 15px;
         font-weight: bold;
     }
+
     .table td {
         padding-top: 14px;
         padding-bottom: 14px;
     }
 </style>
+
 <body>
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
@@ -43,7 +46,8 @@
                                                 </a>
                                             </div>
                                             <div class="col-sm-12">
-                                                <form id="filter-form" class="row g-2 align-items-center" method="GET" action="">
+                                                <form id="filter-form" class="row g-2 align-items-center" method="GET"
+                                                    action="">
                                                     <!-- ลบ dropdown เลือกสาขาออก -->
                                                     <div class="col-auto">
                                                         <select class="form-select" id="date-range" name="range">
@@ -56,10 +60,13 @@
                                                         </select>
                                                     </div>
                                                     <div class="col-auto" id="custom-date-fields" style="display:none;">
-                                                        <input type="date" class="form-control" name="start" id="start-date" value="{{ request('start') }}">
+                                                        <input type="date" class="form-control" name="start"
+                                                            id="start-date" value="{{ request('start') }}">
                                                     </div>
-                                                    <div class="col-auto" id="custom-date-fields-end" style="display:none;">
-                                                        <input type="date" class="form-control" name="end" id="end-date" value="{{ request('end') }}">
+                                                    <div class="col-auto" id="custom-date-fields-end"
+                                                        style="display:none;">
+                                                        <input type="date" class="form-control" name="end" id="end-date"
+                                                            value="{{ request('end') }}">
                                                     </div>
                                                     <div class="col-auto" id="search-btn" style="display:none;">
                                                         <button type="submit" class="btn btn-primary">ค้นหา</button>
@@ -70,7 +77,9 @@
                                     </div>
                                     <div class="card-body px-0 pt-0">
                                         <div class="table-responsive">
-                                            <table class="datatables-basic table dataTable no-footer dtr-column" id="commission-table-view" aria-describedby="commission-table-view_info">
+                                            <table class="datatables-basic table dataTable no-footer dtr-column"
+                                                id="commission-table-view"
+                                                aria-describedby="commission-table-view_info">
                                                 <thead class="border-top">
                                                     <tr class="table-info">
                                                         <th class="text-center" style="width: 10px;">#</th>
@@ -86,17 +95,22 @@
                                                     @foreach($staffData as $i => $staff)
                                                     <tr>
                                                         <td class="text-center">{{ $i + 1 }}</td>
-                                                        <td class="text-center">{{ $staff['name'] }}{{ $staff['nickname'] ? ' (' . $staff['nickname'] . ')' : '' }}</td>
+                                                        <td class="text-center">{{ $staff['name'] }}{{
+                                                            $staff['nickname'] ? ' (' . $staff['nickname'] . ')' : '' }}
+                                                        </td>
                                                         <td class="text-center">{{ $staff['branch'] }}</td>
                                                         <td class="text-center">{{ $staff['position'] }}</td>
                                                         <td class="text-center">
                                                             {{ number_format($staff['commission'], 2) }} บาท
                                                         </td>
                                                         <td class="text-center">
-                                                            {{ isset($staff['cheer_charge']) ? number_format($staff['cheer_charge'], 2) . ' บาท' : '0.00 บาท' }}
+                                                            {{ isset($staff['cheer_charge']) ?
+                                                            number_format($staff['cheer_charge'], 2) . ' บาท' : '0.00
+                                                            บาท' }}
                                                         </td>
                                                         <td class="text-center">
-                                                            <a href="{{ route('commission.massage_orders', ['user_id' => $staff['id'], 'start' => request('start'), 'end' => request('end'), 'range' => request('range')]) }}" class="btn btn-sm btn-outline-info" target="_blank">
+                                                            <a href="{{ route('commission.massage_orders', ['user_id' => $staff['id'], 'start' => request('start'), 'end' => request('end'), 'range' => request('range')]) }}"
+                                                                class="btn btn-sm btn-outline-info" target="_blank">
                                                                 ดู Order
                                                             </a>
                                                         </td>
@@ -104,9 +118,11 @@
                                                     @endforeach
                                                 </tbody>
                                             </table>
-                                            <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+                                            <link rel="stylesheet"
+                                                href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
                                             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-                                            <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+                                            <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js">
+                                            </script>
                                             <script>
                                                 function reloadTable() {
                                                     var params = $('#filter-form').serialize();
@@ -179,4 +195,5 @@
     </div>
     @include('admin/layout/inc_js')
 </body>
+
 </html>

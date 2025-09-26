@@ -11,6 +11,7 @@
         font-size: 15px;
         font-weight: bold;
     }
+
     .table td {
         padding-top: 14px;
         padding-bottom: 14px;
@@ -37,26 +38,64 @@
                                                 </h4>
                                             </div>
                                             <!-- DataTable search box will be used instead of manual filter form -->
-                                                <div class="col-sm-12 d-flex justify-content-end gap-2">
-                                                    <a href="{{ route('commission.create') }}" class="btn btn-main">
-                                                        <i class="ti ti-plus"></i> เพิ่มค่าคอมมิชชั่นพนักงานนวด
-                                                    </a>
-                                                    <a href="{{ route('sales_commission_tier.index') }}" class="btn btn-info">
-                                                        <i class="ti ti-settings"></i> ตั้งค่าคอมมิชชั่นพนักงานขาย
-                                                    </a>
-                                                    <a href="{{ route('massage_default_setting.index') }}" class="btn btn-secondary">
-                                                        <i class="ti ti-user"></i> ตั้งค่าเริ่มต้นพนักงานนวด
-                                                    </a>
-                                                    <a href="{{ route('cheer_charge.index') }}" class="btn btn-warning">
-                                                        <i class="ti ti-star"></i> ตั้งค่าค่าเชียร์
-                                                    </a>
+                                            <div class="col-sm-12 d-flex justify-content-end gap-2">
+                                                <div class="col-sm-12">
+                                                    <div class="card shadow-sm border-0 mb-3"
+                                                        style="background: #f8f9fa;">
+                                                        <div class="card-body py-3 px-4">
+                                                            <div class="row g-3">
+                                                                <div class="col-md-6">
+                                                                    <div class="mb-2 fw-bold text-main"
+                                                                        style="font-size: 1.1rem;"><i
+                                                                            class="ti ti-user me-1"></i> พนักงานนวด
+                                                                    </div>
+                                                                    <div class="d-flex flex-column gap-2">
+                                                                        <a href="{{ route('commission.create') }}"
+                                                                            class="btn btn-main d-flex align-items-center gap-2"
+                                                                            style="min-width:180px;">
+                                                                            <i class="ti ti-plus fs-5"></i>
+                                                                            <span>เพิ่มค่าคอมมิชชั่นพนักงานนวด</span>
+                                                                        </a>
+                                                                        <a href="{{ route('massage_default_setting.index') }}"
+                                                                            class="btn btn-secondary d-flex align-items-center gap-2"
+                                                                            style="min-width:180px;">
+                                                                            <i class="ti ti-user fs-5"></i>
+                                                                            <span>ตั้งค่าเริ่มต้นพนักงานนวด</span>
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <div class="mb-2 fw-bold text-info"
+                                                                        style="font-size: 1.1rem;"><i
+                                                                            class="ti ti-settings me-1"></i> พนักงานขาย
+                                                                    </div>
+                                                                    <div class="d-flex flex-column gap-2">
+                                                                        <a href="{{ route('sales_commission_tier.index') }}"
+                                                                            class="btn btn-info d-flex align-items-center gap-2"
+                                                                            style="min-width:180px;">
+                                                                            <i class="ti ti-settings fs-5"></i>
+                                                                            <span>ตั้งค่าคอมมิชชั่นพนักงานขาย</span>
+                                                                        </a>
+                                                                        <a href="{{ route('cheer_charge.index') }}"
+                                                                            class="btn btn-warning d-flex align-items-center gap-2"
+                                                                            style="min-width:180px;">
+                                                                            <i class="ti ti-star fs-5"></i>
+                                                                            <span>ตั้งค่าค่าเชียร์พนักงานขาย</span>
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="card-body px-0 pt-0">
                                         <!-- ตารางนี้แสดงข้อมูลจาก massage_commissions -->
                                         <div class="table-responsive">
-                                            <table class="datatables-basic table dataTable no-footer dtr-column" id="commission-table" aria-describedby="commission-table_info">
+                                            <table class="datatables-basic table dataTable no-footer dtr-column"
+                                                id="commission-table" aria-describedby="commission-table_info">
                                                 <thead class="border-top">
                                                     <tr class="table-info">
                                                         <th class="text-center" style="width: 10px;">#</th>
@@ -75,45 +114,48 @@
                                                         <td class="text-center">{{ $loop->iteration }}</td>
                                                         <td class="text-center">
                                                             @if($item->user)
-                                                                {{ $item->user->name }}
-                                                                @if($item->user->nickname)
-                                                                    ({{ $item->user->nickname }})
-                                                                @endif
+                                                            {{ $item->user->name }}
+                                                            @if($item->user->nickname)
+                                                            ({{ $item->user->nickname }})
+                                                            @endif
                                                             @else
-                                                                -
+                                                            -
                                                             @endif
                                                         </td>
                                                         <td class="text-center">
                                                             @if($item->user && $item->user->branch)
-                                                                {{ $item->user->branch->name }}
+                                                            {{ $item->user->branch->name }}
                                                             @else
-                                                                -
+                                                            -
                                                             @endif
                                                         </td>
                                                         <td class="text-center">
                                                             @if($item->position)
-                                                                {{ $item->position->position_name }}
+                                                            {{ $item->position->position_name }}
                                                             @else
-                                                                -
+                                                            -
                                                             @endif
                                                         </td>
                                                         <td class="text-center">{{ $item->service_name }}</td>
                                                         <td class="text-center">{{ $item->service_duration }}</td>
                                                         <td class="text-center">
                                                             @if($item->commission_amount)
-                                                                {{ number_format($item->commission_amount,2) }} บาท
+                                                            {{ number_format($item->commission_amount,2) }} บาท
                                                             @elseif($item->commission_percent)
-                                                                {{ number_format($item->commission_percent,2) }} %
+                                                            {{ number_format($item->commission_percent,2) }} %
                                                             @else
-                                                                -
+                                                            -
                                                             @endif
                                                         </td>
                                                         <td class="text-center">
-                                                            <a href="{{ route('commission.edit', $item->id) }}" class="btn btn-sm btn-warning">แก้ไข</a>
-                                                            <form action="{{ route('commission.destroy', $item->id) }}" method="POST" style="display:inline-block;">
+                                                            <a href="{{ route('commission.edit', $item->id) }}"
+                                                                class="btn btn-sm btn-warning">แก้ไข</a>
+                                                            <form action="{{ route('commission.destroy', $item->id) }}"
+                                                                method="POST" style="display:inline-block;">
                                                                 @csrf
                                                                 @method('DELETE')
-                                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('ยืนยันการลบ?')">ลบ</button>
+                                                                <button type="submit" class="btn btn-sm btn-danger"
+                                                                    onclick="return confirm('ยืนยันการลบ?')">ลบ</button>
                                                             </form>
                                                         </td>
                                                     </tr>
@@ -134,9 +176,11 @@
                                             {{-- @include('admin/layout/pagination') --}}
                                         </div>
                                         <!-- DataTables JS/CSS -->
-                                        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+                                        <link rel="stylesheet"
+                                            href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
                                         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-                                        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+                                        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js">
+                                        </script>
                                         <script>
                                             $(document).ready(function() {
                                                 $('#commission-table').DataTable({

@@ -28,32 +28,6 @@
                 @php
                     $commission_value = 0;
                     $breakdown = [];
-                    // 1. จาก AddonOption
-                    if ($order->user && $order->addons && $order->addons->count()) {
-                        foreach ($order->addons as $addonItem) {
-                            $commission = \App\Models\MassageCommission::where('ref_user_id', $order->user->id)
-                                ->where('addon_options_id', $addonItem->ref_option_id)
-                                ->where('ref_branch_id', $order->ref_branch_id)
-                                ->first();
-                            if (!$commission) {
-                                $commission = \App\Models\MassageCommission::whereNull('ref_user_id')
-                                    ->where('addon_options_id', $addonItem->ref_option_id)
-                                    ->where('ref_branch_id', $order->ref_branch_id)
-                                    ->first();
-                            }
-                            if ($commission) {
-                                if ($commission->commission_amount) {
-                                    $commission_value += $commission->commission_amount;
-                                    $breakdown[] = 'Addon ' . ($addonItem->option ? $addonItem->option->name : '-') . ': ' . number_format($commission->commission_amount, 2) . ' บาท';
-                                } elseif ($commission->commission_percent) {
-                                    $val = ($commission->commission_percent / 100) * $addonItem->price;
-                                    $commission_value += $val;
-                                    $breakdown[] = 'Addon ' . ($addonItem->option ? $addonItem->option->name : '-') . ': ' . $commission->commission_percent . '% x ' . number_format($addonItem->price, 2) . ' = ' . number_format($val, 2) . ' บาท';
-                                }
-                            }
-                        }
-                    }
-                    // 2. จาก service_duration
                     if ($order->user && $order->service_laundry_cost) {
                         $duration = null;
                         switch ($order->service_laundry_cost) {
@@ -92,6 +66,10 @@
                             }
                         }
                     }
+                    // ดึงค่าเชียร์จาก commissions_history
+                    $commHistory = \App\Models\CommissionsHistory::where('order_id', $order->id)->first();
+                    $cheer_massage = $commHistory ? $commHistory->price_options_massage : 0;
+                    $cheer_sales = $commHistory ? $commHistory->price_options_sales : 0;
                 @endphp
                 <strong>{{ number_format($commission_value, 2) }} บาท</strong>
                 @if(count($breakdown))
@@ -103,6 +81,11 @@
                 @else
                     <span class="text-muted">ไม่มีข้อมูลรายละเอียดการคำนวณ</span>
                 @endif
+                <hr>
+                <div class="mt-2">
+                    <span class="fw-bold">ค่าเชียร์พนักงานนวด:</span> {{ number_format($cheer_massage, 2) }} บาท<br>
+                    <span class="fw-bold">ค่าเชียร์พนักงานขาย:</span> {{ number_format($cheer_sales, 2) }} บาท
+                </div>
             </td>
         </tr>
         @endif
