@@ -702,6 +702,7 @@
         document.getElementById(id).value = '';
     }
     function clearStaffInput(id) {
+        document.getElementById(id).value = '';
         tempMamaId = null;
     }
 </script>
