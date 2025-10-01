@@ -77,8 +77,20 @@ class POSController extends Controller
     public function get_user(Request $request)
     {
         try{
-            $find = User::where('user_code',$request->user_code)->first();
-
+            $find = User::where('user_code',$request->user_code);
+            if(@$request->ref_position_id){
+                $find = $find->where('ref_position_id', $request->ref_position_id)->first();
+                if(!$find){
+                    return [
+                            "id" => null,
+                            "name" => "ไม่พบพนักงาน"
+                            ];;
+                }
+                return [
+                        "id" => $find->id,
+                        "name" => "$find->name"
+                        ];
+            }
             if(!$find){
                 return "เข้างานผิดพลาด ไม่พบพนักงาน";
             }

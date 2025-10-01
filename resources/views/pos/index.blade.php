@@ -107,7 +107,14 @@
             <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label fw-bold">เลือกพนักงานขาย</label>
-                    <select id="salesStaffSelect" class="form-select"></select>
+                    {{-- <select id="salesStaffSelect" class="form-select"></select> --}}
+                      <form id="form_staff">
+                        <div class="d-flex align-items-center justify-content-between app-academy-md-80">
+                          <input name="user_code" type="text" id="staff" placeholder="แสกนบัตรพนักงาน" onclick="clearStaffInput('staff')" class="form-control me-2"/>
+                          <input type="hidden" id="salesStaffSelect">
+                          <input type="hidden" name="ref_position_id" value="1">
+                        </div>
+                      </form>
                 </div>
 
                 <hr class="my-3">
@@ -169,10 +176,11 @@
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-person-badge fs-5 text-muted"></i>
 
-                      <form id="clockin">
+                      <form id="form_user">
                         <div class="d-flex align-items-center justify-content-between app-academy-md-80">
                           <input name="user_code" type="text" id="user" placeholder="แสกนบัตรพนักงาน" onclick="clearInput('user')" class="form-control me-2"/>
                           <input type="hidden" id="walkinStaffSelect">
+                          <input type="hidden" name="ref_position_id" value="2">
                         </div>
                         {{-- <button type="submit" class="btn btn-primary mt-2" onclick="focusInput()">คลิ๊กที่นี่เมื่อแตะบัตรไม่ได้</button> --}}
                       </form>
@@ -343,6 +351,7 @@
             const isStaffSelected = salesStaffSelect.value !== '';
             const isCustomerSelected = customerSelect.value !== '';
             nextBtn.disabled = !(isStaffSelected && isCustomerSelected);
+            // alert(isStaffSelected);
         };
 
         const checkWalkinNextBtnStatus = () => {
@@ -352,29 +361,29 @@
         };
 
         // --- Initialize Sales Staff Select2 ---
-        $('#salesStaffSelect').select2({
-            dropdownParent: $("#checkoutRoomModal"),
-            placeholder: '-- เลือกพนักงานขาย --',
-            allowClear: true,
-            ajax: {
-                url: '{{ route("pos.api.searchSalesStaff") }}',
-                dataType: 'json',
-                delay: 250,
-                data: params => ({ q: params.term }),
-                processResults: data => ({ results: data })
-            }
-        }).on('select2:select', e => {
-            tempMamaId = e.params.data.id;
-            document.querySelectorAll('.room-chip').forEach(btn => {
-                btn.disabled = false;
-                btn.classList.remove('room-chip-disabled');
-                const tooltip = bootstrap.Tooltip.getInstance(btn);
-                if(tooltip) tooltip.disable();
-            });
-            checkNextBtnStatus();
-        }).on('select2:clear', () => {
-            tempMamaId = null;
-        });
+        // $('#salesStaffSelect').select2({
+        //     dropdownParent: $("#checkoutRoomModal"),
+        //     placeholder: '-- เลือกพนักงานขาย --',
+        //     allowClear: true,
+        //     ajax: {
+        //         url: '{{ route("pos.api.searchSalesStaff") }}',
+        //         dataType: 'json',
+        //         delay: 250,
+        //         data: params => ({ q: params.term }),
+        //         processResults: data => ({ results: data })
+        //     }
+        // }).on('select2:select', e => {
+        //     tempMamaId = e.params.data.id;
+        //     document.querySelectorAll('.room-chip').forEach(btn => {
+        //         btn.disabled = false;
+        //         btn.classList.remove('room-chip-disabled');
+        //         const tooltip = bootstrap.Tooltip.getInstance(btn);
+        //         if(tooltip) tooltip.disable();
+        //     });
+        //     checkNextBtnStatus();
+        // }).on('select2:clear', () => {
+        //     tempMamaId = null;
+        // });
 
         // --- Room Selection ---
         document.addEventListener('click', function(e) {
@@ -627,15 +636,41 @@
             cashAmount.value = '';
             confirmBtn.disabled = true;
         });
-    });
 
-</script>
+        $('#form_staff').on('submit', function(event) {
+            event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
+            if(!this.checkValidity()) {
+                // ถ้าฟอร์มไม่ถูกต้อง
+                this.reportValidity();
+                return console.log('ฟอร์มไม่ถูกต้อง');
+            }
+            $.ajax({
+                url: '/pos/get-user', // เปลี่ยน URL เป็นจุดหมายที่ต้องการ
+                type: 'GET',
+                data: $(this).serialize(),
+                success: function(response) {
+                    tempMamaId = response.id;
+                    document.querySelectorAll('.room-chip').forEach(btn => {
+                        btn.disabled = false;
+                        btn.classList.remove('room-chip-disabled');
+                        const tooltip = bootstrap.Tooltip.getInstance(btn);
+                        if(tooltip) tooltip.disable();
+                    });
+                    checkNextBtnStatus();
+                    document.getElementById("staff").value = response.name;
+                    document.getElementById("salesStaffSelect").value = response.id;
+                    document.getElementById('staff').blur();
 
-<script>
-    function clearInput(id) {
-        document.getElementById(id).value = '';
-    }
-      $('#clockin').on('submit', function(event) {
+                },
+                error: function(error) {
+                    document.getElementById("staff").value = "";
+                    document.getElementById("salesStaffSelect").value = "";
+                    Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    console.error('เกิดข้อผิดพลาด:', error);
+                }
+            });
+        });
+        $('#form_user').on('submit', function(event) {
             event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
             if(!this.checkValidity()) {
                 // ถ้าฟอร์มไม่ถูกต้อง
@@ -654,12 +689,23 @@
 
                 },
                 error: function(error) {
+                    document.getElementById("staff").value = "";
+                    document.getElementById("walkinStaffSelect").value = "";
                     Swal.fire('เกิดข้อผิดพลาด', '', 'error');
                     console.error('เกิดข้อผิดพลาด:', error);
                 }
             });
         });
+    });
+
+    function clearInput(id) {
+        document.getElementById(id).value = '';
+    }
+    function clearStaffInput(id) {
+        tempMamaId = null;
+    }
 </script>
+
 <script>
     @if(session('error'))
     Swal.fire({ icon:'error', title:'Error', text:@json(session('error')), confirmButtonColor:'#5e2a5f' })
