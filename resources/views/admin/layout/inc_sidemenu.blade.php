@@ -191,7 +191,7 @@
             </a>
         </li> --}}
         <li class="menu-item">
-            <a href="/pos" class="menu-link" target="_blank" rel="noopener noreferrer">
+            <a href="/pos/room" class="menu-link" target="_blank" rel="noopener noreferrer">
                 <i class="menu-icon tf-icons ti ti-shopping-cart"></i>
                 <div data-i18n="POS (ขายสินค้า)">POS (ขายสินค้า)</div>
             </a>

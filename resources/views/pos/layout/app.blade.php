@@ -89,8 +89,8 @@
         <div class="offcanvas-body">
 
             {{-- Cashier --}}
-            <a href="{{ route('pos.index') }}"
-                class="btn menu-btn {{ request()->routeIs('pos.index') ? 'active' : '' }}">
+            <a href="{{ route('pos.room.index') }}"
+                class="btn menu-btn {{ request()->routeIs('pos.room.index') ? 'active' : '' }}">
                 <i class="bi bi-calculator"></i> Cashier
             </a>
 
