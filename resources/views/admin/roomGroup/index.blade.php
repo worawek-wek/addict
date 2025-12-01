@@ -61,19 +61,32 @@
                                                     รายการกลุ่มห้อง
                                                 </h4>
                                             </div>
-                                            <div class="col-sm-3">
-                                                {{-- Search input --}}
-                                            </div>
-
-
-                                            <div class="col-sm-9">
-                                                <div class="row">
-                                                    <div class="input-group input-group-merge">
-                                                        <span class="input-group-text"><i
-                                                                class="ti ti-search"></i></span>
-                                                        <input oninput='loadData("{{ $page_url }}/datatable")'
-                                                            name="search" type="text" class="form-control p_search"
-                                                            placeholder="ค้นหา..." />
+                                            <div class="col-sm-6">
+                                                <div class="row align-items-center">
+                                                    <div class="col-auto">
+                                                        <select name="ref_branch_id" class="form-select p_search"
+                                                            onchange='loadData("{{ $page_url }}/datatable")'
+                                                            required>
+                                                            @if (Auth::user()->work_status == 3)
+                                                                <option value="-1" selected>ทั้งหมด</option>
+                                                            @endif
+                                                            @foreach ($branches as $bra)
+                                                                <option value="{{ $bra->id }}">{{ $bra->name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        <div class="input-group input-group-merge">
+                                                            <span class="input-group-text" id="basic-addon-search31"><i
+                                                                    class="ti ti-search"></i></span>
+                                                            <input name="search" type="text"
+                                                                class="form-control p_search"
+                                                                placeholder="ค้นหาคีเวิร์ดที่ต้องการ"
+                                                                aria-label="ค้นหาคีเวิร์ดที่ต้องการ"
+                                                                aria-describedby="basic-addon-search31"
+                                                                oninput='loadData("{{ $page_url }}/datatable")' />
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -177,7 +190,8 @@
                             </div>
                             <div class="col-sm-12">
                                 <label class="form-label">สาขา</label><span class="text-danger">*</span>
-                                <select name="branch_id" id="edit_room_group_branch_id" class="form-control" required>
+                                <select name="branch_id" id="edit_room_group_branch_id" class="form-control"
+                                    required>
                                     @if (!empty($branches) && count($branches) > 0)
                                         <option value="" disabled selected>-- เลือกสาขา --</option>
                                         @foreach ($branches as $branch)
@@ -266,8 +280,9 @@
     const loadData = (url) => {
         let limit = document.querySelector('.p_search[name="limit"]')?.value || 25;
         let search = document.querySelector('.p_search[name="search"]')?.value || '';
+        let branchId = document.querySelector('.p_search[name="ref_branch_id"]')?.value || '';
 
-        fetch(`${url}?limit=${limit}&search=${search}`)
+        fetch(`${url}?limit=${limit}&search=${search}&branch_id=${branchId}`)
             .then(response => response.text())
             .then(html => {
                 document.getElementById('table-data').innerHTML = html;

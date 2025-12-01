@@ -23,12 +23,18 @@ class RoomGroupController extends Controller
     {
         $limit = $request->input('limit', $this->paginate_default);
         $search = $request->input('search');
+        $branch_id = $request->input('branch_id');
 
         $query = RoomGroupModel::query();
 
         if ($search) {
             $query->where('name', 'like', "%{$search}%");
         }
+
+        if ($branch_id && $branch_id != -1) {
+            $query->where('branch_id', $branch_id);
+        }
+
 
         $data = $query->withCount('RoomChildren')->paginate($limit);
         $page_url = $this->page_url;
