@@ -275,7 +275,6 @@
             .catch(error => console.error('Error loading data:', error));
     }
 
-    // Create Room Group
     document.getElementById('create_room_group_form').addEventListener('submit', function(e) {
         e.preventDefault();
         let formData = new FormData(this);
@@ -418,7 +417,6 @@
         new bootstrap.Modal(document.getElementById('viewRoomsInGroupModal')).show();
     }
 
-    // Remove Room from Group
     const removeRoomFromGroup = (roomId) => {
         if (confirm('คุณต้องการลบห้องนี้ออกจากกลุ่มหรือไม่?')) {
             fetch(`{{ $page_url }}/removeRoom/${roomId}`, {
@@ -430,18 +428,15 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 200) {
-                        // Remove row from table
                         let row = document.getElementById(`room_row_${roomId}`);
                         if (row) row.remove();
 
-                        // Check if table is empty
                         let tbody = document.querySelector('#rooms_in_group_list tbody');
                         if (tbody && tbody.children.length === 0) {
                             document.getElementById('rooms_in_group_list').innerHTML =
                                 '<div class="text-center text-muted">ไม่มีห้องในกลุ่มนี้</div>';
                         }
 
-                        // Refresh main datatable
                         loadData("{{ $page_url }}/datatable");
                         alert('ลบห้องออกจากกลุ่มสำเร็จ');
                     } else {
@@ -455,7 +450,6 @@
         }
     }
 
-    // Pagination click handler
     document.addEventListener('click', function(e) {
         if (e.target.closest('.pagination a')) {
             e.preventDefault();
@@ -470,13 +464,10 @@
                 });
         }
     });
-
-    // Open Add Room to Group Modal
     const openAddRoomModal = (groupId, groupName) => {
         document.getElementById('add_room_group_id').value = groupId;
         document.getElementById('add_room_group_name').textContent = groupName;
 
-        // Load available rooms (rooms without group)
         fetch("{{ $page_url }}/getAll/")
             .then(response => response.json())
             .then(data => {
@@ -512,7 +503,6 @@
         new bootstrap.Modal(document.getElementById('addRoomToGroupModal')).show();
     }
 
-    // Add Room to Group Form Submit
     document.getElementById('add_room_to_group_form').addEventListener('submit', function(e) {
         e.preventDefault();
         let groupId = document.getElementById('add_room_group_id').value;
