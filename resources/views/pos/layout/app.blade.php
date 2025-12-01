@@ -95,10 +95,10 @@
             </a>
 
             {{-- Room --}}
-            <a href="{{ route('pos.room.index') }}"
+            {{-- <a href="{{ route('pos.room.index') }}"
                 class="btn menu-btn {{ request()->routeIs('pos.room.index') ? 'active' : '' }}">
                 <i class="bi bi-door-open"></i> Room
-            </a>
+            </a> --}}
 
         </div>
     </div>
