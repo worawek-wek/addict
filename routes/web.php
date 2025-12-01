@@ -40,6 +40,7 @@ use App\Http\Controllers\Front\OrderCusController;
 use App\Http\Controllers\pos\POSController;
 use App\Http\Controllers\pos\RoomPOSController;
 use App\Http\Controllers\SalesCommissionTierController;
+use App\Http\Controllers\RoomGroupController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
@@ -56,7 +57,7 @@ use Illuminate\Support\Facades\Hash;
 */
 
 Route::get('/clc', function () {
-   dd(Hash::make(123456));
+    dd(Hash::make(123456));
 });
 
 Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
@@ -173,6 +174,22 @@ Route::prefix('admin')->group(function () {
         Route::get('commission/sales-orders', 'salesOrders')->name('commission.sales_orders');
         Route::get('commission/massage-orders', 'massageOrders')->name('commission.massage_orders');
     });
+
+    /// Room Group CRUD include assign/remove rooms to/from group
+    Route::prefix('room-groups')->controller(RoomGroupController::class)->group(function () {
+        Route::get('/', 'index')->name('room_groups.index');
+        Route::get('/datatable', 'datatable')->name('room_groups.datatable');
+        Route::get('/getAll/{id?}', 'getRoom')->name('room_groups.getAll');
+        Route::get('/getRoom/{id}', 'getRoom')->name('room_groups.getRoom');
+        Route::post('/addRoom/{id}', 'addRoomToGroup')->name('room_groups.addRoom');
+        Route::post('/removeRoom/{roomId}', 'removeRoomFromGroup')->name('room_groups.removeRoom');
+        Route::put('update/{id}', 'update')->name('room_groups.update');
+        Route::post('/create', 'create')->name('room_groups.create');
+        Route::delete('/delete/{id}', 'delete')->name('room_groups.delete');
+    });
+
+
+    ////
     Route::controller(CheerChargeController::class)->group(function () {
         Route::get('cheer-charge', 'index')->name('cheer_charge.index');
         Route::post('cheer-charge', 'store')->name('cheer_charge.store');

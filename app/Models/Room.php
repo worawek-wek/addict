@@ -10,11 +10,15 @@ class Room extends Model
     // use HasFactory;
     protected $fillable = [
         'name',
+        'room_group_id'
     ];
 
     public $timestamps = true;
     protected $primaryKey = 'id';
     protected $table = 'rooms';
+
+
+   
 
     public function floor()
     {
@@ -31,5 +35,10 @@ class Room extends Model
     public function branch()
     {
         return $this->hasOne('App\Models\Branch', 'id', 'ref_branch_id');
+    }
+
+    public function room_group()
+    {
+        return $this->belongsTo(RoomGroupModel::class, 'room_group_id', 'id');
     }
 }

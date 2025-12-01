@@ -37,7 +37,8 @@
                                                     </select>
                                                 </div>
                                                 <div class="col-sm-3 mb-2">
-                                                    <select name="date_range" class="form-select p_search" onchange='onDateRangeChange()'>
+                                                    <select name="date_range" class="form-select p_search"
+                                                        onchange='onDateRangeChange()'>
                                                         <option value="">-- เลือกช่วงเวลา --</option>
                                                         <option value="1">1 วัน</option>
                                                         <option value="7">7 วัน</option>
@@ -48,14 +49,17 @@
                                                 </div>
                                                 <div class="col-sm-3 mb-2" id="custom-date-group" style="display:none;">
                                                     <div class="input-group">
-                                                        <input type="date" name="start_date" class="form-control p_search" placeholder="เริ่มวันที่" />
+                                                        <input type="date" name="start_date"
+                                                            class="form-control p_search" placeholder="เริ่มวันที่" />
                                                         <span class="input-group-text">ถึง</span>
-                                                        <input type="date" name="end_date" class="form-control p_search" placeholder="ถึงวันที่" />
+                                                        <input type="date" name="end_date"
+                                                            class="form-control p_search" placeholder="ถึงวันที่" />
                                                     </div>
                                                 </div>
                                                 <div class="col-sm-3 mb-2">
                                                     <div class="input-group input-group-merge">
-                                                        <span class="input-group-text"><i class="ti ti-search"></i></span>
+                                                        <span class="input-group-text"><i
+                                                                class="ti ti-search"></i></span>
                                                         <input
                                                             oninput='loadData("{{ route('order-rooms.datatable') }}")'
                                                             name="search" type="text" class="form-control p_search"
@@ -75,10 +79,7 @@
                                                     <label class="me-2">แสดง</label>
                                                     <select onchange='loadData("{{ route('order-rooms.datatable') }}")'
                                                         name="limit" class="form-select p_search" style="width:120px">
-                                                        <option value="5">5</option>
-                                                        <option value="10" selected>10</option>
-                                                        <option value="15">15</option>
-                                                        <option value="20">20</option>
+                                                        <option value="25" selected>25</option>
                                                         <option value="50">50</option>
                                                         <option value="100">100</option>
                                                     </select>

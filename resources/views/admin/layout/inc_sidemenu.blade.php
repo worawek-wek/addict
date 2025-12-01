@@ -202,7 +202,6 @@
                 <div data-i18n="การจองห้อง">การจองห้อง</div>
             </a>
         </li>
-
         <li class="menu-item">
             <a href="/admin/user" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-copy"></i>
@@ -215,6 +214,13 @@
                 <div data-i18n="สินค้า">สินค้า</div>
             </a>
         </li>
+        <li class="menu-item">
+            <a href="/admin/room-groups/" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-receipt-tax"></i>
+                <div data-i18n="กลุ่มห้อง">กลุ่มห้อง</div>
+            </a>
+        </li>
+
         <li class="menu-item">
             <a href="/admin/room" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-receipt-tax"></i>
@@ -233,34 +239,34 @@
                 <div data-i18n="Addon Options">Addon Options</div>
             </a>
         </li>
-    @if(auth()->user() && (auth()->user()->ref_position_id == 3 || auth()->user()->ref_position_id == 0))
-        <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons ti ti-adjustments-horizontal"></i>
-                <div data-i18n="คอมมิชัน">คอมมิชัน</div>
-            </a>
-            <ul class="menu-sub">
-                <!-- ค่าคอมมิชชั่น -->
-                <li class="menu-item">
-                    <a href="/admin/commission" class="menu-link">
-                        <i class="menu-icon tf-icons ti ti-currency-dollar"></i>
-                        <div data-i18n="จัดการค่าคอมมิชชั่น">จัดการค่าคอมมิชชั่น</div>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="/admin/commission/view-massage" class="menu-link">
-                        <i class="menu-icon tf-icons ti ti-user"></i>
-                        <div data-i18n="ค่าคอมพนักงานนวด">ค่าคอมพนักงานนวด</div>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="/admin/commission/view-sales" class="menu-link">
-                        <i class="menu-icon tf-icons ti ti-user-dollar"></i>
-                        <div data-i18n="ค่าคอมพนักงานขาย">ค่าคอมพนักงานขาย</div>
-                    </a>
-                </li>
-            </ul>
-        </li>
+        @if (auth()->user() && (auth()->user()->ref_position_id == 3 || auth()->user()->ref_position_id == 0))
+            <li class="menu-item">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons ti ti-adjustments-horizontal"></i>
+                    <div data-i18n="คอมมิชัน">คอมมิชัน</div>
+                </a>
+                <ul class="menu-sub">
+                    <!-- ค่าคอมมิชชั่น -->
+                    <li class="menu-item">
+                        <a href="/admin/commission" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-currency-dollar"></i>
+                            <div data-i18n="จัดการค่าคอมมิชชั่น">จัดการค่าคอมมิชชั่น</div>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/admin/commission/view-massage" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-user"></i>
+                            <div data-i18n="ค่าคอมพนักงานนวด">ค่าคอมพนักงานนวด</div>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/admin/commission/view-sales" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-user-dollar"></i>
+                            <div data-i18n="ค่าคอมพนักงานขาย">ค่าคอมพนักงานขาย</div>
+                        </a>
+                    </li>
+                </ul>
+            </li>
         @endif
         <!-- ระบบรายงาน -->
         <li class="menu-item">
