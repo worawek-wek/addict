@@ -43,7 +43,7 @@ class RoomGroupController extends Controller
         try {
             $request->validate([
                 'name' => 'required|string|max:255',
-                'branch_id' => 'required|exists:branches,id',
+                'branch_id' => 'required|exists:branchs,id',
             ]);
             RoomGroupModel::create([
                 'name' => $request->name,
@@ -147,6 +147,7 @@ class RoomGroupController extends Controller
         try {
             $roomGroup = RoomGroupModel::findOrFail($id);
             $roomGroup->name = $request->name;
+            $roomGroup->branch_id = $request->branch_id;
             $roomGroup->save();
 
             return response()->json([

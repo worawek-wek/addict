@@ -10,7 +10,7 @@ class RoomGroupModel extends Model
 {
     use HasFactory;
     protected $table = 'tb_room_group';
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'branch_id'];
     protected $primaryKey = 'id';
 
     public $timestamps = true;

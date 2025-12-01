@@ -31,7 +31,7 @@
                         <i class="ti ti-eye"></i> ดูห้อง
                     </button>
                     <button class="btn btn-warning btn-sm"
-                        onclick="editRoomGroup({{ $roomGroup->id }}, '{{ $roomGroup->name }}')">
+                        onclick="editRoomGroup({{ $roomGroup->id }}, '{{ $roomGroup->name }}', {{ $roomGroup->branch_id ?? 'null' }})">
                         <i class="ti ti-edit"></i> แก้ไข
                     </button>
                     <button class="btn btn-danger btn-sm" onclick="deleteRoomGroup({{ $roomGroup->id }})">
@@ -42,7 +42,7 @@
         @endforeach
         @if ($data->isEmpty())
             <tr>
-                <td colspan="5" class="text-center">ไม่มีข้อมูล</td>
+                <td colspan="12" class="text-center">ไม่มีข้อมูล</td>
             </tr>
         @endif
     </tbody>

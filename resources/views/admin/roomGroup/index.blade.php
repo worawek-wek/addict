@@ -136,10 +136,14 @@
                             <div class="col-sm-12">
                                 <label class="form-label">สาขา</label><span class="text-danger">*</span>
                                 <select name="branch_id" class="form-control" required>
-                                    <option value="" disabled selected>-- เลือกสาขา --</option>
-                                    @foreach ($branches as $branch)
-                                        <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                    @endforeach
+                                    @if (!empty($branches) || count($branches) > 0)
+                                        <option value="" disabled selected>-- เลือกสาขา --</option>
+                                        @foreach ($branches as $branch)
+                                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                        @endforeach
+                                    @else
+                                        <option value="" disabled selected>ไม่มีสาขาในระบบ</option>
+                                    @endif
                                 </select>
                             </div>
                         </div>
@@ -170,6 +174,19 @@
                                 <label class="form-label">ชื่อกลุ่มห้อง</label><span class="text-danger">*</span>
                                 <input name="name" id="edit_room_group_name" type="text" class="form-control"
                                     required />
+                            </div>
+                            <div class="col-sm-12">
+                                <label class="form-label">สาขา</label><span class="text-danger">*</span>
+                                <select name="branch_id" id="edit_room_group_branch_id" class="form-control" required>
+                                    @if (!empty($branches) && count($branches) > 0)
+                                        <option value="" disabled selected>-- เลือกสาขา --</option>
+                                        @foreach ($branches as $branch)
+                                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                        @endforeach
+                                    @else
+                                        <option value="" disabled selected>ไม่มีสาขาในระบบ</option>
+                                    @endif
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -287,9 +304,12 @@
             });
     });
 
-    const editRoomGroup = (id, name) => {
+    const editRoomGroup = (id, name, branchId) => {
         document.getElementById('edit_room_group_id').value = id;
         document.getElementById('edit_room_group_name').value = name;
+        if (branchId) {
+            document.getElementById('edit_room_group_branch_id').value = branchId;
+        }
         new bootstrap.Modal(document.getElementById('editRoomGroupModal')).show();
     }
 
