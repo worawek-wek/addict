@@ -22,7 +22,7 @@ DB::beginTransaction();
 
 class ReportController extends Controller
 {
-    
+
     protected $LeaveController;
 
     public function __construct(LeaveController $LeaveController)
@@ -58,5 +58,19 @@ class ReportController extends Controller
     public function monthly_booking(Request $request)
     {
         return view('report/report-monthlyBooking');
+    }
+
+    public function monthly_sale(Request $request)
+    {
+        return view('admin.report.report-saleMonthly');
+    }
+    public function oversee_employee(Request $request)
+    {
+        return view('admin.report.report-overseeEmp');
+    }
+
+    public function coupon_report(Request $request)
+    {
+        return view('admin.report.report-couponReport');
     }
 }

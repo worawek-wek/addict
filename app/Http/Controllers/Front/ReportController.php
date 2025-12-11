@@ -22,7 +22,7 @@ DB::beginTransaction();
 
 class ReportController extends Controller
 {
-    
+
     protected $LeaveController;
 
     public function __construct(LeaveController $LeaveController)
@@ -59,4 +59,8 @@ class ReportController extends Controller
     {
         return view('report/report-monthlyBooking');
     }
+
+
+
+  
 }

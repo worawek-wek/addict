@@ -229,7 +229,12 @@ Route::prefix('admin')->group(function () {
             Route::get('report/move-out', 'move_out')->name('report.move_out');
             Route::get('report/bad-debt', 'badDebt')->name('report.bad_debt');
             Route::get('report/monthly-booking', 'monthly_booking')->name('report.monthly_booking');
+            Route::get('report/coupon-report', 'coupon_report')->name('report.coupon_report');
+            Route::get('report/monthly-sale', 'monthly_sale')->name('report.monthly_sale');
+            Route::get('report/oversee-employee', 'oversee_employee')->name('report.oversee_employee');
         });
+
+
 
         Route::controller(SettingController::class)->group(function () {
             Route::get('setting/fine', 'fine')->name('setting.fine');

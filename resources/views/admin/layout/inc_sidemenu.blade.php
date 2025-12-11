@@ -290,6 +290,21 @@
                         <div data-i18n="รายงานสต็อกการ์ด">รายงานสต็อกการ์ด</div>
                     </a>
                 </li>
+                <li class="menu-item">
+                    <a href="admin/report/coupon-report" class="menu-link">
+                        <div data-i18n="รายงานคูปองพนักงาน">รายงานคูปองพนักงาน</div>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/admin/report/oversee-employee" class="menu-link">
+                        <div data-i18n="รายงานผู้ดูแลพนักงาน">รายงานผู้ดูแลพนักงาน</div>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/admin/report/monthly-sale" class="menu-link">
+                        <div data-i18n="รายงานยอดขายรวม">รายงานยอดขายรวม</div>
+                    </a>
+                </li>
 
                 {{-- <li class="menu-item">
                     <a href="/admin/setting/room-layout" class="menu-link">
