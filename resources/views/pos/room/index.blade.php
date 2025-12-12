@@ -13,7 +13,7 @@
 
         <!-- 🏠 Room Grid -->
         <div class="row g-3" id="roomGrid">
-            @foreach ($rooms as $room)
+            @foreach ($rooms as $key => $room)
                 <div class="col-6 col-md-4 col-lg-3 room-card" data-name="{{ $room->name }}">
                     <div
                         class="card text-center border-0 shadow-sm
@@ -25,7 +25,7 @@
                         </div>
                         <div class="card-footer fw-bold {{ $room->is_busy ? 'bg-secondary text-white' : 'bg-light text-dark' }}"
                             style="min-height:3.5em;">
-                            Room {{ $room->name }}
+                            Room {{ $key+1 }}
                             @if (isset($room->active_order))
                                 <div class="small mt-1">
                                     <span class="badge bg-light text-dark">
