@@ -203,6 +203,12 @@
             </a>
         </li>
         <li class="menu-item">
+            <a href="/admin/order-products" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-file-invoice"></i>
+                <div data-i18n="การขายสินค้า">การขายสินค้า</div>
+            </a>
+        </li>
+        <li class="menu-item">
             <a href="/admin/user" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-copy"></i>
                 <div data-i18n="บุคลากร">บุคลากร</div>
@@ -214,17 +220,29 @@
                 <div data-i18n="สินค้า">สินค้า</div>
             </a>
         </li>
+
         <li class="menu-item">
-            <a href="/admin/room-groups/" class="menu-link">
+            <a href="/admin/room-groups" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-receipt-tax"></i>
                 <div data-i18n="กลุ่มห้อง">กลุ่มห้อง</div>
             </a>
         </li>
-
         <li class="menu-item">
             <a href="/admin/room" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-receipt-tax"></i>
                 <div data-i18n="ห้อง">ห้อง</div>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a href="/admin/room-type" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-receipt-tax"></i>
+                <div data-i18n="รูปแบบห้อง">รูปแบบห้อง</div>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a href="/admin/course" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-receipt-tax"></i>
+                <div data-i18n="คอร์ส">คอร์ส</div>
             </a>
         </li>
         <li class="menu-item">

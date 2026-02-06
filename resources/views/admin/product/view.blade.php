@@ -92,6 +92,10 @@
                                             </li>
                                         </ul>
                                     </div>
+                                    <div class="col-sm-5" align="right">
+                                            {!! QrCode::size(200)->generate(url('/pos/product/'.$product->id)) !!}
+                                    </div>
+
                                 </div>
                             </div>
                             <div class="tab-pane fade" id="navs-pills-top-edit" role="tabpanel">

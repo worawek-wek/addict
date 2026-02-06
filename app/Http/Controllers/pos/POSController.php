@@ -4,6 +4,7 @@ namespace App\Http\Controllers\pos;
 
 use App\Http\Controllers\Controller;
 use App\Models\AddonOption;
+use App\Models\StockReadyForSale;
 use App\Models\CardStocks;
 use App\Models\Customer;
 use App\Models\Order;
@@ -11,7 +12,11 @@ use App\Models\OrderHasAddonOption;
 use App\Models\OrderHasProduct;
 use App\Models\Product;
 use App\Models\Room;
+use App\Models\RoomType;
+use App\Models\RoomTypeHasCourse;
+use App\Models\Course;
 use App\Models\User;
+use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
@@ -25,28 +30,36 @@ class POSController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index(Request $request, $room_id)
     {
         // ---------------- Products + Search ----------------
         $q = trim((string) $request->get('q', ''));
 
         $branchId = Auth::user()->ref_branch_id ?? null;
-        $products = Product::with('latestStock')
-            ->when($q !== '', fn($b) => $b->where('name', 'like', "%{$q}%"))
-            ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
-            ->orderBy('name')
-            ->get();
+        $data['products'] = Product::with('latestStock')
+                                    ->when($q !== '', fn($b) => $b->where('name', 'like', "%{$q}%"))
+                                    ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
+                                    ->orderBy('name')
+                                    ->get();
 
         if ($request->ajax() || $request->boolean('ajax')) {
-            return view('pos.partials.product-grid', compact('products'))->render();
+            return view('pos.partials.product-grid', $data)->render();
         }
 
         // ---------------- Cart Totals ----------------
+        $data['branches'] = Branch::all();
+        $data['room_type'] = RoomType::orderBy('sort')->where('ref_status_id', 1)->get();
+        $data['course'] = Course::orderBy('sort')->where('ref_status_id', 1)->get();
         $cart = Session::get('cart', []);
+        $data['cart'] = $cart;
         $subtotal = collect($cart)->sum(fn($i) => (float)($i['price'] ?? 0) * (int)($i['qty'] ?? 0));
         $discount = 0;
         $tax = 0;
-        $total = $subtotal - $discount + $tax;
+        $data['subtotal'] = $subtotal;
+        $data['discount'] = $discount;
+        $data['tax'] = $tax;
+        $data['total'] = $subtotal - $discount + $tax;
+        $data['room_id'] = $room_id;
 
         // ---------------- Rooms (only by branch) ----------------
         $branchId = Auth::user()->ref_branch_id ?? null;
@@ -56,30 +69,64 @@ class POSController extends Controller
             ->orderBy('id')
             ->get();
 
-        $roomGroups = $this->groupRoomsForModal($rooms);
+        $data['roomGroups'] = $this->groupRoomsForModal($rooms);
 
-        $storefrontName = 'Cashier';
-        $addonOptions = AddonOption::orderBy('name')->get();
+        $data['storefrontName'] = 'Cashier';
+        $data['addonOptions'] = AddonOption::orderBy('name')->get();
 
-        return view('pos.index', compact(
-            'products',
-            'cart',
-            'subtotal',
-            'discount',
-            'tax',
-            'total',
-            'roomGroups',
-            'storefrontName',
-            'addonOptions'
-        ));
+        $data['branches'] = Branch::all();
+
+        return view('pos.index', $data);
+    }
+    public function product($product_id = null)
+    {
+        if(@$product_id){
+            $data['product_id'] = $product_id;
+        }
+        $branchId = Auth::user()->ref_branch_id ?? null;
+        $data['products'] = Product::with('latestStock')
+                                    ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
+                                    ->orderBy('name')
+                                    ->get();
+
+        // ---------------- Cart Totals ----------------
+        $data['branches'] = Branch::all();
+        $data['room_type'] = RoomType::orderBy('sort')->where('ref_status_id', 1)->get();
+        $data['course'] = Course::orderBy('sort')->where('ref_status_id', 1)->get();
+        $cart = Session::get('cart', []);
+        $data['cart'] = $cart;
+        $subtotal = collect($cart)->sum(fn($i) => (float)($i['price'] ?? 0) * (int)($i['qty'] ?? 0));
+        $discount = 0;
+        $tax = 0;
+        $data['subtotal'] = $subtotal;
+        $data['discount'] = $discount;
+        $data['tax'] = $tax;
+        $data['total'] = $subtotal - $discount + $tax;
+
+        // ---------------- Rooms (only by branch) ----------------
+        $branchId = Auth::user()->ref_branch_id ?? null;
+
+        $rooms = Room::query()
+            ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
+            ->orderBy('id')
+            ->get();
+
+        $data['roomGroups'] = $this->groupRoomsForModal($rooms);
+
+        $data['storefrontName'] = 'Cashier';
+        $data['addonOptions'] = AddonOption::orderBy('name')->get();
+
+        $data['branches'] = Branch::all();
+
+        return view('pos.product', $data);
     }
 
     public function get_user(Request $request)
     {
         try{
-            $find = User::where('user_code',$request->user_code);
-            if(@$request->ref_position_id){
-                $find = $find->where('ref_position_id', $request->ref_position_id)->first();
+            $find = User::where('user_code',$request->user_code)->first();
+            // if(@$request->ref_position_id){
+                // $find = $find->where('ref_position_id', $request->ref_position_id)->first();
                 if(!$find){
                     return [
                             "id" => null,
@@ -88,9 +135,9 @@ class POSController extends Controller
                 }
                 return [
                         "id" => $find->id,
-                        "name" => "$find->name"
+                        "name" => "$find->nickname"
                         ];
-            }
+            // }
             if(!$find){
                 return "เข้างานผิดพลาด ไม่พบพนักงาน";
             }
@@ -179,8 +226,6 @@ class POSController extends Controller
         return redirect()->route('pos.index');
     }
 
-
-
     public function removeFromCart($id)
     {
         $cart = Session::get('cart', []);
@@ -195,208 +240,223 @@ class POSController extends Controller
 
     public function checkout(Request $request)
     {
+        // // return 123;
+        // return $request;
+        // $roomId  = $request->input('room_id');
+        // $orderId = $request->input('order_id');
+        // $method  = $request->input('payment_method_radio');
+        // $cash    = $request->input('cash_amount');
+        // $cart = Session::get('cart', []);
+        // $isWalkIn = ($orderId === 'walkin');
 
-        $roomId  = $request->input('room_id');
-        $orderId = $request->input('order_id');
-        $method  = $request->input('payment_method_radio');
-        $cash    = $request->input('cash_amount');
-        $cart = Session::get('cart', []);
-        $isWalkIn = ($orderId === 'walkin');
+        // // ================== แก้ไขส่วนนี้ ==================
+        // // 1. ตรวจสอบข้อมูลพื้นฐานที่ต้องมีเสมอ
+        // if (!$roomId || !$orderId || !$method) {
+        //     return redirect()->route('pos.index')
+        //         ->with('error', 'กรุณาเลือกห้อง, Order, และวิธีจ่ายเงิน');
+        // }
 
-        // ================== แก้ไขส่วนนี้ ==================
-        // 1. ตรวจสอบข้อมูลพื้นฐานที่ต้องมีเสมอ
-        if (!$roomId || !$orderId || !$method) {
-            return redirect()->route('pos.index')
-                ->with('error', 'กรุณาเลือกห้อง, Order, และวิธีจ่ายเงิน');
+        // // 2. ตรวจสอบตะกร้าสินค้า โดยจะเช็คก็ต่อเมื่อ "ไม่ใช่" Walk-in
+        // if (!$isWalkIn && empty($cart)) {
+        //     return redirect()->route('pos.index')
+        //         ->with('error', 'ลูกค้าในห้องต้องมีสินค้าในตะกร้า');
+        // }
+        // // ===============================================
+
+        // $order = null;
+
+        // // --- ส่วนที่จำเป็นเพื่อป้องกัน Error ---
+        // if ($isWalkIn) {
+        //     $duration = $request->input('duration_minutes');
+        //     $serviceCostName = match ((int)$duration) {
+        //         40 => 'forty_minutes',
+        //         60 => 'sixty_minutes',
+        //         90 => 'ninety_minutes',
+        //         default => null,
+        //     };
+        // return $request->input('ref_course_id');
+        if(@$request->input('ref_course_id')){
+            $course = Course::find($request->input('ref_course_id'));
+            $duration = (int) filter_var($course->name, FILTER_SANITIZE_NUMBER_INT);
         }
-
-        // 2. ตรวจสอบตะกร้าสินค้า โดยจะเช็คก็ต่อเมื่อ "ไม่ใช่" Walk-in
-        if (!$isWalkIn && empty($cart)) {
-            return redirect()->route('pos.index')
-                ->with('error', 'ลูกค้าในห้องต้องมีสินค้าในตะกร้า');
-        }
-        // ===============================================
-
-        $order = null;
-
-        // --- ส่วนที่จำเป็นเพื่อป้องกัน Error ---
-        if ($isWalkIn) {
-            $duration = $request->input('duration_minutes');
-            $serviceCostName = match ((int)$duration) {
-                40 => 'forty_minutes',
-                60 => 'sixty_minutes',
-                90 => 'ninety_minutes',
-                default => null,
-            };
-
-            // สร้าง Order ใหม่แบบง่ายๆ ก่อน
-            $addon_ids = [];
-            if ($request->filled('addon_id')) {
-                $addon_ids = is_array($request->input('addon_id')) ? $request->input('addon_id') : [$request->input('addon_id')];
-            }
+        //     // สร้าง Order ใหม่แบบง่ายๆ ก่อน
+        //     $addon_ids = [];
+        //     if ($request->filled('addon_id')) {
+        //         $addon_ids = is_array($request->input('addon_id')) ? $request->input('addon_id') : [$request->input('addon_id')];
+        //     }
+        // return $request->input('type');
             $mama_id = $request->input('mama_id');
             $order = Order::create([
+                'type'      => $request->input('type') ?? 1,
                 'ref_branch_id'      => Auth::user()->ref_branch_id,
                 'order_number'    => Auth::user()->ref_branch_id . strtoupper(uniqid()),
                 'ref_customer_id'   => $request->input('customer_id') ?: null,
-                'ref_user_id'    => $request->input('staff_id'),
-                'ref_seller_id'     => $mama_id,
-                'ref_room_id'     => $roomId,
-                'service_laundry_cost'     => $serviceCostName,
+                'ref_user_id'    => $request->input('staff_id') ?? null,
+                'ref_seller_id'     => $request->input('reception_id'),
+                'ref_room_id'     => $request->input('ref_room_id') ?? null,
+                'ref_room_type_id'     => $request->input('ref_room_type_id') ?? null,
+                'service_laundry_cost'     => $request->input('ref_course_id') ?? null,
                 'ref_status_id'      => 2,
                 'booking_date'     => Carbon::today(),
                 'start_time'      => Carbon::now()->format('H:i:s'),
-                'end_time'        => Carbon::now()->addMinutes($duration)->format('H:i:s'),
-                'total_price' => $request->input('total_price'),
-                'payment_method' => $method,
+                'end_time'        => @$duration ? Carbon::now()->addMinutes($duration)->format('H:i:s'): null,
+                // 'total_price' => 3000,
+                'total_price' => preg_replace('/[^0-9.]/', '', $request->input('total_price')),
+                'payment_method' => $request->input('payment_method'),
+                'payment_status' => $request->input('payment_status') ?? 1,
             ]);
             // เพิ่ม addon option ใน order_has_addon_options
-            foreach ($addon_ids as $addon_id) {
-                $addon = AddonOption::find($addon_id);
-                if ($addon) {
-                    OrderHasAddonOption::create([
-                        'ref_order_id'  => $order->id,
-                        'ref_option_id' => $addon->id,
-                        'price'         => $addon->price,
-                    ]);
+            if ($request->filled('ref_option_id')) {
+                foreach ($request->ref_option_id as $addon_id) {
+                    $addon = AddonOption::find($addon_id);
+                    if ($addon) {
+                        OrderHasAddonOption::create([
+                            'ref_order_id'  => $order->id,
+                            'ref_option_id' => $addon->id,
+                            'price'         => $addon->price,
+                        ]);
+                    }
                 }
             }
 
-            // --- คำนวณค่าคอมมิชชั่นและค่าเชียร์ ---
-            $commission_value = 0;
-            $commission_options_value = 0;
-            $price_options_sales = 0;
-            // Massage commission (service_duration)
-            if ($order->ref_user_id && $serviceCostName) {
-                $duration = null;
-                switch ($serviceCostName) {
-                    case 'forty_minutes': $duration = 40; break;
-                    case 'sixty_minutes': $duration = 60; break;
-                    case 'ninety_minutes': $duration = 90; break;
-                }
-                if ($duration) {
-                    $commission = \App\Models\MassageCommission::where('ref_user_id', $order->ref_user_id)
-                        ->where('service_duration', $duration)
-                        ->where('ref_branch_id', $order->ref_branch_id)
-                        ->first();
-                    if (!$commission) {
-                        $commission = \App\Models\MassageCommission::whereNull('ref_user_id')
-                            ->where('service_duration', $duration)
-                            ->where('ref_branch_id', $order->ref_branch_id)
-                            ->first();
-                    }
-                    if ($commission) {
-                        if ($commission->commission_amount) {
-                            $commission_value += $commission->commission_amount;
-                        } elseif ($commission->commission_percent) {
-                            $room_price = 0;
-                            $room = Room::find($roomId);
-                            if ($room) {
-                                if ($duration == 40) $room_price = $room->forty_minutes;
-                                if ($duration == 60) $room_price = $room->sixty_minutes;
-                                if ($duration == 90) $room_price = $room->ninety_minutes;
-                            }
-                            $staff_salary = User::find($order->ref_user_id)->salary ?? 0;
-                            $commission_base = $room_price + $staff_salary;
-                            $commission_value += ($commission->commission_percent / 100) * $commission_base;
-                        }
-                    }
-                }
-            }
-            // Massage commission (addon options)
-            if ($order->ref_user_id && !empty($addon_ids)) {
-                foreach ($addon_ids as $addon_id) {
-                    $commission = \App\Models\MassageCommission::where('ref_user_id', $order->ref_user_id)
-                        ->where('addon_options_id', $addon_id)
-                        ->where('ref_branch_id', $order->ref_branch_id)
-                        ->first();
-                    if (!$commission) {
-                        $commission = \App\Models\MassageCommission::whereNull('ref_user_id')
-                            ->where('addon_options_id', $addon_id)
-                            ->where('ref_branch_id', $order->ref_branch_id)
-                            ->first();
-                    }
-                    $addon = AddonOption::find($addon_id);
-                    if ($commission && $addon) {
-                        if ($commission->commission_amount) {
-                            $commission_options_value += $commission->commission_amount;
-                        } elseif ($commission->commission_percent) {
-                            $commission_options_value += ($commission->commission_percent / 100) * $addon->price;
-                        }
-                    }
-                }
-            }
-            // CheerCharge for sales
-            if ($order->ref_seller_id && !empty($addon_ids)) {
-                foreach ($addon_ids as $addon_id) {
-                    $cheer = \App\Models\CheerCharge::where('ref_branch_id', $order->ref_branch_id)
-                        ->where('addon_options_id', $addon_id)
-                        ->first();
-                    $addon = AddonOption::find($addon_id);
-                    if ($cheer && $addon) {
-                        if ($cheer->type == 'baht') {
-                            $price_options_sales += $cheer->amount;
-                        } elseif ($cheer->type == 'percent') {
-                            $price_options_sales += ($cheer->amount / 100) * $addon->price;
-                        }
-                    }
-                }
-            }
-            // Save to commissions_history
-            \App\Models\CommissionsHistory::updateOrCreate(
-                [
-                    'order_id' => $order->id,
-                    'user_message_id' => $order->ref_user_id ?? null,
-                ],
-                [
-                    'commission_massage_amount' => $commission_value,
-                    'price_options_massage' => $commission_options_value,
-                    'user_sales_id' => $order->ref_seller_id ?? null,
-                    'price_options_sales' => $price_options_sales,
-                ]
-            );
-        } else {
-            // ถ้าเป็นลูกค้าปกติ ให้ค้นหา Order เดิม
-            $order = Order::findOrFail($orderId);
-        }
-        // ------------------------------------
+            // // --- คำนวณค่าคอมมิชชั่นและค่าเชียร์ ---
+            // $commission_value = 0;
+            // $commission_options_value = 0;
+            // $price_options_sales = 0;
+            // // Massage commission (service_duration)
+            // if ($order->ref_user_id && $serviceCostName) {
+            //     $duration = null;
+            //     switch ($serviceCostName) {
+            //         case 'forty_minutes': $duration = 40; break;
+            //         case 'sixty_minutes': $duration = 60; break;
+            //         case 'ninety_minutes': $duration = 90; break;
+            //     }
+            //     if ($duration) {
+            //         $commission = \App\Models\MassageCommission::where('ref_user_id', $order->ref_user_id)
+            //             ->where('service_duration', $duration)
+            //             ->where('ref_branch_id', $order->ref_branch_id)
+            //             ->first();
+            //         if (!$commission) {
+            //             $commission = \App\Models\MassageCommission::whereNull('ref_user_id')
+            //                 ->where('service_duration', $duration)
+            //                 ->where('ref_branch_id', $order->ref_branch_id)
+            //                 ->first();
+            //         }
+            //         if ($commission) {
+            //             if ($commission->commission_amount) {
+            //                 $commission_value += $commission->commission_amount;
+            //             } elseif ($commission->commission_percent) {
+            //                 $room_price = 0;
+            //                 $room = Room::find($roomId);
+            //                 if ($room) {
+            //                     if ($duration == 40) $room_price = $room->forty_minutes;
+            //                     if ($duration == 60) $room_price = $room->sixty_minutes;
+            //                     if ($duration == 90) $room_price = $room->ninety_minutes;
+            //                 }
+            //                 $staff_salary = User::find($order->ref_user_id)->salary ?? 0;
+            //                 $commission_base = $room_price + $staff_salary;
+            //                 $commission_value += ($commission->commission_percent / 100) * $commission_base;
+            //             }
+            //         }
+            //     }
+            // }
+            // // Massage commission (addon options)
+            // if ($order->ref_user_id && !empty($addon_ids)) {
+            //     foreach ($addon_ids as $addon_id) {
+            //         $commission = \App\Models\MassageCommission::where('ref_user_id', $order->ref_user_id)
+            //             ->where('addon_options_id', $addon_id)
+            //             ->where('ref_branch_id', $order->ref_branch_id)
+            //             ->first();
+            //         if (!$commission) {
+            //             $commission = \App\Models\MassageCommission::whereNull('ref_user_id')
+            //                 ->where('addon_options_id', $addon_id)
+            //                 ->where('ref_branch_id', $order->ref_branch_id)
+            //                 ->first();
+            //         }
+            //         $addon = AddonOption::find($addon_id);
+            //         if ($commission && $addon) {
+            //             if ($commission->commission_amount) {
+            //                 $commission_options_value += $commission->commission_amount;
+            //             } elseif ($commission->commission_percent) {
+            //                 $commission_options_value += ($commission->commission_percent / 100) * $addon->price;
+            //             }
+            //         }
+            //     }
+            // }
+        //     // CheerCharge for sales
+        //     if ($order->ref_seller_id && !empty($addon_ids)) {
+        //         foreach ($addon_ids as $addon_id) {
+        //             $cheer = \App\Models\CheerCharge::where('ref_branch_id', $order->ref_branch_id)
+        //                 ->where('addon_options_id', $addon_id)
+        //                 ->first();
+        //             $addon = AddonOption::find($addon_id);
+        //             if ($cheer && $addon) {
+        //                 if ($cheer->type == 'baht') {
+        //                     $price_options_sales += $cheer->amount;
+        //                 } elseif ($cheer->type == 'percent') {
+        //                     $price_options_sales += ($cheer->amount / 100) * $addon->price;
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     // Save to commissions_history
+        //     \App\Models\CommissionsHistory::updateOrCreate(
+        //         [
+        //             'order_id' => $order->id,
+        //             'user_message_id' => $order->ref_user_id ?? null,
+        //         ],
+        //         [
+        //             'commission_massage_amount' => $commission_value,
+        //             'price_options_massage' => $commission_options_value,
+        //             'user_sales_id' => $order->ref_seller_id ?? null,
+        //             'price_options_sales' => $price_options_sales,
+        //         ]
+        //     );
+        // // } else {
+        // //     // ถ้าเป็นลูกค้าปกติ ให้ค้นหา Order เดิม
+        // //     $order = Order::findOrFail($orderId);
+        // // }
+        // // ------------------------------------
 
 
         // --- โค้ดส่วนที่เหลือของคุณ (ทำงานกับตัวแปร $order ที่ได้มา) ---
-        foreach ($cart as $item) {
+        foreach ($request->qty as $id => $q) {
+            if($q == 0){
+                continue;
+            }
+            $price = Product::find($id)->price;
             // 1) บันทึกสินค้าใน order_has_products
             $order->products()->create([
-                'ref_product_id' => $item['id'],
-                'price'          => $item['price'],
-                'quantity'       => $item['qty'],
+                'ref_product_id' => $id,
+                'price'          => $price,
+                'quantity'       => $q,
             ]);
 
             // 2) ลด stock
-            $stock = CardStocks::where('ref_product_id', $item['id'])
-                ->where('quantity', '!=', 0)
+            $stock = StockReadyForSale::where('ref_product_id', $id)
+                ->where('qty', '!=', 0)
                 ->first();
 
             if ($stock) {
-                $newRemain = max(0, $stock->remain - $item['qty']);
-                $stock->remain = $newRemain;
+                $newRemain = max(0, $stock->qty - $q);
+                $stock->qty = $newRemain;
                 $stock->save();
             }
         }
 
         // 3) คำนวณยอดรวม
-        $subtotal = collect($cart)->sum(fn($i) => $i['price'] * $i['qty']);
-        $discount = 0;
-        $tax      = 0;
-        $total    = $subtotal - $discount + $tax;
-        $total_price = $order->total_price + $total;
+        // $subtotal = collect($request->qty)->sum(fn($i) => 100 * $q);
+        // $discount = 0;
+        // $total    = $subtotal - $discount;
+        // $total_price = $order->total_price + $total;
 
-        $order->total_price = $total_price;
+        // $order->total_price = $total_price;
         $order->updated_at  = now();
         $order->save();
 
-        Session::forget('cart');
+        // Session::forget('cart');
 
-        return redirect()->route('pos.index')->with('success', 'Checkout สำเร็จแล้ว');
+        return 1;
     }
 
 
@@ -477,6 +537,40 @@ class POSController extends Controller
                 'text' => $item->nickname ? "{$item->nickname} | {$item->name}" : $item->name,
             ];
         }));
+    }
+    public function calculate(Request $request)
+    {
+        // return $request;
+        $rthc = RoomTypeHasCourse::where('ref_room_type_id', $request->ref_room_type_id)->where('ref_course_id', $request->ref_course_id)->first();
+
+        $subtotal = $rthc->price;
+        
+        if(@$request->ref_option_id){
+            $subtotal += AddonOption::whereIn('id', $request->ref_option_id)->sum('price');
+        }
+        // return $request;
+        foreach($request->qty ?? [] as $key => $qty){
+        // return $qty;    
+            if($qty > 0){
+                $subtotal += Product::find($key)->price*$qty;
+            }
+        }
+        // if(@$request->discount > 0){
+        $discount = $request->discount ?? 0;
+        // $tax      = $subtotal * 0.07;
+        $total = $subtotal-$discount;
+        // $subtotal -= $discount;
+        // }
+        
+        return response()->json([
+            // 'items' => $items,
+            'subtotal' => number_format($subtotal, 2),
+            'discount' => number_format($discount, 2),
+            // 'tax'      => number_format($tax),
+            'total'    => number_format($total),
+        ]);
+
+        return $rthc->price;
     }
     public function calculateSummary(Request $request)
     {

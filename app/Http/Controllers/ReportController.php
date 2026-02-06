@@ -3,38 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\LeaveController;
 use App\Models\User;
 use App\Models\Position;
 use App\Models\Branch;
-use App\Models\Work_shift;
-use App\Models\Schedule;
-use App\Models\Leave;
-use App\Models\UserLeave;
-use App\Models\News;
+use App\Models\DailySalesClosure;
+use App\Models\Order;
+use App\Models\OrderStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Mpdf\Mpdf;
 
 DB::beginTransaction();
 
 class ReportController extends Controller
 {
 
-    protected $LeaveController;
-
-    public function __construct(LeaveController $LeaveController)
-    {
-        $this->LeaveController = $LeaveController;
-    }
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function view_overview(Request $request)
     {
         return view('report/report-viewOverview');
@@ -60,9 +46,484 @@ class ReportController extends Controller
         return view('report/report-monthlyBooking');
     }
 
+    public function coupon_report_datatable(Request $request)
+    {
+
+        $limit = $request->limit ?? 10;
+        $orderRooms = $this->OEgetOrderRooms($limit);
+
+        $user = Auth::user();
+
+        if ($user->work_status == 3) {
+            $branches = Branch::orderBy('name')->get();
+        } else {
+            $branches = Branch::where('id', $user->ref_branch_id)->get();
+        }
+        return view('admin.report.report-couponReport-datatable', compact('orderRooms', 'branches'));
+    }
+
+    private function CRgetOrderRooms($limit)
+    {
+        $now = Carbon::now()->format('Y-m-d H:i:s');
+
+        $query = Order::withSum('addons', 'price')
+                        ->withSum('addons', 'coupon')
+                        ->withSum('products', 'price')
+                        ->with(['branch', 'customer', 'user', 'room', 'status'])
+                        ->where('type', 1)
+                        // ->select('orders.*')
+                        ->orderByRaw("
+                        CASE
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
+                            WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
+                            WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
+                            WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
+                            WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
+                            ELSE 8 -- ไม่ระบุ
+                        END
+                    ")
+                        ->orderBy('booking_date')
+                        ->orderBy('start_time');
+
+        // ✅ filter เฉพาะสาขาของ user ที่ login
+        $userBranchId = Auth::user()->ref_branch_id ?? null;
+        if ($userBranchId) {
+            $query->where('ref_branch_id', $userBranchId);
+        }
+
+        // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
+        if (request()->filled('branch_id')) {
+            $query->where('ref_branch_id', request()->branch_id);
+        }
+
+        $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
+
+        if (@$DailySalesClosure) {
+            $query->where('created_at', ">" ,$DailySalesClosure->date_time);
+        }
+
+        // filter ค้นหา
+        if (request()->filled('search')) {
+            $search = request()->search;
+            $query->whereHas('customer', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        // filter by booking_date (date_range, start_date, end_date)
+        $dateRange = request('date_range');
+        $startDate = request('start_date');
+        $endDate = request('end_date');
+        if ($dateRange && $dateRange !== 'custom') {
+            // 1, 7, 14, 30 days
+            $days = intval($dateRange);
+            if ($days > 0) {
+                $from = Carbon::today()->subDays($days - 1)->format('Y-m-d');
+                $to = Carbon::today()->format('Y-m-d');
+                $query->whereBetween('booking_date', [$from, $to]);
+            }
+        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
+            $query->whereBetween('booking_date', [$startDate, $endDate]);
+        }
+
+        $orderRooms = $query->paginate($limit);
+
+        // กำหนด badge และ label
+        $nowCarbon = Carbon::now();
+        $nowCarbon = Carbon::now();
+        foreach ($orderRooms as $order) {
+            $startDateTime = Carbon::parse($order->booking_date . ' ' . $order->start_time);
+            $endDateTime   = Carbon::parse($order->booking_date . ' ' . $order->end_time);
+
+            if (!empty($order->payment_method)) {
+                $order->badge_class = 'bg-info';
+                $order->status_label = $order->payment_method;
+            } elseif ($order->ref_status_id == 2) {
+                $order->badge_class = 'bg-success';
+                $order->status_label = 'อยู่ระหว่างใช้บริการ';
+            } elseif ($order->ref_status_id == 1 && $nowCarbon->between($startDateTime, $endDateTime)) {
+                $order->badge_class = 'bg-primary';
+                $order->status_label = 'จอง (ถึงเวลาแล้ว)';
+            } elseif ($order->ref_status_id == 1 && $nowCarbon->lessThan($startDateTime)) {
+                $order->badge_class = 'bg-warning';
+                $order->status_label = 'จอง';
+            } elseif ($order->ref_status_id == 1 && $nowCarbon->greaterThan($endDateTime)) {
+                $order->badge_class = 'bg-danger';
+                $order->status_label = 'จอง (เกินเวลา)';
+            } elseif ($order->ref_status_id == 3) {
+                $order->badge_class = 'bg-secondary';
+                $order->status_label = 'ใช้บริการเสร็จสิ้น';
+            } elseif ($order->ref_status_id == 4) {
+                $order->badge_class = 'bg-danger';
+                $order->status_label = 'ยกเลิก';
+            } else {
+                $order->badge_class = 'bg-dark';
+                $order->status_label = 'ไม่ระบุ';
+            }
+        }
+
+        return $orderRooms;
+    }
+    
+    public function coupon_report_pdf($id = null)
+    {
+        $now = Carbon::now()->format('Y-m-d H:i:s');
+        $data['orderRooms'] = Order::withSum('addons', 'price')
+                        ->withSum('addons', 'coupon')
+                        ->withSum('products', 'price')
+                        ->with(['branch', 'customer', 'user', 'room', 'status'])
+                        ->where('type', 1)
+                        // ->select('orders.*')
+                        ->orderByRaw("
+                        CASE
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
+                            WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
+                            WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
+                            WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
+                            WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
+                            ELSE 8 -- ไม่ระบุ
+                        END
+                    ")
+                        ->orderBy('ref_user_id')
+                        ->orderBy('booking_date')
+                        ->orderBy('start_time')
+                        ->get();
+
+        $html = view('admin.report.report-couponReport-pdf', $data)->render();
+
+        $pdf = new \Mpdf\Mpdf([
+            'default_font_size' => 10,
+            'default_font' => 'sarabun'
+        ]);
+        $pdf->autoScriptToLang = true;
+        $pdf->autoLangToFont = true;
+        $pdf->WriteHTML($html);
+        $pdf->Output();
+    }
+    public function oversee_employee_datatable(Request $request)
+    {
+
+        $limit = $request->limit ?? 10;
+        $orderRooms = $this->OEgetOrderRooms($limit);
+
+        $user = Auth::user();
+
+        if ($user->work_status == 3) {
+            $branches = Branch::orderBy('name')->get();
+        } else {
+            $branches = Branch::where('id', $user->ref_branch_id)->get();
+        }
+        return view('admin.report.report-overseeEmp-datatable', compact('orderRooms', 'branches'));
+    }
+
+    private function OEgetOrderRooms($limit)
+    {
+        $now = Carbon::now()->format('Y-m-d H:i:s');
+
+        $query = Order::withSum('addons', 'price')
+                        ->withSum('addons', 'coupon')
+                        ->withSum('products', 'price')
+                        ->with(['branch', 'customer', 'user', 'room', 'status'])
+                        ->where('type', 1)
+                        // ->select('orders.*')
+                        ->orderByRaw("
+                        CASE
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
+                            WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
+                            WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
+                            WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
+                            WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
+                            ELSE 8 -- ไม่ระบุ
+                        END
+                    ")
+                        ->orderBy('booking_date')
+                        ->orderBy('start_time');
+
+        // ✅ filter เฉพาะสาขาของ user ที่ login
+        $userBranchId = Auth::user()->ref_branch_id ?? null;
+        if ($userBranchId) {
+            $query->where('ref_branch_id', $userBranchId);
+        }
+
+        // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
+        if (request()->filled('branch_id')) {
+            $query->where('ref_branch_id', request()->branch_id);
+        }
+
+        $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
+
+        if (@$DailySalesClosure) {
+            $query->where('created_at', ">" ,$DailySalesClosure->date_time);
+        }
+
+        // filter ค้นหา
+        if (request()->filled('search')) {
+            $search = request()->search;
+            $query->whereHas('customer', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        // filter by booking_date (date_range, start_date, end_date)
+        $dateRange = request('date_range');
+        $startDate = request('start_date');
+        $endDate = request('end_date');
+        if ($dateRange && $dateRange !== 'custom') {
+            // 1, 7, 14, 30 days
+            $days = intval($dateRange);
+            if ($days > 0) {
+                $from = Carbon::today()->subDays($days - 1)->format('Y-m-d');
+                $to = Carbon::today()->format('Y-m-d');
+                $query->whereBetween('booking_date', [$from, $to]);
+            }
+        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
+            $query->whereBetween('booking_date', [$startDate, $endDate]);
+        }
+
+        $orderRooms = $query->paginate($limit);
+
+        // กำหนด badge และ label
+        $nowCarbon = Carbon::now();
+        $nowCarbon = Carbon::now();
+        foreach ($orderRooms as $order) {
+            $startDateTime = Carbon::parse($order->booking_date . ' ' . $order->start_time);
+            $endDateTime   = Carbon::parse($order->booking_date . ' ' . $order->end_time);
+
+            if (!empty($order->payment_method)) {
+                $order->badge_class = 'bg-info';
+                $order->status_label = $order->payment_method;
+            } elseif ($order->ref_status_id == 2) {
+                $order->badge_class = 'bg-success';
+                $order->status_label = 'อยู่ระหว่างใช้บริการ';
+            } elseif ($order->ref_status_id == 1 && $nowCarbon->between($startDateTime, $endDateTime)) {
+                $order->badge_class = 'bg-primary';
+                $order->status_label = 'จอง (ถึงเวลาแล้ว)';
+            } elseif ($order->ref_status_id == 1 && $nowCarbon->lessThan($startDateTime)) {
+                $order->badge_class = 'bg-warning';
+                $order->status_label = 'จอง';
+            } elseif ($order->ref_status_id == 1 && $nowCarbon->greaterThan($endDateTime)) {
+                $order->badge_class = 'bg-danger';
+                $order->status_label = 'จอง (เกินเวลา)';
+            } elseif ($order->ref_status_id == 3) {
+                $order->badge_class = 'bg-secondary';
+                $order->status_label = 'ใช้บริการเสร็จสิ้น';
+            } elseif ($order->ref_status_id == 4) {
+                $order->badge_class = 'bg-danger';
+                $order->status_label = 'ยกเลิก';
+            } else {
+                $order->badge_class = 'bg-dark';
+                $order->status_label = 'ไม่ระบุ';
+            }
+        }
+
+        return $orderRooms;
+    }
+    public function oversee_employee_pdf($id = null)
+    {
+        $now = Carbon::now()->format('Y-m-d H:i:s');
+        $data['orderRooms'] = Order::withSum('addons', 'price')
+                        ->withSum('addons', 'coupon')
+                        ->withSum('products', 'price')
+                        ->with(['branch', 'customer', 'user', 'room', 'status'])
+                        ->where('type', 1)
+                        // ->select('orders.*')
+                        ->orderByRaw("
+                        CASE
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
+                            WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
+                            WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
+                            WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
+                            WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
+                            ELSE 8 -- ไม่ระบุ
+                        END
+                    ")
+                        ->orderBy('ref_user_id')
+                        ->orderBy('booking_date')
+                        ->orderBy('start_time')
+                        ->get();
+
+        $html = view('admin.report.report-overseeEmp-pdf', $data)->render();
+
+        $pdf = new \Mpdf\Mpdf([
+            'default_font_size' => 10,
+            'default_font' => 'sarabun'
+        ]);
+        $pdf->autoScriptToLang = true;
+        $pdf->autoLangToFont = true;
+        $pdf->WriteHTML($html);
+        $pdf->Output();
+    }
+    public function monthly_sale_datatable(Request $request)
+    {
+
+        $limit = $request->limit ?? 10;
+        $orderRooms = $this->getOrderRooms($limit);
+
+        $user = Auth::user();
+
+        if ($user->work_status == 3) {
+            $branches = Branch::orderBy('name')->get();
+        } else {
+            $branches = Branch::where('id', $user->ref_branch_id)->get();
+        }
+        return view('admin.report.report-saleMonthly-datatable', compact('orderRooms', 'branches'));
+    }
+
+    private function getOrderRooms($limit)
+    {
+        $now = Carbon::now()->format('Y-m-d H:i:s');
+
+        $query = Order::withSum('addons', 'price')
+                        ->withSum('addons', 'coupon')
+                        ->withSum('products', 'price')
+                        ->with(['branch', 'customer', 'user', 'room', 'status'])
+                        ->where('type', 1)
+                        // ->select('orders.*')
+                        ->orderByRaw("
+                        CASE
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
+                            WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
+                            WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
+                            WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
+                            WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
+                            ELSE 8 -- ไม่ระบุ
+                        END
+                    ")
+                        ->orderBy('ref_user_id')
+                        ->orderBy('booking_date')
+                        ->orderBy('start_time');
+
+        // ✅ filter เฉพาะสาขาของ user ที่ login
+        $userBranchId = Auth::user()->ref_branch_id ?? null;
+        if ($userBranchId) {
+            $query->where('ref_branch_id', $userBranchId);
+        }
+
+        // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
+        if (request()->filled('branch_id')) {
+            $query->where('ref_branch_id', request()->branch_id);
+        }
+
+        $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
+
+        if (@$DailySalesClosure) {
+            $query->where('created_at', ">" ,$DailySalesClosure->date_time);
+        }
+
+        // filter ค้นหา
+        if (request()->filled('search')) {
+            $search = request()->search;
+            $query->whereHas('customer', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        // filter by booking_date (date_range, start_date, end_date)
+        $dateRange = request('date_range');
+        $startDate = request('start_date');
+        $endDate = request('end_date');
+        if ($dateRange && $dateRange !== 'custom') {
+            // 1, 7, 14, 30 days
+            $days = intval($dateRange);
+            if ($days > 0) {
+                $from = Carbon::today()->subDays($days - 1)->format('Y-m-d');
+                $to = Carbon::today()->format('Y-m-d');
+                $query->whereBetween('booking_date', [$from, $to]);
+            }
+        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
+            $query->whereBetween('booking_date', [$startDate, $endDate]);
+        }
+
+        $orderRooms = $query->paginate($limit);
+
+        // กำหนด badge และ label
+        $nowCarbon = Carbon::now();
+        $nowCarbon = Carbon::now();
+        foreach ($orderRooms as $order) {
+            $startDateTime = Carbon::parse($order->booking_date . ' ' . $order->start_time);
+            $endDateTime   = Carbon::parse($order->booking_date . ' ' . $order->end_time);
+
+            if (!empty($order->payment_method)) {
+                $order->badge_class = 'bg-info';
+                $order->status_label = $order->payment_method;
+            } elseif ($order->ref_status_id == 2) {
+                $order->badge_class = 'bg-success';
+                $order->status_label = 'อยู่ระหว่างใช้บริการ';
+            } elseif ($order->ref_status_id == 1 && $nowCarbon->between($startDateTime, $endDateTime)) {
+                $order->badge_class = 'bg-primary';
+                $order->status_label = 'จอง (ถึงเวลาแล้ว)';
+            } elseif ($order->ref_status_id == 1 && $nowCarbon->lessThan($startDateTime)) {
+                $order->badge_class = 'bg-warning';
+                $order->status_label = 'จอง';
+            } elseif ($order->ref_status_id == 1 && $nowCarbon->greaterThan($endDateTime)) {
+                $order->badge_class = 'bg-danger';
+                $order->status_label = 'จอง (เกินเวลา)';
+            } elseif ($order->ref_status_id == 3) {
+                $order->badge_class = 'bg-secondary';
+                $order->status_label = 'ใช้บริการเสร็จสิ้น';
+            } elseif ($order->ref_status_id == 4) {
+                $order->badge_class = 'bg-danger';
+                $order->status_label = 'ยกเลิก';
+            } else {
+                $order->badge_class = 'bg-dark';
+                $order->status_label = 'ไม่ระบุ';
+            }
+        }
+
+        return $orderRooms;
+    }
     public function monthly_sale(Request $request)
     {
+        // $order = Order::withSum('addons', 'price')->get();
+        // return $this->getOrderRooms(1)[0]->addons_sum_price;
         return view('admin.report.report-saleMonthly');
+    }
+    public function monthly_sale_pdf($id = null)
+    {
+        $now = Carbon::now()->format('Y-m-d H:i:s');
+        $data['orderRooms'] = Order::withSum('addons', 'price')
+                        ->withSum('addons', 'coupon')
+                        ->withSum('products', 'price')
+                        ->with(['branch', 'customer', 'user', 'room', 'status'])
+                        ->where('type', 1)
+                        // ->select('orders.*')
+                        ->orderByRaw("
+                        CASE
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
+                            WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
+                            WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
+                            WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
+                            WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
+                            ELSE 8 -- ไม่ระบุ
+                        END
+                    ")
+                        ->orderBy('ref_user_id')
+                        ->orderBy('booking_date')
+                        ->orderBy('start_time')
+                        ->get();
+
+        $html = view('admin.report.report-saleMonthly-pdf', $data)->render();
+
+        $pdf = new \Mpdf\Mpdf([
+            'default_font_size' => 10,
+            'default_font' => 'sarabun'
+        ]);
+        $pdf->autoScriptToLang = true;
+        $pdf->autoLangToFont = true;
+        $pdf->WriteHTML($html);
+        $pdf->Output();
     }
     public function oversee_employee(Request $request)
     {
@@ -71,6 +532,7 @@ class ReportController extends Controller
 
     public function coupon_report(Request $request)
     {
-        return view('admin.report.report-couponReport');
+        $data['page_url'] = "admin/report/coupon-report";
+        return view('admin.report.report-couponReport', $data);
     }
 }

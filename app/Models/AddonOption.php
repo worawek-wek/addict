@@ -13,6 +13,28 @@ class AddonOption extends Model
     protected $fillable = [
         'name',
         'price',
-        'branch'
+        'branch',
+        'commission',
+        'coupon',
     ];
+    
+    public function user_has_option_commission()
+    {
+        return $this->hasOne('App\Models\UserHasOptionCommission', 'ref_option_id', 'id');
+    }
+    public function addon_option_has_course()
+    {
+        return $this->hasMany(
+                \App\Models\AddonOptionHasCourse::class,
+                'ref_addon_option_id',
+                'id'
+            )
+            ->join('courses', 'courses.id', '=', 'addon_option_has_courses.ref_course_id')
+            ->orderBy('courses.sort')
+            ->select('addon_option_has_courses.*');
+    }
+    public function orderAddons()
+    {
+        return $this->hasMany(OrderHasAddonOption::class, 'ref_option_id');
+    }
 }

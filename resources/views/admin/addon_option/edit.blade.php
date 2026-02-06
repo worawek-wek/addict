@@ -49,7 +49,19 @@
                                                     @endforeach
                                                 </select>
                                             </div>
-                                            <div class="text-end">
+                                            <div class="row g-3">
+                                                <div class="col-sm-4">
+                                                    <label class="form-label">ค่ามือ</label>
+                                                    <input name="commission" type="number" step="any" class="form-control" value="{{ $option->commission }}"
+                                                        placeholder="ค่ามือ" />
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <label class="form-label">คูปอง</label>
+                                                    <input name="coupon" type="number" step="any" class="form-control" value="{{ $option->coupon }}"
+                                                        placeholder="คูปอง" />
+                                                </div>
+                                            </div>
+                                            <div class="text-end mt-4">
                                                 <button type="submit" class="btn btn-success">บันทึก</button>
                                                 <a href="{{ route('addon_options.index') }}" class="btn btn-secondary">กลับ</a>
                                             </div>

@@ -44,6 +44,7 @@
 
 <link rel="stylesheet" href="assets/vendor/libs/select2/select2.css" />
 <link rel="stylesheet" href="assets/vendor/libs/bootstrap-select/bootstrap-select.css" />
+<link rel="stylesheet" href="/assets/vendor/libs/spinkit/spinkit.css" />
     <style>
         .swal2-container {
             z-index: 9999 !important; /* ปรับ z-index ของ SweetAlert */
@@ -63,3 +64,48 @@
 <script src="assets/vendor/js/template-customizer.js"></script>
 <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
 <script src="assets/js/config.js"></script>
+
+<style>
+  /* พื้นหลังทึบ */
+  #loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(234, 244, 255, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* สปินเนอร์หมุน */
+  .spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #28c76f;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+
+<div id="loadingOverlay" style="display: none;">
+    <div class="col">
+        <!-- Chase -->
+        <div class="sk-chase sk-primary m-auto">
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+        </div>
+    </div>
+</div>

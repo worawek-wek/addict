@@ -26,30 +26,30 @@
                 <th class="text-center">
                     หมายเหตุ
                 </th>
-                <th class="text-center" colspan="2">
+                <th class="text-center" style="width: 202px;">
                     ดำเนินการ
                 </th>
             </tr>
         </thead>
-        <tbody>
+        <tbody style="font-size: small;">
             @foreach ($list_data as $key => $row)
-            <tr class="odd" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                <td class="text-center" onclick="view({{ $row->id }})">
+            <tr class="odd">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $list_data->firstItem()+$key }}
                 </td>
-                <td class="text-center" onclick="view({{ $row->id }})">
-                    <img src="/upload/user/{{ $row->image_name }}" alt="" width="40px">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+                    <img src="/upload/user/{{ $row->image_name }}" alt="" width="55px" onerror="this.onerror=null;this.src='/not-found-image.png';">
                 </td>
-                <td class="text-center" onclick="view({{ $row->id }})">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->name }}
                 </td>
-                <td class="text-center" onclick="view({{ $row->id }})">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->nickname }}
                 </td>
-                <td class="text-center" onclick="view({{ $row->id }})">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->position->position_name }}
                 </td>
-                <td class="text-center" onclick="view({{ $row->id }})">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->branch->name }}
                 </td>
                     <td class="text-center text-success">
@@ -57,39 +57,66 @@
                         ออนไลน์
                 @endif
                 </td>
-                <td class="text-center" onclick="view({{ $row->id }})">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->remark }}
                 </td>
-                <td class="text-center">
-                    <div class="d-flex justify-content-center align-items-center">
-                        <!-- Toggle Switch -->
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+
+                        <!-- ซ้าย : ค่ามือ -->
+                        <div class="d-flex flex-column gap-1">
+                            <button class="btn btn-warning btn-sm px-2"
+                                    type="button"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modal-commission-room"
+                                    onclick="commission_room({{ $row->id }}, 'room')">
+                                <i class="ti ti-pencil fs-6 me-1"></i> ค่ามือ(ห้อง)
+                            </button>
+
+                            <button class="btn btn-primary btn-sm px-2"
+                                    type="button"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modal-commission-option"
+                                    onclick="commission_option({{ $row->id }}, 'option')">
+                                <i class="ti ti-pencil fs-6 me-1"></i> ค่ามือ(Option)
+                            </button>
+                        </div>
+
+                        <!-- ขวา : switch -->
                         <label class="switch switch-success mb-0">
                             <input type="checkbox" class="switch-input"
                                 onchange="changeStatus({{ $row->id }}, this.checked ? 1 : 0, this)"
-                                @if ($row->ref_status_id == 1) checked @endif
-                            />
+                                @if ($row->ref_status_id == 1) checked @endif>
                             <span class="switch-toggle-slider">
                                 <span class="switch-on"><i class="ti ti-check"></i></span>
                                 <span class="switch-off"><i class="ti ti-x"></i></span>
                             </span>
                         </label>
-                
-                    </td>
-                    <td class="text-center">
-                        <!-- ปุ่มลบ -->
                         <a href="javascript:;"
-                           onclick='delete_view({{ $row->id }})'
-                           data-bs-toggle="modal"
-                           data-bs-target="#delete_confirmation_modal"
-                           class="text-danger"
-                           style="display: flex; align-items: center; gap: 4px;">
+                            onclick='delete_view({{ $row->id }})'
+                            data-bs-toggle="modal"
+                            data-bs-target="#delete_confirmation_modal"
+                            class="text-danger"
+                            style="display: flex; align-items: center;gap: 4px;margin-left: 27px;">
                             <i class="fa fa-trash" aria-hidden="true"></i>
                             ลบ
                         </a>
+                        <select name="sort"
+                                class="sort-item"
+                                data-id="{{ $row->id }}"
+                                data-old="{{ $row->sort }}"
+                                onchange="updateSort(this)"
+                                >
+                            @for ($i = 1;$i<=$list_data->total();$i++)
+                                <option value="{{ $i }}"
+                                    @if ($i == $row->sort)
+                                        selected
+                                    @endif>{{ $i }}</option>
+                            @endfor
+                        </select>
+
                     </div>
-                </td>
-                
-                                
+                </td>         
             </tr>
             @endforeach
         </tbody>
@@ -97,4 +124,13 @@
 <!-- END: Data List -->
 <!-- BEGIN: Pagination -->
 @include('admin/layout/pagination')
-        
+<script>
+    document.querySelectorAll('.sort-item').forEach((el) => {
+        new TomSelect(el, {
+            create: false,
+            maxItems: 1,
+            allowEmptyOption: true,
+            sortField: { field: "text", direction: "asc" }
+        });
+    });
+</script>

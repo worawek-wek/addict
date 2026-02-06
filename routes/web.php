@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AddonOptionController;
 use App\Http\Controllers\Admin\OrderRoomController;
+use App\Http\Controllers\Admin\OrderProductController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PageController;
@@ -12,27 +13,14 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\UserTimeController;
 use App\Http\Controllers\DarkModeController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Front\FrontHomeController;
 use App\Http\Controllers\Front\FrontClockInController;
 use App\Http\Controllers\RoomController;
-use App\Http\Controllers\MeterController;
-use App\Http\Controllers\RenterController;
-use App\Http\Controllers\VehicleController;
-use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\RoomTypeController;
 use App\Http\Controllers\AuditController;
-use App\Http\Controllers\BillController;
-use App\Http\Controllers\ApartmentController;
-use App\Http\Controllers\BuildingController;
 use App\Http\Controllers\BranchController;
-use App\Http\Controllers\IncomeExpensesController;
-use App\Http\Controllers\UserSettingController;
-use App\Http\Controllers\WorkShiftController;
-use App\Http\Controllers\WelfareController;
-use App\Http\Controllers\ExportExcelController;
-use App\Http\Controllers\AnnualHolidayController;
 use App\Http\Controllers\CheerChargeController;
 use App\Http\Controllers\ColorSchemeController;
 use App\Http\Controllers\CommissionController;
@@ -57,7 +45,15 @@ use Illuminate\Support\Facades\Hash;
 */
 
 Route::get('/clc', function () {
-    dd(Hash::make(123456));
+    
+	Artisan::call('cache:clear');
+	Artisan::call('config:clear');
+	Artisan::call('config:cache');
+	Artisan::call('view:clear');
+    Artisan::call('route:clear');
+  
+	return "Cleared!";
+  
 });
 
 Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
@@ -75,20 +71,25 @@ Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
     Route::get('/api/search-addons', [PosController::class, 'searchAddons'])->name('api.searchAddons');
     Route::get('/api/sales-staff', [PosController::class, 'searchSalesStaff'])->name('api.searchSalesStaff');
 
+    Route::controller(RoomPOSController::class)->group(function () {
+        Route::get('/room', 'index')->name('room.index');
+        Route::get('/room/{roomId}/customers', 'getCustomers')->name('room.customers');
+    });
+
     Route::controller(POSController::class)->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::get('/product', 'product')->name('product');
+        Route::get('/product/{product_id}', 'product')->name('product');
         Route::post('/add/{id}', 'addToCart')->name('add');
         Route::post('/update/{id}', 'updateCart')->name('update');
         Route::post('/remove/{id}', 'removeFromCart')->name('remove');
         Route::post('/checkout', 'checkout')->name('checkout');
         Route::get('/get-user', 'get_user')->name('pos-get-user');
+        Route::post('/calculate', 'calculate')->name('api.calculate');
         Route::post('/api/calculate-summary', 'calculateSummary')->name('api.calculateSummary');
+        Route::get('/{room_id}', 'index')->name('index');
     });
 
-    Route::controller(RoomPOSController::class)->group(function () {
-        Route::get('/room', 'index')->name('room.index');
-        Route::get('/room/{roomId}/customers', 'getCustomers')->name('room.customers');
-    });
 });
 
 Route::get('/', function () {
@@ -222,6 +223,15 @@ Route::prefix('admin')->group(function () {
             Route::post('/{id}/update-payment-method', [OrderRoomController::class, 'updatePaymentMethod'])->name('order-rooms.update-payment-method');
         });
 
+        Route::prefix('order-products')->group(function () {
+            Route::get('/', [OrderProductController::class, 'index'])->name('order-products.index');
+            Route::get('/datatable', [OrderProductController::class, 'datatable'])->name('order-products.datatable');
+            Route::post('/closures', [OrderProductController::class, 'closures'])->name('order-products.closures');
+            Route::get('/{id}', [OrderProductController::class, 'show'])->name('order-products.show');
+            Route::post('/{id}/confirm-payment', [OrderProductController::class, 'confirmPayment'])->name('order-products.update-confirm-payment');
+            Route::post('/{id}/update-payment-method', [OrderProductController::class, 'updatePaymentMethod'])->name('order-products.update-payment-method');
+        });
+
         Route::controller(ReportController::class)->group(function () {
             Route::get('report/view-overview', 'view_overview')->name('report.view_overview');
             Route::get('report/rent-bill', 'rent_bill')->name('report.rent_bill');
@@ -229,12 +239,16 @@ Route::prefix('admin')->group(function () {
             Route::get('report/move-out', 'move_out')->name('report.move_out');
             Route::get('report/bad-debt', 'badDebt')->name('report.bad_debt');
             Route::get('report/monthly-booking', 'monthly_booking')->name('report.monthly_booking');
+            Route::get('report/coupon-report-datatable', 'coupon_report_datatable')->name('report.coupon_report.datatable');
+            Route::get('report/coupon-report/pdf', 'coupon_report_pdf')->name('report.coupon-report-pdf');
             Route::get('report/coupon-report', 'coupon_report')->name('report.coupon_report');
             Route::get('report/monthly-sale', 'monthly_sale')->name('report.monthly_sale');
+            Route::get('report/monthly-sale/pdf', 'monthly_sale_pdf')->name('report.monthly_sale-pdf');
+            Route::get('report/report-sale-monthly', 'monthly_sale_datatable')->name('report-sale-monthly.datatable');
+            Route::get('report/oversee-employee/pdf', 'oversee_employee_pdf')->name('report.oversee-employee-pdf');
             Route::get('report/oversee-employee', 'oversee_employee')->name('report.oversee_employee');
+            Route::get('report/oversee-employee-datatable', 'oversee_employee_datatable')->name('report-oversee-employee.datatable');
         });
-
-
 
         Route::controller(SettingController::class)->group(function () {
             Route::get('setting/fine', 'fine')->name('setting.fine');
@@ -252,21 +266,28 @@ Route::prefix('admin')->group(function () {
         Route::controller(UserController::class)->group(function () {
             Route::post('clock-in', 'clock_in')->name('clock-in');
             Route::delete('user/{id}', 'destroy')->name('user.destroy');
+            Route::post('user/update-sort/{id}', 'update_sort')->name('user.update-sort');
             Route::post('user/change-status/{id}', 'change_status')->name('user.change-status');
             Route::get('user', 'index')->name('user');
             Route::get('user/datatable', 'datatable')->name('user.datatable');
             Route::post('user', 'store')->name('user.insert');
             Route::get('user/{id}', 'edit')->name('user');
+            Route::get('user/commission-room/{id}', 'edit_commission_room')->name('user.edit-commission-room');
+            Route::get('user/commission-option/{id}', 'edit_commission_option')->name('user.edit-commission-option');
             Route::post('user/{id}', 'update')->name('user.update');
+            Route::post('user/commission-option/{id}', 'update_commission_option')->name('user.update-commission-option');
+            Route::post('user/commission-room/{id}', 'update_commission_room')->name('user.update-commission-room');
         });
 
         Route::controller(ProductController::class)->group(function () {
             Route::get('product', 'index')->name('product');
             Route::get('product/datatable', 'datatable')->name('product.datatable');
+            Route::post('product/update-sort/{id}', 'update_sort')->name('product.update-sort');
             Route::get('card_stock_report', 'card_stock_report')->name('card_stock_report');
             Route::get('card_stock_report/datatable', 'card_stock_report_datatable')->name('card_stock_report.datatable');
             Route::post('card_stock_report', 'card_stock_report_store')->name('card_stock_report.insert');
             Route::post('product', 'store')->name('product.insert');
+            Route::post('product/withdraw-product', 'withdraw')->name('product.withdraw');
             Route::get('product/{id}', 'edit')->name('product');
             Route::post('product/{id}', 'update')->name('product.update');
         });
@@ -281,9 +302,34 @@ Route::prefix('admin')->group(function () {
         Route::controller(RoomController::class)->group(function () {
             Route::get('room', 'index')->name('room');
             Route::get('room/datatable', 'datatable')->name('room.datatable');
+            Route::post('room/change-status/{id}', 'change_status')->name('room.change-status');
+            Route::post('room/update-sort/{id}', 'update_sort')->name('room.update-sort');
             Route::post('room', 'store')->name('room.insert');
             Route::get('room/{id}', 'edit')->name('room');
             Route::post('room/{id}', 'update')->name('room.update');
+            Route::delete('room/{id}', 'delete')->name('room.delete');    //////////////////////////
+        });
+
+        Route::controller(CourseController::class)->group(function () {
+            Route::get('course', 'index')->name('course');
+            Route::get('course/datatable', 'datatable')->name('course.datatable');
+            Route::post('course/update-sort/{id}', 'update_sort')->name('course.update-sort');
+            Route::post('course/change-status/{id}', 'change_status')->name('course.change-status');
+            Route::post('course', 'store')->name('course.insert');
+            Route::get('course/{id}', 'edit')->name('course');
+            Route::post('course/{id}', 'update')->name('course.update');
+            Route::delete('course/{id}', 'delete')->name('course.delete');    //////////////////////////
+        });
+        
+        Route::controller(RoomTypeController::class)->group(function () {
+            Route::get('room-type', 'index')->name('room-type');
+            Route::get('room-type/datatable', 'datatable')->name('room-type.datatable');
+            Route::post('room-type/update-sort/{id}', 'update_sort')->name('room.update-sort');
+            Route::post('room-type/change-status/{id}', 'change_status')->name('room.change-status');
+            Route::post('room-type', 'store')->name('room-type.insert');
+            Route::get('room-type/{id}', 'edit')->name('room-type');
+            Route::post('room-type/{id}', 'update')->name('room-type.update');
+            Route::delete('room-type/{id}', 'destroy')->name('room-type.destroy');
         });
 
         Route::controller(AuditController::class)->group(function () {

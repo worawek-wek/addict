@@ -14,9 +14,10 @@ class RoomGroupController extends Controller
 
     public function index()
     {
-        $page_url = $this->page_url;
-        $branches = Branch::get();
-        return view('admin.roomGroup.index', compact('page_url', 'branches'));
+        $data['page_url'] = $this->page_url;
+        $data['branches'] = Branch::get();
+        
+        return view('admin.roomGroup.index', $data);
     }
 
     public function datatable(Request $request)

@@ -3,14 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\News;
+use App\Models\UserHasRoomTypeCommission;
+use App\Models\UserHasOptionCommission;
+use App\Models\AddonOption;
 use App\Models\User;
-use App\Models\UserTime;
 use App\Models\Position;
 use App\Models\Branch;
-use App\Models\Work_shift;
-use App\Models\Schedule;
-use App\Models\Leave;
+use App\Models\RoomGroupModel;
+use App\Models\RoomTypeHasCourse;
+use App\Models\Course;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +59,7 @@ class UserController extends Controller
         } else {
             $user = Auth::user();
         }
+        $data['all_room_group'] = RoomGroupModel::get();
 
         $user->birthday_th = $this->ChangeDateToTH($user->birthday);
         ////////////////////// แปลงรูปแบบวันเกิดเป็น ไทย
@@ -115,7 +118,7 @@ class UserController extends Controller
     public function datatable(Request $request)
     {
         $results = User::where('work_status', '!=', 3)
-            ->orderBy('id', 'DESC');
+            ->orderBy('sort');
 
         if (@$request->search) {
             $results = $results->orWhere(function ($query) use ($request) {
@@ -148,6 +151,27 @@ class UserController extends Controller
 
         $data['list_data'] = $results;
         return view('admin/user/table', $data);
+    }
+    
+    public function update_sort(Request $request, $id)
+    {
+        try {
+            // return $request;
+            $old_sort = $request->old_sort;
+            $new_sort = $request->new_sort;
+
+            if($old_sort < $new_sort){
+                User::where('sort', '>', $old_sort)->where('sort', '<=', $new_sort)->decrement('sort'); // ลดลง -1
+            }else{
+                User::where('sort', '<', $old_sort)->where('sort', '>=', $new_sort)->increment('sort'); // เพิ่มขึ้น +1
+            }
+            User::where('id', $id)->update(['sort' => $new_sort]); // ลดลง
+            // return 123;
+            DB::commit();
+            return true;
+        } catch (QueryException $err) {
+            DB::rollBack();
+        }
     }
     /**
      * Show the form for creating a new resource.
@@ -192,10 +216,13 @@ class UserController extends Controller
             $image_name = $img_name . rand() . '.' . $extension;
         }
         try {
+            $lastSort = User::lockForUpdate()->max('sort') ?? 0;
+
             $user = new User;
             $user->name  =  $request->name;
             $user->username  =  $request->email;
             $user->user_code  =  $request->user_code;
+            $user->user_id  =  $request->user_id;
             $user->nickname  =  $request->nickname;
             $user->email  =  $request->email;
             $user->ref_position_id  =  $request->ref_position_id;
@@ -203,7 +230,7 @@ class UserController extends Controller
             $user->salary  =  $request->salary;
             $user->image_name = $image_name;
             $user->ref_branch_id  =  $request->ref_branch_id;
-            // $user->ref_branch_id  =  session("branch_id");
+            $user->sort  =  $lastSort + 1;
             $user->password = Hash::make($request->password);
             $user->save();
 
@@ -247,6 +274,7 @@ class UserController extends Controller
         $data['page_url'] = 'admin/user';
         $data['position'] = Position::get();
         $data['user'] = User::find($id);
+        // $data['all_room'] = Room::get();
         $user = Auth::user();
 
         if ($user->work_status == 3) {
@@ -257,6 +285,72 @@ class UserController extends Controller
             $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
         }
         return view('admin/user/view', $data);
+    }
+
+    public function edit_commission_room($id)
+    {
+        $data['page_url'] = 'admin/user';
+        $data['position'] = Position::get();
+        $data['course'] = Course::get();
+        $data['user'] = User::find($id);
+        $data['all_room'] = Room::with(['room_type.user_has_room_type_commission' => function ($q) use ($id) {
+                                            $q->where('ref_user_id', $id);
+                                        }])->get();
+        $user = Auth::user();
+
+        if ($user->work_status == 3) {
+            // super admin เห็นทุก branch
+            $data['branch'] = Branch::orderBy('name')->get();
+        } else {
+            // เห็นเฉพาะสาขาของตัวเอง
+            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        }
+
+        $data['user_has_room_type_commission'] = UserHasRoomTypeCommission::select(
+                                            'id',
+                                            'ref_room_type_id',
+                                            'ref_course_id',
+                                            'price',
+                                            'coupon'
+                                        )
+                                        ->get()
+                                        ->mapWithKeys(fn ($i) => [
+                                            "{$i->ref_room_type_id}_{$i->ref_course_id}" => [
+                                                "id" => $i->id,
+                                                "price" => $i->price,
+                                                "coupon" => $i->coupon
+                                            ]
+                                        ]);
+        $data['room_type_has_course'] = RoomTypeHasCourse::select(
+                                            'ref_room_type_id',
+                                            'ref_course_id',
+                                            'price'
+                                        )
+                                        ->get()
+                                        ->mapWithKeys(fn ($i) => [
+                                            "{$i->ref_room_type_id}_{$i->ref_course_id}" => $i->price
+                                        ]);
+        return view('admin/user/commission-room', $data);
+    }
+
+    public function edit_commission_option($id)
+    {
+        $data['page_url'] = 'admin/user';
+        $data['position'] = Position::get();
+        $data['user'] = User::find($id);
+        $data['all_option'] = AddonOption::with(['user_has_option_commission' => function ($q) use ($id) {
+                                            $q->where('ref_user_id', $id);
+                                        }])->get();
+        $user = Auth::user();
+
+        if ($user->work_status == 3) {
+            // super admin เห็นทุก branch
+            $data['branch'] = Branch::orderBy('name')->get();
+        } else {
+            // เห็นเฉพาะสาขาของตัวเอง
+            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        }
+        return view('admin/user/commission-option', $data);
     }
 
     public function change_status(Request $request, $id)
@@ -287,6 +381,7 @@ class UserController extends Controller
         try {
             $user = User::find($id);
             $user->user_code  =  $request->user_code;
+            $user->user_id  =  $request->user_id;
             $user->name  =  $request->name;
             $user->nickname  =  $request->nickname;
             $user->email  =  $request->email;
@@ -316,6 +411,79 @@ class UserController extends Controller
                 @unlink("$path/$lastImage");
                 $file->move($path, $image_name);
             }
+            return 1;
+        } catch (QueryException $err) {
+            DB::rollBack();
+        }
+    }
+    public function update_commission_room(Request $request, $id)
+    {
+        // return $request;
+        try {
+            // return $request;
+            if(@$request->insert){
+                foreach($request->insert as $key => $course_insert){
+                    foreach($course_insert as $key2 => $price_insert){ // 40 => [ price => ค่ามือ, coupon => คูปอง ], 60 =>  [ price => ค่ามือ, coupon => คูปอง ], 90 =>  [ price => ค่ามือ, coupon => คูปอง ]
+
+                        $uhc = new UserHasRoomTypeCommission;
+                        $uhc->ref_user_id = $id;
+                        $uhc->ref_room_type_id = $key;
+                        $uhc->ref_course_id = $key2;
+                        $uhc->price = $price_insert['price'];
+                        $uhc->coupon = $price_insert['coupon'];
+                        $uhc->save();
+
+                    }
+                }
+            }
+            if(@$request->update){
+                foreach($request->update as $key3 => $course){
+
+                    $uhc = UserHasRoomTypeCommission::find($key3);
+                    $uhc->price = $course['price'];
+                    $uhc->coupon = $course['coupon'];
+                    $uhc->save();
+                }
+            }
+
+            DB::commit();
+            return 1;
+        } catch (QueryException $err) {
+            DB::rollBack();
+        }
+    }
+    public function update_commission_option(Request $request, $id)
+    {
+        // return $request;
+        try {
+            if(@$request->insert){
+                foreach($request->insert as $key => $price_insert){
+                        // return $price_insert;
+                        $uhc = new UserHasOptionCommission;
+                        $uhc->ref_user_id = $id;
+                        $uhc->ref_option_id = $key;
+                        $uhc->price = $price_insert['price'];
+                        $uhc->coupon = $price_insert['coupon'];
+                        $uhc->save();
+
+                }
+            }
+            if(@$request->update){
+                foreach($request->update as $key3 => $uhcid){
+                    foreach($uhcid as $uhcid_id => $price_update){
+                        
+                        $uhc = UserHasOptionCommission::find($uhcid_id);
+                        $uhc->ref_user_id = $id;
+                        $uhc->ref_option_id = $key3;
+                        $uhc->price = $price_update['price'];
+                        $uhc->coupon = $price_update['coupon'];
+                        $uhc->save();
+
+                    }
+                }
+            }
+
+            DB::commit();
             return 1;
         } catch (QueryException $err) {
             DB::rollBack();

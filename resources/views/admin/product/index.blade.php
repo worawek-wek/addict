@@ -5,6 +5,10 @@
 
 <head>
     @include('admin/layout/inc_header')
+    <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
     <title>Dashboard - CRM | Vuexy - Bootstrap Admin Template</title>
 </head>
 <style>
@@ -129,7 +133,15 @@
 
                                                         <button
                                                             style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
-                                                            class="btn btn-success buttons-collection  btn-info waves-effect waves-light"
+                                                            class="btn btn-warning buttons-collection waves-effect waves-light"
+                                                            tabindex="0" aria-controls="DataTables_Table_0"
+                                                            type="button" aria-haspopup="dialog" aria-expanded="false"
+                                                            data-bs-toggle="modal" data-bs-target="#withdrawModal">
+                                                            <span><i class="ti ti-package-export"></i> เบิกสินค้า</span>
+                                                        </button>
+                                                        <button
+                                                            style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
+                                                            class="btn buttons-collection  btn-info waves-effect waves-light"
                                                             tabindex="0" aria-controls="DataTables_Table_0"
                                                             type="button" aria-haspopup="dialog" aria-expanded="false"
                                                             data-bs-toggle="modal" data-bs-target="#addserviceModal">
@@ -179,6 +191,49 @@
         <div class="drag-target"></div>
     </div>
     <!--add service  Modal -->
+    
+    <div class="modal fade modalHeadDecor" id="withdrawModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content rounded-0">
+                <div class="modal-header rounded-0">
+                    <h5 class="modal-title" id="exampleModalLabel1">&nbsp;เบิกสินค้า</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="withdraw_product" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="row g-3 p-4">
+                            
+                            <div class="col-sm-6">
+                                <select onchange='loadData("{{ $page_url }}/datatable")'
+                                        name="ref_product_id" id="select2Product"
+                                        class="select2 form-select form-select-lg p_search"
+                                        data-allow-clear="true">
+                                    <option value="all">สินค้า</option>
+                                    @foreach ($product as $pos)
+                                        <option value="{{ $pos->id }}">{{ $pos->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-sm-6">
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="" class="form-label">จำนวนที่เบิก</label><span class="text-danger">
+                                    *</span>
+                                <input name="qty" type="number" class="form-control" placeholder="จำนวนที่เบิก"
+                                    required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer rounded-0 justify-content-center">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">ปิด</button>
+                        <button type="submit" class="btn btn-main">บันทึก</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <div class="modal fade modalHeadDecor" id="addserviceModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content rounded-0">
@@ -304,6 +359,51 @@
             });
         }
 
+        $('#withdraw_product').on('submit', function(event) {
+            event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
+
+            if (!this.checkValidity()) {
+                this.reportValidity();
+                return console.log('ฟอร์มไม่ถูกต้อง');
+            }
+
+            var formData = new FormData(this);
+
+            Swal.fire({
+                title: 'ยืนยันการดำเนินการ?',
+                text: 'คุณต้องการเบิกสินค้าหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                didOpen: () => {
+                    Swal.getConfirmButton().focus();
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/admin/product/withdraw-product',
+                        type: 'POST',
+                        data: formData,
+                        contentType: false, // ✅ ต้องมี
+                        processData: false, // ✅ ต้องมี
+                        success: function(response) {
+                            if (response == true) {
+                                $('#withdraw_product')[0].reset();
+                                Swal.fire('เบิกสินค้าเรียบร้อยแล้ว', '', 'success');
+                                $('#withdrawModal').modal('hide');
+                                loadData(page);
+                            }
+                        },
+                        error: function(error) {
+                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                            console.error('เกิดข้อผิดพลาด:', error);
+                        }
+                    });
+                }
+            });
+        });
+
         $('#insert_user').on('submit', function(event) {
             event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
 
@@ -350,6 +450,46 @@
         });
 
 
+        function updateSort(el) {
+            // return alert(v);
+            let id       = el.dataset.id;
+            let oldSort  = el.dataset.old;   // ค่าเดิม
+            let newSort  = el.value;          // ค่าใหม่
+            if(newSort == ''){
+                return loadData(page);
+            }
+            Swal.fire({
+                title: 'ยืนยันการดำเนินการ?',
+                text: 'คุณต้องการเปลี่ยนลำดับหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                didOpen: () => Swal.getConfirmButton().focus()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '{{ $page_url }}/update-sort/' + id,
+                        type: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            id: id,
+                            old_sort: oldSort,
+                            new_sort: newSort
+                        },
+                        success: function (response) {
+                            if (response == true) {
+                                Swal.fire('เปลี่ยนลำดับเรียบร้อยแล้ว', '', 'success');
+                                loadData(page);
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        }
+                    });
+                }
+            });
+        }
 
         // window.onload = function() {
         //     $('#addserviceModal').modal('show');
@@ -360,6 +500,8 @@
             todayHighlight: true // ไฮไลต์วันที่ปัจจุบัน
         });
         $('#select2Position1').select2();
+        $('#select2Product').select2({ dropdownParent: $('.card-body') });
+
     </script>
 </body>
 

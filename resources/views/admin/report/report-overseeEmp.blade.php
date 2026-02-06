@@ -111,7 +111,9 @@
                                                             <button
                                                                 class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
                                                                 tabindex="0" aria-controls="DataTables_Table_0"
-                                                                type="button">
+                                                                type="button"
+                                                                    onclick="window.open('/admin/report/oversee-employee/pdf', '_blank');"
+                                                                >
                                                                 <span>
                                                                     <i class="ti ti-file-upload me-0 me-sm-1"></i>
                                                                     <span class="d-none d-sm-inline-block">พิมพ์
@@ -133,8 +135,9 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                                <div id="table-data"><!-- ตารางจะถูกโหลดตรงนี้ --></div>
                                             <table class="datatables-products table dataTable no-footer dtr-column"
-                                                id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
+                                                id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info" style="display: none;"
                                                 style="width: 1396px;">
                                                 <thead>
                                                     <tr>
@@ -561,73 +564,6 @@
                                                     </tr>
                                                 </tbody>
                                             </table>
-                                            <div class="row mt-3">
-                                                <div class="col-sm-12 col-md-6">
-                                                    <div class="dataTables_info" id="DataTables_Table_0_info"
-                                                        role="status" aria-live="polite">
-                                                        แสดง 1 ถึง 10 จาก 100 รายการ
-                                                    </div>
-                                                </div>
-                                                <div class="col-sm-12 col-md-6">
-                                                    <div class="dataTables_paginate paging_simple_numbers"
-                                                        id="DataTables_Table_0_paginate">
-                                                        <ul class="pagination justify-content-end">
-                                                            <li class="paginate_button page-item previous disabled"
-                                                                id="DataTables_Table_0_previous"><a
-                                                                    aria-controls="DataTables_Table_0"
-                                                                    aria-disabled="true" role="link"
-                                                                    data-dt-idx="previous" tabindex="-1"
-                                                                    class="page-link"><i
-                                                                        class="ti ti-chevron-left ti-sm"></i></a>
-                                                            </li>
-                                                            <li class="paginate_button page-item active">
-                                                                <a href="#" aria-controls="DataTables_Table_0"
-                                                                    role="link" aria-current="page"
-                                                                    data-dt-idx="0" tabindex="0"
-                                                                    class="page-link">1</a>
-                                                            </li>
-                                                            <li class="paginate_button page-item "><a href="#"
-                                                                    aria-controls="DataTables_Table_0" role="link"
-                                                                    data-dt-idx="1" tabindex="0"
-                                                                    class="page-link">2</a>
-                                                            </li>
-                                                            <li class="paginate_button page-item "><a href="#"
-                                                                    aria-controls="DataTables_Table_0" role="link"
-                                                                    data-dt-idx="2" tabindex="0"
-                                                                    class="page-link">3</a>
-                                                            </li>
-                                                            <li class="paginate_button page-item "><a href="#"
-                                                                    aria-controls="DataTables_Table_0" role="link"
-                                                                    data-dt-idx="3" tabindex="0"
-                                                                    class="page-link">4</a>
-                                                            </li>
-                                                            <li class="paginate_button page-item "><a href="#"
-                                                                    aria-controls="DataTables_Table_0" role="link"
-                                                                    data-dt-idx="4" tabindex="0"
-                                                                    class="page-link">5</a>
-                                                            </li>
-                                                            <li class="paginate_button page-item disabled"
-                                                                id="DataTables_Table_0_ellipsis"><a
-                                                                    aria-controls="DataTables_Table_0"
-                                                                    aria-disabled="true" role="link"
-                                                                    data-dt-idx="ellipsis" tabindex="-1"
-                                                                    class="page-link">…</a></li>
-                                                            <li class="paginate_button page-item "><a href="#"
-                                                                    aria-controls="DataTables_Table_0" role="link"
-                                                                    data-dt-idx="14" tabindex="0"
-                                                                    class="page-link">15</a>
-                                                            </li>
-                                                            <li class="paginate_button page-item next"
-                                                                id="DataTables_Table_0_next"><a href="#"
-                                                                    aria-controls="DataTables_Table_0" role="link"
-                                                                    data-dt-idx="next" tabindex="0"
-                                                                    class="page-link"><i
-                                                                        class="ti ti-chevron-right ti-sm"></i></a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -660,6 +596,40 @@
 </html>
 
 <script>
+
+        var page = "{{ route('report-oversee-employee.datatable') }}";
+        var searchData = {};
+        loadData(page);
+
+        function loadData(pages) {
+            $('.p_search').each(function() {
+                var inputName = $(this).attr('name');
+                var inputValue = $(this).val();
+                searchData[inputName] = inputValue;
+            });
+
+            // If not custom, clear custom date fields
+            if ($('select[name="date_range"]').val() !== 'custom') {
+                searchData['start_date'] = '';
+                searchData['end_date'] = '';
+            }
+
+            page = pages;
+            $.ajax({
+                type: "GET",
+                url: pages,
+                data: searchData,
+                success: function(data) {
+                    $("#table-data").html(data);
+
+                    // bind pagination click
+                    $('#table-data .pagination a').on('click', function(e) {
+                        e.preventDefault();
+                        loadData($(this).attr('href'));
+                    });
+                }
+            });
+        }
     // document.addEventListener('DOMContentLoaded', function() {
     //     // Initialize datepickers
     //     flatpickr("#datepicker-from", {

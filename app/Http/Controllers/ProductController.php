@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\StockReadyForSale;
 use App\Models\CardStocks;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,7 @@ class ProductController extends Controller
         $data['page_url'] = 'admin/product';
         $data['page'] = 'สินค้า';
         $user = Auth::user();
+        $data['product'] = Product::orderBy('name')->get();
 
         if ($user->work_status == 3) {
             // super admin เห็นทุก branch
@@ -38,7 +40,7 @@ class ProductController extends Controller
 
     public function datatable(Request $request)
     {
-        $results = Product::orderBy('id', 'DESC');
+        $results = Product::orderBy('sort');
         if (!empty($request->search)) {
             $results->where(function ($q) use ($request) {
                 $q->where('name', 'LIKE', "%{$request->search}%")
@@ -67,6 +69,27 @@ class ProductController extends Controller
         return view('admin/product/table', $data);
     }
 
+    public function update_sort(Request $request, $id)
+    {
+        try {
+            // return $request;
+            $old_sort = $request->old_sort;
+            $new_sort = $request->new_sort;
+
+            if($old_sort < $new_sort){
+                Product::where('sort', '>', $old_sort)->where('sort', '<=', $new_sort)->decrement('sort'); // ลดลง -1
+            }else{
+                Product::where('sort', '<', $old_sort)->where('sort', '>=', $new_sort)->increment('sort'); // เพิ่มขึ้น +1
+            }
+            Product::where('id', $id)->update(['sort' => $new_sort]); // ลดลง
+            // return 123;
+            DB::commit();
+            return true;
+        } catch (QueryException $err) {
+            DB::rollBack();
+        }
+    }
+
     public function card_stock_report()
     {
         $user = Auth::user();
@@ -86,14 +109,26 @@ class ProductController extends Controller
     public function card_stock_report_datatable(Request $request)
     {
         $user = Auth::user();
-    $results = CardStocks::select('card_stocks.*', 'products.name as product_name', 'branchs.name as branch_name', 'card_stocks.cost_price')
-            ->orderBy('card_stocks.id', 'DESC')
-            ->leftjoin('products', 'card_stocks.ref_product_id', '=', 'products.id')
-            ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id');
+        $results = CardStocks::select('card_stocks.*', 'products.name as product_name', 'branchs.name as branch_name', 'card_stocks.cost_price')
+                                ->orderBy('card_stocks.id', 'DESC')
+                                ->leftjoin('products', 'card_stocks.ref_product_id', '=', 'products.id')
+                                ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id');
 
         if ($user->ref_position_id != 0) {
             // filter เฉพาะสาขาของตัวเอง
             $results = $results->where('products.ref_branch_id', $user->ref_branch_id);
+        }
+        if (request()->filled('search')) {
+            $search = request()->search;
+            $results->Where(function ($query) use ($request) {
+
+                                    $query->where('card_stocks.label','LIKE','%'.$request->search.'%')
+
+                                        ->orWhere('products.name','LIKE','%'.$request->search.'%')
+
+                                        ->orWhere('card_stocks.remark','LIKE','%'.$request->search.'%');
+
+                                });
         }
         // if(@$request->brand_name){
         //     $results = $results->Where('brand_name','LIKE','%'.$request->brand_name.'%');
@@ -137,18 +172,47 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         try {
+            $lastSort = Product::lockForUpdate()->max('sort') ?? 0;
+
             $product = new Product;
             $product->ref_branch_id = $request->ref_branch_id;
             $product->name = $request->name;
             $product->price = $request->price;
             $product->cost = $request->cost;
             $product->remark = $request->remark;
+            $product->sort  =  $lastSort + 1;
             $product->save();
 
             DB::commit();
             return true;
         } catch (QueryException $err) {
             DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'บันทึกไม่สำเร็จ',
+                'error'   => $err->getMessage()
+            ], 500);
+        }
+        //
+    }
+    public function withdraw(Request $request)
+    {
+        try {
+
+            $product = new StockReadyForSale;
+            $product->ref_product_id = $request->ref_product_id;
+            $product->qty = $request->qty;;
+            $product->save();
+
+            DB::commit();
+            return true;
+        } catch (QueryException $err) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'บันทึกไม่สำเร็จ',
+                'error'   => $err->getMessage()
+            ], 500);
         }
         //
     }

@@ -4,6 +4,10 @@
 
 <head>
     @include('admin/layout/inc_header')
+    <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
     <title>Dashboard - CRM | Vuexy - Bootstrap Admin Template</title>
 </head>
 <style>
@@ -153,7 +157,7 @@
 
 
 <div class="modal fade modalHeadDecor" id="addserviceModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content rounded-0">
             <div class="modal-header rounded-0">
                 <h5 class="modal-title">เพิ่มพนักงาน</h5>
@@ -175,7 +179,12 @@
                             @endforeach
                         </div>
 
-                        <div class="col-sm-6">
+                        <div class="col-sm-3">
+                            <label class="form-label">รหัสพนักงาน *</label>
+                            <input name="user_id" type="text" class="form-control" id="user_id" required />
+                        </div>
+                        
+                        <div class="col-sm-3">
                             <label class="form-label">บัตรพนักงาน *</label>
                             <input name="user_code" type="text" class="form-control" id="user_code" required />
                         </div>
@@ -236,6 +245,17 @@
     </div>
 </div>
 
+<div class="modal fade modalHeadDecor" id="modal-commission-room" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document" id="commission_room">
+        {{-- Content จะโหลดจาก AJAX --}}
+    </div>
+</div>
+<div class="modal fade modalHeadDecor" id="modal-commission-option" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document" id="commission_option">
+        {{-- Content จะโหลดจาก AJAX --}}
+    </div>
+</div>
+
 
 @include('admin/layout/inc_js')
 <script>
@@ -270,6 +290,30 @@
         });
     }
 
+    function commission_room(id) {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        $.ajax({
+            type: "GET",
+            url: "{{ $page_url }}/commission-room/" + id,
+            success: function (data) {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                $("#commission_room").html(data);
+            }
+        });
+    }
+
+    function commission_option(id) {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        $.ajax({
+            type: "GET",
+            url: "{{ $page_url }}/commission-option/" + id,
+            success: function (data) {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                $("#commission_option").html(data);
+            }
+        });
+    }
+
     function changeStatus(id, v, element) {
         $(element).prop('checked', v === 1 ? false : true);
         Swal.fire({
@@ -300,6 +344,47 @@
         });
     }
 
+    function updateSort(el) {
+        // return alert(v);
+        let id       = el.dataset.id;
+        let oldSort  = el.dataset.old;   // ค่าเดิม
+        let newSort  = el.value;          // ค่าใหม่
+        if(newSort == ''){
+            return loadData(page);
+        }
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ?',
+            text: 'คุณต้องการเปลี่ยนลำดับหรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            didOpen: () => Swal.getConfirmButton().focus()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ $page_url }}/update-sort/' + id,
+                    type: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        id: id,
+                        old_sort: oldSort,
+                        new_sort: newSort
+                    },
+                    success: function (response) {
+                        if (response == true) {
+                            Swal.fire('เปลี่ยนลำดับเรียบร้อยแล้ว', '', 'success');
+                            loadData(page);
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    }
+                });
+            }
+        });
+    }
+    
     function delete_view(id, v, element) {
         $(element).prop('checked', v === 1 ? false : true);
         Swal.fire({

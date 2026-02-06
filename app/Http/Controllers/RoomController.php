@@ -34,9 +34,43 @@ class RoomController extends Controller
         return view('admin/room/index', $data);
     }
 
+    public function change_status(Request $request, $id)
+    {
+        try {
+
+            $user = Room::find($id);
+            $user->ref_status_id = $request->ref_status_id;
+            $user->save();
+
+            DB::commit();
+            return true;
+        } catch (QueryException $err) {
+            DB::rollBack();
+        }
+    }
+    public function update_sort(Request $request, $id)
+    {
+        try {
+            // return $request;
+            $old_sort = $request->old_sort;
+            $new_sort = $request->new_sort;
+
+            if($old_sort < $new_sort){
+                Room::where('sort', '>', $old_sort)->where('sort', '<=', $new_sort)->decrement('sort'); // ลดลง -1
+            }else{
+                Room::where('sort', '<', $old_sort)->where('sort', '>=', $new_sort)->increment('sort'); // เพิ่มขึ้น +1
+            }
+            Room::where('id', $id)->update(['sort' => $new_sort]); // ลดลง
+            // return 123;
+            DB::commit();
+            return true;
+        } catch (QueryException $err) {
+            DB::rollBack();
+        }
+    }
     public function datatable(Request $request)
     {
-        $results = Room::orderBy('id', 'DESC');
+        $results = Room::orderBy('sort', 'asc');
 
         // 🔍 search
         if (!empty($request->search)) {
@@ -88,13 +122,16 @@ class RoomController extends Controller
     public function store(Request $request)
     {
         try {
+            $lastSort = Room::lockForUpdate()->max('sort') ?? 0;
+
             $room = new Room;
             $room->ref_branch_id = $request->ref_branch_id;
             $room->name = $request->name;
-            $room->sixty_minutes = $request->sixty_minutes;
-            $room->ninety_minutes = $request->ninety_minutes;
-            $room->forty_minutes = $request->forty_minutes;
+            // $room->sixty_minutes = $request->sixty_minutes;
+            // $room->ninety_minutes = $request->ninety_minutes;
+            // $room->forty_minutes = $request->forty_minutes;
             $room->remark = $request->remark;
+            $room->sort  =  $lastSort + 1;
             $room->save();
 
             DB::commit();
@@ -153,9 +190,9 @@ class RoomController extends Controller
             $room = Room::find($id);
             $room->ref_branch_id = $request->ref_branch_id;
             $room->name = $request->name;
-            $room->forty_minutes = $request->forty_minutes;
-            $room->sixty_minutes = $request->sixty_minutes;
-            $room->ninety_minutes = $request->ninety_minutes;
+            // $room->forty_minutes = $request->forty_minutes;
+            // $room->sixty_minutes = $request->sixty_minutes;
+            // $room->ninety_minutes = $request->ninety_minutes;
             $room->remark = $request->remark;
             $room->save();
 
@@ -172,7 +209,7 @@ class RoomController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function delete($id)
     {
         try {
             Room::destroy($id);

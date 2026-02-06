@@ -15,7 +15,7 @@
     <tbody>
         @foreach ($orderRooms as $order)
             <tr>
-                <td>{{ $order->id }}</td>
+                <td>{{ $loop->iteration + (($orderRooms->currentPage() - 1) * $orderRooms->perPage()) }}</td>
                 <td>{{ $order->branch->name ?? '-' }}</td>
                 <td>{{ $order->customer->name ?? '-' }}</td>
                 <td>{{ $order->room->name ?? '-' }}</td>

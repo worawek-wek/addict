@@ -36,6 +36,8 @@ class AddonOptionController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
             'branch' => 'nullable|integer',
+            'commission' => 'nullable|numeric|min:0',
+            'coupon'     => 'nullable|numeric|min:0',
         ]);
         AddonOption::create($validated);
     return redirect()->route('addon_options.index')->with('success', 'Option created successfully.');
@@ -59,7 +61,10 @@ class AddonOptionController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
             'branch' => 'nullable|integer',
+            'commission' => 'nullable|numeric|min:0',
+            'coupon'     => 'nullable|numeric|min:0',
         ]);
+
         $option = AddonOption::findOrFail($id);
         $option->update($validated);
     return redirect()->route('addon_options.index')->with('success', 'Option updated successfully.');

@@ -67,7 +67,7 @@
                                                 <span class="fw-medium mx-2 me-4 text-heading">ชื่อห้อง:</span>
                                                 <span>{{ $room->name }}</span>
                                             </li>
-                                            <li class="d-flex align-items-center mb-3">
+                                            {{-- <li class="d-flex align-items-center mb-3">
                                                 <i class="ti ti-clock text-heading"></i>
                                                 <span class="fw-medium mx-2 me-4 text-heading">ราคา 40 นาที:</span>
                                                 <span>{{ number_format($room->forty_minutes, 2) }}</span>
@@ -81,7 +81,7 @@
                                                 <i class="ti ti-clock-hour-2 text-heading"></i>
                                                 <span class="fw-medium mx-2 me-4 text-heading">ราคา 90 นาที:</span>
                                                 <span>{{ number_format($room->ninety_minutes, 2) }}</span>
-                                            </li>
+                                            </li> --}}
                                             <li class="d-flex align-items-center mb-3">
                                                 <i class="ti ti-file-description text-heading"></i>
                                                 <span class="fw-medium mx-2 me-4 text-heading">หมายเหตุ:</span>
@@ -118,7 +118,7 @@
                                                    value="{{ $room->name }}" required />
                                         </div>
 
-                                        <div class="col-sm-6">
+                                        {{-- <div class="col-sm-6">
                                             <label class="form-label">ราคา 40 นาที *</label>
                                             <input name="forty_minutes" type="number" step="0.01" class="form-control"
                                                    value="{{ $room->forty_minutes }}" required />
@@ -134,7 +134,7 @@
                                             <label class="form-label">ราคา 90 นาที *</label>
                                             <input name="ninety_minutes" type="number" step="0.01" class="form-control"
                                                    value="{{ $room->ninety_minutes }}" required />
-                                        </div>
+                                        </div> --}}
 
                                         <div class="col-sm-12">
                                             <label class="form-label">หมายเหตุ</label>
@@ -174,6 +174,17 @@ $('#edit_room').on('submit', function(event) {
         showCancelButton: true,
         confirmButtonText: 'ตกลง',
         cancelButtonText: 'ยกเลิก',
+        allowEnterKey: true,
+
+        didOpen: () => {
+            // 🔥 ดัก Enter แบบ force
+            document.addEventListener('keydown', handleSwalEnter);
+        },
+
+        willClose: () => {
+            // 🧹 ล้าง event ตอนปิด
+            document.removeEventListener('keydown', handleSwalEnter);
+        }
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({

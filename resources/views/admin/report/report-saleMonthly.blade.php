@@ -109,7 +109,9 @@
                                                                 <button
                                                                     class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
                                                                     tabindex="0" aria-controls="DataTables_Table_0"
-                                                                    type="button">
+                                                                    type="button"
+                                                                    onclick="window.open('/admin/report/monthly-sale/pdf', '_blank');"
+                                                                    >
                                                                     <span>
                                                                         <i class="ti ti-file-upload me-0 me-sm-1"></i>
                                                                         <span class="d-none d-sm-inline-block">พิมพ์
@@ -133,7 +135,9 @@
 
                                                     </div>
                                                 </div>
-                                                <table class="datatables-products table dataTable no-footer dtr-column"
+                                                <div id="table-data"><!-- ตารางจะถูกโหลดตรงนี้ --></div>
+
+                                                <table class="datatables-products table dataTable no-footer dtr-column" style="display: none;"
                                                     id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
                                                     style="width: 1396px;">
                                                     <thead class="border-top">
@@ -410,7 +414,7 @@
                                                         </tr>
                                                     </tbody>
                                                 </table>
-                                                <div class="row mt-3">
+                                                <div class="row mt-3" style="display: none;">
                                                     <div class="col-sm-12 col-md-6">
                                                         <div class="dataTables_info" id="DataTables_Table_0_info"
                                                             role="status" aria-live="polite">
@@ -515,6 +519,39 @@
 </html>
 
 <script>
+        var page = "{{ route('report-sale-monthly.datatable') }}";
+        var searchData = {};
+        loadData(page);
+
+        function loadData(pages) {
+            $('.p_search').each(function() {
+                var inputName = $(this).attr('name');
+                var inputValue = $(this).val();
+                searchData[inputName] = inputValue;
+            });
+
+            // If not custom, clear custom date fields
+            if ($('select[name="date_range"]').val() !== 'custom') {
+                searchData['start_date'] = '';
+                searchData['end_date'] = '';
+            }
+
+            page = pages;
+            $.ajax({
+                type: "GET",
+                url: pages,
+                data: searchData,
+                success: function(data) {
+                    $("#table-data").html(data);
+
+                    // bind pagination click
+                    $('#table-data .pagination a').on('click', function(e) {
+                        e.preventDefault();
+                        loadData($(this).attr('href'));
+                    });
+                }
+            });
+        }
     // document.addEventListener('DOMContentLoaded', function() {
     //     // Initialize datepickers
     //     flatpickr("#datepicker-from", {

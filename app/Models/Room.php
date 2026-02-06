@@ -17,28 +17,21 @@ class Room extends Model
     protected $primaryKey = 'id';
     protected $table = 'rooms';
 
-
-   
-
-    public function floor()
+    public function order()
     {
-        return $this->belongsTo(Floor::class, 'ref_floor_id');
+        return $this->hasOne('App\Models\Order', 'ref_room_id', 'id')->orderBy('id', 'DESC');
     }
-    public function room_for_rent()
+    public function room_group()
     {
-        return $this->hasOne('App\Models\RoomForRents', 'ref_room_id', 'id')->where('status', 0);
+        return $this->belongsTo(RoomGroupModel::class, 'room_group_id', 'id');
     }
-    public function room_has_service()
+    public function room_type()
     {
-        return $this->hasMany('App\Models\RoomHasService', 'ref_room_id', 'id');
+        return $this->hasMany('App\Models\RoomType', 'ref_room_id', 'id');
     }
     public function branch()
     {
         return $this->hasOne('App\Models\Branch', 'id', 'ref_branch_id');
     }
 
-    public function room_group()
-    {
-        return $this->belongsTo(RoomGroupModel::class, 'room_group_id', 'id');
-    }
 }

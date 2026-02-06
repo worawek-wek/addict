@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\CheerCharge;
 use App\Models\CommissionsHistory;
+use App\Models\DailySalesClosure;
 use App\Models\Order;
 use App\Models\OrderStatus;
 use Illuminate\Http\Request;
@@ -52,6 +53,7 @@ class OrderRoomController extends Controller
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::with(['branch', 'customer', 'user', 'room', 'status'])
+            ->where('type', 1)
             ->select('orders.*')
             ->orderByRaw("
             CASE
@@ -79,6 +81,11 @@ class OrderRoomController extends Controller
             $query->where('ref_branch_id', request()->branch_id);
         }
 
+        $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
+
+        if (@$DailySalesClosure) {
+            $query->where('created_at', ">" ,$DailySalesClosure->date_time);
+        }
 
         // filter ค้นหา
         if (request()->filled('search')) {

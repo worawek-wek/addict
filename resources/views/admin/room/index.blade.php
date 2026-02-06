@@ -5,6 +5,10 @@
 <head>
     @include('admin/layout/inc_header')
     <title>Dashboard - CRM | Vuexy - Bootstrap Admin Template</title>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
 </head>
 
 <style>
@@ -71,7 +75,7 @@
                                             </h4>
                                         </div>
                                         <div class="col-sm-3">
-                                            <select name="ref_branch_id" class="form-select p_search"
+                                            <select name="ref_branch_id" class="selectpicker p_search" data-style="btn-default"
                                                     onchange='loadData("{{ $page_url }}/datatable")' required>
                                                 @if (Auth::user()->work_status == 3)
                                                     <option value="">ทั้งหมด</option>
@@ -191,24 +195,6 @@
                             <input name="name" type="text" class="form-control" placeholder="ชื่อห้อง" required />
                         </div>
 
-                        <div class="col-sm-6">
-                            <label class="form-label">ราคา 40 นาที/บริการ *</label>
-                            <input name="forty_minutes" type="number" step="0.01" class="form-control"
-                                   placeholder="ราคา 40 นาที/บริการ" required />
-                        </div>
-
-                        <div class="col-sm-6">
-                            <label class="form-label">ราคา 60 นาที/บริการ *</label>
-                            <input name="sixty_minutes" type="number" step="0.01" class="form-control"
-                                   placeholder="ราคา 60 นาที/บริการ" required />
-                        </div>
-
-                        <div class="col-sm-6">
-                            <label class="form-label">ราคา 90 นาที/บริการ *</label>
-                            <input name="ninety_minutes" type="number" step="0.01" class="form-control"
-                                   placeholder="ราคา 90 นาที/บริการ" required />
-                        </div>
-
                         <div class="col-sm-12">
                             <label class="form-label">หมายเหตุ</label>
                             <textarea name="remark" class="form-control"></textarea>
@@ -264,9 +250,77 @@
         });
     }
 
+    function changeStatus(id, v, element) {
+        $(element).prop('checked', v === 1 ? false : true);
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ?',
+            text: 'คุณต้องการเปลี่ยนสถานะหรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            didOpen: () => Swal.getConfirmButton().focus()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ $page_url }}/change-status/' + id,
+                    type: 'POST',
+                    data: { ref_status_id: v, _token: "{{ csrf_token() }}" },
+                    success: function (response) {
+                        if (response == true) {
+                            Swal.fire('เปลี่ยนสถานะเรียบร้อยแล้ว', '', 'success');
+                            loadData(page);
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    }
+                });
+            }
+        });
+    }
+    function updateSort(el) {
+        // return alert(v);
+        let id       = el.dataset.id;
+        let oldSort  = el.dataset.old;   // ค่าเดิม
+        let newSort  = el.value;          // ค่าใหม่
+        if(newSort == ''){
+            return loadData(page);
+        }
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ?',
+            text: 'คุณต้องการเปลี่ยนลำดับหรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            didOpen: () => Swal.getConfirmButton().focus()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ $page_url }}/update-sort/' + id,
+                    type: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        id: id,
+                        old_sort: oldSort,
+                        new_sort: newSort
+                    },
+                    success: function (response) {
+                        if (response == true) {
+                            Swal.fire('เปลี่ยนลำดับเรียบร้อยแล้ว', '', 'success');
+                            loadData(page);
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    }
+                });
+            }
+        });
+    }
     $('#insert_user').on('submit', function (event) {
         event.preventDefault();
-
         if (!this.checkValidity()) {
             this.reportValidity();
             return console.log('ฟอร์มไม่ถูกต้อง');
@@ -281,8 +335,16 @@
             showCancelButton: true,
             confirmButtonText: 'ตกลง',
             cancelButtonText: 'ยกเลิก',
+            allowEnterKey: true,
+
             didOpen: () => {
-                Swal.getConfirmButton().focus();
+                // 🔥 ดัก Enter แบบ force
+                document.addEventListener('keydown', handleSwalEnter);
+            },
+
+            willClose: () => {
+                // 🧹 ล้าง event ตอนปิด
+                document.removeEventListener('keydown', handleSwalEnter);
             }
         }).then((result) => {
             if (result.isConfirmed) {
@@ -308,6 +370,54 @@
             }
         });
     });
+    function handleSwalEnter(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+
+            const confirmBtn = Swal.getConfirmButton();
+            if (confirmBtn) {
+                confirmBtn.click(); // 🔥 ยิง confirm ทันที
+            }
+        }
+    }
+    function Delete(id){
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ?',
+            text: 'ห้องจะถูกลบออก?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            showDenyButton: false,
+            didOpen: () => {
+                // โฟกัสที่ปุ่ม confirm
+                Swal.getConfirmButton().focus();
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: "DELETE",
+                    url: "{{ $page_url }}/"+id,
+                    data: {
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function(response) {
+                        if(response == true){
+                            Swal.fire('ลบห้องเรียบร้อยแล้ว', '', 'success');
+                            loadData(page);
+                            summary();
+                        }
+                    },
+                    error: function(error) {
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        console.error('เกิดข้อผิดพลาด:', error);
+                    }
+                });
+            } else if (result.isDismissed) {
+                // Swal.fire('ยกเลิกการดำเนินการ', '', 'info');
+            }
+        });
+    }
 </script>
 </body>
 </html>

@@ -55,6 +55,18 @@
                                                     @endforeach
                                                 </select>
                                             </div>
+                                            <div class="row g-3">
+                                                <div class="col-sm-4">
+                                                    <label class="form-label">ค่ามือ</label>
+                                                    <input name="commission" type="number" step="any" class="form-control"
+                                                        placeholder="ค่ามือ" />
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <label class="form-label">คูปอง</label>
+                                                    <input name="coupon" type="number" step="any" class="form-control"
+                                                        placeholder="คูปอง" />
+                                                </div>
+                                            </div>
                                             <div class="text-end">
                                                 <button type="submit" class="btn btn-success">บันทึก</button>
                                                 <a href="{{ route('addon_options.index') }}" class="btn btn-secondary">กลับ</a>

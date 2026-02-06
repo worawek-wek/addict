@@ -1,9 +1,5 @@
-<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet" />
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
 
 <div class="modal-content rounded-0">
   <div class="modal-header rounded-0">
@@ -89,10 +85,14 @@
                       @endforeach
                     </div>
 
-                    <div class="col-sm-6">
+                    <div class="col-sm-3">
+                        <label class="form-label">รหัสพนักงาน *</label>
+                        <input name="user_id" type="text" class="form-control" id="user_id" value="{{ $user->user_id }}" required />
+                    </div>
+
+                    <div class="col-sm-3">
                       <label class="form-label">บัตรพนักงาน *</label>
-                      <input name="user_code" value="{{ $user->user_code }}" type="text"
-                             class="form-control" required />
+                      <input name="user_code" value="{{ $user->user_code }}" type="text" class="form-control" required />
                     </div>
 
                     <div class="col-sm-6">
@@ -107,7 +107,7 @@
 
                     <div class="col-sm-6">
                       <label class="form-label">ตำแหน่ง</label>
-                      <select name="ref_position_id" id="select2EditPosition" class="select2 form-select">
+                      <select name="ref_position_id" id="select2EditPosition">
                         @foreach ($position as $pos)
                           <option value="{{ $pos->id }}" {{ $user->ref_position_id == $pos->id ? 'selected' : '' }}>
                             {{ $pos->position_name }}
@@ -151,7 +151,17 @@
     </div>
   </div>
 </div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+  setTimeout(() => {
+    new TomSelect("#select2EditPosition", {
+                        create: false,
+                        maxItems: 1,
+                        allowEmptyOption: true,
+                        sortField: { field: "text", direction: "asc" }
+                    });
+  }, 1000);
+</script>
 <script>
   // preview image
   function handleFileInput(fileInputId, previewId) {
@@ -207,9 +217,11 @@
   });
 
   $(document).ready(function() {
-    $('#select2EditPosition').select2({
-      dropdownParent: $('#insurance')
-    });
+    // $('#select2EditPosition').select2({
+    //   dropdownParent: $('#insurance')
+    // });
+    
+
     // toggle salary input by position
     $('#select2EditPosition').on('change', function() {
       if ($(this).val() == '2') {

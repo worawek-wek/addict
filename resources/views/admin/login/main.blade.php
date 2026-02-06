@@ -136,17 +136,26 @@
             }).then(res => {
                 location.href = '/admin/user'
             }).catch(err => {
-                $('#btn-login').html('Login')
-                if (err.response.data.message != 'Wrong email or password.') {
-                    for (const [key, val] of Object.entries(err.response.data.errors)) {
-                        $(`#${key}`).addClass('border-danger')
-                        $(`#error-${key}`).html(val)
-                    }
-                } else {
-                    $(`#password`).addClass('border-danger')
-                    $(`#error-password`).html(err.response.data.message)
-                }
-            })
+              $('#btn-login').html('Login')
+
+              // ✅ ตรวจจับกรณี token mismatch
+              if (err.response && err.response.data && err.response.data.message === 'CSRF token mismatch.') {
+                  // แสดงข้อความ หรือ refresh หน้า
+                  alert('Session หมดอายุ กำลังรีเฟรชหน้าใหม่...')
+                  location.reload() // 🔄 รีเฟรชหน้า
+                  return
+              }
+
+              if (err.response.data.message != 'Wrong email or password.') {
+                  for (const [key, val] of Object.entries(err.response.data.errors)) {
+                      $(`#${key}`).addClass('border-danger')
+                      $(`#error-${key}`).html(val)
+                  }
+              } else {
+                  $(`#password`).addClass('border-danger')
+                  $(`#error-password`).html(err.response.data.message)
+              }
+          })
         }
 
         $('#login-form').on('keyup', function(e) {
