@@ -158,7 +158,7 @@ class ReportController extends Controller
 
         return $orderRooms;
     }
-    
+
     public function coupon_report_pdf(Request $request)
     {
         $now = Carbon::now()->format('Y-m-d H:i:s');
@@ -534,6 +534,10 @@ class ReportController extends Controller
                         ->orderBy('booking_date')
                         ->orderBy('start_time')
                         ->get();
+        $data['discounts_summary'] = $data['orderRooms']->sum('discount');
+        $data['addons_sum_price'] = $data['orderRooms']->sum('addons_sum_price');
+        $data['summary_receive_price'] = $data['orderRooms']->sum('price');
+        $data['summary_receive_price_after_discount'] = $data['orderRooms']->sum('total_price');
 
         $html = view('admin.report.report-saleMonthly-pdf', $data)->render();
 

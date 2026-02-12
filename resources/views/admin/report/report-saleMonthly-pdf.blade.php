@@ -68,9 +68,47 @@
         @endforeach
         @if ($orderRooms->isEmpty())
             <tr>
-                <td colspan="10" class="text-center">ไม่มีข้อมูล</td>
+                <td colspan="14" class="text-center">ไม่มีข้อมูล</td>
+            </tr>
+        @else
+            <!-- Summary Row -->
+            <tr style="font-weight: bold; background: #e0e0e0;">
+                <td colspan="6" style="text-align: right;">รวมยอดทั้งหมด</td>
+                <td>{{ number_format($discounts_summary ?? 0) }}</td>
+                <td>{{ number_format($addons_sum_price ?? 0) }}</td>
+                <td></td>
+                <td></td>
+                <td>{{ number_format($summary_receive_price ?? 0) }}</td>
+                <td></td>
+                <td>{{ number_format($summary_receive_price_after_discount ?? 0) }}</td>
+                <td></td>
             </tr>
         @endif
 
     </tbody>
 </table>
+
+<!-- สรุปยอดรวมทั้งหมด (Summary Box) -->
+<div style="margin-top:30px; width:100%;">
+    <table style="width: 60%; margin: 0 auto; border: 2px solid #333; font-size: 12px;">
+        <tr style="background: #f7f7f7; font-weight: bold;">
+            <td colspan="2" style="text-align:center; border-bottom:2px solid #333;">สรุปยอดรวมประจำเดือน</td>
+        </tr>
+        <tr>
+            <td style="text-align:right; padding-right: 20px;">ยอดรวมส่วนลด (Discount)</td>
+            <td style="text-align:right; padding-right: 20px;">{{ number_format($discounts_summary ?? 0, 2) }} บาท</td>
+        </tr>
+        <tr>
+            <td style="text-align:right; padding-right: 20px;">ยอดรวม Addon</td>
+            <td style="text-align:right; padding-right: 20px;">{{ number_format($addons_sum_price ?? 0, 2) }} บาท</td>
+        </tr>
+        <tr>
+            <td style="text-align:right; padding-right: 20px;">ยอดรับจริงก่อนหักส่วนลด</td>
+            <td style="text-align:right; padding-right: 20px;">{{ number_format($summary_receive_price ?? 0, 2) }} บาท</td>
+        </tr>
+        <tr>
+            <td style="text-align:right; padding-right: 20px;">ยอดรับจริงหลังหักส่วนลด</td>
+            <td style="text-align:right; padding-right: 20px; font-weight:bold; color:#1a8917;">{{ number_format($summary_receive_price_after_discount ?? 0, 2) }} บาท</td>
+        </tr>
+    </table>
+</div>
