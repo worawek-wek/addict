@@ -151,7 +151,7 @@ class OrderRoomController extends Controller
         if($room_course){
             $room_course_price = $room_course->price;
         }
-        
+
         $statusId   = $orderRoom->status->id ?? null;
         $statusName = $orderRoom->status->name ?? 'ไม่ระบุ';
 

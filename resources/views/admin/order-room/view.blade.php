@@ -10,22 +10,18 @@
     </div>
 
     <div class="modal-body bg-light p-4">
-        {{-- ข้อมูลต่าง ๆ --}}
+        {{-- ข้อมูลการจอง --}}
         <div class="bg-white p-3 rounded-3 shadow-sm mb-3">
+            <h6 class="border-bottom pb-2 mb-3 fw-bold">
+                <i class="ti ti-calendar-event me-2"></i>ข้อมูลการจอง
+            </h6>
             <div class="row mb-3">
                 <div class="col-md-6"><strong>สาขา:</strong> {{ $orderRoom->branch->name ?? '-' }}</div>
                 <div class="col-md-6"><strong>ห้อง:</strong> {{ $orderRoom->room->name ?? '-' }}</div>
             </div>
             <div class="row mb-3">
-                <div class="col-md-6"><strong>ลูกค้า:</strong> {{ $orderRoom->customer->name ?? 'Walk-in' }}</div>
-                <div class="col-md-6"><strong>เบอร์โทร:</strong> {{ $orderRoom->customer->phone ?? '-' }}</div>
-            </div>
-            <div class="row mb-3">
                 <div class="col-md-6"><strong>พนักงานนวด:</strong> {{ $orderRoom->user->name ?? '-' }}</div>
                 <div class="col-md-6"><strong>พนักงานขาย:</strong> {{ $orderRoom->seller->name ?? 'ONLINE' }}</div>
-            </div>
-            <div class="row mb-3">
-                <!-- วิธีการชำระเงิน dropdown ย้ายไปด้านล่าง -->
             </div>
             <div class="row">
                 <div class="col-md-4"><strong>วันที่จอง:</strong>
@@ -36,6 +32,76 @@
                     {{ \Carbon\Carbon::parse($orderRoom->end_time)->format('H:i') }}</div>
             </div>
         </div>
+
+        {{-- ข้อมูลลูกค้า --}}
+        @if($orderRoom->customer)
+        <div class="bg-white p-3 rounded-3 shadow-sm mb-3">
+            <h6 class="border-bottom pb-2 mb-3 fw-bold">
+                <i class="ti ti-user me-2"></i>ข้อมูลลูกค้า
+            </h6>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong><i class="ti ti-user-circle me-1"></i>ชื่อ-นามสกุล:</strong>
+                    {{ $orderRoom->customer->name ?? '-' }}
+                </div>
+                <div class="col-md-6">
+                    <strong><i class="ti ti-flag me-1"></i>สัญชาติ:</strong>
+                    {{ $orderRoom->customer->nationality ?? '-' }}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <strong><i class="ti ti-phone me-1"></i>เบอร์โทร:</strong>
+                    {{ $orderRoom->customer->phone ?? '-' }}
+                </div>
+            </div>
+
+            {{-- ช่องทางติดต่อ --}}
+            @php
+                $contacts = [
+                    'contact_line' => ['icon' => 'fa-brands fa-line', 'label' => 'LINE', 'color' => 'success'],
+                    'contact_whatsapp' => ['icon' => 'fa-brands fa-whatsapp', 'label' => 'WhatsApp', 'color' => 'success'],
+                    'contact_wechat' => ['icon' => 'fa-brands fa-weixin', 'label' => 'WeChat', 'color' => 'success'],
+                    'contact_telegram' => ['icon' => 'fa-brands fa-telegram', 'label' => 'Telegram', 'color' => 'info'],
+                    'contact_email' => ['icon' => 'fa-regular fa-envelope', 'label' => 'Email', 'color' => 'secondary'],
+                ];
+                $hasContact = false;
+                foreach($contacts as $key => $info) {
+                    if(!empty($orderRoom->customer->$key)) {
+                        $hasContact = true;
+                        break;
+                    }
+                }
+            @endphp
+
+            @if($hasContact)
+            <div class="mt-3 pt-3 border-top">
+                <strong class="d-block mb-2"><i class="ti ti-message-circle me-1"></i>ช่องทางติดต่อ:</strong>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach($contacts as $key => $info)
+                        @if(!empty($orderRoom->customer->$key))
+                            <span class="badge bg-{{ $info['color'] }} bg-opacity-10 text-{{ $info['color'] }} px-3 py-2">
+                                <i class="{{ $info['icon'] }} me-1"></i>
+                                {{ $info['label'] }}: <strong>{{ $orderRoom->customer->$key }}</strong>
+                            </span>
+                        @endif
+                    @endforeach
+                </div>
+            </div>
+            @else
+            <div class="mt-3 pt-3 border-top">
+                <span class="text-muted"><i class="ti ti-info-circle me-1"></i>ไม่มีข้อมูลช่องทางติดต่อ</span>
+            </div>
+            @endif
+        </div>
+        @else
+        <div class="bg-white p-3 rounded-3 shadow-sm mb-3">
+            <h6 class="border-bottom pb-2 mb-3 fw-bold">
+                <i class="ti ti-user me-2"></i>ข้อมูลลูกค้า
+            </h6>
+            <p class="text-muted mb-0"><i class="ti ti-walk me-1"></i>Walk-in (ไม่มีข้อมูลลูกค้า)</p>
+        </div>
+        @endif
 
         {{-- ตารางแสดงรายการสินค้า --}}
         <div class="bg-white p-3 rounded-3 shadow-sm mb-3">
@@ -125,10 +191,10 @@
             </select>
         </div> --}}
         @if ($orderRoom->ref_status_id != 3 )
-            
+
         <div class="bg-white p-3 rounded-3 shadow-sm">
             <div align="center">
-                <button 
+                <button
                     type="button"
                     id="btn-finish-service"
                     class="btn btn-warning btn-lg fw-bold"
