@@ -8,11 +8,29 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class Customer extends Authenticatable
 {
     // use HasFactory;
-   protected $fillable = [
-        'name','first_name','last_name','nationality','phone',
-        'contact_app','contact_app_handle','id_card','password','ref_branch_id',
-        'email', // ถ้ามี
+    protected $fillable = [
+        'name',
+        'first_name',
+        'last_name',
+        'nationality',
+        'phone',
+        'contact_app',
+        'contact_app_handle',
+        'id_card',
+        'password',
+        'ref_branch_id',
+        'email',
+        "contact_line",
+        "contact_whatsapp",
+        "contact_wechat",
+        "contact_telegram",
+        "contact_email"
     ];
+
+
+
+
+
 
     protected $hidden = ['password', 'remember_token'];
 

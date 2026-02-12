@@ -158,6 +158,17 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'first_name' => 'First name',
+        'last_name' => 'Last name',
+        'nationality' => 'Nationality',
+        'phone' => 'Phone',
+        'contact_line' => 'LINE ID',
+        'contact_whatsapp' => 'WhatsApp',
+        'contact_wechat' => 'WeChat',
+        'contact_telegram' => 'Telegram',
+        'contact_email' => 'Email',
+        'password' => 'Password',
+    ],
 
 ];

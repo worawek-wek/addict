@@ -6,6 +6,17 @@
     @include('frontend.layout.inc_header')
 </head>
 
+@if (session('success'))
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: '{{ session('success') }}',
+            confirmButtonText: 'OK'
+        });
+    </script>
+@endif
+
+
 <body class="bg-addict bgs-100">
     <div class="container">
         <div class="authentication-wrapper authentication-basic">

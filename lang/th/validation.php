@@ -1,0 +1,146 @@
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validation Language Lines (Thai)
+    |--------------------------------------------------------------------------
+    */
+
+    'accepted' => ':attribute ต้องได้รับการยอมรับ',
+    'active_url' => ':attribute ไม่ใช่ URL ที่ถูกต้อง',
+    'after' => ':attribute ต้องเป็นวันที่หลังจาก :date',
+    'after_or_equal' => ':attribute ต้องเป็นวันที่หลังหรือเท่ากับ :date',
+    'alpha' => ':attribute ต้องเป็นตัวอักษรเท่านั้น',
+    'alpha_dash' => ':attribute ต้องเป็นตัวอักษร ตัวเลข เครื่องหมายขีดกลาง และขีดล่างเท่านั้น',
+    'alpha_num' => ':attribute ต้องเป็นตัวอักษรและตัวเลขเท่านั้น',
+    'array' => ':attribute ต้องเป็น array',
+    'before' => ':attribute ต้องเป็นวันที่ก่อน :date',
+    'before_or_equal' => ':attribute ต้องเป็นวันที่ก่อนหรือเท่ากับ :date',
+    'between' => [
+        'numeric' => ':attribute ต้องอยู่ระหว่าง :min ถึง :max',
+        'file' => ':attribute ต้องมีขนาดระหว่าง :min ถึง :max กิโลไบต์',
+        'string' => ':attribute ต้องมีความยาวระหว่าง :min ถึง :max ตัวอักษร',
+        'array' => ':attribute ต้องมีรายการระหว่าง :min ถึง :max รายการ',
+    ],
+    'boolean' => ':attribute ต้องเป็นจริงหรือเท็จ',
+    'confirmed' => 'ยืนยัน:attribute ไม่ตรงกัน',
+    'current_password' => 'รหัสผ่านไม่ถูกต้อง',
+    'date' => ':attribute ไม่ใช่วันที่ที่ถูกต้อง',
+    'date_equals' => ':attribute ต้องเป็นวันที่เท่ากับ :date',
+    'date_format' => ':attribute ไม่ตรงกับรูปแบบ :format',
+    'declined' => ':attribute ต้องถูกปฏิเสธ',
+    'declined_if' => ':attribute ต้องถูกปฏิเสธเมื่อ :other เป็น :value',
+    'different' => ':attribute และ :other ต้องแตกต่างกัน',
+    'digits' => ':attribute ต้องเป็นตัวเลข :digits หลัก',
+    'digits_between' => ':attribute ต้องมีตัวเลขระหว่าง :min ถึง :max หลัก',
+    'dimensions' => ':attribute มีขนาดของภาพไม่ถูกต้อง',
+    'distinct' => ':attribute มีค่าซ้ำกัน',
+    'email' => ':attribute รูปแบบไม่ถูกต้อง',
+    'ends_with' => ':attribute ต้องลงท้ายด้วย: :values',
+    'enum' => ':attribute ที่เลือกไม่ถูกต้อง',
+    'exists' => ':attribute ที่เลือกไม่ถูกต้อง',
+    'file' => ':attribute ต้องเป็นไฟล์',
+    'filled' => ':attribute ต้องมีค่า',
+    'gt' => [
+        'numeric' => ':attribute ต้องมากกว่า :value',
+        'file' => ':attribute ต้องมีขนาดมากกว่า :value กิโลไบต์',
+        'string' => ':attribute ต้องมีความยาวมากกว่า :value ตัวอักษร',
+        'array' => ':attribute ต้องมีมากกว่า :value รายการ',
+    ],
+    'gte' => [
+        'numeric' => ':attribute ต้องมากกว่าหรือเท่ากับ :value',
+        'file' => ':attribute ต้องมีขนาดมากกว่าหรือเท่ากับ :value กิโลไบต์',
+        'string' => ':attribute ต้องมีความยาวมากกว่าหรือเท่ากับ :value ตัวอักษร',
+        'array' => ':attribute ต้องมี :value รายการหรือมากกว่า',
+    ],
+    'image' => ':attribute ต้องเป็นรูปภาพ',
+    'in' => ':attribute ที่เลือกไม่ถูกต้อง',
+    'in_array' => ':attribute ไม่มีอยู่ใน :other',
+    'integer' => ':attribute ต้องเป็นจำนวนเต็ม',
+    'ip' => ':attribute ต้องเป็น IP address ที่ถูกต้อง',
+    'ipv4' => ':attribute ต้องเป็น IPv4 address ที่ถูกต้อง',
+    'ipv6' => ':attribute ต้องเป็น IPv6 address ที่ถูกต้อง',
+    'json' => ':attribute ต้องเป็น JSON string ที่ถูกต้อง',
+    'lt' => [
+        'numeric' => ':attribute ต้องน้อยกว่า :value',
+        'file' => ':attribute ต้องมีขนาดน้อยกว่า :value กิโลไบต์',
+        'string' => ':attribute ต้องมีความยาวน้อยกว่า :value ตัวอักษร',
+        'array' => ':attribute ต้องมีน้อยกว่า :value รายการ',
+    ],
+    'lte' => [
+        'numeric' => ':attribute ต้องน้อยกว่าหรือเท่ากับ :value',
+        'file' => ':attribute ต้องมีขนาดน้อยกว่าหรือเท่ากับ :value กิโลไบต์',
+        'string' => ':attribute ต้องมีความยาวน้อยกว่าหรือเท่ากับ :value ตัวอักษร',
+        'array' => ':attribute ต้องมีไม่เกิน :value รายการ',
+    ],
+    'mac_address' => ':attribute ต้องเป็น MAC address ที่ถูกต้อง',
+    'max' => [
+        'numeric' => ':attribute ต้องไม่เกิน :max',
+        'file' => ':attribute ต้องมีขนาดไม่เกิน :max กิโลไบต์',
+        'string' => ':attribute ต้องไม่เกิน :max ตัวอักษร',
+        'array' => ':attribute ต้องมีไม่เกิน :max รายการ',
+    ],
+    'mimes' => ':attribute ต้องเป็นไฟล์ประเภท: :values',
+    'mimetypes' => ':attribute ต้องเป็นไฟล์ประเภท: :values',
+    'min' => [
+        'numeric' => ':attribute ต้องมีอย่างน้อย :min',
+        'file' => ':attribute ต้องมีขนาดอย่างน้อย :min กิโลไบต์',
+        'string' => ':attribute ต้องมีอย่างน้อย :min ตัวอักษร',
+        'array' => ':attribute ต้องมีอย่างน้อย :min รายการ',
+    ],
+    'multiple_of' => ':attribute ต้องเป็นพหุคูณของ :value',
+    'not_in' => ':attribute ที่เลือกไม่ถูกต้อง',
+    'not_regex' => 'รูปแบบ :attribute ไม่ถูกต้อง',
+    'numeric' => ':attribute ต้องเป็นตัวเลข',
+    'password' => 'รหัสผ่านไม่ถูกต้อง',
+    'present' => ':attribute ต้องมีอยู่',
+    'prohibited' => ':attribute ต้องห้าม',
+    'prohibited_if' => ':attribute ต้องห้ามเมื่อ :other เป็น :value',
+    'prohibited_unless' => ':attribute ต้องห้ามเว้นแต่ :other อยู่ใน :values',
+    'prohibits' => ':attribute ห้ามให้มี :other อยู่',
+    'regex' => 'รูปแบบ :attribute ไม่ถูกต้อง',
+    'required' => ':attribute จำเป็นต้องกรอก',
+    'required_array_keys' => ':attribute ต้องมีค่าสำหรับ: :values',
+    'required_if' => ':attribute จำเป็นต้องกรอกเมื่อ :other เป็น :value',
+    'required_unless' => ':attribute จำเป็นต้องกรอกเว้นแต่ :other อยู่ใน :values',
+    'required_with' => ':attribute จำเป็นต้องกรอกเมื่อมี :values',
+    'required_with_all' => ':attribute จำเป็นต้องกรอกเมื่อมี :values',
+    'required_without' => ':attribute จำเป็นต้องกรอกเมื่อไม่มี :values',
+    'required_without_all' => ':attribute จำเป็นต้องกรอกเมื่อไม่มี :values ทั้งหมด',
+    'same' => ':attribute และ :other ต้องตรงกัน',
+    'size' => [
+        'numeric' => ':attribute ต้องเป็น :size',
+        'file' => ':attribute ต้องมีขนาด :size กิโลไบต์',
+        'string' => ':attribute ต้องมีความยาว :size ตัวอักษร',
+        'array' => ':attribute ต้องมี :size รายการ',
+    ],
+    'starts_with' => ':attribute ต้องเริ่มต้นด้วย: :values',
+    'string' => ':attribute ต้องเป็นตัวอักษร',
+    'timezone' => ':attribute ต้องเป็น timezone ที่ถูกต้อง',
+    'unique' => ':attribute นี้ถูกใช้ไปแล้ว',
+    'uploaded' => 'การอัปโหลด :attribute ล้มเหลว',
+    'url' => ':attribute ต้องเป็น URL ที่ถูกต้อง',
+    'uuid' => ':attribute ต้องเป็น UUID ที่ถูกต้อง',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Validation Attributes
+    |--------------------------------------------------------------------------
+    */
+
+    'attributes' => [
+        'first_name' => 'ชื่อ',
+        'last_name' => 'นามสกุล',
+        'nationality' => 'สัญชาติ',
+        'phone' => 'เบอร์โทร',
+        'contact_line' => 'LINE ID',
+        'contact_whatsapp' => 'WhatsApp',
+        'contact_wechat' => 'WeChat',
+        'contact_telegram' => 'Telegram',
+        'contact_email' => 'Email',
+        'password' => 'รหัสผ่าน',
+    ],
+
+];

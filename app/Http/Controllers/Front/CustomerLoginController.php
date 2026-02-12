@@ -54,42 +54,31 @@ class CustomerLoginController extends Controller
     }
     public function register(Request $request)
     {
-        // ถ้าต้องการจำกัด contact_app ให้ตรงกับหน้า (line/whatsapp/wechat/email)
-        $request->validate(
-            [
-                'first_name'          => 'required|string|max:255',
-                'last_name'           => 'required|string|max:255',
-                'nationality'         => 'nullable|string|max:100',
-                'phone'               => 'required|digits:10|unique:customers,phone',
-                'contact_app'         => 'nullable|in:line,whatsapp,wechat,email',
-                'contact_app_handle'  => 'nullable|string|max:255',
-                'password'            => 'required|string|min:6|confirmed',
-            ],
-            // messages (ไทย)
-            [
-                'required'  => ':attribute จำเป็นต้องกรอก',
-                'string'    => ':attribute ต้องเป็นตัวอักษร',
-                'max'       => ':attribute ต้องไม่เกิน :max ตัวอักษร',
-                'unique'    => ':attribute นี้ถูกใช้ไปแล้ว',
-                'in'        => ':attribute ไม่ถูกต้อง',
-                'email'     => ':attribute รูปแบบไม่ถูกต้อง',
-                'min'       => ':attribute ต้องมีอย่างน้อย :min ตัวอักษร',
-                'confirmed' => 'ยืนยันรหัสผ่านไม่ตรงกัน',
-                'digits'    => ':attribute ต้องเป็นตัวเลข :digits หลัก',
-                'regex'     => ':attribute รูปแบบไม่ถูกต้อง',
-            ],
-            // attributes (label ไทย)
-            [
-                'first_name'         => 'ชื่อ',
-                'last_name'          => 'นามสกุล',
-                'nationality'        => 'สัญชาติ',
-                'phone'              => 'เบอร์โทร',
-                'contact_app'        => 'แอปติดต่อ',
-                'contact_app_handle' => 'ไอดี/เบอร์ในแอป',
-                'password'           => 'รหัสผ่าน',
-            ]
-        );
+        // Set locale based on request (default to Thai)
+        $locale = $request->input('locale', 'th');
+        app()->setLocale($locale);
 
+        $request->validate([
+            'first_name'          => 'required|string|max:255',
+            'last_name'           => 'required|string|max:255',
+            'nationality'         => 'nullable|string|max:100',
+            'phone'               => 'required|digits:10|unique:customers,phone',
+            'contact_line'        => 'nullable|string|max:255',
+            'contact_whatsapp'    => 'nullable|string|max:255',
+            'contact_wechat'      => 'nullable|string|max:255',
+            'contact_telegram'    => 'nullable|string|max:255',
+            'contact_email'       => 'nullable|email|max:255',
+            'password'            => 'required|string|min:6|confirmed',
+        ]);
+
+        if (empty($request->contact_line) && empty($request->contact_whatsapp) &&
+            empty($request->contact_wechat) && empty($request->contact_telegram) &&
+            empty($request->contact_email)) {
+            $errorMsg = $locale === 'en'
+                ? 'Please provide at least one contact method'
+                : 'กรุณากรอกช่องทางติดต่ออย่างน้อย 1 ช่อง';
+            return back()->withInput()->with('error', $errorMsg);
+        }
 
         $user = Customer::create([
             'name'               => (string) $request->first_name . ' ' . (string) $request->last_name,
@@ -97,17 +86,22 @@ class CustomerLoginController extends Controller
             'last_name'          => (string) $request->last_name,
             'nationality'        => $request->nationality ? (string) $request->nationality : null,
             'phone'              => (string) $request->phone,
-            'contact_app'        => $request->contact_app ? (string) $request->contact_app : null,
-            'contact_app_handle' => $request->contact_app_handle ? (string) $request->contact_app_handle : null,
+            'contact_line'       => $request->contact_line ? (string) $request->contact_line : null,
+            'contact_whatsapp'   => $request->contact_whatsapp ? (string) $request->contact_whatsapp : null,
+            'contact_wechat'     => $request->contact_wechat ? (string) $request->contact_wechat : null,
+            'contact_telegram'   => $request->contact_telegram ? (string) $request->contact_telegram : null,
+            'contact_email'      => $request->contact_email ? (string) $request->contact_email : null,
             'password'           => Hash::make((string) $request->password),
             'ref_branch_id' => 1
         ]);
 
         if ($user) {
             auth()->login($user);
-            return redirect()->route('dashboard')->with('success', 'สมัครสมาชิกเรียบร้อย');
+            $successMsg = $locale === 'en' ? 'Registration successful' : 'สมัครสมาชิกเรียบร้อย';
+            return redirect()->route('dashboard')->with('success', $successMsg);
         }
 
-        return back()->with('error', 'ไม่สามารถสมัครสมาชิกได้ กรุณาลองอีกครั้ง');
+        $errorMsg = $locale === 'en' ? 'Unable to register. Please try again.' : 'ไม่สามารถสมัครสมาชิกได้ กรุณาลองอีกครั้ง';
+        return back()->with('error', $errorMsg);
     }
 }

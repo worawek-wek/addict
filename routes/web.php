@@ -45,15 +45,15 @@ use Illuminate\Support\Facades\Hash;
 */
 
 Route::get('/clc', function () {
-    
+
 	Artisan::call('cache:clear');
 	Artisan::call('config:clear');
 	Artisan::call('config:cache');
 	Artisan::call('view:clear');
     Artisan::call('route:clear');
-  
+
 	return "Cleared!";
-  
+
 });
 
 Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
@@ -321,7 +321,7 @@ Route::prefix('admin')->group(function () {
             Route::post('course/{id}', 'update')->name('course.update');
             Route::delete('course/{id}', 'delete')->name('course.delete');    //////////////////////////
         });
-        
+
         Route::controller(RoomTypeController::class)->group(function () {
             Route::get('room-type', 'index')->name('room-type');
             Route::get('room-type/datatable', 'datatable')->name('room-type.datatable');
