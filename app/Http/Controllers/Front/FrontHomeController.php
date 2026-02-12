@@ -12,6 +12,7 @@ use App\Models\Order;
 use App\Models\OrderHasProduct;
 use App\Models\Room;
 use App\Models\Branch;
+use App\Models\Course;
 use App\Models\OrderHasAddonOption;
 use Illuminate\Support\Facades\DB;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -34,6 +35,8 @@ class FrontHomeController extends Controller
         session(["branch_id" => $id]);
         //     return redirect('dashboard');
         // }
+        $data['course'] = Course::orderBy('sort')->where('ref_status_id', 1)->get();
+
         $data['user'] = User::where('ref_status_id', 1)
             ->where('ref_branch_id', 1)
             ->where('ref_status_id', 1)
@@ -88,38 +91,38 @@ class FrontHomeController extends Controller
         $id = $request->selected_user;
         try {
             $ref_seller_id = Auth::guard('customer')->user()->id;
-            $user = User::find($id);
+            $user = User::find($request->selected_user);
             $room = Room::find($request->roomType);
-            $user = User::find($id);
-            $room = Room::find($request->roomType);
-            $massage_price = $user ? $user->salary : 0;
+            $course = Course::find($request->timeService);
+            // $massage_price = $user ? $user->salary : 0;
             $room_price = 0;
-            if (!empty($request->roomType) && $request->timeService) {
-                switch ($request->timeService) {
-                    case 'forty_minutes':
-                        $room_price = $room ? $room->forty_minutes : 0;
-                        break;
-                    case 'sixty_minutes':
-                        $room_price = $room ? $room->sixty_minutes : 0;
-                        break;
-                    case 'ninety_minutes':
-                        $room_price = $room ? $room->ninety_minutes : 0;
-                        break;
-                }
-            }
-            $order_price = $massage_price + $room_price;
-            $price = $this->calculate_all($request);
+            // if (!empty($request->roomType) && $request->timeService) {
+            //     switch ($request->timeService) {
+            //         case 'forty_minutes':
+            //             $room_price = $room ? $room->forty_minutes : 0;
+            //             break;
+            //         case 'sixty_minutes':
+            //             $room_price = $room ? $room->sixty_minutes : 0;
+            //             break;
+            //         case 'ninety_minutes':
+            //             $room_price = $room ? $room->ninety_minutes : 0;
+            //             break;
+            //     }
+            // }
+            $order_price = $request->total_price;
+            $price = 0;
+            // $price = $this->calculate_all($request);
 
-            // กำหนดค่าระยะเวลาเป็นตัวเลข
-            if ($request->timeService == 'forty_minutes') {
-                $service = '40';
-            } elseif ($request->timeService == 'sixty_minutes') {
-                $service = '60';
-            } elseif ($request->timeService == 'ninety_minutes') {
-                $service = '90';
-            } else {
-                $service = null;
-            }
+            // // กำหนดค่าระยะเวลาเป็นตัวเลข
+            // if ($request->timeService == 'forty_minutes') {
+            //     $service = '40';
+            // } elseif ($request->timeService == 'sixty_minutes') {
+            //     $service = '60';
+            // } elseif ($request->timeService == 'ninety_minutes') {
+            //     $service = '90';
+            // } else {
+            //     $service = null;
+            // }
 
             $customer_find = Auth::guard('customer')->user();
 
@@ -128,6 +131,7 @@ class FrontHomeController extends Controller
                 $order_number = 'ONLINE' . str_pad(strval(rand(0, 9999999)), 7, '0', STR_PAD_LEFT);
             } while (Order::where('order_number', $order_number)->exists());
             $order = new Order;
+            $order->ref_account_id = Auth::id();
             $order->order_number = $order_number;
             $order->ref_branch_id = $request->ref_branch_id;
 
@@ -140,7 +144,7 @@ class FrontHomeController extends Controller
                 $customer->save();
                 $order->ref_customer_id = $customer->id;
             }
-            $order->ref_user_id = $id;
+            $order->ref_user_id = $request->selected_user;
             $order->ref_room_id = $request->roomType;
             $order->service_laundry_cost = $request->timeService;
             $order->ref_status_id = 1;
@@ -150,19 +154,24 @@ class FrontHomeController extends Controller
             $order->price = number_format($order_price, 2, '.', '');
             $start = \Carbon\Carbon::createFromFormat('H:i', $request->booking_time);
 
-            switch ($request->timeService) {
-                case 'forty_minutes':
-                    $end = $start->copy()->addMinutes(40);
-                    break;
-                case 'sixty_minutes':
-                    $end = $start->copy()->addMinutes(60);
-                    break;
-                case 'ninety_minutes':
-                    $end = $start->copy()->addMinutes(90);
-                    break;
-                default:
-                    $end = $start;
-            }
+            // switch ($request->timeService) {
+            //     case 'forty_minutes':
+                $text = $course->name;
+
+                preg_match('/\d+/', $text, $matches);
+
+                $minute = $matches[0] ?? 0;
+                $end = $start->copy()->addMinutes($minute);
+            //         break;
+            //     case 'sixty_minutes':
+            //         $end = $start->copy()->addMinutes(60);
+            //         break;
+            //     case 'ninety_minutes':
+            //         $end = $start->copy()->addMinutes(90);
+            //         break;
+            //     default:
+            //         $end = $start;
+            // }
 
             $order->end_time = $end->format('H:i');
 
