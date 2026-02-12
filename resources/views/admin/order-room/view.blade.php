@@ -34,7 +34,7 @@
         </div>
 
         {{-- ข้อมูลลูกค้า --}}
-        @if($orderRoom->customer)
+        @if($orderRoom->customer && $orderRoom->ref_status_id == 1)
         <div class="bg-white p-3 rounded-3 shadow-sm mb-3">
             <h6 class="border-bottom pb-2 mb-3 fw-bold">
                 <i class="ti ti-user me-2"></i>ข้อมูลลูกค้า
