@@ -15,7 +15,10 @@
                     ชื่อสินค้า
                 </th>
                 <th class="text-center">
-                    ราคาขาย
+                    ราคา(ลูกค้า)
+                </th>
+                <th class="text-center">
+                    ราคา(พนักงาน)
                 </th>
                 <th class="text-center">
                     ต้นทุน
@@ -53,6 +56,9 @@
                 </td>
                 <td class="text-center" {!! $view !!}>
                     {{ $row->price }}
+                </td>
+                <td class="text-center" {!! $view !!}>
+                    {{ $row->price_staff }}
                 </td>
                 <td class="text-center" {!! $view !!}>
                     {{ $row->cost }}

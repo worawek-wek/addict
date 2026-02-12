@@ -271,9 +271,15 @@
                                     required />
                             </div>
                             <div class="col-sm-6">
-                                <label for="" class="form-label">ราคาขาย</label><span class="text-danger">
+                                <label for="" class="form-label">ราคาขาย(ลูกค้า)</label><span class="text-danger">
                                     *</span>
                                 <input name="price" type="text" class="form-control" placeholder="ราคาขาย"
+                                    required />
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="" class="form-label">ราคาขาย(พนักงาน)</label><span class="text-danger">
+                                    *</span>
+                                <input name="price_staff" type="text" class="form-control" placeholder="ราคาขาย"
                                     required />
                             </div>
                             <div class="col-sm-6">

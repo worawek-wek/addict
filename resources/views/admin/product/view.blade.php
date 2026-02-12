@@ -77,8 +77,13 @@
                                             </li>
                                             <li class="d-flex align-items-center mb-3">
                                                 <i class="ti ti-user text-heading"></i><span
-                                                    class="fw-medium mx-2 me-4 text-heading">ราคาขาย:</span>
+                                                    class="fw-medium mx-2 me-4 text-heading">ราคาขาย(ลูกค้า):</span>
                                                 <span>{{ $product->price }}</span>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-3">
+                                                <i class="ti ti-user text-heading"></i><span
+                                                    class="fw-medium mx-2 me-4 text-heading">ราคาขาย(พนักงาน):</span>
+                                                <span>{{ $product->price_staff }}</span>
                                             </li>
                                             <li class="d-flex align-items-center mb-3">
                                                 <i class="ti ti-user text-heading"></i><span
@@ -129,10 +134,16 @@
                                                 placeholder="ชื่อสินค้า" required value="{{ $product->name }}" />
                                         </div>
                                         <div class="col-sm-6">
-                                            <label for="" class="form-label">ราคาขาย</label><span
+                                            <label for="" class="form-label">ราคาขาย(ลูกค้า)</label><span
                                                 class="text-danger"> *</span>
                                             <input name="price" type="text" class="form-control"
                                                 placeholder="ราคาขาย" required value="{{ $product->price }}" />
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label for="" class="form-label">ราคาขาย(พนักงาน)</label><span
+                                                class="text-danger"> *</span>
+                                            <input name="price_staff" type="text" class="form-control"
+                                                placeholder="ราคาขาย" required value="{{ $product->price_staff }}" />
                                         </div>
                                         <div class="col-sm-6">
                                             <label for="" class="form-label">ต้นทุน</label><span

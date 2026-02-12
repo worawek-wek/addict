@@ -38,8 +38,8 @@
                             </div>
                           </div>
                           <div class="flex-grow-1">
-                            <span class="fw-medium d-block">วรเวก ชึรัมย์</span>
-                            <small class="text-muted">ผู้อำนวยการตึก</small>
+                            <span class="fw-medium d-block">{{ Auth::user()->name }}</span>
+                            <small class="text-muted">{{ Auth::user()->position->position_name }}</small>
                           </div>
                         </div>
                       </a>

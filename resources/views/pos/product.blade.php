@@ -74,14 +74,39 @@
         border-radius: 12px;
     }
 
+    /* hover ปกติ */
     .payment-card:hover {
         border-color: #0d6efd;
         transform: translateY(-3px);
     }
 
+    /* checked ปกติ */
     .btn-check:checked + .payment-card {
         border-color: #0d6efd;
         background-color: #f0f7ff;
+    }
+
+    /* ========================= */
+    /* 🔒 disabled state */
+    /* ========================= */
+    .payment-card.disabled {
+        opacity: 0.5;
+        filter: grayscale(100%);
+        cursor: not-allowed;
+        pointer-events: none;     /* กัน hover / click */
+        transform: none !important;
+    }
+
+    /* กัน hover ตอน disabled */
+    .payment-card.disabled:hover {
+        border-color: #eee;
+        transform: none;
+    }
+
+    /* กัน checked style ตอน disabled */
+    .btn-check:disabled + .payment-card {
+        border-color: #eee;
+        background-color: #f8f9fa;
     }
 </style>
 
@@ -125,18 +150,28 @@
                                                     $inStock = $totalRemain > 0;
                                                 @endphp
 
+                                                                <input type="hidden"
+                                                                        name="price_cus[{{ $product->id }}]"
+                                                                        value="{{ $product->price }}"
+                                                                        />
+                                                                <input type="hidden"
+                                                                        name="price_staff[{{ $product->id }}]"
+                                                                        value="{{ $product->price_staff }}"
+                                                                        />
                                                 <div class="col-md-2 mb-4">
-                                                    <div class="card h-100 border-0 shadow-sm {{ $inStock ? '' : 'opacity-50' }}">
+                                                    <div class="card border-0 shadow-sm {{ $inStock ? '' : 'opacity-50' }}">
 
                                                     {{-- ใช้ Bootstrap Icon (อาหาร/เครื่องดื่ม) แทนรูปภาพ --}}
-                                                    <div class="d-flex justify-content-center align-items-center py-4" style="height:150px;">
+                                                    <div class="d-flex justify-content-center align-items-center pt-2">
                                                         <i class="bi bi-cup-straw" style="font-size:3rem; color:#5e2a5f;"></i>
                                                     </div>
 
                                                     <div class="card-body text-center">
-                                                        <h6 class="card-title text-truncate" title="{{ $product->name }}">{{ $product->name }}</h6>
-                                                        <p class="fw-bold text-primary mb-2">THB {{ number_format($product->price, 2) }}</p>
-                                                        <div class="small text-muted mb-2">Stock: {{ $totalRemain }}</div>
+                                                        <h6 class="card-title text-truncate mb-1" title="{{ $product->name }}">{{ $product->name }}</h6>
+                                                        <p class="fw-bold text-primary product-price mb-1"
+                                                                        data-price-customer="{{ $product->price }}"
+                                                                        data-price-staff="{{ $product->price_staff }}">THB {{ number_format($product->price, 2) }}</p>
+                                                        <div class="small text-muted  mb-2">Stock: {{ $totalRemain }}</div>
 
                                                         @if($inStock)
                                                             <div class="input-group input-group-sm justify-content-center">
@@ -155,7 +190,8 @@
                                                                         min="0"
                                                                         max="{{ $totalRemain }}"
                                                                         data-name="{{ $product->name }}"
-                                                                        data-price="{{ $product->price }}"
+                                                                        data-price-customer="{{ $product->price }}"
+                                                                        data-price-staff="{{ $product->price_staff }}"
                                                                         style="max-width:60px;"
                                                                         onchange="calculate()" />
 
@@ -189,79 +225,40 @@
                                     <div class="card shadow-sm border-0">
                                         <div class="card-header bg-white d-flex justify-content-between align-items-center">
                                             <span class="fw-bold">Invoice</span>
-                                            <span class="text-muted">#0001</span>
+                                            {{-- <span class="text-muted">#0001</span> --}}
+                                        </div>
+                                        <div class="mb-3 px-4">
+                                        <label class="form-label fw-bold">ผู้ซื้อ</label>
+                                            <div class="d-flex gap-3">
+
+                                                <div>
+                                                    <input type="radio" class="btn-check sale-type calculate"
+                                                        name="customer_type" id="sale-customer" value="2" checked>
+                                                    <label class="btn btn-outline-primary" for="sale-customer">
+                                                        ลูกค้า
+                                                    </label>
+                                                </div>
+
+                                                <div>
+                                                    <input type="radio" class="btn-check sale-type calculate"
+                                                        name="customer_type" id="sale-staff" value="1">
+                                                    <label class="btn btn-outline-secondary" for="sale-staff">
+                                                        พนักงาน
+                                                    </label>
+                                                </div>
+
+                                            </div>
                                         </div>
                                         <div class="mb-3 px-4">
                                             <label class="form-label fw-bold">เลือกพนักงานขาย</label>
                                             {{-- <select id="salesStaffSelect" class="form-select"></select> --}}
                                             {{-- <form id="form_staff"> --}}
                                                 <div class="d-flex align-items-center justify-content-between app-academy-md-80">
-                                                <input name="reception_name" type="text" id="reception" placeholder="แสกนบัตรพนักงาน" class="form-control me-2 reception-input" required/>
-                                                <input name="reception_id" type="hidden" id="salesReceptionSelect">
-                                                <input type="hidden" name="ref_position_id" value="1">
+                                                    <input name="reception_name" type="text" id="reception" placeholder="แสกนบัตรพนักงาน" class="form-control me-2 reception-input" required/>
+                                                    <input name="reception_id" type="hidden" id="salesReceptionSelect">
+                                                    <input type="hidden" name="ref_position_id" value="1">
                                                 </div>
                                             {{-- </form> --}}
-                                        </div>
-                                        <div class="row g-3 payment-methods px-4">
-
-                                            <!-- เงินสด -->
-                                            <div class="col-md-6">
-                                                <input type="radio" class="btn-check calculate"
-                                                    name="payment_method"
-                                                    id="pay-cash"
-                                                    value="cash"
-                                                    checked
-                                                    required>
-
-                                                <label class="card payment-card text-center p-3" for="pay-cash">
-                                                    <i class="bi bi-cash-coin fs-1 text-success"></i>
-                                                    <div class="mt-2 fw-bold">เงินสด</div>
-                                                </label>
-                                            </div>
-
-                                            <!-- บัตรเครดิต -->
-                                            <div class="col-md-6">
-                                                <input type="radio" class="btn-check calculate"
-                                                    name="payment_method"
-                                                    id="pay-credit"
-                                                    value="credit_card"
-                                                    required>
-
-                                                <label class="card payment-card text-center p-3" for="pay-credit">
-                                                    <i class="bi bi-credit-card-2-front fs-1 text-primary"></i>
-                                                    <div class="mt-2 fw-bold">บัตรเครดิต</div>
-                                                </label>
-                                            </div>
-
-                                            <!-- Alipay -->
-                                            <div class="col-md-6">
-                                                <input type="radio" class="btn-check calculate"
-                                                    name="payment_method"
-                                                    id="pay-alipay"
-                                                    value="alipay"
-                                                    required>
-
-                                                <label class="card payment-card text-center p-3" for="pay-alipay">
-                                                    <i class="bi bi-phone fs-1 text-info"></i>
-                                                    <div class="mt-2 fw-bold">Alipay</div>
-                                                </label>
-                                            </div>
-
-                                            <!-- QR Code -->
-                                            <div class="col-md-6">
-                                                <input type="radio" class="btn-check calculate"
-                                                    name="payment_method"
-                                                    id="pay-qr"
-                                                    value="qr_code"
-                                                    required>
-
-                                                <label class="card payment-card text-center p-3" for="pay-qr">
-                                                    <i class="bi bi-qr-code-scan fs-1 text-dark"></i>
-                                                    <div class="mt-2 fw-bold">QR Code</div>
-                                                    <div class="small text-muted">PromptPay / WeChat / Alipay</div>
-                                                </label>
-                                            </div>
-
                                         </div>
                                         <div class="px-4 mt-4">
                                             <label class="form-label fw-bold">สถานะการชำระเงิน</label>
@@ -293,6 +290,56 @@
                                                         <div class="mt-2 fw-bold">ยังไม่ชำระ</div>
                                                     </label>
                                                 </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="px-4 mt-4">
+                                            <label class="form-label fw-bold">ช่องทางชำระเงิน</label>
+
+                                            <div class="row g-3 payment-methods payment-card">
+
+                                                <!-- เงินสด -->
+                                                <div class="col-md-6">
+                                                    <input type="radio" class="btn-check payment-method"
+                                                        name="payment_method" id="pay-cash" value="cash">
+                                                    <label class="card payment-card text-center p-3" for="pay-cash">
+                                                        <i class="bi bi-cash-coin fs-1 text-success"></i>
+                                                        <div class="mt-2 fw-bold">เงินสด</div>
+                                                    </label>
+                                                </div>
+
+                                                <!-- บัตรเครดิต -->
+                                                <div class="col-md-6">
+                                                    <input type="radio" class="btn-check payment-method"
+                                                        name="payment_method" id="pay-credit" value="credit_card">
+                                                    <label class="card payment-card text-center p-3" for="pay-credit">
+                                                        <i class="bi bi-credit-card-2-front fs-1 text-primary"></i>
+                                                        <div class="mt-2 fw-bold">บัตรเครดิต</div>
+                                                    </label>
+                                                </div>
+                                                <!-- Alipay -->
+                                                <div class="col-md-6">
+                                                    <input type="radio"
+                                                        class="btn-check payment-method"
+                                                        name="payment_method"
+                                                        id="pay-alipay"
+                                                        value="alipay">
+
+                                                    <label class="card payment-card text-center p-3" for="pay-alipay">
+                                                        <i class="bi bi-phone fs-1 text-info"></i>
+                                                        <div class="mt-2 fw-bold">Alipay</div>
+                                                    </label>
+                                                </div>
+                                                <!-- QR -->
+                                                <div class="col-md-6">
+                                                    <input type="radio" class="btn-check payment-method"
+                                                        name="payment_method" id="pay-qr" value="qr_code">
+                                                    <label class="card payment-card text-center p-3" for="pay-qr">
+                                                        <i class="bi bi-qr-code-scan fs-1"></i>
+                                                        <div class="mt-2 fw-bold">QR Code</div>
+                                                    </label>
+                                                </div>
+
                                             </div>
                                         </div>
                                         <div class="px-4 mt-3">
@@ -375,7 +422,85 @@
     .other-btn.active { background-color: #5e2a5f; color: #fff; }
 </style>
 <script>
-    
+    document.querySelectorAll('.qty-input, input[name="customer_type"]').forEach(el => {
+        el.addEventListener('change', function () {
+
+            // ===== customer_type เปลี่ยน =====
+            if (this.name === 'customer_type') {
+
+                const saleType =
+                    document.querySelector('input[name="customer_type"]:checked')?.value || '2';
+
+                // 🔥 สลับ class ปุ่ม
+                document.querySelectorAll('input[name="customer_type"]').forEach(radio => {
+                    const label = document.querySelector(`label[for="${radio.id}"]`);
+
+                    if (!label) return;
+
+                    if (radio.checked) {
+                        label.classList.remove('btn-outline-secondary');
+                        label.classList.add('btn-outline-primary');
+                    } else {
+                        label.classList.remove('btn-outline-primary');
+                        label.classList.add('btn-outline-secondary');
+                    }
+                });
+
+                    console.log(111)
+                // (ของเดิม) อัปเดตราคาบนการ์ดสินค้า
+
+                    document.querySelectorAll('.product-price').forEach(priceEl => {
+                        console.log(priceEl);
+
+                        const price = saleType === '1'
+                            ? Number(priceEl.dataset.priceStaff)
+                            : Number(priceEl.dataset.priceCustomer);
+
+                        priceEl.textContent =
+                            'THB ' + price.toLocaleString('th-TH', { minimumFractionDigits: 2 });
+                        // optional: เปลี่ยนสี
+                        priceEl.classList.toggle('text-success', saleType === '1');
+                        priceEl.classList.toggle('text-primary', saleType !== '1');
+                    });
+                }
+
+            // ===== ของเดิม =====
+            calculate();
+        });
+    });
+    function togglePaymentMethod() {
+
+        const status = $('input[name="payment_status"]:checked').val();
+
+        $('.payment-method').each(function () {
+
+            const card = $(this).closest('.payment-card');
+
+            if (status == 1) {
+                $(this)
+                    .prop('disabled', false)
+                    .prop('required', true);
+
+                card.removeClass('disabled');
+
+            } else {
+                $(this)
+                    .prop('disabled', true)
+                    .prop('required', false)
+                    .prop('checked', false);
+
+                card.addClass('disabled');
+            }
+        });
+    }
+
+// bind event
+    document.querySelectorAll('input[name="payment_status"]').forEach(el => {
+        el.addEventListener('change', togglePaymentMethod);
+    });
+
+    // init ตอนโหลด
+    togglePaymentMethod();
 
         $('#insert_product').on('submit', function(event) {
             event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
@@ -606,41 +731,52 @@
         return payload;
     }
     function calculate() {
+
         let subtotal = 0;
         let html = '';
         let hasItem = false;
 
+        const saleType = document.querySelector('input[name="customer_type"]:checked')?.value || '2';
+
         document.querySelectorAll('.qty-input').forEach(input => {
+
             const qty = parseInt(input.value) || 0;
-            if (qty > 0) {
-                hasItem = true;
+            if (qty <= 0) return;
 
-                const name = input.dataset.name;
-                const price = parseFloat(input.dataset.price);
-                const total = qty * price;
+            hasItem = true;
 
-                subtotal += total;
+            const name = input.dataset.name;
 
-                html += `
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>${name} × ${qty}</span>
-                        <span>฿${total.toLocaleString()}</span>
-                    </div>
-                `;
-            }
+            const price = saleType === '1'
+                ? parseFloat(input.dataset.priceStaff)
+                : parseFloat(input.dataset.priceCustomer);
+
+            const total = qty * price;
+            subtotal += total;
+
+            html += `
+                <div class="d-flex justify-content-between mb-1">
+                    <span>${name} × ${qty}</span>
+                    <span>฿${total.toLocaleString()}</span>
+                </div>
+            `;
         });
 
         if (!hasItem) {
             html = `<div class="text-muted">ยังไม่มีสินค้า</div>`;
         }
 
+        // render item list
         document.getElementById('invoiceItems').innerHTML = html;
 
-        // ตัวอย่าง: ยังไม่คิด discount
-        document.getElementById('subtotal').innerText = subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 });
-        document.getElementById('total').innerText = subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 });
-        document.getElementById('total_value').innerText = subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 });
+        // render price
+        const formatted = subtotal.toLocaleString('th-TH', { minimumFractionDigits: 2 });
 
+        document.getElementById('subtotal').innerText = formatted;
+        document.getElementById('total').innerText = formatted;
+
+        // hidden input (เอาไว้ submit)
+        document.getElementById('total_value').value = subtotal;
     }
 </script>
 

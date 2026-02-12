@@ -22,7 +22,7 @@
                 <td>{{ $order->booking_date }}</td>
                 <td>{{ $order->start_time }}</td>
                 <td>{{ $order->end_time }}</td>
-                <td><span class="badge {{ $order->badge_class }}">{{ $order->status_label }}</span></td>
+                <td><span class="badge {{ $order->status->color }}">{{ $order->status->name }}</span></td>
                 <td>
                     <div class="dropdown">
                         <button class="btn btn-info btn-sm dropdown-toggle" type="button" id="actionDropdown{{ $order->id }}" data-bs-toggle="dropdown" aria-expanded="false">

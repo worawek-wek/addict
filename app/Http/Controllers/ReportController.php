@@ -46,11 +46,17 @@ class ReportController extends Controller
         return view('report/report-monthlyBooking');
     }
 
+    public function coupon_report(Request $request)
+    {
+        $data['page_url'] = "admin/report/coupon-report";
+        return view('admin.report.report-couponReport', $data);
+    }
+
     public function coupon_report_datatable(Request $request)
     {
 
         $limit = $request->limit ?? 10;
-        $orderRooms = $this->OEgetOrderRooms($limit);
+        $orderRooms = $this->CRgetOrderRooms($limit);
 
         $user = Auth::user();
 
@@ -98,13 +104,6 @@ class ReportController extends Controller
             $query->where('ref_branch_id', request()->branch_id);
         }
 
-        $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
-
-        if (@$DailySalesClosure) {
-            $query->where('created_at', ">" ,$DailySalesClosure->date_time);
-        }
-
-        // filter ค้นหา
         if (request()->filled('search')) {
             $search = request()->search;
             $query->whereHas('customer', function ($q) use ($search) {
@@ -112,26 +111,19 @@ class ReportController extends Controller
             });
         }
 
-        // filter by booking_date (date_range, start_date, end_date)
-        $dateRange = request('date_range');
-        $startDate = request('start_date');
-        $endDate = request('end_date');
-        if ($dateRange && $dateRange !== 'custom') {
-            // 1, 7, 14, 30 days
-            $days = intval($dateRange);
-            if ($days > 0) {
-                $from = Carbon::today()->subDays($days - 1)->format('Y-m-d');
-                $to = Carbon::today()->format('Y-m-d');
-                $query->whereBetween('booking_date', [$from, $to]);
-            }
-        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
-            $query->whereBetween('booking_date', [$startDate, $endDate]);
+        if (request('start_date')) {
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
+                                ->startOfDay();
+
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
+                                ->endOfDay();
+
+            $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
         $orderRooms = $query->paginate($limit);
 
         // กำหนด badge และ label
-        $nowCarbon = Carbon::now();
         $nowCarbon = Carbon::now();
         foreach ($orderRooms as $order) {
             $startDateTime = Carbon::parse($order->booking_date . ' ' . $order->start_time);
@@ -167,10 +159,11 @@ class ReportController extends Controller
         return $orderRooms;
     }
     
-    public function coupon_report_pdf($id = null)
+    public function coupon_report_pdf(Request $request)
     {
         $now = Carbon::now()->format('Y-m-d H:i:s');
-        $data['orderRooms'] = Order::withSum('addons', 'price')
+
+        $orderRooms = Order::withSum('addons', 'price')
                         ->withSum('addons', 'coupon')
                         ->withSum('products', 'price')
                         ->with(['branch', 'customer', 'user', 'room', 'status'])
@@ -188,10 +181,38 @@ class ReportController extends Controller
                             ELSE 8 -- ไม่ระบุ
                         END
                     ")
-                        ->orderBy('ref_user_id')
                         ->orderBy('booking_date')
-                        ->orderBy('start_time')
-                        ->get();
+                        ->orderBy('start_time');
+
+        // ✅ filter เฉพาะสาขาของ user ที่ login
+        $userBranchId = Auth::user()->ref_branch_id ?? null;
+        if ($userBranchId) {
+            $orderRooms->where('ref_branch_id', $userBranchId);
+        }
+
+        // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
+        if (request()->filled('branch_id')) {
+            $orderRooms->where('ref_branch_id', request()->branch_id);
+        }
+
+        if (request()->filled('search')) {
+            $search = request()->search;
+            $orderRooms->whereHas('customer', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        if (request('start_date')) {
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
+                                ->startOfDay();
+
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
+                                ->endOfDay();
+
+            $orderRooms->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        $data['orderRooms'] = $orderRooms->get();
 
         $html = view('admin.report.report-couponReport-pdf', $data)->render();
 
@@ -324,7 +345,7 @@ class ReportController extends Controller
 
         return $orderRooms;
     }
-    public function oversee_employee_pdf($id = null)
+    public function oversee_employee_pdf(Request $request)
     {
         $now = Carbon::now()->format('Y-m-d H:i:s');
         $data['orderRooms'] = Order::withSum('addons', 'price')
@@ -488,7 +509,7 @@ class ReportController extends Controller
         // return $this->getOrderRooms(1)[0]->addons_sum_price;
         return view('admin.report.report-saleMonthly');
     }
-    public function monthly_sale_pdf($id = null)
+    public function monthly_sale_pdf(Request $request)
     {
         $now = Carbon::now()->format('Y-m-d H:i:s');
         $data['orderRooms'] = Order::withSum('addons', 'price')
@@ -530,9 +551,4 @@ class ReportController extends Controller
         return view('admin.report.report-overseeEmp');
     }
 
-    public function coupon_report(Request $request)
-    {
-        $data['page_url'] = "admin/report/coupon-report";
-        return view('admin.report.report-couponReport', $data);
-    }
 }

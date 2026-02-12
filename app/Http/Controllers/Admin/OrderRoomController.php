@@ -8,6 +8,7 @@ use App\Models\CheerCharge;
 use App\Models\CommissionsHistory;
 use App\Models\DailySalesClosure;
 use App\Models\Order;
+use App\Models\RoomTypeHasCourse;
 use App\Models\OrderStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -53,22 +54,10 @@ class OrderRoomController extends Controller
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::with(['branch', 'customer', 'user', 'room', 'status'])
-            ->where('type', 1)
-            ->select('orders.*')
-            ->orderByRaw("
-            CASE
-                WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
-                WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
-                WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
-                WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
-                WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
-                WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
-                WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
-                ELSE 8 -- ไม่ระบุ
-            END
-        ")
-            ->orderBy('booking_date')
-            ->orderBy('start_time');
+                            ->where('type', 1)
+                            ->select('orders.*')
+                            ->orderBy('booking_date')
+                            ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
@@ -157,6 +146,12 @@ class OrderRoomController extends Controller
         $orderRoom = Order::with(['branch', 'room', 'status', 'addons.option', 'customer', 'user'])
             ->findOrFail($id);
 
+        $room_course_price = 0;
+        $room_course = RoomTypeHasCourse::where('ref_room_type_id', $orderRoom->ref_room_type_id)->where('ref_course_id', $orderRoom->service_laundry_cost)->first();
+        if($room_course){
+            $room_course_price = $room_course->price;
+        }
+        
         $statusId   = $orderRoom->status->id ?? null;
         $statusName = $orderRoom->status->name ?? 'ไม่ระบุ';
 
@@ -188,7 +183,7 @@ class OrderRoomController extends Controller
         }
         $statuses = OrderStatus::all();
 
-        return view('admin.order-room.view', compact('orderRoom', 'statuses'));
+        return view('admin.order-room.view', compact('orderRoom', 'statuses','room_course_price'));
     }
     public function updateStatus(Request $request, $id)
     {

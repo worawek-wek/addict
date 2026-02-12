@@ -124,7 +124,7 @@ class POSController extends Controller
     public function get_user(Request $request)
     {
         try{
-            $find = User::where('user_code',$request->user_code)->first();
+            $find = User::where('user_code',$request->user_code)->orWhere('user_id',$request->user_code)->first();
             // if(@$request->ref_position_id){
                 // $find = $find->where('ref_position_id', $request->ref_position_id)->first();
                 if(!$find){
@@ -291,7 +291,9 @@ class POSController extends Controller
                 'ref_branch_id'      => Auth::user()->ref_branch_id,
                 'order_number'    => Auth::user()->ref_branch_id . strtoupper(uniqid()),
                 'ref_customer_id'   => $request->input('customer_id') ?: null,
+                'ref_account_id'    => Auth::id(),
                 'ref_user_id'    => $request->input('staff_id') ?? null,
+                'customer_type'     => $request->input('customer_type'),
                 'ref_seller_id'     => $request->input('reception_id'),
                 'ref_room_id'     => $request->input('ref_room_id') ?? null,
                 'ref_room_type_id'     => $request->input('ref_room_type_id') ?? null,
@@ -301,8 +303,9 @@ class POSController extends Controller
                 'start_time'      => Carbon::now()->format('H:i:s'),
                 'end_time'        => @$duration ? Carbon::now()->addMinutes($duration)->format('H:i:s'): null,
                 // 'total_price' => 3000,
+                'discount' => preg_replace('/[^0-9.]/', '', $request->input('discount') ?? 0.00),
                 'total_price' => preg_replace('/[^0-9.]/', '', $request->input('total_price')),
-                'payment_method' => $request->input('payment_method'),
+                'payment_method' => $request->input('payment_method') ?? null,
                 'payment_status' => $request->input('payment_status') ?? 1,
             ]);
             // เพิ่ม addon option ใน order_has_addon_options
@@ -424,7 +427,11 @@ class POSController extends Controller
             if($q == 0){
                 continue;
             }
-            $price = Product::find($id)->price;
+            if($request->input('customer_type') == 1){
+                $price = Product::find($id)->price_staff;
+            }else{
+                $price = Product::find($id)->price;
+            }
             // 1) บันทึกสินค้าใน order_has_products
             $order->products()->create([
                 'ref_product_id' => $id,
@@ -543,7 +550,8 @@ class POSController extends Controller
         // return $request;
         $rthc = RoomTypeHasCourse::where('ref_room_type_id', $request->ref_room_type_id)->where('ref_course_id', $request->ref_course_id)->first();
 
-        $subtotal = $rthc->price;
+        $room_course = $rthc->price;
+        $subtotal = $room_course;
         
         if(@$request->ref_option_id){
             $subtotal += AddonOption::whereIn('id', $request->ref_option_id)->sum('price');
@@ -564,6 +572,7 @@ class POSController extends Controller
         
         return response()->json([
             // 'items' => $items,
+            'room_course' => number_format($room_course, 2),
             'subtotal' => number_format($subtotal, 2),
             'discount' => number_format($discount, 2),
             // 'tax'      => number_format($tax),

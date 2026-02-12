@@ -178,6 +178,7 @@ class ProductController extends Controller
             $product->ref_branch_id = $request->ref_branch_id;
             $product->name = $request->name;
             $product->price = $request->price;
+            $product->price_staff = $request->price_staff;
             $product->cost = $request->cost;
             $product->remark = $request->remark;
             $product->sort  =  $lastSort + 1;
@@ -292,6 +293,7 @@ class ProductController extends Controller
             $product->ref_branch_id = $request->ref_branch_id;
             $product->name = $request->name;
             $product->price = $request->price;
+            $product->price_staff = $request->price_staff;
             $product->cost = $request->cost;
             // $product->stock = $request->stock;
             $product->remark = $request->remark;

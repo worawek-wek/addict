@@ -20,6 +20,10 @@ class Product extends Model
     {
         return $this->hasOne('App\Models\Branch', 'id', 'ref_branch_id');
     }
+    public function order_has_product()
+    {
+        return $this->hasOne('App\Models\OrderHasProduct', 'ref_product_id', 'id');
+    }
       // ✅ ความสัมพันธ์กับ stock
     public function cardStocks()
     {

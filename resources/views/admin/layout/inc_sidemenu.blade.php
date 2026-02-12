@@ -360,24 +360,36 @@
 </aside>
 
 <script>
-    setTimeout(() => {
-        document.querySelectorAll('.menu-item').forEach(item => {
-            const hasActiveChild = item.querySelector('.menu-sub .menu-item.active');
-            if (hasActiveChild) {
-                item.classList.add('open');
-            }
-        });
-    }, 500);
-    document.addEventListener("DOMContentLoaded", function() {
-        var links = document.querySelectorAll("ul li a");
-        var currentUrl = window.location.pathname;
+    document.addEventListener("DOMContentLoaded", function () {
+        const currentUrl = window.location.pathname;
+        const links = document.querySelectorAll(".menu-link");
 
-        links.forEach(function(link) {
-            var href = link.getAttribute("href");
-            // กำหนด active เฉพาะเมนูที่ตรงกับ URL จริง
-            if (href === currentUrl) {
-                link.parentElement.classList.add("active");
+        let bestMatch = null;
+        let bestLength = 0;
+
+        links.forEach(link => {
+            const href = link.getAttribute("href");
+            if (!href) return;
+
+            if (currentUrl === href || currentUrl.startsWith(href + '/')) {
+                if (href.length > bestLength) {
+                    bestMatch = link;
+                    bestLength = href.length;
+                }
             }
         });
+
+        if (bestMatch) {
+            const li = bestMatch.closest("li.menu-item");
+            li?.classList.add("active");
+
+            // เปิดเมนูแม่ (submenu)
+            const parentSub = li.closest("ul.menu-sub");
+            if (parentSub) {
+                const parentMenu = parentSub.closest("li.menu-item");
+                parentMenu?.classList.add("open", "active");
+            }
+        }
     });
 </script>
+

@@ -101,14 +101,14 @@
                                                         class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
                                                         <div id="DataTables_Table_0_filter"
                                                             class="dataTables_filter mx-n2 me-2">
-                                                            <input name="start_date" id="start_date" type="text" class="form-control p_search" onchange='loadData("{{ $page_url }}-datatable")'>
+                                                            <input name="start_date" id="start_date" type="text" class="form-control p_search search_date" value="{{ date('d/m/Y') }}">
                                                         </div>
                                                         <label class="me-3">ถึงวันที่:</label>
                                                         <div
                                                             class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
                                                             <div id="DataTables_Table_0_filter"
                                                                 class="dataTables_filter mx-n2 me-2">
-                                                                <input name="end_date" type="date" class="form-control p_search" onchange='loadData("{{ $page_url }}-datatable")'>
+                                                                <input name="end_date" id="end_date" type="text" class="form-control p_search search_date" value="{{ date('d/m/Y') }}">
                                                             </div>
                                                             <div
                                                                 class="dt-buttons btn-group flex-wrap d-flex mb-6 mb-sm-0">
@@ -117,7 +117,8 @@
                                                                     class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
                                                                     tabindex="0" aria-controls="DataTables_Table_0"
                                                                     type="button"
-                                                                    onclick="window.open('/admin/report/coupon-report/pdf', '_blank');"
+                                                                    onclick="printPdf()"
+                                                                    {{-- onclick="window.open('/admin/report/coupon-report/pdf', '_blank');" --}}
                                                                     >
                                                                     <span>
                                                                         <i class="ti ti-file-upload me-0 me-sm-1"></i>
@@ -178,7 +179,26 @@
         var page = "{{ route('report.coupon_report.datatable') }}";
         var searchData = {};
         loadData(page);
+        
+        function printPdf(){
 
+            var searchData = {};
+            
+            $('.p_search').each(function() {
+                var inputName = $(this).attr('name');
+                var inputValue = $(this).val();
+                searchData[inputName] = inputValue;
+            });
+
+            // แปลง object เป็น query string
+            let queryString = $.param(searchData);
+
+            window.open(
+                '/admin/report/coupon-report/pdf?' + queryString,
+                '_blank'
+            );
+        }
+        
         function loadData(pages) {
             $('.p_search').each(function() {
                 var inputName = $(this).attr('name');
@@ -187,10 +207,10 @@
             });
 
             // If not custom, clear custom date fields
-            if ($('select[name="date_range"]').val() !== 'custom') {
-                searchData['start_date'] = '';
-                searchData['end_date'] = '';
-            }
+            // if ($('select[name="date_range"]').val() !== 'custom') {
+            //     searchData['start_date'] = '';
+            //     searchData['end_date'] = '';
+            // }
 
             page = pages;
             $.ajax({
@@ -208,11 +228,45 @@
                 }
             });
         }
-        $('#start_date').datepicker({
-            format: 'yyyy-mm-dd',
-            autoclose: true,
-            todayHighlight: true
-        })
+        $('.search_date').datepicker({
+            format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
+            autoclose: true,      // ปิด datepicker เมื่อเลือกวันที่
+            todayHighlight: true  // ไฮไลต์วันที่ปัจจุบัน
+        });
+        
+        // ⭐ สำคัญมาก: set ค่าเริ่มต้นให้ datepicker รู้
+        $('#start_date').datepicker('setDate', $('#start_date').val());
+        $('#end_date').datepicker('setDate', $('#end_date').val());
+
+        // ⭐ ผูกข้อจำกัดตั้งแต่โหลด
+        const startInit = $('#start_date').datepicker('getDate');
+        const endInit   = $('#end_date').datepicker('getDate');
+
+        if (startInit) {
+            $('#end_date').datepicker('setStartDate', startInit);
+        }
+
+        if (endInit) {
+            $('#start_date').datepicker('setEndDate', endInit);
+        }
+
+        // event หลังจากนั้น
+        $('#start_date').on('changeDate', function (e) {
+            $('#end_date').datepicker('setStartDate', e.date);
+
+            const endDate = $('#end_date').datepicker('getDate');
+            if (endDate && endDate < e.date) {
+                $('#end_date').datepicker('clearDates');
+            }
+
+            loadData("{{ $page_url }}-datatable");
+        });
+
+        $('#end_date').on('changeDate', function (e) {
+            $('#start_date').datepicker('setEndDate', e.date);
+
+            loadData("{{ $page_url }}-datatable");
+        });
     // document.addEventListener('DOMContentLoaded', function() {
     //     // Initialize datepickers
     //     flatpickr("#datepicker-from", {

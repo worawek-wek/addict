@@ -4,7 +4,7 @@
             {{-- <th style="width: 8%;">ลำดับ</th> --}}
             <th class="text-center" style="width: 8%;">วันที่</th>
             <th class="text-center" style="width: 8%;">เวลา</th>
-            <th class="text-center" style="width: 20%;">ร้อยนัดราน</th>
+            <th class="text-center" style="width: 20%;">ชื่อพนักงาน</th>
             <th class="text-center" style="width: 6%;">ชม.</th>
             <th class="text-center" style="width: 6%;">จำนวนลูกค้า</th>
             <th class="text-center" style="width: 10%;">@ราคา</th>

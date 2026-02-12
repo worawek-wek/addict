@@ -6,7 +6,6 @@
             <th class="text-center">สาขา</th>
             <th class="text-center">พนักงานขาย</th>
             <th class="text-center">ยอดรวมสุทธิ</th>
-            <th class="text-center">สถานะ</th>
             <th class="text-center">ช่องทางชำระเงิน</th>
             <th class="text-center">จัดการ</th>
         </tr>
@@ -20,7 +19,6 @@
                 <td class="text-center">{{ $order->seller->nickname ?? '-' }}</td>
                 <td class="text-center">{{ $order->total_price }}</td>
                 <td class="text-center">@if($order->payment_status == 0) <span class="badge bg-warning">ยังไม่ชำระเงิน</span> @else <span class="badge bg-success">ชำระเงินแล้ว</span> @endif </td>
-                <td class="text-center"><span class="badge {{ $order->badge_class }}">{{ $order->status_label }}</span></td>
                 <td class="text-center">
                     <div class="dropdown">
                         <button class="btn btn-info btn-sm dropdown-toggle" type="button" id="actionDropdown{{ $order->id }}" data-bs-toggle="dropdown" aria-expanded="false">

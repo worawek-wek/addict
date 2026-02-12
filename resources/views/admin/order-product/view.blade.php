@@ -11,6 +11,25 @@
 
     <div class="modal-body bg-light p-4">
 
+        <div class="bg-white p-3 rounded-3 shadow-sm mb-3">
+            <div class="row mb-3">
+                <div class="col-md-6"><strong class="me-2">สาขา:</strong> {{ $orderProduct->branch->name ?? '-' }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6"><strong class="me-2">ผู้ซื้อ:</strong> {{ $orderProduct->customer_type == 1 ? "พนักงาน":"ลูกค้า"; }}</div>
+            </div>
+            <div class="row mb-3">
+                {{-- <div class="col-md-6"><strong class="me-2">พนักงานซื้อ:</strong> {{ $orderProduct->user->name ?? '-' }}</div> --}}
+                <div class="col-md-6"><strong class="me-2">พนักงานขาย:</strong> {{ $orderProduct->seller->name ?? 'ONLINE' }}</div>
+            </div>
+            <div class="row mb-3">
+                <!-- วิธีการชำระเงิน dropdown ย้ายไปด้านล่าง -->
+            </div>
+            <div class="row">
+                <div class="col-md-4"><strong class="me-2">วันที่ซื้อ:</strong>
+                    {{ \Carbon\Carbon::parse($orderProduct->booking_date)->format('d/m/Y') }}</div>
+            </div>
+        </div>
         {{-- ตารางแสดงรายการสินค้า --}}
         <div class="bg-white p-3 rounded-3 shadow-sm mb-3">
             <h6 class="border-bottom pb-2 mb-3 fw-bold">รายการทั้งหมด</h6>
@@ -24,37 +43,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- แสดงราคาห้อง --}}
-                    @if ($orderProduct->service_laundry_cost && $orderProduct->room)
-                        @php
-                            $priceColumn = $orderProduct->service_laundry_cost;
-                            $roomPrice = $orderProduct->room->{$priceColumn} ?? 0;
-                            $duration = match($priceColumn) {
-                                'forty_minutes' => 40,
-                                'sixty_minutes' => 60,
-                                'ninety_minutes' => 90,
-                                default => ''
-                            };
-                        @endphp
-                        <tr>
-                            <td>ค่าบริการห้อง ({{ $orderProduct->room->name }}) - {{ $duration }} นาที</td>
-                            <td class="text-end">{{ number_format($roomPrice, 2) }}</td>
-                            <td class="text-center">1</td>
-                            <td class="text-end">{{ number_format($roomPrice, 2) }}</td>
-                        </tr>
-                    @endif
-
-                    {{-- ▼▼▼ เพิ่มโค้ดส่วนนี้สำหรับแสดงราคาพนักงานนวด ▼▼▼ --}}
-                    @if ($orderProduct->user && $orderProduct->user->salary)
-                        <tr>
-                            <td>ค่าบริการพนักงาน ({{ $orderProduct->user->name }})</td>
-                            <td class="text-end">{{ number_format($orderProduct->user->salary, 2) }}</td>
-                            <td class="text-center">1</td>
-                            <td class="text-end">{{ number_format($orderProduct->user->salary, 2) }}</td>
-                        </tr>
-                    @endif
-                    {{-- ▲▲▲ สิ้นสุดส่วนแสดงราคาพนักงานนวด ▲▲▲ --}}
-
                     {{-- แสดงรายการสินค้าจากตะกร้า --}}
                     @foreach ($orderProduct->products as $item)
                         <tr>
@@ -62,16 +50,6 @@
                             <td class="text-end">{{ number_format($item->price, 2) }}</td>
                             <td class="text-center">{{ $item->quantity }}</td>
                             <td class="text-end">{{ number_format($item->price * $item->quantity, 2) }}</td>
-                        </tr>
-                    @endforeach
-
-                    {{-- แสดงรายการ Addons --}}
-                    @foreach ($orderProduct->addons as $addonItem)
-                        <tr>
-                            <td>{{ $addonItem->option->name ?? 'Addon ถูกลบ' }}</td>
-                            <td class="text-end">{{ number_format($addonItem->price, 2) }}</td>
-                            <td class="text-center">1</td>
-                            <td class="text-end">{{ number_format($addonItem->price, 2) }}</td>
                         </tr>
                     @endforeach
                 </tbody>

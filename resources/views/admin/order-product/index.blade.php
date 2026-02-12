@@ -6,7 +6,11 @@
     @include('admin/layout/inc_header')
     <title>การขายสินค้า (Order Products)</title>
 </head>
-
+<style>
+        @media print {
+            body { margin: 0; }
+        }
+</style>
 <body>
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
@@ -49,6 +53,15 @@
                                                 <div class="col-md-6 flex text-end"
                                                     style="padding-right: unset !important;">
 
+                                                    <button
+                                                        style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
+                                                        class="btn btn-primary buttons-collection  btn-info waves-effect waves-light me-2"
+                                                        tabindex="0" aria-controls="DataTables_Table_0"
+                                                        type="button" aria-haspopup="dialog" aria-expanded="false"
+                                                        onclick="printSummaryReport()"
+                                                        >
+                                                        <span><i class="ti ti-receipt"></i> พิมพ์รายงานสรุปยอดขาย</span>
+                                                    </button>
                                                     <button
                                                         style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
                                                         class="btn btn-warning buttons-collection  btn-info waves-effect waves-light"
@@ -99,6 +112,7 @@
     <div class="modal fade" id="viewOrderRoomModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document" id="view"></div>
     </div>
+    <iframe id="print-iframe" style="display: none;"></iframe>
 
     @include('admin/layout/inc_js')
     <script>
@@ -136,6 +150,37 @@
             });
         }
 
+
+        function printSummaryReport() {
+            
+            const iframe = document.getElementById('print-iframe');
+
+                iframe.onload = function () {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                };
+
+            $.ajax({
+                url: '/admin/order-products/pdf',
+                type: 'GET',
+                success: function(html) {
+                    const doc = iframe.contentWindow.document;
+                    doc.open();
+                    doc.write(html);
+                    doc.close();
+
+                    // รอโหลดก่อนค่อยพิมพ์
+                    iframe.onload = function () {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                    };
+                },
+                error: function(xhr) {
+                    alert('เกิดข้อผิดพลาด');
+                    console.error(xhr.responseText);
+                }
+            });
+        }
         function closures() {
             Swal.fire({
                 title: 'ยืนยันการปิดการขาย?',

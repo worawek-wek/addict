@@ -54,19 +54,15 @@
                     @if ($orderRoom->service_laundry_cost && $orderRoom->room)
                         @php
                             $priceColumn = $orderRoom->service_laundry_cost;
-                            $roomPrice = $orderRoom->room->{$priceColumn} ?? 0;
-                            $duration = match($priceColumn) {
-                                'forty_minutes' => 40,
-                                'sixty_minutes' => 60,
-                                'ninety_minutes' => 90,
-                                default => ''
-                            };
+
+                            // $roomPrice = $orderRoom->room_type-> ?? 0;
+                            $duration = @$orderRoom->course->name;
                         @endphp
                         <tr>
                             <td>ค่าบริการห้อง ({{ $orderRoom->room->name }}) - {{ $duration }} นาที</td>
-                            <td class="text-end">{{ number_format($roomPrice, 2) }}</td>
+                            <td class="text-end">{{ number_format($room_course_price, 2) }}</td>
                             <td class="text-center">1</td>
-                            <td class="text-end">{{ number_format($roomPrice, 2) }}</td>
+                            <td class="text-end">{{ number_format($room_course_price, 2) }}</td>
                         </tr>
                     @endif
 
@@ -100,6 +96,12 @@
                             <td class="text-end">{{ number_format($addonItem->price, 2) }}</td>
                         </tr>
                     @endforeach
+                        <tr>
+                            <td>ส่วนลด</td>
+                            <td class="text-end">{{ number_format($orderRoom->discount, 2) }}</td>
+                            <td class="text-center">1</td>
+                            <td class="text-end">{{ number_format($orderRoom->discount, 2) }}</td>
+                        </tr>
                 </tbody>
                 <tfoot>
                     <tr class="fw-bold">
@@ -122,8 +124,21 @@
                 @endforeach
             </select>
         </div> --}}
+        @if ($orderRoom->ref_status_id != 3 )
+            
         <div class="bg-white p-3 rounded-3 shadow-sm">
-            <label for="payment_method_select" class="form-label">วิธีการชำระเงิน</label>
+            <div align="center">
+                <button 
+                    type="button"
+                    id="btn-finish-service"
+                    class="btn btn-warning btn-lg fw-bold"
+                    onclick="finishService()"
+                >
+                    <i class="ti ti-file-description me-2"></i>
+                    Check-Out
+                </button>
+            </div>
+            {{-- <label for="payment_method_select" class="form-label">วิธีการชำระเงิน</label>
             <form id="paymentMethodForm" action="#" method="post" onsubmit="return false;">
                 <select class="form-select mt-1" id="payment_method_select" name="payment_method" data-id="{{ $orderRoom->id }}" @if($orderRoom->payment_method) disabled @endif>
                     <option value="">-- เลือกวิธีการชำระเงิน --</option>
@@ -134,8 +149,9 @@
                     <option value="Alipay" {{ $orderRoom->payment_method == 'Alipay' ? 'selected' : '' }}>Alipay</option>
                     <option value="TrueMoney Wallet / LINE Pay (E-Wallet)" {{ $orderRoom->payment_method == 'TrueMoney Wallet / LINE Pay (E-Wallet)' ? 'selected' : '' }}>TrueMoney Wallet / LINE Pay (E-Wallet)</option>
                 </select>
-            </form>
+            </form> --}}
         </div>
+        @endif
     </div>
 </div>
 
@@ -207,4 +223,42 @@
             }
         });
     });
+
+    function finishService() {
+        Swal.fire({
+            title: 'ยืนยันการเปลี่ยนสถานะ?',
+            text: "คุณแน่ใจหรือไม่ที่ Check Out",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'ใช่, เปลี่ยนเลย',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/admin/order-rooms/{{ $orderRoom->id }}/status`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status_id: 3
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire('สำเร็จ!', "สถานะถูกเปลี่ยนเป็น " + data.status, 'success')
+                            .then(() => location.reload());
+                    } else {
+                        Swal.fire('ผิดพลาด!', data.message || 'ไม่สามารถเปลี่ยนสถานะได้', 'error');
+                        selectEl.value = originalStatusId;
+                    }
+                });
+            } else {
+                selectEl.value = originalStatusId;
+            }
+        });
+    }
 </script>

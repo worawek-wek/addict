@@ -226,6 +226,7 @@ Route::prefix('admin')->group(function () {
         Route::prefix('order-products')->group(function () {
             Route::get('/', [OrderProductController::class, 'index'])->name('order-products.index');
             Route::get('/datatable', [OrderProductController::class, 'datatable'])->name('order-products.datatable');
+            Route::get('/pdf', [OrderProductController::class, 'pdf'])->name('order-products.pdf');
             Route::post('/closures', [OrderProductController::class, 'closures'])->name('order-products.closures');
             Route::get('/{id}', [OrderProductController::class, 'show'])->name('order-products.show');
             Route::post('/{id}/confirm-payment', [OrderProductController::class, 'confirmPayment'])->name('order-products.update-confirm-payment');

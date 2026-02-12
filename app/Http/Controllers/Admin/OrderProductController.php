@@ -9,9 +9,11 @@ use App\Models\DailySalesClosure;
 use App\Models\CommissionsHistory;
 use App\Models\Order;
 use App\Models\OrderStatus;
+use App\Models\OrderHasProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OrderProductController extends Controller
 {
@@ -53,6 +55,7 @@ class OrderProductController extends Controller
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::with(['branch', 'customer', 'user', 'room', 'status'])
+            ->where('ref_account_id', Auth::id())
             ->where('type', 2)
             ->select('orders.*')
             ->orderByRaw("
@@ -67,7 +70,7 @@ class OrderProductController extends Controller
                 ELSE 8 -- ไม่ระบุ
             END
         ")
-            ->orderBy('booking_date')
+            ->orderBy('id', "DESC")
             ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
@@ -80,7 +83,7 @@ class OrderProductController extends Controller
         if (request()->filled('branch_id')) {
             $query->where('ref_branch_id', request()->branch_id);
         }
-        $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
+        $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->where('ref_account_id', Auth::id())->first();
 
         if (@$DailySalesClosure) {
             $query->where('created_at', ">" ,$DailySalesClosure->date_time);
@@ -147,6 +150,82 @@ class OrderProductController extends Controller
     }
 
 
+    public function pdf()
+    {
+        $closures = DailySalesClosure::orderBy("id", "DESC")->where('ref_account_id', Auth::id())->take(2)->get();
+        $DailySalesClosure = $closures[0] ?? null;
+        $DailySalesClosure_before = $closures[1] ?? null;
+
+        if(@$DailySalesClosure_before){
+            $date_before = date('d/m/Y H:i:s', strtotime($DailySalesClosure_before->date_time));
+        }else{
+            $date_before = date('d/m/Y', strtotime($DailySalesClosure->date_time))." 00:00:00";
+        }
+
+        $product_emplaoy = OrderHasProduct::whereHas('order', function ($query) use ($DailySalesClosure) {
+                                    $query->where('created_at', ">" ,$DailySalesClosure->date_time)
+                                            ->where('customer_type', 1)
+                                            ->where('ref_account_id', Auth::id());
+                                })
+                                ->groupBy('ref_product_id')
+                                ->select(
+                                    'ref_product_id',
+                                    DB::raw('SUM(quantity) as total_qty'),
+                                    DB::raw('SUM(price * quantity) as total_price')
+                                );
+        $data['product_employee'] = $product_emplaoy->get();
+
+        $product_customer = OrderHasProduct::whereHas('order', function ($query) use ($DailySalesClosure) {
+                                    $query->where('created_at', ">" ,$DailySalesClosure->date_time)
+                                    ->where('customer_type', 2)
+                                    ->where('ref_account_id', Auth::id());
+                                })
+                                ->groupBy('ref_product_id')
+                                ->select(
+                                    'ref_product_id',
+                                    DB::raw('SUM(quantity) as total_qty'),
+                                    DB::raw('SUM(price * quantity) as total_price')
+                                );
+        $data['product_customer'] = $product_customer->get();
+
+        $payment_channel = Order::where('orders.created_at', ">" , $DailySalesClosure->date_time)
+                                ->where('orders.ref_account_id', Auth::id())
+                                ->groupBy('orders.payment_method')
+                                ->whereNotNull("orders.payment_method")
+                                ->join(
+                                    'order_has_products',
+                                    'orders.id',
+                                    '=',
+                                    'order_has_products.ref_order_id'
+                                )
+                                ->select(
+                                    'orders.payment_method',
+                                    DB::raw('SUM(order_has_products.price * order_has_products.quantity) as total_price')
+                                );
+        $data['payment_channel'] = $payment_channel->get();
+            // ->orderBy('booking_date')
+            // ->orderBy('start_time');
+
+        // // ✅ filter เฉพาะสาขาของ user ที่ login
+        // $userBranchId = Auth::user()->ref_branch_id ?? null;
+        // if ($userBranchId) {
+        //     $query->where('ref_branch_id', $userBranchId);
+        // }
+
+        // // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
+        // if (request()->filled('branch_id')) {
+        //     $query->where('ref_branch_id', request()->branch_id);
+        // }
+
+        // if (@$DailySalesClosure) {
+        //     $query->where('created_at', ">" ,$DailySalesClosure->date_time);
+        // }
+            
+        $data['DailySalesClosure_before'] = $DailySalesClosure_before;
+        $data['date_before'] = $date_before;
+
+        return view('admin.order-product.pdf', $data);
+    }
 
     public function show($id)
     {
@@ -190,7 +269,7 @@ class OrderProductController extends Controller
     {
 
         $order = new DailySalesClosure;
-        // $order->date_time = now();
+        $order->ref_account_id = Auth::id();
         $order->save();
 
         return response()->json([

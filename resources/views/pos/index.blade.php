@@ -9,7 +9,52 @@
 
     <title>Dashboard - CRM | Vuexy - Bootstrap Admin Template</title>
 </head>
+<link rel="stylesheet" href="../../assets/vendor/libs/spinkit/spinkit.css" />
 
+<div id="loadingOverlay" style="display: none;">
+    <div class="col">
+        <!-- Chase -->
+        <div class="sk-chase sk-primary m-auto">
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+  /* พื้นหลังทึบ */
+  #loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(234, 244, 255, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* สปินเนอร์หมุน */
+  .spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #28c76f;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
 <style>
     .table th {
         font-size: 15px;
@@ -168,43 +213,6 @@
                                                 @endforeach
                                             </div>
 
-                                        <script>
-                                            // โหลด Add-on Options ใหม่เมื่อเลือกสาขา
-                                            // $(document).on('change', 'input[name="ref_branch_id"]', function() {
-                                            //     const branchId = $(this).val();
-                                            //     $.get('/api/addon-options/' + branchId, function(options) {
-                                            //         let html = '';
-                                            //         options.forEach(function(item) {
-                                            //             html += `
-                                            //                 <div class="snack-item" style="position: relative; width: 19%; min-width: 200px;">
-                                            //                     <input type="checkbox" class="btn-check addon-checkbox" name="ref_option_id[]"
-                                            //                         id="addon${item.id}" value="${item.id}"
-                                            //                         data-name="${item.name}" data-price="${item.price}"
-                                            //                         autocomplete="off">
-                                            //                     <label
-                                            //                         class="btn btn-purple-check d-flex flex-column justify-content-center text-center"
-                                            //                         for="addon${item.id}">
-                                            //                         <svg class="w-6 h-6 text-gray-800 dark:text-white mx-auto mb-2"
-                                            //                             aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
-                                            //                             height="24" fill="none" viewBox="0 0 24 24">
-                                            //                             <path stroke="currentColor" stroke-linecap="round"
-                                            //                                 stroke-linejoin="round" stroke-width="2"
-                                            //                                 d="M12.01 6.001C6.5 1 1 8 5.782 13.001L12.011 20l6.23-7C23 8 17.5 1 12.01 6.002Z" />
-                                            //                         </svg>
-                                            //                         ${item.name}
-                                            //                         <br>
-                                            //                         <small>${parseFloat(item.price).toFixed(2)} ฿</small>
-                                            //                     </label>
-                                            //                 </div>
-                                            //             `;
-                                            //         });
-                                            //         $('#addon-options-list').html(html);
-                                            //         // re-bind updateSummary
-                                            //         $('.addon-checkbox').on('change', updateSummary);
-                                            //         updateSummary();
-                                            //     });
-                                            // });
-                                        </script>
                                         <div class="col-12 mt-2">
                                             <h4 class="label-pos ff-playfair p-2 mt-4">Time Period</h4>
                                         </div>
@@ -271,10 +279,10 @@
                                                 @endphp
 
                                                 <div class="col-md-2 mb-4">
-                                                    <div class="card h-100 border-0 shadow-sm {{ $inStock ? '' : 'opacity-50' }}">
+                                                    <div class="card border-0 shadow-sm {{ $inStock ? '' : 'opacity-50' }}">
 
                                                     {{-- ใช้ Bootstrap Icon (อาหาร/เครื่องดื่ม) แทนรูปภาพ --}}
-                                                    <div class="d-flex justify-content-center align-items-center py-4" style="height:150px;">
+                                                    <div class="d-flex justify-content-center align-items-center py-4">
                                                         <i class="bi bi-cup-straw" style="font-size:3rem; color:#5e2a5f;"></i>
                                                     </div>
 
@@ -321,105 +329,92 @@
                                         </div>
                                     </div>
                                 </div>
-                                </div>
+                            </div>
 
-                                <div class="col-md-3">
-                                    <div class="card shadow-sm border-0">
-                                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                            <span class="fw-bold">Invoice</span>
-                                            <span class="text-muted">#0001</span>
-                                        </div>
-                                        <div class="mb-3 px-4">
-                                            <label class="form-label fw-bold">เลือกพนักงานขาย</label>
-                                            {{-- <select id="salesStaffSelect" class="form-select"></select> --}}
-                                            {{-- <form id="form_staff"> --}}
-                                                <div class="d-flex align-items-center justify-content-between app-academy-md-80">
-                                                <input name="reception_name" type="text" id="reception" placeholder="แสกนบัตรพนักงาน" class="form-control me-2 reception-input" required/>
-                                                <input name="reception_id" type="hidden" id="salesReceptionSelect">
-                                                <input type="hidden" name="ref_position_id" value="1">
-                                                </div>
-                                            {{-- </form> --}}
-                                        </div>
-                                        <div class="mb-3 px-4">
-                                            <label class="form-label fw-bold">เลือกพนักงานนวด</label>
-                                            {{-- <select id="salesStaffSelect" class="form-select"></select> --}}
-                                            {{-- <form id="form_staff"> --}}
-                                                <div class="d-flex align-items-center justify-content-between app-academy-md-80">
-                                                <input name="staff_name" type="text" id="staff" placeholder="เลือกพนักงานนวด" class="form-control me-2 staff-input" required/>
-                                                <input name="staff_id" type="hidden" id="salesStaffSelect">
-                                                <input type="hidden" name="ref_position_id" value="1">
-                                                </div>
-                                            {{-- </form> --}}
-                                        </div>
-                                        <div class="mb-3 px-4">
-                                            <label class="form-label fw-bold">ส่วนลด</label>
-                                            {{-- <select id="salesStaffSelect" class="form-select"></select> --}}
-                                                <div class="d-flex align-items-center justify-content-between app-academy-md-80">
-                                                <input name="discount" type="text" placeholder="ส่วนลด" class="form-control me-2 calculate" oninput="calculate()"/>
-                                                {{-- <input type="hidden" id="salesStaffSelect">
-                                                <input type="hidden" name="ref_position_id" value="1"> --}}
-                                                </div>
-                                        </div>
-                                        <div class="row g-3 payment-methods px-4">
-
-                                            <!-- เงินสด -->
-                                            <div class="col-md-6">
-                                                <input type="radio" class="btn-check calculate"
-                                                    name="payment_method"
-                                                    id="pay-cash"
-                                                    value="cash"
-                                                    required>
-
-                                                <label class="card payment-card text-center p-3" for="pay-cash">
-                                                    <i class="bi bi-cash-coin fs-1 text-success"></i>
-                                                    <div class="mt-2 fw-bold">เงินสด</div>
-                                                </label>
+                            <div class="col-md-3">
+                                <div class="card shadow-sm border-0">
+                                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold">Invoice</span>
+                                        <span class="text-muted">#0001</span>
+                                    </div>
+                                    <div class="mb-3 px-4">
+                                        <label class="form-label fw-bold">เลือกพนักงานขาย</label>
+                                            <div class="d-flex align-items-center justify-content-between app-academy-md-80">
+                                            <input name="reception_name" type="text" id="reception" placeholder="แตะบัตรพนักงาน หรือ ป้อนรหัสพนักงาน" class="form-control me-2 reception-input" required/>
+                                            <input name="reception_id" type="hidden" id="salesReceptionSelect">
+                                            <input type="hidden" name="ref_position_id" value="1">
                                             </div>
-
-                                            <!-- บัตรเครดิต -->
-                                            <div class="col-md-6">
-                                                <input type="radio" class="btn-check calculate"
-                                                    name="payment_method"
-                                                    id="pay-credit"
-                                                    value="credit_card"
-                                                    required>
-
-                                                <label class="card payment-card text-center p-3" for="pay-credit">
-                                                    <i class="bi bi-credit-card-2-front fs-1 text-primary"></i>
-                                                    <div class="mt-2 fw-bold">บัตรเครดิต</div>
-                                                </label>
+                                    </div>
+                                    <div class="mb-3 px-4">
+                                        <label class="form-label fw-bold">เลือกพนักงานนวด</label>
+                                            <div class="d-flex align-items-center justify-content-between app-academy-md-80">
+                                            <input name="staff_name" type="text" id="staff" placeholder="แตะบัตรพนักงานนวด หรือ ป้อนพนักงานนวด" class="form-control me-2 staff-input" required/>
+                                            <input name="staff_id" type="hidden" id="salesStaffSelect">
+                                            <input type="hidden" name="ref_position_id" value="1">
                                             </div>
-
-                                            <!-- Alipay -->
-                                            <div class="col-md-6">
-                                                <input type="radio" class="btn-check calculate"
-                                                    name="payment_method"
-                                                    id="pay-alipay"
-                                                    value="alipay"
-                                                    required>
-
-                                                <label class="card payment-card text-center p-3" for="pay-alipay">
-                                                    <i class="bi bi-phone fs-1 text-info"></i>
-                                                    <div class="mt-2 fw-bold">Alipay</div>
-                                                </label>
+                                    </div>
+                                    <div class="mb-3 px-4">
+                                        <label class="form-label fw-bold">ส่วนลด</label>
+                                            <div class="d-flex align-items-center justify-content-between app-academy-md-80">
+                                            <input name="discount" type="text" placeholder="ส่วนลด" class="form-control me-2 calculate" oninput="calculate()"/>
                                             </div>
+                                    </div>
+                                    <div class="row g-3 payment-methods px-4">
 
-                                            <!-- QR Code -->
-                                            <div class="col-md-6">
-                                                <input type="radio" class="btn-check calculate"
-                                                    name="payment_method"
-                                                    id="pay-qr"
-                                                    value="qr_code"
-                                                    required>
+                                        <div class="col-md-6">
+                                            <input type="radio" class="btn-check calculate"
+                                                name="payment_method"
+                                                id="pay-cash"
+                                                value="cash"
+                                                required>
 
-                                                <label class="card payment-card text-center p-3" for="pay-qr">
-                                                    <i class="bi bi-qr-code-scan fs-1 text-dark"></i>
-                                                    <div class="mt-2 fw-bold">QR Code</div>
-                                                    <div class="small text-muted">PromptPay / WeChat / Alipay</div>
-                                                </label>
-                                            </div>
-
+                                            <label class="card payment-card text-center p-3" for="pay-cash">
+                                                <i class="bi bi-cash-coin fs-1 text-success"></i>
+                                                <div class="mt-2 fw-bold">เงินสด</div>
+                                            </label>
                                         </div>
+
+                                        <div class="col-md-6">
+                                            <input type="radio" class="btn-check calculate"
+                                                name="payment_method"
+                                                id="pay-credit"
+                                                value="credit_card"
+                                                required>
+
+                                            <label class="card payment-card text-center p-3" for="pay-credit">
+                                                <i class="bi bi-credit-card-2-front fs-1 text-primary"></i>
+                                                <div class="mt-2 fw-bold">บัตรเครดิต</div>
+                                            </label>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <input type="radio" class="btn-check calculate"
+                                                name="payment_method"
+                                                id="pay-alipay"
+                                                value="alipay"
+                                                required>
+
+                                            <label class="card payment-card text-center p-3" for="pay-alipay">
+                                                <i class="bi bi-phone fs-1 text-info"></i>
+                                                <div class="mt-2 fw-bold">Alipay</div>
+                                            </label>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <input type="radio" class="btn-check calculate"
+                                                name="payment_method"
+                                                id="pay-qr"
+                                                value="qr_code"
+                                                required>
+
+                                            <label class="card payment-card text-center p-3" for="pay-qr">
+                                                <i class="bi bi-qr-code-scan fs-1 text-dark"></i>
+                                                <div class="mt-2 fw-bold">QR Code</div>
+                                                <div class="small text-muted">PromptPay / WeChat / Alipay</div>
+                                            </label>
+                                        </div>
+
+                                    </div>
                                         {{-- <div class="card-body" style="max-height: 350px; overflow-y: auto;">
                                             @forelse($cart as $item)
                                                 <div class="d-flex justify-content-between align-items-center border-bottom py-2">
@@ -465,7 +460,53 @@
                                                 <p class="text-muted text-center mb-0">No items in cart</p>
                                             @endforelse
                                         </div> --}}
+                                        <style>
+                                            .product-row {
+                                                display: flex;
+                                                justify-content: space-between;
+                                                font-size: 14px;
+                                                margin-bottom: 4px;
+                                            }
+                                            .product-name {
+                                                color: #555;
+                                            }
+                                            .product-price {
+                                                white-space: nowrap;
+                                            }
+                                            .summary-row {
+                                                display: flex;
+                                                justify-content: space-between;
+                                                font-size: 14px;
+                                                margin-bottom: 4px;
+                                            }
+                                            .summary-left {
+                                                color: #555;
+                                            }
+                                            .summary-right {
+                                                white-space: nowrap;
+                                            }
+                                        </style>
+                                        <div class="card-footer">
+                                            <h6 class="fw-bold mb-3">รายละเอียดการเลือก</h6>
 
+                                            <div id="summary-room"></div>
+                                            <div id="summary-course"></div>
+
+                                            <hr class="my-2">
+
+                                            <div id="summary-price"></div>
+                                            
+                                            <div class="mt-2">
+                                                <div class="fw-bold mb-2">Options</div>
+                                                <div id="summary-option-list"></div>
+                                                <hr>
+                                            </div>
+                                            <div class="mt-2">
+                                                <div class="fw-bold mb-2">รายการสินค้า</div>
+                                                <div id="summary-product-list"></div>
+                                                <hr>
+                                            </div>
+                                        </div>
                                         <div class="card-footer bg-white">
                                             <div class="d-flex justify-content-between"><span>Subtotal</span><span>THB  <span id="subtotal">{{ number_format($subtotal, 2) }}</span></span></div>
                                             <div class="d-flex justify-content-between"><span>Discount</span><span>- THB  <span id="discount">{{ number_format($discount, 2) }}</span></span></div>
@@ -944,7 +985,120 @@
 
         return payload;
     }
+    function summaryRow(label, value, boldLabel = false) {
+        return `
+            <div class="d-flex justify-content-between align-items-start mb-1">
+                <span class="${boldLabel ? 'fw-bold' : 'text-muted'}">${label}</span>
+                <span class="fw-semibold text-end">${value}</span>
+            </div>
+        `;
+    }
+    function renderSummary() {
+
+        let roomName = $('input[name="ref_room_type_id"]:checked')
+            .closest('label')
+            .find('.h6')
+            .text();
+
+        let courseName = $('input[name="ref_course_id"]:checked')
+            .next('label')
+            .text()
+            .trim();
+
+        $('#summary-room').html(
+            summaryRow('รูปแบบห้อง', roomName, true)   // 👈 ตัวหนา
+        );
+
+        $('#summary-course').html(
+            summaryRow('Time Period', courseName, true) // 👈 ตัวหนา
+        );
+    }
+    function renderProductSummary() {
+
+        let rows = [];
+
+        $('.qty-input').each(function () {
+
+            let qty = parseInt($(this).val());
+            if (qty <= 0) return;
+
+            let card = $(this).closest('.card-body');
+            let name = card.find('.card-title').text();
+
+            // ราคา/ชิ้น
+            let priceText = card.find('.fw-bold').text().replace(/[^\d.]/g, '');
+            let price = Number(priceText);
+
+            // ราคารวมต่อสินค้า
+            let total = price * qty;
+
+            rows.push(`
+                <div class="product-row">
+                    <span class="product-name">${name} × ${qty}</span>
+                    <span class="product-price">฿${total.toLocaleString()}</span>
+                </div>
+            `);
+        });
+
+        $('#summary-product-list').html(
+            rows.length
+                ? rows.join('')
+                : `<div class="text-muted">- ไม่มีสินค้า -</div>`
+        );
+    }
+    // function setRoomCoursePrice() {
+
+    //     let roomId = $('input[name="ref_room_type_id"]:checked').val();
+    //     let courseId = $('input[name="ref_course_id"]:checked').val();
+
+    //     let price = 0;
+
+    //     if (roomId == 1 && courseId == 1) price = 1000;
+    //     if (roomId == 1 && courseId == 2) price = 2000;
+    //     if (roomId == 1 && courseId == 3) price = 1000;
+
+    //     renderRoomCoursePrice(price);
+    // }
+    // function renderRoomCoursePrice(price) {
+    //     $('#summary-price').html(
+    //         summaryRow(
+    //             'ราคา',
+    //             `<span class="fw-bold fs-6">${Number(price).toLocaleString()} ฿</span>`
+    //         )
+    //     );
+    // }
+    function renderOptionSummary() {
+
+        let rows = [];
+
+        $('.addon-checkbox:checked').each(function () {
+
+            let name = $(this).data('name');
+            let price = Number($(this).data('price'));
+
+            rows.push(`
+                <div class="summary-row">
+                    <span class="summary-left">${name}</span>
+                    <span class="summary-right">฿${price.toLocaleString()}</span>
+                </div>
+            `);
+        });
+
+        $('#summary-option-list').html(
+            rows.length
+                ? rows.join('')
+                : `<div class="text-muted">- ไม่มี Options -</div>`
+        );
+    }
     function calculate(){
+        document.getElementById('loadingOverlay').style.display = 'flex';
+
+
+        renderSummary();        // แสดงห้อง + course
+        // setRoomCoursePrice();   // คุณเป็นคนคำนวณราคาเอง
+        renderOptionSummary();      // 👈 Options
+        renderProductSummary();   // สินค้า
+
         const payload = collectCalculatePayload();
 
         fetch('/pos/calculate', {
@@ -958,11 +1112,18 @@
             .then(res => res.json())
             .then(data => {
                 console.log(data);
+                $('#summary-price').html(
+                    summaryRow(
+                        'ราคา',
+                        `<span class="fw-bold fs-6">${data.room_course} ฿</span>`
+                    )
+                );
                 $('#subtotal').html(data.subtotal);
                 $('#discount').html(data.discount);
                 // $('#tax').html(data.tax);
                 $('#total').html(data.total);
                 $('#total_value').val(data.total);
+                document.getElementById('loadingOverlay').style.display = 'none';
                 // update UI
                 // document.getElementById('subtotal').innerText = data.subtotal;
                 // document.getElementById('discount').innerText = data.discount;
