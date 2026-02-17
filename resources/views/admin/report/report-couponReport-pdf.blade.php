@@ -14,6 +14,8 @@
         font-weight: bold;
     }
 </style>
+<span style="font-size: 12px; font-weight: bold;">รายงานคูปองพนักงาน วันที่ {{ date('d/m/Y') }}  , เวลา {{ date('H:i') }}</span>
+
 <table class="table table-striped">
     <thead>
         <tr>
@@ -33,13 +35,14 @@
         @php
             $sumTotal = 0;
             $sumCustomer = 0;
+            $orders = $orderRooms->values();
         @endphp
 
-        @foreach ($orderRooms as $order)
+        @foreach ($orders as $order)
             @php
                 $sumTotal += $order->total_price;
-                $next = $orderRooms[$loop->index + 1] ?? null;
-                $sumCustomer++
+                $next = $loop->last ? null : $orders->get($loop->index + 1);
+                $sumCustomer++;
             @endphp
 
             <tr>
@@ -83,9 +86,15 @@
                 @endphp
             @endif
         @endforeach
-        @if ($orderRooms->isEmpty())
+        <tr>
+            <th colspan="6" class="text-end">รวมทั้งหมด</th>
+            <th class="text-center">{{ number_format($summary_total_price,2) }}</th>
+            <th colspan="4"></th>
+        </tr>
+
+        @if ($orders->isEmpty())
             <tr>
-                <td class="text-center" colspan="10" class="text-center">ไม่มีข้อมูล</td>
+                <td colspan="9" class="text-center">ไม่มีข้อมูล</td>
             </tr>
         @endif
 

@@ -118,6 +118,7 @@
                                                                     tabindex="0" aria-controls="DataTables_Table_0"
                                                                     type="button"
                                                                     onclick="printPdf()"
+                                                                    id ='printPdfButton'
                                                                     {{-- onclick="window.open('/admin/report/coupon-report/pdf', '_blank');" --}}
                                                                     >
                                                                     <span>
@@ -179,11 +180,11 @@
         var page = "{{ route('report.coupon_report.datatable') }}";
         var searchData = {};
         loadData(page);
-        
+
         function printPdf(){
 
             var searchData = {};
-            
+
             $('.p_search').each(function() {
                 var inputName = $(this).attr('name');
                 var inputValue = $(this).val();
@@ -198,20 +199,13 @@
                 '_blank'
             );
         }
-        
+
         function loadData(pages) {
             $('.p_search').each(function() {
                 var inputName = $(this).attr('name');
                 var inputValue = $(this).val();
                 searchData[inputName] = inputValue;
             });
-
-            // If not custom, clear custom date fields
-            // if ($('select[name="date_range"]').val() !== 'custom') {
-            //     searchData['start_date'] = '';
-            //     searchData['end_date'] = '';
-            // }
-
             page = pages;
             $.ajax({
                 type: "GET",
@@ -219,7 +213,9 @@
                 data: searchData,
                 success: function(data) {
                     $("#table-data").html(data);
-
+                    // Check if table is empty
+                    var isEmpty = $("#table-data").find('td:contains("ไม่มีข้อมูล")').length > 0;
+                    $('#printPdfButton').prop('disabled', isEmpty);
                     // bind pagination click
                     $('#table-data .pagination a').on('click', function(e) {
                         e.preventDefault();
@@ -233,7 +229,7 @@
             autoclose: true,      // ปิด datepicker เมื่อเลือกวันที่
             todayHighlight: true  // ไฮไลต์วันที่ปัจจุบัน
         });
-        
+
         // ⭐ สำคัญมาก: set ค่าเริ่มต้นให้ datepicker รู้
         $('#start_date').datepicker('setDate', $('#start_date').val());
         $('#end_date').datepicker('setDate', $('#end_date').val());

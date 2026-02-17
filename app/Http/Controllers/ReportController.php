@@ -73,12 +73,12 @@ class ReportController extends Controller
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::withSum('addons', 'price')
-                        ->withSum('addons', 'coupon')
-                        ->withSum('products', 'price')
-                        ->with(['branch', 'customer', 'user', 'room', 'status'])
-                        // ->where('type', 1)
-                        // ->select('orders.*')
-                        ->orderByRaw("
+            ->withSum('addons', 'coupon')
+            ->withSum('products', 'price')
+            ->with(['branch', 'customer', 'user', 'room', 'status'])
+            // ->where('type', 1)
+            // ->select('orders.*')
+            ->orderByRaw("
                         CASE
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
@@ -90,8 +90,8 @@ class ReportController extends Controller
                             ELSE 8 -- ไม่ระบุ
                         END
                     ")
-                        ->orderBy('booking_date')
-                        ->orderBy('start_time');
+            ->orderBy('booking_date')
+            ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
@@ -113,10 +113,10 @@ class ReportController extends Controller
 
         if (request('start_date')) {
             $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
-                                ->startOfDay();
+                ->startOfDay();
 
             $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
-                                ->endOfDay();
+                ->endOfDay();
 
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
@@ -164,12 +164,10 @@ class ReportController extends Controller
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $orderRooms = Order::withSum('addons', 'price')
-                        ->withSum('addons', 'coupon')
-                        ->withSum('products', 'price')
-                        ->with(['branch', 'customer', 'user', 'room', 'status'])
-                        // ->where('type', 1)
-                        // ->select('orders.*')
-                        ->orderByRaw("
+            ->withSum('addons', 'coupon')
+            ->withSum('products', 'price')
+            ->with(['branch', 'customer', 'user', 'room', 'status'])
+            ->orderByRaw("
                         CASE
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
@@ -181,16 +179,14 @@ class ReportController extends Controller
                             ELSE 8 -- ไม่ระบุ
                         END
                     ")
-                        ->orderBy('booking_date')
-                        ->orderBy('start_time');
+            ->orderBy('booking_date')
+            ->orderBy('start_time');
 
-        // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
         if ($userBranchId) {
             $orderRooms->where('ref_branch_id', $userBranchId);
         }
 
-        // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
         if (request()->filled('branch_id')) {
             $orderRooms->where('ref_branch_id', request()->branch_id);
         }
@@ -204,15 +200,17 @@ class ReportController extends Controller
 
         if (request('start_date')) {
             $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
-                                ->startOfDay();
+                ->startOfDay();
 
             $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
-                                ->endOfDay();
+                ->endOfDay();
 
             $orderRooms->whereBetween('created_at', [$startDate, $endDate]);
         }
 
-        $data['orderRooms'] = $orderRooms->get();
+
+        $data['orderRooms'] = collect($orderRooms->get());
+        $data['summary_total_price'] = $data['orderRooms']->sum('total_price');
 
         $html = view('admin.report.report-couponReport-pdf', $data)->render();
 
@@ -246,12 +244,12 @@ class ReportController extends Controller
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::withSum('addons', 'price')
-                        ->withSum('addons', 'coupon')
-                        ->withSum('products', 'price')
-                        ->with(['branch', 'customer', 'user', 'room', 'status'])
-                        // ->where('type', 1)
-                        // ->select('orders.*')
-                        ->orderByRaw("
+            ->withSum('addons', 'coupon')
+            ->withSum('products', 'price')
+            ->with(['branch', 'customer', 'user', 'room', 'status'])
+            // ->where('type', 1)
+            // ->select('orders.*')
+            ->orderByRaw("
                         CASE
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
@@ -263,8 +261,8 @@ class ReportController extends Controller
                             ELSE 8 -- ไม่ระบุ
                         END
                     ")
-                        ->orderBy('booking_date')
-                        ->orderBy('start_time');
+            ->orderBy('booking_date')
+            ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
@@ -277,10 +275,10 @@ class ReportController extends Controller
             $query->where('ref_branch_id', request()->branch_id);
         }
 
-        $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
+        $DailySalesClosure = DailySalesClosure::orderBy("id", "DESC")->first();
 
         if (@$DailySalesClosure) {
-            $query->where('created_at', ">" ,$DailySalesClosure->date_time);
+            $query->where('created_at', ">", $DailySalesClosure->date_time);
         }
 
         // filter ค้นหา
@@ -294,10 +292,10 @@ class ReportController extends Controller
 
         if (request('start_date')) {
             $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
-                                ->startOfDay();
+                ->startOfDay();
 
             $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
-                                ->endOfDay();
+                ->endOfDay();
 
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
@@ -345,12 +343,12 @@ class ReportController extends Controller
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::withSum('addons', 'price')
-                        ->withSum('addons', 'coupon')
-                        ->withSum('products', 'price')
-                        ->with(['branch', 'customer', 'user', 'room', 'status'])
-                        // ->where('type', 1)
-                        // ->select('orders.*')
-                        ->orderByRaw("
+            ->withSum('addons', 'coupon')
+            ->withSum('products', 'price')
+            ->with(['branch', 'customer', 'user', 'room', 'status'])
+            // ->where('type', 1)
+            // ->select('orders.*')
+            ->orderByRaw("
                         CASE
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
@@ -362,8 +360,8 @@ class ReportController extends Controller
                             ELSE 8 -- ไม่ระบุ
                         END
                     ")
-                        ->orderBy('booking_date')
-                        ->orderBy('start_time');
+            ->orderBy('booking_date')
+            ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
@@ -376,10 +374,10 @@ class ReportController extends Controller
             $query->where('ref_branch_id', request()->branch_id);
         }
 
-        $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
+        $DailySalesClosure = DailySalesClosure::orderBy("id", "DESC")->first();
 
         if (@$DailySalesClosure) {
-            $query->where('created_at', ">" ,$DailySalesClosure->date_time);
+            $query->where('created_at', ">", $DailySalesClosure->date_time);
         }
 
         // filter ค้นหา
@@ -393,10 +391,10 @@ class ReportController extends Controller
 
         if (request('start_date')) {
             $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
-                                ->startOfDay();
+                ->startOfDay();
 
             $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
-                                ->endOfDay();
+                ->endOfDay();
 
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
@@ -435,12 +433,12 @@ class ReportController extends Controller
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::withSum('addons', 'price')
-                        ->withSum('addons', 'coupon')
-                        ->withSum('products', 'price')
-                        ->with(['branch', 'customer', 'user', 'room', 'status'])
-                        // ->where('type', 1)
-                        // ->select('orders.*')
-                        ->orderByRaw("
+            ->withSum('addons', 'coupon')
+            ->withSum('products', 'price')
+            ->with(['branch', 'customer', 'user', 'room', 'status'])
+            // ->where('type', 1)
+            // ->select('orders.*')
+            ->orderByRaw("
                         CASE
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
@@ -452,9 +450,9 @@ class ReportController extends Controller
                             ELSE 8 -- ไม่ระบุ
                         END
                     ")
-                        ->orderBy('ref_user_id')
-                        ->orderBy('booking_date')
-                        ->orderBy('start_time');
+            ->orderBy('ref_user_id')
+            ->orderBy('booking_date')
+            ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
@@ -483,10 +481,10 @@ class ReportController extends Controller
 
         if (request('start_date')) {
             $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
-                                ->startOfDay();
+                ->startOfDay();
 
             $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
-                                ->endOfDay();
+                ->endOfDay();
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -539,16 +537,16 @@ class ReportController extends Controller
     public function monthly_sale_pdf(Request $request)
     {
         $now = Carbon::now()->format('Y-m-d H:i:s');
-        
+
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::withSum('addons', 'price')
-                        ->withSum('addons', 'coupon')
-                        ->withSum('products', 'price')
-                        ->with(['branch', 'customer', 'user', 'room', 'status'])
-                        // ->where('type', 1)
-                        // ->select('orders.*')
-                        ->orderByRaw("
+            ->withSum('addons', 'coupon')
+            ->withSum('products', 'price')
+            ->with(['branch', 'customer', 'user', 'room', 'status'])
+            // ->where('type', 1)
+            // ->select('orders.*')
+            ->orderByRaw("
                         CASE
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
@@ -560,9 +558,9 @@ class ReportController extends Controller
                             ELSE 8 -- ไม่ระบุ
                         END
                     ")
-                        ->orderBy('ref_user_id')
-                        ->orderBy('booking_date')
-                        ->orderBy('start_time');
+            ->orderBy('ref_user_id')
+            ->orderBy('booking_date')
+            ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
@@ -591,10 +589,10 @@ class ReportController extends Controller
 
         if (request('start_date')) {
             $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
-                                ->startOfDay();
+                ->startOfDay();
 
             $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
-                                ->endOfDay();
+                ->endOfDay();
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -604,6 +602,9 @@ class ReportController extends Controller
         $data['addons_sum_price'] = $data['orderRooms']->sum('addons_sum_price');
         $data['summary_receive_price'] = $data['orderRooms']->sum('price');
         $data['summary_receive_price_after_discount'] = $data['orderRooms']->sum('total_price');
+        $data['summary_type_payment_cash'] = $data['orderRooms']->where('payment_method', 'เงินสด')->sum('total_price');
+        $data['summary_type_payment_credit'] = $data['orderRooms']->where('payment_method', 'เครดิต')->sum('total_price');
+        $data['summary_type_payment_transfer'] = $data['orderRooms']->where('payment_method', 'qr_code')->sum('total_price' );
 
         $html = view('admin.report.report-saleMonthly-pdf', $data)->render();
 
@@ -622,5 +623,4 @@ class ReportController extends Controller
 
         return view('admin.report.report-overseeEmp', $data);
     }
-
 }
