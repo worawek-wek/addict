@@ -112,8 +112,8 @@
 
 <body>
 <!-- Layout wrapper -->
-<div class="layout-wrapper layout-content-navbar pt-3">
-    <div class="layout-container">
+<div class="pt-3">
+    <div>
         <div>
             <div class="container-fluid">
                     <style>

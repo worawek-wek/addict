@@ -98,18 +98,26 @@
                                 <div class="d-flex gap-2 flex-wrap" id="room-selector">
                                     @php
                                         $room_type = [];
-                                        $room_type_fix = App\Models\RoomType::with('room_type_has_course')->find(1);
+                                        if(Auth::guard('customer')->user()?->first_name == "local"){
+                                            $room_type_fix_1 = App\Models\RoomType::with('room_type_has_course')->find(1);
+                                            $room_type_fix_2 = App\Models\RoomType::with('room_type_has_course')->find(2);
+                                            $room_type_fix_3 = App\Models\RoomType::with('room_type_has_course')->find(3);
+                                        }else{
+                                            $room_type_fix_1 = App\Models\RoomType::with('room_type_has_course')->find(8);
+                                            $room_type_fix_2 = App\Models\RoomType::with('room_type_has_course')->find(12);
+                                            $room_type_fix_3 = App\Models\RoomType::with('room_type_has_course')->find(14);
+                                        }
                                         $room_type[] = [
                                                         "name" => "Bath Room",
-                                                        "detail" => $room_type_fix
+                                                        "detail" => $room_type_fix_1
                                                         ];
                                         $room_type[] = [
                                                         "name" => "Jacuzzi",
-                                                        "detail" => $room_type_fix
+                                                        "detail" => $room_type_fix_2
                                                         ];
                                         $room_type[] = [
                                                         "name" => "Nuru",
-                                                        "detail" => $room_type_fix
+                                                        "detail" => $room_type_fix_3
                                                         ];
                                         $price = 1000;
                                     @endphp
@@ -119,7 +127,7 @@
                                         class="btn-check"
                                         name="roomType"
                                         id="roomType1{{$key}}"
-                                        value="1"
+                                        value="{{ $item['detail']->id }}"
                                         data-name="{{ $item['name'] }}"
                                         @foreach ($item['detail']->room_type_has_course as $key1 => $c_item)
                                             data-{{ $c_item->ref_course_id }}="{{ $c_item->price }}"
@@ -529,7 +537,7 @@
         }
 
         // โหลด staff ใหม่เมื่อ branch/date/time/duration เปลี่ยน
-        $(document).on('change', 'input[name="ref_branch_id"], #inputDate, #inputTime, input[name="timeService"]',
+        $(document).on('change', 'input[name="ref_branch_id"]',
             function() {
                 const branchId = $('input[name="ref_branch_id"]:checked').val();
                 if (branchId) {
@@ -743,16 +751,13 @@
                                         showConfirmButton: false,
                                         timer: 1500
                                     }).then(() => {
-                                        // const win = window.open('', '_blank');
-                                        // win.document.open();
-                                        // win.document.write(response);
-                                        // win.document.close();
+                                        document.open();
+                                        document.write(response);
+                                        document.close();
 
-                                        // win.onload = () => {
-                                        //     win.focus();
-                                        //     win.print();
+                                        // window.onload = () => {
+                                        //     window.print();
                                         // };
-                                        // location.reload();
 
                                     });
                                 }, // ✅ เพิ่ม comma ตรงนี้

@@ -172,7 +172,7 @@
                                                                     </span>
                                                                 </span>
                                                             </button>
-                                                            <div class="btn-group">
+                                                            {{-- <div class="btn-group">
                                                                 <button
                                                                     class="btn btn-success buttons-collection  btn-label-warning waves-effect waves-light"
                                                                     tabindex="0" aria-controls="DataTables_Table_0"
@@ -182,7 +182,7 @@
                                                                         Excel
                                                                     </span>
                                                                 </button>
-                                                            </div>
+                                                            </div> --}}
                                                         </div>
                                                     </div>
                                                 </div>

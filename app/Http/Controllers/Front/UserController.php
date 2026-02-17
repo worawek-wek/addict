@@ -109,7 +109,8 @@ class UserController extends Controller
 
         if (@$request->search) {
             $results = $results->orWhere(function ($query) use ($request) {
-                $query->where('name', 'LIKE', '%' . $request->search . '%')
+                $query->where('nickname', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('name', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('email', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('salary', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('phone', 'LIKE', '%' . $request->search . '%')

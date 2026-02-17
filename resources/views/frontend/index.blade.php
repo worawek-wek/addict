@@ -70,8 +70,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-muted">Enter your email and we'll send you instructions to reset your
-                        password</p>
+                    <p class="text-muted">Enter your email and we'll send you instructions to reset your password</p>
                     <div class="mb-3">
                         <label for="inputResetEmail" class="form-label fs-14 mb-0">Email</label>
                         <input type="text" class="form-control" id="inputResetEmail" placeholder="Enter your Email">

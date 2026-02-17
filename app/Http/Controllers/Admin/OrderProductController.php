@@ -221,6 +221,7 @@ class OrderProductController extends Controller
         //     $query->where('created_at', ">" ,$DailySalesClosure->date_time);
         // }
             
+        $data['total_price'] = 0;
         $data['DailySalesClosure_before'] = $DailySalesClosure_before;
         $data['date_before'] = $date_before;
 

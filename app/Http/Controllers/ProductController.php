@@ -149,6 +149,45 @@ class ProductController extends Controller
 
         return view('admin/product/card_stock_report_table', $data);
     }
+
+    public function card_stock_report_pdf(Request $request)
+    {
+        $user = Auth::user();
+        $results = CardStocks::select('card_stocks.*', 'products.name as product_name', 'branchs.name as branch_name', 'card_stocks.cost_price')
+                                ->orderBy('card_stocks.id', 'DESC')
+                                ->leftjoin('products', 'card_stocks.ref_product_id', '=', 'products.id')
+                                ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id');
+
+        if ($user->ref_position_id != 0) {
+            // filter เฉพาะสาขาของตัวเอง
+            $results = $results->where('products.ref_branch_id', $user->ref_branch_id);
+        }
+        if (request()->filled('search')) {
+            $search = request()->search;
+            $results->Where(function ($query) use ($request) {
+
+                                    $query->where('card_stocks.label','LIKE','%'.$request->search.'%')
+
+                                        ->orWhere('products.name','LIKE','%'.$request->search.'%')
+
+                                        ->orWhere('card_stocks.remark','LIKE','%'.$request->search.'%');
+
+                                });
+        }
+        
+        $data['list_data'] = $results->get();
+
+        $html = view('admin/product/card_stock_report_pdf', $data)->render();
+
+        $pdf = new \Mpdf\Mpdf([
+            'default_font_size' => 10,
+            'default_font' => 'sarabun'
+        ]);
+        $pdf->autoScriptToLang = true;
+        $pdf->autoLangToFont = true;
+        $pdf->WriteHTML($html);
+        $pdf->Output();
+    }
     /**
      * Show the form for creating a new resource.
      *
@@ -179,7 +218,7 @@ class ProductController extends Controller
             $product->name = $request->name;
             $product->price = $request->price;
             $product->price_staff = $request->price_staff;
-            $product->cost = $request->cost;
+            $product->cost = @$request->cost ?? 0.00;
             $product->remark = $request->remark;
             $product->sort  =  $lastSort + 1;
             $product->save();
@@ -294,7 +333,7 @@ class ProductController extends Controller
             $product->name = $request->name;
             $product->price = $request->price;
             $product->price_staff = $request->price_staff;
-            $product->cost = $request->cost;
+            $product->cost = @$request->cost ?? 0.00;
             // $product->stock = $request->stock;
             $product->remark = $request->remark;
             $product->save();

@@ -282,12 +282,12 @@
                                 <input name="price_staff" type="text" class="form-control" placeholder="ราคาขาย"
                                     required />
                             </div>
-                            <div class="col-sm-6">
+                            {{-- <div class="col-sm-6">
                                 <label for="" class="form-label">ต้นทุน</label><span class="text-danger">
                                     *</span>
                                 <input name="cost" type="text" class="form-control" placeholder="ต้นทุน"
                                     required />
-                            </div>
+                            </div> --}}
                             {{-- <div class="col-sm-6">
                                 <label for="" class="form-label">คงเหลือ</label><span class="text-danger"> *</span>
                                 <input name="stock" type="text" class="form-control" placeholder="คงเหลือ" required />

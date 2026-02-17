@@ -120,6 +120,18 @@
                                                                     ดาวน์โหลด Excel
                                                                 </span>
                                                         </button> --}}
+                                                        
+                                                        <button
+                                                            class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
+                                                            type="button"
+                                                            onclick="printPdf()">
+                                                            
+                                                            <span>
+                                                                <i class="ti ti-file-upload me-0 me-sm-1"></i>
+                                                                <span class="d-none d-sm-inline-block">พิมพ์
+                                                                </span>
+                                                            </span>
+                                                        </button>
                                                         <button
                                                                 style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
                                                                 class="btn btn-success buttons-collection  btn-info waves-effect waves-light"
@@ -227,6 +239,26 @@
     <!-- / Layout wrapper -->
     @include('admin/layout/inc_js')
     <script>
+        
+        function printPdf(){
+
+            var searchData = {};
+            
+            $('.p_search').each(function() {
+                var inputName = $(this).attr('name');
+                var inputValue = $(this).val();
+                searchData[inputName] = inputValue;
+            });
+
+            // แปลง object เป็น query string
+            let queryString = $.param(searchData);
+
+            window.open(
+                '/admin/card_stock_report/pdf?' + queryString,
+                '_blank'
+            );
+        }
+
         var page = "{{$page_url}}/datatable";
         var searchData = {};
         loadData(page);

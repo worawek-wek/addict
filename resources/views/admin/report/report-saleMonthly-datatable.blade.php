@@ -34,7 +34,7 @@
 
                     @if($diff->h > 0){{ $diff->h }} ชม. @endif @if($diff->i > 0) {{ $diff->i }} นาที @endif
                 </td>
-                <td>{{ $order->status_label }}</td>
+                <td>{{ $order->payment_method }}</td>
                 <td>{{ number_format($order->addons_sum_price ?? 0)}}</td>
                 <td> 0 </td>
                 <td> 0 </td>

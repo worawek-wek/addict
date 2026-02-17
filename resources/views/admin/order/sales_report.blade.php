@@ -108,6 +108,17 @@
                                                         </div>
                                                     </div>
                                                     <div class="col-md-8 flex text-end" style="padding-right: unset !important;">
+                                                            <button
+                                                                class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
+                                                                type="button"
+                                                                onclick="printPdf()">
+                                                                
+                                                                <span>
+                                                                    <i class="ti ti-file-upload me-0 me-sm-1"></i>
+                                                                    <span class="d-none d-sm-inline-block">พิมพ์
+                                                                    </span>
+                                                                </span>
+                                                            </button>
                                                         {{-- <button
                                                                 style="padding-right: 14px;padding-left: 14px;"
                                                                 class="btn btn-success buttons-collection btn-warning waves-effect waves-light me-2"
@@ -173,6 +184,26 @@
     <!-- / Layout wrapper -->
     @include('admin/layout/inc_js')
     <script>
+        
+        function printPdf(){
+
+            var searchData = {};
+            
+            $('.p_search').each(function() {
+                var inputName = $(this).attr('name');
+                var inputValue = $(this).val();
+                searchData[inputName] = inputValue;
+            });
+
+            // แปลง object เป็น query string
+            let queryString = $.param(searchData);
+
+            window.open(
+                '/admin/sales_report/pdf?' + queryString,
+                '_blank'
+            );
+        }
+
         var page = "{{$page_url}}/datatable";
         var searchData = {};
         loadData(page);

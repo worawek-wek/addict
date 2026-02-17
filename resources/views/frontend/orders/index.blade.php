@@ -121,6 +121,7 @@
                                 <th>Service Time</th>
                                 <th>Details</th>
                                 <th>Total</th>
+                                <th>แสกน</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -169,6 +170,16 @@
                                     {{ number_format($order->total_price, 2) }}
                                 </td>
                                 <td>
+                                    <div class="qr-wrapper" onclick="previewQR({{ $order->id }})" style="cursor:pointer;">
+                                        {!! SimpleSoftwareIO\QrCode\Facades\QrCode::size(120)->generate(url("admin/order-rooms/$order->id")) !!}
+                                    </div>
+
+                                    <!-- ซ่อน QR ขนาดใหญ่ไว้ -->
+                                    <div id="qr-{{ $order->id }}" style="display:none;">
+                                        {!! SimpleSoftwareIO\QrCode\Facades\QrCode::size(300)->generate(url("admin/order-rooms/$order->id")) !!}
+                                    </div>
+                                </td>
+                                <td>
                                     @php
                                         $orderDateTime = \Carbon\Carbon::parse(
                                             $order->booking_date . ' ' . $order->start_time,
@@ -208,9 +219,25 @@
             </div>
         </div>
     </div>
-
+<div id="qrModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:9999;">
+    <div style="background:#fff; padding:30px; border-radius:20px; text-align:center; position:relative;">
+        <button onclick="closeQR()" style="position:absolute; top:10px; right:15px; border:none; background:none; font-size:22px; cursor:pointer;">✕</button>
+        <div id="qrPreview"></div>
+    </div>
+</div>
     @include('frontend.layout.inc_footer')
     @include('frontend.layout.inc_js')
 </body>
 
 </html>
+<script>
+    function previewQR(id) {
+        const qrContent = document.getElementById('qr-' + id).innerHTML;
+        document.getElementById('qrPreview').innerHTML = qrContent;
+        document.getElementById('qrModal').style.display = 'flex';
+    }
+
+    function closeQR() {
+        document.getElementById('qrModal').style.display = 'none';
+    }
+</script>

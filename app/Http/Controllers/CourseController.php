@@ -125,6 +125,7 @@ class CourseController extends Controller
             $course = new Course;
             $course->ref_branch_id = $request->ref_branch_id;
             $course->name = $request->name;
+            $course->minute = $request->minute;
             // $course->sixty_minutes = $request->sixty_minutes;
             // $course->ninety_minutes = $request->ninety_minutes;
             // $course->forty_minutes = $request->forty_minutes;
@@ -188,6 +189,7 @@ class CourseController extends Controller
             $course = Course::find($id);
             $course->ref_branch_id = $request->ref_branch_id;
             $course->name = $request->name;
+            $course->minute = $request->minute;
             // $course->forty_minutes = $request->forty_minutes;
             // $course->sixty_minutes = $request->sixty_minutes;
             // $course->ninety_minutes = $request->ninety_minutes;

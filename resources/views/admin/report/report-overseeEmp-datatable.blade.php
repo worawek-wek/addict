@@ -8,7 +8,7 @@
             <th style="width: 10%;">รหัสผู้ดูแล</th>
             <th style="width: 15%;">ชื่อผู้ดูแล</th>
             <th style="width: 28%;">ชื่อพนักงาน</th>
-            <th style="width: 6%;">นาที</th>
+            <th style="width: 12%;">นาที</th>
             <th style="width: 10%;">@ราคา</th>
             <th style="width: 8%;">ราคาเต็ม</th>
         </tr>

@@ -193,6 +193,11 @@
                             <input name="name" type="text" class="form-control" placeholder="ชื่อคอร์ส" required />
                         </div>
 
+                        <div class="col-sm-6">
+                            <label class="form-label">จำนวณ นาที <span class="text-danger">*</label>
+                            <input name="minute" type="text" class="form-control" placeholder="จำนวณ นาที" required />
+                        </div>
+
                         <div class="col-sm-12">
                             <label class="form-label">หมายเหตุ</label>
                             <textarea name="remark" class="form-control"></textarea>

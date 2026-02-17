@@ -7,6 +7,9 @@
     @include('admin/layout/inc_header')
     <title>Dashboard - CRM | Vuexy - Bootstrap Admin Template</title>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js"></script>
+
 </head>
 
 <style>
@@ -88,37 +91,35 @@
                                                         </label>
                                                     </div>
                                                 </div>
-                                                <div class="d-flex justify-content-start justify-content-md-end align-items-baseline">
+                                                <div
+                                                    class="d-flex justify-content-start justify-content-md-end align-items-baseline">
                                                     <label class="me-3">ตั้งแต่วันที่:</label>
                                                     <div
                                                         class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
                                                         <div id="DataTables_Table_0_filter"
                                                             class="dataTables_filter mx-n2 me-2">
-                                                            <input type="date" class="form-control">
+                                                            <input name="start_date" id="start_date" type="text" class="form-control p_search search_date" value="{{ date('d/m/Y') }}">
                                                         </div>
-                                                        <div class="dt-buttons btn-group flex-wrap d-flex mb-6 mb-sm-0">
-
-                                                            <div
-                                                                class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
-                                                                <label class="me-1">ถึงวันที่:</label>
-                                                                <div id="DataTables_Table_0_filter"
-                                                                    class="dataTables_filter mx-n2 me-2">
-                                                                    <input type="date" class="form-control">
-                                                                </div>
+                                                        <label class="me-3">ถึงวันที่:</label>
+                                                        <div
+                                                            class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
+                                                            <div id="DataTables_Table_0_filter"
+                                                                class="dataTables_filter mx-n2 me-2">
+                                                                <input name="end_date" id="end_date" type="text" class="form-control p_search search_date" value="{{ date('d/m/Y') }}">
+                                                            </div>
 
                                                                 <button
                                                                     class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
-                                                                    tabindex="0" aria-controls="DataTables_Table_0"
                                                                     type="button"
-                                                                    onclick="window.open('/admin/report/monthly-sale/pdf', '_blank');"
-                                                                    >
+                                                                    onclick="printPDF()">
+                                                                    
                                                                     <span>
                                                                         <i class="ti ti-file-upload me-0 me-sm-1"></i>
                                                                         <span class="d-none d-sm-inline-block">พิมพ์
                                                                         </span>
                                                                     </span>
                                                                 </button>
-                                                                <div class="btn-group">
+                                                                {{-- <div class="btn-group">
                                                                     <button
                                                                         class="btn btn-success buttons-collection  btn-warning waves-effect waves-light"
                                                                         tabindex="0"
@@ -129,364 +130,13 @@
                                                                             Excel
                                                                         </span>
                                                                     </button>
-                                                                </div>
+                                                                </div> --}}
                                                             </div>
                                                         </div>
 
                                                     </div>
                                                 </div>
                                                 <div id="table-data"><!-- ตารางจะถูกโหลดตรงนี้ --></div>
-
-                                                <table class="datatables-products table dataTable no-footer dtr-column" style="display: none;"
-                                                    id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
-                                                    style="width: 1396px;">
-                                                    <thead class="border-top">
-                                                        <tr class="table-info">
-                                                            <th style="width: 5%;">#</th>
-                                                            <th style="width: 5%;">ห้อง</th>
-                                                            <th style="width: 5%;">วันที่</th>
-                                                            <th style="width: 8%;">เวลา</th>
-                                                            <th style="width: 5%;">ชม.</th>
-                                                            <th style="width: 6%;">ราคา</th>
-                                                            <th style="width: 10%;">ค่านวด</th>
-                                                            <th style="width: 10%;">อาหาร</th>
-                                                            <th style="width: 10%;">เครื่องดื่มพนักงาน</th>
-                                                            <th style="width: 10%;">เครื่องดื่มลูกค้า</th>
-                                                            <th style="width: 10%;">รวมเงิน</th>
-                                                            <th style="width: 8%;">คูปอง</th>
-                                                            <th style="width: 8%;">รับจริงของร้าน</th>
-                                                            <th style="width: 8%;">สถานะ</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td class="text-center">654</td>
-                                                            <td class="text-center">V3</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center"> 20:09</td>
-                                                            <td class="text-center">00:56</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">3,000</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">3,000</td>
-                                                            <td class="text-right">100</td>
-                                                            <td class="text-right">1,400</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-center">655</td>
-                                                            <td class="text-center">V8</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center">20:14</td>
-                                                            <td class="text-center">01:12</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">3,500</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">3,500</td>
-                                                            <td class="text-right">100</td>
-                                                            <td class="text-right">1,500</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-center">656</td>
-                                                            <td class="text-center">V9</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center">20:14</td>
-                                                            <td class="text-center">00:50</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">3,500</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">3,500</td>
-                                                            <td class="text-right">100</td>
-                                                            <td class="text-right">1,500</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-center">657</td>
-                                                            <td class="text-center">V10</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center">20:15</td>
-                                                            <td class="text-center">00:55</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">3,500</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">3,500</td>
-                                                            <td class="text-right">200</td>
-                                                            <td class="text-right">1,600</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-center">658</td>
-                                                            <td class="text-center">V11</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center">20:22</td>
-                                                            <td class="text-center">00:50</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">3,500</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">3,500</td>
-                                                            <td class="text-right">200</td>
-                                                            <td class="text-right">1,600</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-center">659</td>
-                                                            <td class="text-center">8</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center">20:29</td>
-                                                            <td class="text-center">00:47</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">2,500</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">2,500</td>
-                                                            <td class="text-right">100</td>
-                                                            <td class="text-right">1,000</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr class="note">
-                                                            <td class="text-center">660</td>
-                                                            <td class="text-center">9</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center">20:29</td>
-                                                            <td class="text-center">00:00</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">2,300</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">100</td>
-                                                            <td class="text-right">0</td>
-                                                            <td>ยกเลิก</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-center">661</td>
-                                                            <td class="text-center">7</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center">20:30</td>
-                                                            <td class="text-center">00:34</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">2,300</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">2,300</td>
-                                                            <td class="text-right">200</td>
-                                                            <td class="text-right">800</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-center">662</td>
-                                                            <td class="text-center">J4</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center">20:32</td>
-                                                            <td class="text-center">01:04</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">3,000</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">3,000</td>
-                                                            <td class="text-right">200</td>
-                                                            <td class="text-right">1,500</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-center">663</td>
-                                                            <td class="text-center">9</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center">20:35</td>
-                                                            <td class="text-center">00:41</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">2,300</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">2,300</td>
-                                                            <td class="text-right">100</td>
-                                                            <td class="text-right">700</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-center">685</td>
-                                                            <td class="text-center">10</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center">22:32</td>
-                                                            <td class="text-center">00:28</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">1,700</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">1,700</td>
-                                                            <td class="text-right">100</td>
-                                                            <td class="text-right">400</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-center">686</td>
-                                                            <td class="text-center">8</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center">22:32</td>
-                                                            <td class="text-center">00:26</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">1,800</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">1,800</td>
-                                                            <td class="text-right">100</td>
-                                                            <td class="text-right">500</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-center">687</td>
-                                                            <td class="text-center">9</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center">22:44</td>
-                                                            <td class="text-center">01:15</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">1,800</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">1,800</td>
-                                                            <td class="text-right">200</td>
-                                                            <td class="text-right">600</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-center">688</td>
-                                                            <td class="text-center">7</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center">23:07</td>
-                                                            <td class="text-center">00:00</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">2,500</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">2,500</td>
-                                                            <td class="text-right">100</td>
-                                                            <td class="text-right">1,000</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-center">689</td>
-                                                            <td class="text-center">9</td>
-                                                            <td class="text-center">14/0...</td>
-                                                            <td class="text-center">00:00</td>
-                                                            <td class="text-center">00:00</td>
-                                                            <td class="text-center">เงินสด</td>
-                                                            <td class="text-right">1,800</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">1,800</td>
-                                                            <td class="text-right">200</td>
-                                                            <td class="text-right">600</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr class="grand-total">
-                                                            <td colspan="6"
-                                                                style="text-align: center; font-weight: bold;">
-                                                                รวมทั้งสิ้น</td>
-                                                            <td class="text-right">298,500</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">0</td>
-                                                            <td class="text-right">293,900</td>
-                                                            <td class="text-right">13,400</td>
-                                                            <td class="text-right">115,000</td>
-                                                            <td></td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                                <div class="row mt-3" style="display: none;">
-                                                    <div class="col-sm-12 col-md-6">
-                                                        <div class="dataTables_info" id="DataTables_Table_0_info"
-                                                            role="status" aria-live="polite">
-                                                            แสดง 1 ถึง 10 จาก 100 รายการ
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-sm-12 col-md-6">
-                                                        <div class="dataTables_paginate paging_simple_numbers"
-                                                            id="DataTables_Table_0_paginate">
-                                                            <ul class="pagination justify-content-end">
-                                                                <li class="paginate_button page-item previous disabled"
-                                                                    id="DataTables_Table_0_previous"><a
-                                                                        aria-controls="DataTables_Table_0"
-                                                                        aria-disabled="true" role="link"
-                                                                        data-dt-idx="previous" tabindex="-1"
-                                                                        class="page-link"><i
-                                                                            class="ti ti-chevron-left ti-sm"></i></a>
-                                                                </li>
-                                                                <li class="paginate_button page-item active">
-                                                                    <a href="#"
-                                                                        aria-controls="DataTables_Table_0"
-                                                                        role="link" aria-current="page"
-                                                                        data-dt-idx="0" tabindex="0"
-                                                                        class="page-link">1</a>
-                                                                </li>
-                                                                <li class="paginate_button page-item "><a
-                                                                        href="#"
-                                                                        aria-controls="DataTables_Table_0"
-                                                                        role="link" data-dt-idx="1" tabindex="0"
-                                                                        class="page-link">2</a>
-                                                                </li>
-                                                                <li class="paginate_button page-item "><a
-                                                                        href="#"
-                                                                        aria-controls="DataTables_Table_0"
-                                                                        role="link" data-dt-idx="2" tabindex="0"
-                                                                        class="page-link">3</a>
-                                                                </li>
-                                                                <li class="paginate_button page-item "><a
-                                                                        href="#"
-                                                                        aria-controls="DataTables_Table_0"
-                                                                        role="link" data-dt-idx="3" tabindex="0"
-                                                                        class="page-link">4</a>
-                                                                </li>
-                                                                <li class="paginate_button page-item "><a
-                                                                        href="#"
-                                                                        aria-controls="DataTables_Table_0"
-                                                                        role="link" data-dt-idx="4" tabindex="0"
-                                                                        class="page-link">5</a>
-                                                                </li>
-                                                                <li class="paginate_button page-item disabled"
-                                                                    id="DataTables_Table_0_ellipsis"><a
-                                                                        aria-controls="DataTables_Table_0"
-                                                                        aria-disabled="true" role="link"
-                                                                        data-dt-idx="ellipsis" tabindex="-1"
-                                                                        class="page-link">…</a></li>
-                                                                <li class="paginate_button page-item "><a
-                                                                        href="#"
-                                                                        aria-controls="DataTables_Table_0"
-                                                                        role="link" data-dt-idx="14"
-                                                                        tabindex="0" class="page-link">15</a>
-                                                                </li>
-                                                                <li class="paginate_button page-item next"
-                                                                    id="DataTables_Table_0_next"><a href="#"
-                                                                        aria-controls="DataTables_Table_0"
-                                                                        role="link" data-dt-idx="next"
-                                                                        tabindex="0" class="page-link"><i
-                                                                            class="ti ti-chevron-right ti-sm"></i></a>
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -531,10 +181,10 @@
             });
 
             // If not custom, clear custom date fields
-            if ($('select[name="date_range"]').val() !== 'custom') {
-                searchData['start_date'] = '';
-                searchData['end_date'] = '';
-            }
+            // if ($('select[name="date_range"]').val() !== 'custom') {
+            //     searchData['start_date'] = '';
+            //     searchData['end_date'] = '';
+            // }
 
             page = pages;
             $.ajax({
@@ -552,6 +202,53 @@
                 }
             });
         }
+        function printPDF() {
+            let start = document.getElementById('start_date').value;
+            let end = document.getElementById('end_date').value;
+
+            let url = `/admin/report/monthly-sale/pdf?start_date=${encodeURIComponent(start)}&end_date=${encodeURIComponent(end)}`;
+
+            window.open(url, '_blank');
+        }
+        $('.search_date').datepicker({
+            format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
+            autoclose: true,      // ปิด datepicker เมื่อเลือกวันที่
+            todayHighlight: true  // ไฮไลต์วันที่ปัจจุบัน
+        });
+        
+        // ⭐ สำคัญมาก: set ค่าเริ่มต้นให้ datepicker รู้
+        $('#start_date').datepicker('setDate', $('#start_date').val());
+        $('#end_date').datepicker('setDate', $('#end_date').val());
+
+        // ⭐ ผูกข้อจำกัดตั้งแต่โหลด
+        const startInit = $('#start_date').datepicker('getDate');
+        const endInit   = $('#end_date').datepicker('getDate');
+
+        if (startInit) {
+            $('#end_date').datepicker('setStartDate', startInit);
+        }
+
+        if (endInit) {
+            $('#start_date').datepicker('setEndDate', endInit);
+        }
+
+        // event หลังจากนั้น
+        $('#start_date').on('changeDate', function (e) {
+            $('#end_date').datepicker('setStartDate', e.date);
+
+            const endDate = $('#end_date').datepicker('getDate');
+            if (endDate && endDate < e.date) {
+                $('#end_date').datepicker('clearDates');
+            }
+
+            loadData("admin/report/report-sale-monthly");
+        });
+
+        $('#end_date').on('changeDate', function (e) {
+            $('#start_date').datepicker('setEndDate', e.date);
+
+            loadData("admin/report/report-sale-monthly");
+        });
     // document.addEventListener('DOMContentLoaded', function() {
     //     // Initialize datepickers
     //     flatpickr("#datepicker-from", {

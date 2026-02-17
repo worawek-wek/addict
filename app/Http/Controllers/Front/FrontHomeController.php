@@ -11,6 +11,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderHasProduct;
 use App\Models\Room;
+use App\Models\RoomType;
 use App\Models\Branch;
 use App\Models\Course;
 use App\Models\OrderHasAddonOption;
@@ -92,7 +93,7 @@ class FrontHomeController extends Controller
         try {
             $ref_seller_id = Auth::guard('customer')->user()->id;
             $user = User::find($request->selected_user);
-            $room = Room::find($request->roomType);
+            $room = RoomType::find($request->roomType);
             $course = Course::find($request->timeService);
             // $massage_price = $user ? $user->salary : 0;
             $room_price = 0;
@@ -110,8 +111,8 @@ class FrontHomeController extends Controller
             //     }
             // }
             $order_price = $request->total_price;
-            $price = 0;
-            // $price = $this->calculate_all($request);
+            // $price = 0;
+            $price = $this->calculate_all($request);
 
             // // กำหนดค่าระยะเวลาเป็นตัวเลข
             // if ($request->timeService == 'forty_minutes') {
@@ -144,21 +145,22 @@ class FrontHomeController extends Controller
                 $customer->save();
                 $order->ref_customer_id = $customer->id;
             }
+            $order->ref_room_type_id = $request->roomType;
             $order->ref_user_id = $request->selected_user;
             $order->ref_room_id = $request->roomType;
             $order->service_laundry_cost = $request->timeService;
             $order->ref_status_id = 1;
             $order->booking_date = $request->booking_date;
             $order->start_time = $request->booking_time;
-            $order->total_price = number_format($price, 2, '.', '');
+            $order->total_price = number_format($order_price, 2, '.', '');
             $order->price = number_format($order_price, 2, '.', '');
             $start = \Carbon\Carbon::createFromFormat('H:i', $request->booking_time);
 
             // switch ($request->timeService) {
             //     case 'forty_minutes':
-                $text = $course->name;
+                $course_name = $course->name;
 
-                preg_match('/\d+/', $text, $matches);
+                preg_match('/\d+/', $course_name, $matches);
 
                 $minute = $matches[0] ?? 0;
                 $end = $start->copy()->addMinutes($minute);
@@ -202,75 +204,75 @@ class FrontHomeController extends Controller
             }
 
             DB::commit();
-            $qr = QrCode::size(230)->generate(url("/addict-one/service-more/$order->id"));
+            $qr = QrCode::size(230)->generate(url("admin/order-rooms/$order->id"));
 
             $slip = "<!DOCTYPE html>
-            <html lang='th'>
-            <head>
-                <meta charset='UTF-8'>
-                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-                <title>ใบแจ้งหนี้ชั่วคราว</title>
-                <style>
-                    body { font-family: Arial, sans-serif; font-size: 11px; }
-                    .invoice { width: 69mm; font-size: 11px; }
-                    .header { display: flex; justify-content: space-between; align-items: end; font-weight: bold; font-size: 10px; }
-                    .title { flex-grow: 1; text-align: center; font-size: 11px; }
-                    .right-align { text-align: right; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 11px; border-top: 1px solid #000; }
-                    th, td { padding: 2px; text-align: left; font-size: 11px; }
-                    th { border-bottom: 1px solid #000; }
-                    td { border-bottom: 1px solid #000; }
+                        <html lang='th'>
+                        <head>
+                            <meta charset='UTF-8'>
+                            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                            <title>ใบแจ้งหนี้</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; font-size: 11px; }
+                                .invoice { width: 69mm; font-size: 11px;padding: 20px; }
+                                .header { display: flex; justify-content: space-between; align-items: end; font-weight: bold; font-size: 10px; }
+                                .title { flex-grow: 1; text-align: center; font-size: 11px; }
+                                .right-align { text-align: right; }
+                                table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 11px; border-top: 1px solid #000; }
+                                th, td { padding: 2px; text-align: left; font-size: 11px; }
+                                th { border-bottom: 1px solid #000; }
+                                td { border-bottom: 1px solid #000; }
 
-                    @media print {
-                        @page {
-                            size: 69mm auto;
-                            margin: 0;
-                        }
+                                @media print {
+                                    @page {
+                                        size: 69mm auto;
+                                        margin: 0;
+                                    }
 
-                        body {
-                            width: 69mm;
-                            margin: 0;
-                        }
+                                    body {
+                                        width: 69mm;
+                                        margin: 0;
+                                    }
 
-                        .invoice {
-                            width: 69mm;
-                        }
-                    }
-                </style>
+                                    .invoice {
+                                        width: 69mm;
+                                    }
+                                }
+                            </style>
 
-            </head>
-            <body>
-                <div class='invoice'>
-                    <div class='header' align='right'>
-                        <span class='title'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  ใบแจ้งหนี้ชั่วคราว </span>
-                        <span class='right-align'>No_: $order_number</span>
-                    </div>
-                    <p class='right-align'><strong>แคชเชียร์:</strong> Addict</p>
-                    <p><strong>ห้อง:</strong> $room->name</p>
-                 <p><strong>เปิดห้อง:</strong> " . \Carbon\Carbon::parse($order->booking_date . ' ' . $order->start_time)->format('d/m/Y H:i') . "</p>
-<p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse($order->booking_date . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+                        </head>
+                        <body>
+                            <div class='invoice'>
+                                <div class='header' align='right'>
+                                    <span class='title'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  ใบแจ้งหนี้ชั่วคราว </span>
+                                    <span class='right-align'>No_: $order_number</span>
+                                </div>
+                                <p class='right-align'><strong>แคชเชียร์:</strong> Addict</p>
+                                <p><strong>ห้อง:</strong> $room->name</p>
+                            <p><strong>เปิดห้อง:</strong> " . \Carbon\Carbon::parse($order->booking_date . ' ' . $order->start_time)->format('d/m/Y H:i') . "</p>
+            <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse($order->booking_date . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
 
-                    <table>
-                        <tr>
-                            <th>จำนวน</th>
-                            <th>รายการสินค้า</th>
-                            <th>@ ราคา</th>
-                            <th>รวม</th>
-                        </tr>
-                        <tr>
-                            <td>1</td>
-                            <td>$user->nickname + $service $room->name $td </td>
-                            <td>$price</td>
-                            <td>$price</td>
-                        </tr>
-                    </table>
-                    <div style='padding: 10px;'>
-                    $qr
-                    </div>
-                </div>
-            </body>
-            </html>
-            ";
+                                <table>
+                                    <tr>
+                                        <th>จำนวน</th>
+                                        <th>รายการสินค้า</th>
+                                        <th>@ ราคา</th>
+                                        <th>รวม</th>
+                                    </tr>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>$user->nickname + $course_name $room->name $td </td>
+                                        <td>$price</td>
+                                        <td>$price</td>
+                                    </tr>
+                                </table>
+                                <div style='padding: 10px;'>
+                                $qr
+                                </div>
+                            </div>
+                        </body>
+                    </html>
+                    ";
             return $slip;
         } catch (QueryException $err) {
             DB::rollBack();

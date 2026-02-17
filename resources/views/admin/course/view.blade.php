@@ -50,8 +50,13 @@
                                         </div>
 
                                         <div class="col-sm-6">
-                                            <label class="form-label">ชื่อคอร์ส *</label>
-                                            <input name="name" type="text" class="form-control" value="{{ $course->name }}" required />
+                                            <label class="form-label">ชื่อคอร์ส <span class="text-danger">*</span></label>
+                                            <input name="name" type="text" class="form-control" value="{{ $course->name }}" placeholder="ชื่อคอร์ส" required />
+                                        </div>
+                                        
+                                        <div class="col-sm-6">
+                                            <label class="form-label">จำนวณ นาที <span class="text-danger">*</span></label>
+                                            <input name="minute" type="text" class="form-control" value="{{ $course->minute }}" placeholder="จำนวณ นาที" required />
                                         </div>
 
                                         <div class="col-sm-12">

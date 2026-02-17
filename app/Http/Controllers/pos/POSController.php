@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class POSController extends Controller
 {
@@ -293,7 +294,7 @@ class POSController extends Controller
                 'ref_customer_id'   => $request->input('customer_id') ?: null,
                 'ref_account_id'    => Auth::id(),
                 'ref_user_id'    => $request->input('staff_id') ?? null,
-                'customer_type'     => $request->input('customer_type'),
+                'customer_type'     => $request->input('customer_type') ?? 2,
                 'ref_seller_id'     => $request->input('reception_id'),
                 'ref_room_id'     => $request->input('ref_room_id') ?? null,
                 'ref_room_type_id'     => $request->input('ref_room_type_id') ?? null,
@@ -427,7 +428,7 @@ class POSController extends Controller
             if($q == 0){
                 continue;
             }
-            if($request->input('customer_type') == 1){
+            if($request->input('customer_type') ?? 2 == 1){
                 $price = Product::find($id)->price_staff;
             }else{
                 $price = Product::find($id)->price;
@@ -460,9 +461,121 @@ class POSController extends Controller
         // $order->total_price = $total_price;
         $order->updated_at  = now();
         $order->save();
+        if(!$request->input('ref_room_type_id')){
+            return 1;
+        }
+        $room_type = RoomType::find($request->input('ref_room_type_id'));
+        $room_type_name = $room_type->name;
+        // dd(\Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i'));
+        $qr = QrCode::size(150)->generate(url("admin/order-rooms/$order->id"));
 
+            $slip = "<!DOCTYPE html>
+                        <html lang='th'>
+                        <head>
+                            <meta charset='UTF-8'>
+                            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                            <title>รายละเอียดการจอง</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; font-size: 11px; }
+                                .invoice { width: 69mm; font-size: 11px;padding: 20px; }
+                                .header { display: flex; justify-content: space-between; align-items: end; font-weight: bold; font-size: 10px; }
+                                .title { flex-grow: 1; text-align: center; font-size: 11px; }
+                                .right-align { text-align: right; }
+                                table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 11px; border-top: 1px solid #000; }
+                                th, td { padding: 2px; text-align: left; font-size: 11px; }
+                                th { border-bottom: 1px solid #000; }
+                                td { border-bottom: 1px solid #000; }
+
+                                @media print {
+                                    @page {
+                                        size: 69mm auto;
+                                        margin: 0;
+                                    }
+
+                                    body {
+                                        width: 69mm;
+                                        margin: 0;
+                                    }
+
+                                    .invoice {
+                                        width: 69mm;
+                                    }
+                                }
+                            </style>
+
+                        </head>
+                        <body>
+                            <div class='invoice'>
+                                <div class='header' align='right'>
+                                    <span class='title'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  ใบแจ้งหนี้ชั่วคราว </span>
+                                    <span class='right-align'>No_: $order->order_number</span>
+                                </div>
+                                <p class='right-align'><strong>แคชเชียร์:</strong> Addict</p>
+                                <p><strong>ห้อง:</strong> ".$order->room->name."</p>
+                                <p><strong>เปิดห้อง:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i') . "</p>
+                                <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+
+                                <table>
+                                    <tr>
+                                        <th>จำนวน</th>
+                                        <th>รายการสินค้า</th>
+                                        <th>@ ราคา</th>
+                                        <th>รวม</th>
+                                    </tr>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>".$order->user->nickname." + ".$order->course->name." ".$order->room_type->name ."</td>
+                                        <td>$order->total_price</td>
+                                        <td>$order->total_price</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan='3' style='border-top:unset;padding:10px'> ผู้ดูแล ".$order->seller->user_id." ".$order->seller->nickname." </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div style='border-top: 2px dashed #000; margin:10px 0;'></div>
+                            <div class='invoice'>
+                                <div class='header' align='right'>
+                                    <span class='title'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  ใบคูปองพนักงาน </span>
+                                    <span class='right-align'>No_: $order->order_number</span>
+                                </div>
+                                <p class='right-align'><strong>แคชเชียร์:</strong> Addict</p>
+                                <p><strong>ห้อง:</strong> ".$order->room->name."</p>
+                                <p><strong>เปิดห้อง:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i') . "</p>
+                                <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+
+                                <table>
+                                    <tr>
+                                        <th>รหัส</th>
+                                        <th>ชื่อพนักงาน</th>
+                                        <th>ชั่วโมงรวม</th>
+                                    </tr>
+                                    <tr>
+                                        <td style='border:unset;padding-top:5px'>". $order->user->user_id ."</td>
+                                        <td style='border:unset;padding-top:5px'>".$order->user->nickname." + ".$order->course->name." ".$order->room_type->name ."</td>
+                                        <td style='border:unset;padding-top:5px'>".floor($order->course->minute / 60)."</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan='3' style='border-top:unset;padding:10px'> ผู้ดูแล ".$order->seller->user_id." ".$order->seller->nickname." </td>
+                                    </tr>
+                                </table>
+                                <span style='padding-top:10px'>ให้เก็บไว้ตรวจสอบ</span>
+
+                            </div>
+                            
+                                <div style='padding: 10px;'>
+                                $qr
+                                </div>
+                        </body>
+                    </html>
+                    ";
+            return response()->json([
+                                        'status' => true,
+                                        'data' => $slip
+                                    ]);
         // Session::forget('cart');
 
+                            // <div style='page-break-before: always;'></div>
         return 1;
     }
 

@@ -286,6 +286,7 @@ Route::prefix('admin')->group(function () {
             Route::post('product/update-sort/{id}', 'update_sort')->name('product.update-sort');
             Route::get('card_stock_report', 'card_stock_report')->name('card_stock_report');
             Route::get('card_stock_report/datatable', 'card_stock_report_datatable')->name('card_stock_report.datatable');
+            Route::get('card_stock_report/pdf', 'card_stock_report_pdf')->name('card_stock_report.pdf');
             Route::post('card_stock_report', 'card_stock_report_store')->name('card_stock_report.insert');
             Route::post('product', 'store')->name('product.insert');
             Route::post('product/withdraw-product', 'withdraw')->name('product.withdraw');
@@ -296,8 +297,10 @@ Route::prefix('admin')->group(function () {
         Route::controller(OrderController::class)->group(function () {
             Route::get('order', 'index')->name('order');
             Route::get('order/datatable', 'datatable')->name('order.datatable');
+            Route::get('order/pdf', 'pdf')->name('order.pdf');
             Route::get('sales_report', 'sales_report')->name('sales_report');
             Route::get('sales_report/datatable', 'sales_report_datatable')->name('sales_report.datatable');
+            Route::get('sales_report/pdf', 'sales_report_pdf')->name('sales_report.sales_report_pdf');
         });
 
         Route::controller(RoomController::class)->group(function () {

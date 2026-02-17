@@ -46,7 +46,7 @@ class Order extends Model
     }
     public function room_type()
     {
-        return $this->belongsTo(Room::class, 'ref_room_type_id');
+        return $this->belongsTo(RoomType::class, 'ref_room_type_id');
     }
     public function course()
     {

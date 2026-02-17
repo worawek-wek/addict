@@ -143,7 +143,7 @@
                 <tbody>
                 @foreach ($product_employee as $key => $item)
                 @php
-                    $total_price = $item->total_price + @$total_price ?? 0;
+                    $total_price += $item->total_price;
                     $total_cost = $item->product->cost*$item->total_qty + @$total_cost ?? 0;
 
                 @endphp
@@ -162,7 +162,7 @@
                 <tbody>
                 @foreach ($product_customer as $key => $item2)
                 @php
-                    $total_price = $item2->total_price + @$total_price ?? 0;
+                    $total_price += $item2->total_price;
                     $total_cost = $item2->product->cost*$item2->total_qty + @$total_cost ?? 0;
 
                 @endphp
@@ -190,7 +190,7 @@
                 <tbody>
                 @foreach ($payment_channel as $key => $item3)
                 @php
-                    $total_price = $item3->total_price + @$price ?? 0;
+                    $total_price += $item3->total_price;
                 @endphp
                     <tr>
                         <td>{{ $key+1 }}</td>
@@ -208,17 +208,17 @@
             <table width="100%">
                 <tbody>
                     <tr>
-                        <td>{{ $key+1 }}</td>
+                        <td>1</td>
                         <td>ต้นทุน</td>
                         <td align="right">{{ number_format($total_cost,2) }}</td>
                     </tr>
                     <tr>
-                        <td>{{ $key+1 }}</td>
+                        <td>2</td>
                         <td>ยอดขาย</td>
                         <td align="right">{{ number_format($total_price,2) }}</td>
                     </tr>
                     <tr>
-                        <td>{{ $key+1 }}</td>
+                        <td>3</td>
                         <td>กำไร</td>
                         <td align="right">{{ number_format($total_price-$total_cost,2) }}</td>
                     </tr>

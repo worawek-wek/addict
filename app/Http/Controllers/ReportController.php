@@ -76,7 +76,7 @@ class ReportController extends Controller
                         ->withSum('addons', 'coupon')
                         ->withSum('products', 'price')
                         ->with(['branch', 'customer', 'user', 'room', 'status'])
-                        ->where('type', 1)
+                        // ->where('type', 1)
                         // ->select('orders.*')
                         ->orderByRaw("
                         CASE
@@ -167,7 +167,7 @@ class ReportController extends Controller
                         ->withSum('addons', 'coupon')
                         ->withSum('products', 'price')
                         ->with(['branch', 'customer', 'user', 'room', 'status'])
-                        ->where('type', 1)
+                        // ->where('type', 1)
                         // ->select('orders.*')
                         ->orderByRaw("
                         CASE
@@ -249,7 +249,7 @@ class ReportController extends Controller
                         ->withSum('addons', 'coupon')
                         ->withSum('products', 'price')
                         ->with(['branch', 'customer', 'user', 'room', 'status'])
-                        ->where('type', 1)
+                        // ->where('type', 1)
                         // ->select('orders.*')
                         ->orderByRaw("
                         CASE
@@ -291,20 +291,15 @@ class ReportController extends Controller
             });
         }
 
-        // filter by booking_date (date_range, start_date, end_date)
-        $dateRange = request('date_range');
-        $startDate = request('start_date');
-        $endDate = request('end_date');
-        if ($dateRange && $dateRange !== 'custom') {
-            // 1, 7, 14, 30 days
-            $days = intval($dateRange);
-            if ($days > 0) {
-                $from = Carbon::today()->subDays($days - 1)->format('Y-m-d');
-                $to = Carbon::today()->format('Y-m-d');
-                $query->whereBetween('booking_date', [$from, $to]);
-            }
-        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
-            $query->whereBetween('booking_date', [$startDate, $endDate]);
+
+        if (request('start_date')) {
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
+                                ->startOfDay();
+
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
+                                ->endOfDay();
+
+            $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
         $orderRooms = $query->paginate($limit);
@@ -348,11 +343,12 @@ class ReportController extends Controller
     public function oversee_employee_pdf(Request $request)
     {
         $now = Carbon::now()->format('Y-m-d H:i:s');
-        $data['orderRooms'] = Order::withSum('addons', 'price')
+
+        $query = Order::withSum('addons', 'price')
                         ->withSum('addons', 'coupon')
                         ->withSum('products', 'price')
                         ->with(['branch', 'customer', 'user', 'room', 'status'])
-                        ->where('type', 1)
+                        // ->where('type', 1)
                         // ->select('orders.*')
                         ->orderByRaw("
                         CASE
@@ -366,10 +362,46 @@ class ReportController extends Controller
                             ELSE 8 -- ไม่ระบุ
                         END
                     ")
-                        ->orderBy('ref_user_id')
                         ->orderBy('booking_date')
-                        ->orderBy('start_time')
-                        ->get();
+                        ->orderBy('start_time');
+
+        // ✅ filter เฉพาะสาขาของ user ที่ login
+        $userBranchId = Auth::user()->ref_branch_id ?? null;
+        if ($userBranchId) {
+            $query->where('ref_branch_id', $userBranchId);
+        }
+
+        // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
+        if (request()->filled('branch_id')) {
+            $query->where('ref_branch_id', request()->branch_id);
+        }
+
+        $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
+
+        if (@$DailySalesClosure) {
+            $query->where('created_at', ">" ,$DailySalesClosure->date_time);
+        }
+
+        // filter ค้นหา
+        if (request()->filled('search')) {
+            $search = request()->search;
+            $query->whereHas('customer', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+
+        if (request('start_date')) {
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
+                                ->startOfDay();
+
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
+                                ->endOfDay();
+
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        $data['orderRooms'] = $query->get();
 
         $html = view('admin.report.report-overseeEmp-pdf', $data)->render();
 
@@ -406,7 +438,7 @@ class ReportController extends Controller
                         ->withSum('addons', 'coupon')
                         ->withSum('products', 'price')
                         ->with(['branch', 'customer', 'user', 'room', 'status'])
-                        ->where('type', 1)
+                        // ->where('type', 1)
                         // ->select('orders.*')
                         ->orderByRaw("
                         CASE
@@ -449,20 +481,13 @@ class ReportController extends Controller
             });
         }
 
-        // filter by booking_date (date_range, start_date, end_date)
-        $dateRange = request('date_range');
-        $startDate = request('start_date');
-        $endDate = request('end_date');
-        if ($dateRange && $dateRange !== 'custom') {
-            // 1, 7, 14, 30 days
-            $days = intval($dateRange);
-            if ($days > 0) {
-                $from = Carbon::today()->subDays($days - 1)->format('Y-m-d');
-                $to = Carbon::today()->format('Y-m-d');
-                $query->whereBetween('booking_date', [$from, $to]);
-            }
-        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
-            $query->whereBetween('booking_date', [$startDate, $endDate]);
+        if (request('start_date')) {
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
+                                ->startOfDay();
+
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
+                                ->endOfDay();
+            $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
         $orderRooms = $query->paginate($limit);
@@ -507,16 +532,21 @@ class ReportController extends Controller
     {
         // $order = Order::withSum('addons', 'price')->get();
         // return $this->getOrderRooms(1)[0]->addons_sum_price;
-        return view('admin.report.report-saleMonthly');
+        $data['page_url'] = "admin/report/monthly-sale";
+
+        return view('admin.report.report-saleMonthly', $data);
     }
     public function monthly_sale_pdf(Request $request)
     {
         $now = Carbon::now()->format('Y-m-d H:i:s');
-        $data['orderRooms'] = Order::withSum('addons', 'price')
+        
+        $now = Carbon::now()->format('Y-m-d H:i:s');
+
+        $query = Order::withSum('addons', 'price')
                         ->withSum('addons', 'coupon')
                         ->withSum('products', 'price')
                         ->with(['branch', 'customer', 'user', 'room', 'status'])
-                        ->where('type', 1)
+                        // ->where('type', 1)
                         // ->select('orders.*')
                         ->orderByRaw("
                         CASE
@@ -532,8 +562,44 @@ class ReportController extends Controller
                     ")
                         ->orderBy('ref_user_id')
                         ->orderBy('booking_date')
-                        ->orderBy('start_time')
-                        ->get();
+                        ->orderBy('start_time');
+
+        // ✅ filter เฉพาะสาขาของ user ที่ login
+        $userBranchId = Auth::user()->ref_branch_id ?? null;
+        if ($userBranchId) {
+            $query->where('ref_branch_id', $userBranchId);
+        }
+
+        // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
+        if (request()->filled('branch_id')) {
+            $query->where('ref_branch_id', request()->branch_id);
+        }
+
+        // $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
+
+        // if (@$DailySalesClosure) {
+        //     $query->where('created_at', ">" ,$DailySalesClosure->date_time);
+        // }
+
+        // filter ค้นหา
+        if (request()->filled('search')) {
+            $search = request()->search;
+            $query->whereHas('customer', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        if (request('start_date')) {
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
+                                ->startOfDay();
+
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
+                                ->endOfDay();
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        $data['orderRooms'] = $query->get();
+
         $data['discounts_summary'] = $data['orderRooms']->sum('discount');
         $data['addons_sum_price'] = $data['orderRooms']->sum('addons_sum_price');
         $data['summary_receive_price'] = $data['orderRooms']->sum('price');
@@ -552,7 +618,9 @@ class ReportController extends Controller
     }
     public function oversee_employee(Request $request)
     {
-        return view('admin.report.report-overseeEmp');
+        $data['page_url'] = "admin/report/oversee-employee";
+
+        return view('admin.report.report-overseeEmp', $data);
     }
 
 }

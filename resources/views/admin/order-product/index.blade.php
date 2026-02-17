@@ -155,11 +155,6 @@
             
             const iframe = document.getElementById('print-iframe');
 
-                iframe.onload = function () {
-                    iframe.contentWindow.focus();
-                    iframe.contentWindow.print();
-                };
-
             $.ajax({
                 url: '/admin/order-products/pdf',
                 type: 'GET',
