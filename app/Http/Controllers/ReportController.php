@@ -543,7 +543,7 @@ class ReportController extends Controller
         $query = Order::withSum('addons', 'price')
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
-            ->with(['branch', 'customer', 'user', 'room', 'status'])
+            ->with(['branch', 'customer', 'user', 'room', 'status' , 'room_type'])
             // ->where('type', 1)
             // ->select('orders.*')
             ->orderByRaw("
@@ -561,7 +561,6 @@ class ReportController extends Controller
             ->orderBy('ref_user_id')
             ->orderBy('booking_date')
             ->orderBy('start_time');
-
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
         if ($userBranchId) {

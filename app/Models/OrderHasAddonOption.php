@@ -15,6 +15,7 @@ class OrderHasAddonOption extends Model
         'ref_order_id',
         'ref_option_id',
         'price',
+        'coupon',
     ];
 
     public $timestamps = true;

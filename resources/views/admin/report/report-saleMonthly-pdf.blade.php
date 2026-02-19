@@ -28,7 +28,7 @@
     }
 </style>
 <div class="text-center">
-    <span class="text-center">รายงานยอดขายรวม</span>
+    <span class="text-center">รายงานยอดขายรวม วันที่ {{ date('d/m/Y') }} , เวลา {{ date('H:i') }}</span>
 </div>
 
 <table>
@@ -57,7 +57,7 @@
             </tr>
         @else
             @php
-                $roomGroups = $orderRooms->groupBy(function($order) {
+                $roomGroups = $orderRooms->groupBy(function ($order) {
                     return $order->room_type->name ?? '-';
                 });
                 $globalIndex = 0;
@@ -87,7 +87,37 @@
                         $groupProductSum += $order->products_sum_price ?? 0;
                         $groupTotalSum += $order->total_price;
                         $groupCouponSum += $order->addons_sum_coupon ?? 0;
-                        $groupNetSum += ($order->total_price - ($order->addons_sum_coupon ?? 0));
+
+                        // Calculate actual shop revenue
+                        $actualRevenue = 0;
+                        $isCancelled = $order->ref_status_id == 4; // Status 4 = ยกเลิก
+
+                        if (!$isCancelled) {
+                            // Try to get user commission data first
+                            $userCommission = \App\Models\UserHasRoomTypeCommission::where('ref_user_id', $order->ref_user_id)
+                                ->where('ref_room_type_id', $order->ref_room_type_id)
+                                ->where('ref_course_id', $order->service_laundry_cost)
+                                ->first();
+
+                            if ($userCommission && ($userCommission->price > 0 || $userCommission->coupon > 0)) {
+                                // Use user commission: (price + coupon) - totalReceived
+                                $actualRevenue = ($userCommission->price + $userCommission->coupon) - $order->total_price;
+                            } else {
+                                // Fallback to room_type_has_courses
+                                $roomTypeCourse = \App\Models\RoomTypeHasCourse::where('ref_room_type_id', $order->ref_room_type_id)
+                                    ->where('ref_course_id', $order->service_laundry_cost)
+                                    ->first();
+
+                                if ($roomTypeCourse) {
+                                    $actualRevenue = ($roomTypeCourse->price + $roomTypeCourse->coupon) - $order->total_price;
+                                } else {
+                                    // Final fallback: total_price - coupon_used
+                                    $actualRevenue = $order->total_price - ($order->addons_sum_coupon ?? 0);
+                                }
+                            }
+
+                            $groupNetSum += $actualRevenue;
+                        }
                     @endphp
                     <tr>
                         <td>{{ $globalIndex }}</td>
@@ -100,8 +130,12 @@
                                 $end = \Carbon\Carbon::parse($order->end_time);
                                 $diff = $start->diff($end);
                             @endphp
-                            @if ($diff->h > 0){{ $diff->h }} ชม. @endif
-                            @if ($diff->i > 0){{ $diff->i }} นาที @endif
+                            @if ($diff->h > 0)
+                                {{ $diff->h }} ชม.
+                            @endif
+                            @if ($diff->i > 0)
+                                {{ $diff->i }} นาที
+                            @endif
                         </td>
                         <td>{{ $order->payment_method }}</td>
                         <td>{{ number_format($order->addons_sum_price ?? 0) }}</td>
@@ -110,7 +144,7 @@
                         <td>{{ number_format($order->products_sum_price ?? 0) }}</td>
                         <td>{{ number_format($order->total_price) }}</td>
                         <td>{{ number_format($order->addons_sum_coupon ?? 0) }}</td>
-                        <td>{{ number_format($order->total_price - ($order->addons_sum_coupon ?? 0)) }}</td>
+                        <td>{{ $isCancelled ? '-' : number_format($actualRevenue) }}</td>
                         <td>{{ $order->status->name }}</td>
                     </tr>
                 @endforeach
@@ -174,6 +208,43 @@
             <td style="text-align:right; padding-right: 20px;">ยอดรับจริงหลังหักส่วนลด</td>
             <td style="text-align:right; padding-right: 20px; font-weight:bold; color:#1a8917;">
                 {{ number_format($summary_receive_price_after_discount ?? 0, 2) }} บาท</td>
+        </tr>
+    </table>
+</div>
+
+
+<div style="margin-top:30px; width:100%;">
+    <table style="width: 60%; margin: 0 auto; border: 2px solid #333; font-size: 12px;">
+        <tr style="background: #f7f7f7; font-weight: bold;">
+            <td colspan="2" style="text-align:center; border-bottom:2px solid #333;">การรับเงินจากช่องทางต่างๆ</td>
+        </tr>
+        <tr>
+            <td style="text-align:right; padding-right: 20px;">เงินสด</td>
+            <td style="text-align:right; padding-right: 20px;">{{ number_format($summary_type_payment_cash ?? 0, 2) }}
+                บาท</td>
+        </tr>
+        <tr>
+            <td style="text-align:right; padding-right: 20px;">QR Code</td>
+            <td style="text-align:right; padding-right: 20px;">
+                {{ number_format($summary_type_payment_transfer ?? 0, 2) }} บาท</td>
+        </tr>
+        <tr>
+            <td style="text-align:right; padding-right: 20px;">บัตรเครดิต</td>
+            <td style="text-align:right; padding-right: 20px;">
+                {{ number_format($summary_type_payment_credit ?? 0, 2) }} บาท
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align:right; padding-right: 20px;">Alipay</td>
+            <td style="text-align:right; padding-right: 20px;">
+                {{ number_format($summary_type_payment_alipay ?? 0, 2) }} บาท
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align:right; padding-right: 20px;">รวมทั้งหมด</td>
+            <td style="text-align:right; padding-right: 20px; font-weight:bold; color:#1a8917;">
+                {{ number_format(($summary_type_payment_cash ?? 0) + ($summary_type_payment_credit ?? 0) + ($summary_type_payment_transfer ?? 0), 2) }}
+                บาท</td>
         </tr>
     </table>
 </div>

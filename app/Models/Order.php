@@ -76,4 +76,21 @@ class Order extends Model
     {
         return $this->hasMany(OrderHasProduct::class, 'ref_order_id');
     }
+    public function user_commission()
+    {
+        return $this->hasOne(UserHasRoomTypeCommission::class, 'ref_user_id', 'ref_user_id')
+            ->where('ref_room_type_id', $this->ref_room_type_id)
+            ->where('ref_course_id', $this->service_laundry_cost);
+    }
+    public function room_type_course()
+    {
+        return $this->hasOneThrough(
+            RoomTypeHasCourse::class,
+            RoomType::class,
+            'id',
+            'ref_room_type_id',
+            'ref_room_type_id',
+            'id'
+        )->where('ref_course_id', $this->service_laundry_cost);
+    }
 }
