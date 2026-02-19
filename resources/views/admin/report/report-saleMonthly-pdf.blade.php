@@ -237,7 +237,7 @@
         <tr>
             <td style="text-align:right; padding-right: 20px;">Alipay</td>
             <td style="text-align:right; padding-right: 20px;">
-                {{ number_format($summary_type_payment_alipay ?? 0, 2) }} บาท
+                {{ number_format($summary_type_payment_al ?? 0, 2) }} บาท
             </td>
         </tr>
         <tr>

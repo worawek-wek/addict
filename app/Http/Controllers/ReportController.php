@@ -604,6 +604,8 @@ class ReportController extends Controller
         $data['summary_type_payment_cash'] = $data['orderRooms']->where('payment_method', 'เงินสด')->sum('total_price');
         $data['summary_type_payment_credit'] = $data['orderRooms']->where('payment_method', 'เครดิต')->sum('total_price');
         $data['summary_type_payment_transfer'] = $data['orderRooms']->where('payment_method', 'qr_code')->sum('total_price' );
+        $data['summary_type_payment_al'] = $data['orderRooms']->where('payment_method', 'alipay')->sum('total_price');
+
 
         $html = view('admin.report.report-saleMonthly-pdf', $data)->render();
 
