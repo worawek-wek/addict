@@ -61,8 +61,10 @@ class RoomTypeController extends Controller
             $new_sort = $request->new_sort;
 
             if($old_sort < $new_sort){
+                // RoomType::where('ref_branch_id', Auth::user()->ref_branch_id)->where('sort', '>', $old_sort)->where('sort', '<=', $new_sort)->decrement('sort'); // ลดลง -1
                 RoomType::where('sort', '>', $old_sort)->where('sort', '<=', $new_sort)->decrement('sort'); // ลดลง -1
             }else{
+                // RoomType::where('ref_branch_id', Auth::user()->ref_branch_id)->where('sort', '<', $old_sort)->where('sort', '>=', $new_sort)->increment('sort'); // เพิ่มขึ้น +1
                 RoomType::where('sort', '<', $old_sort)->where('sort', '>=', $new_sort)->increment('sort'); // เพิ่มขึ้น +1
             }
             RoomType::where('id', $id)->update(['sort' => $new_sort]); // ลดลง

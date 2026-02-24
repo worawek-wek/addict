@@ -69,6 +69,21 @@ class ProductController extends Controller
         return view('admin/product/table', $data);
     }
 
+    public function change_status(Request $request, $id)
+    {
+        try {
+
+            $user = Product::find($id);
+            $user->ref_status_id = $request->ref_status_id;
+            $user->save();
+
+            DB::commit();
+            return true;
+        } catch (QueryException $err) {
+            DB::rollBack();
+        }
+    }
+
     public function update_sort(Request $request, $id)
     {
         try {
@@ -77,9 +92,9 @@ class ProductController extends Controller
             $new_sort = $request->new_sort;
 
             if($old_sort < $new_sort){
-                Product::where('sort', '>', $old_sort)->where('sort', '<=', $new_sort)->decrement('sort'); // ลดลง -1
+                Product::where('ref_branch_id', Auth::user()->ref_branch_id)->where('sort', '>', $old_sort)->where('sort', '<=', $new_sort)->decrement('sort'); // ลดลง -1
             }else{
-                Product::where('sort', '<', $old_sort)->where('sort', '>=', $new_sort)->increment('sort'); // เพิ่มขึ้น +1
+                Product::where('ref_branch_id', Auth::user()->ref_branch_id)->where('sort', '<', $old_sort)->where('sort', '>=', $new_sort)->increment('sort'); // เพิ่มขึ้น +1
             }
             Product::where('id', $id)->update(['sort' => $new_sort]); // ลดลง
             // return 123;

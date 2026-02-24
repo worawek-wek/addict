@@ -32,6 +32,7 @@ class AddonOptionController extends Controller
 
     public function store(Request $request)
     {
+        $request->commission = $request->commission ?? 0;
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
@@ -39,6 +40,8 @@ class AddonOptionController extends Controller
             'commission' => 'nullable|numeric|min:0',
             'coupon'     => 'nullable|numeric|min:0',
         ]);
+        $validated['commission'] = $validated['commission'] ?? 0;
+        $validated['coupon'] = $validated['coupon'] ?? 0;
         AddonOption::create($validated);
     return redirect()->route('addon_options.index')->with('success', 'Option created successfully.');
     }

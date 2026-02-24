@@ -70,19 +70,39 @@
                     {{ $row->remark }}
                 </td>
                 <td class="text-center">
-                    <select name="sort"
-                            class="sort-item"
-                            data-id="{{ $row->id }}"
-                            data-old="{{ $row->sort }}"
-                            onchange="updateSort(this)"
-                            >
-                        @for ($i = 1;$i<=$list_data->total();$i++)
-                            <option value="{{ $i }}"
-                                @if ($i == $row->sort)
-                                    selected
-                                @endif>{{ $i }}</option>
-                        @endfor
-                    </select>
+                    <div class="d-flex justify-content-center align-items-center gap-3">
+                        <label class="switch switch-success mb-0">
+                            <input type="checkbox" class="switch-input"
+                                onchange="changeStatus({{ $row->id }}, this.checked ? 1 : 0, this)"
+                                @if ($row->ref_status_id == 1) checked @endif
+                            />
+                            <span class="switch-toggle-slider">
+                                <span class="switch-on"><i class="ti ti-check"></i></span>
+                                <span class="switch-off"><i class="ti ti-x"></i></span>
+                            </span>
+                        </label>
+                        <a href="javascript:;"
+                            class="btn btn-xs rounded-pill btn-danger d-flex align-items-center gap-1 ms-3 py-1"
+                            onclick='Delete({{ $row->id }})'
+                            data-bs-toggle="modal"
+                            data-bs-target="#delete_confirmation_modal">
+                                <i class="fa fa-trash"></i>
+                                ลบ
+                        </a>
+                        <select name="sort"
+                                class="sort-item"
+                                data-id="{{ $row->id }}"
+                                data-old="{{ $row->sort }}"
+                                onchange="updateSort(this)"
+                                >
+                            @for ($i = 1;$i<=$list_data->total();$i++)
+                                <option value="{{ $i }}"
+                                    @if ($i == $row->sort)
+                                        selected
+                                    @endif>{{ $i }}</option>
+                            @endfor
+                        </select>
+                    </div>
                 </td>
             </tr>
             @endforeach

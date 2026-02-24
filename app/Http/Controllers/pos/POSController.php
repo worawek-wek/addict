@@ -40,6 +40,7 @@ class POSController extends Controller
         $data['products'] = Product::with('latestStock')
                                     ->when($q !== '', fn($b) => $b->where('name', 'like', "%{$q}%"))
                                     ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
+                                    ->where('ref_status_id', 1)
                                     ->orderBy('name')
                                     ->get();
 
@@ -87,6 +88,7 @@ class POSController extends Controller
         $branchId = Auth::user()->ref_branch_id ?? null;
         $data['products'] = Product::with('latestStock')
                                     ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
+                                    ->where('ref_status_id', 1)
                                     ->orderBy('name')
                                     ->get();
 

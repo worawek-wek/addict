@@ -283,6 +283,7 @@ Route::prefix('admin')->group(function () {
         Route::controller(ProductController::class)->group(function () {
             Route::get('product', 'index')->name('product');
             Route::get('product/datatable', 'datatable')->name('product.datatable');
+            Route::post('product/change-status/{id}', 'change_status')->name('product.change-status');
             Route::post('product/update-sort/{id}', 'update_sort')->name('product.update-sort');
             Route::get('card_stock_report', 'card_stock_report')->name('card_stock_report');
             Route::get('card_stock_report/datatable', 'card_stock_report_datatable')->name('card_stock_report.datatable');
@@ -292,6 +293,7 @@ Route::prefix('admin')->group(function () {
             Route::post('product/withdraw-product', 'withdraw')->name('product.withdraw');
             Route::get('product/{id}', 'edit')->name('product');
             Route::post('product/{id}', 'update')->name('product.update');
+            Route::delete('product/{id}', 'destroy')->name('user.destroy');
         });
 
         Route::controller(OrderController::class)->group(function () {

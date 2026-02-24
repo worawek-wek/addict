@@ -90,7 +90,6 @@
                                                 </select>
                                             </div>
 
-
                                             <div class="col-sm-9">
                                                 <div class="row">
                                                     <div class="input-group input-group-merge">
@@ -120,10 +119,9 @@
                                                             <select onchange='loadData("{{ $page_url }}/datatable")'
                                                                 name="limit" class="form-select ms-2 me-2 p_search"
                                                                 style="width:100px">
-                                                                <option value="5">5</option>
                                                                 <option value="10">10</option>
-                                                                <option value="15">15</option>
                                                                 <option value="20">20</option>
+                                                                <option value="50">50</option>
                                                                 <option value="100">100</option>
                                                             </select>
                                                         </div>
@@ -328,187 +326,248 @@
 
     <!-- / Layout wrapper -->
     @include('admin/layout/inc_js')
-    <script>
-        var page = "{{ $page_url }}/datatable";
-        var searchData = {};
-        loadData(page);
+<script>
+//////////////////////////////////////////////////////////////////////////////////////////////
+    var page = "{{ $page_url }}/datatable";
+    var searchData = {};
+    loadData(page);
 
-        function loadData(pages) {
+    function loadData(pages) {
 
-            $('.p_search').each(function() {
-                var inputName = $(this).attr('name'); // ดึงชื่อ attribute 'name' ของ input
-                var inputValue = $(this).val(); // ดึงค่า value ของ input
+        $('.p_search').each(function() {
+            var inputName = $(this).attr('name'); // ดึงชื่อ attribute 'name' ของ input
+            var inputValue = $(this).val(); // ดึงค่า value ของ input
 
-                searchData[inputName] = inputValue; // เก็บข้อมูลลงในออบเจ็กต์ searchData
-            });
-
-            // alert(page);
-            page = pages;
-            $.ajax({
-                type: "GET",
-                url: pages,
-                data: searchData,
-                success: function(data) {
-                    $("#table-data").html(data);
-                }
-            });
-            // alert(page);
-        }
-
-        function view(id) {
-            $.ajax({
-                type: "GET",
-                url: "{{ $page_url }}/" + id,
-                success: function(data) {
-                    $("#view").html(data);
-                }
-            });
-        }
-
-        $('#withdraw_product').on('submit', function(event) {
-            event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
-
-            if (!this.checkValidity()) {
-                this.reportValidity();
-                return console.log('ฟอร์มไม่ถูกต้อง');
-            }
-
-            var formData = new FormData(this);
-
-            Swal.fire({
-                title: 'ยืนยันการดำเนินการ?',
-                text: 'คุณต้องการเบิกสินค้าหรือไม่?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'ตกลง',
-                cancelButtonText: 'ยกเลิก',
-                didOpen: () => {
-                    Swal.getConfirmButton().focus();
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '/admin/product/withdraw-product',
-                        type: 'POST',
-                        data: formData,
-                        contentType: false, // ✅ ต้องมี
-                        processData: false, // ✅ ต้องมี
-                        success: function(response) {
-                            if (response == true) {
-                                $('#withdraw_product')[0].reset();
-                                Swal.fire('เบิกสินค้าเรียบร้อยแล้ว', '', 'success');
-                                $('#withdrawModal').modal('hide');
-                                loadData(page);
-                            }
-                        },
-                        error: function(error) {
-                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
-                            console.error('เกิดข้อผิดพลาด:', error);
-                        }
-                    });
-                }
-            });
+            searchData[inputName] = inputValue; // เก็บข้อมูลลงในออบเจ็กต์ searchData
         });
 
-        $('#insert_user').on('submit', function(event) {
-            event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
-
-            if (!this.checkValidity()) {
-                this.reportValidity();
-                return console.log('ฟอร์มไม่ถูกต้อง');
+        // alert(page);
+        page = pages;
+        $.ajax({
+            type: "GET",
+            url: pages,
+            data: searchData,
+            success: function(data) {
+                $("#table-data").html(data);
             }
-
-            var formData = new FormData(this);
-
-            Swal.fire({
-                title: 'ยืนยันการดำเนินการ?',
-                text: 'คุณต้องการเพิ่มสินค้าหรือไม่?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'ตกลง',
-                cancelButtonText: 'ยกเลิก',
-                didOpen: () => {
-                    Swal.getConfirmButton().focus();
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '{{ $page_url }}',
-                        type: 'POST',
-                        data: formData,
-                        contentType: false, // ✅ ต้องมี
-                        processData: false, // ✅ ต้องมี
-                        success: function(response) {
-                            if (response == true) {
-                                $('#insert_user')[0].reset();
-                                Swal.fire('เพิ่มสินค้าเรียบร้อยแล้ว', '', 'success');
-                                $('#addserviceModal').modal('hide');
-                                loadData(page);
-                            }
-                        },
-                        error: function(error) {
-                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
-                            console.error('เกิดข้อผิดพลาด:', error);
-                        }
-                    });
-                }
-            });
         });
+        // alert(page);
+    }
 
-
-        function updateSort(el) {
-            // return alert(v);
-            let id       = el.dataset.id;
-            let oldSort  = el.dataset.old;   // ค่าเดิม
-            let newSort  = el.value;          // ค่าใหม่
-            if(newSort == ''){
-                return loadData(page);
+    function view(id) {
+        $.ajax({
+            type: "GET",
+            url: "{{ $page_url }}/" + id,
+            success: function(data) {
+                $("#view").html(data);
             }
-            Swal.fire({
-                title: 'ยืนยันการดำเนินการ?',
-                text: 'คุณต้องการเปลี่ยนลำดับหรือไม่?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'ตกลง',
-                cancelButtonText: 'ยกเลิก',
-                didOpen: () => Swal.getConfirmButton().focus()
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '{{ $page_url }}/update-sort/' + id,
-                        type: 'POST',
-                        data: {
-                            _token: "{{ csrf_token() }}",
-                            id: id,
-                            old_sort: oldSort,
-                            new_sort: newSort
-                        },
-                        success: function (response) {
-                            if (response == true) {
-                                Swal.fire('เปลี่ยนลำดับเรียบร้อยแล้ว', '', 'success');
-                                loadData(page);
-                            }
-                        },
-                        error: function () {
-                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+        });
+    }
+//////////////////////////////////////////////////////////////////////////////////////////////
+    function Delete(id, v, element) {
+        $(element).prop('checked', v === 1 ? false : true);
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ?',
+            text: 'คุณต้องการลบสินค้าหรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            didOpen: () => Swal.getConfirmButton().focus()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ $page_url }}/' + id,
+                    type: 'DELETE',
+                    data: { _token: "{{ csrf_token() }}" },
+                    success: function (response) {
+                        if (response == true) {
+                            Swal.fire('ลบสินค้าเรียบร้อยแล้ว', '', 'success');
+                            loadData(page);
                         }
-                    });
-                }
-            });
+                    },
+                    error: function () {
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    }
+                });
+            }
+        });
+    }
+//////////////////////////////////////////////////////////////////////////////////////////////
+    function changeStatus(id, v, element) {
+        $(element).prop('checked', v === 1 ? false : true);
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ?',
+            text: 'คุณต้องการเปลี่ยนสถานะหรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            didOpen: () => Swal.getConfirmButton().focus()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ $page_url }}/change-status/' + id,
+                    type: 'POST',
+                    data: { ref_status_id: v, _token: "{{ csrf_token() }}" },
+                    success: function (response) {
+                        if (response == true) {
+                            Swal.fire('เปลี่ยนสถานะเรียบร้อยแล้ว', '', 'success');
+                            loadData(page);
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    }
+                });
+            }
+        });
+    }
+//////////////////////////////////////////////////////////////////////////////////////////////
+    $('#withdraw_product').on('submit', function(event) {
+        event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
+
+        if (!this.checkValidity()) {
+            this.reportValidity();
+            return console.log('ฟอร์มไม่ถูกต้อง');
         }
 
-        // window.onload = function() {
-        //     $('#addserviceModal').modal('show');
-        // };
-        $('#bs-datepicker-format').datepicker({
-            format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
-            autoclose: true, // ปิด datepicker เมื่อเลือกวันที่
-            todayHighlight: true // ไฮไลต์วันที่ปัจจุบัน
-        });
-        $('#select2Position1').select2();
-        $('#select2Product').select2({ dropdownParent: $('.card-body') });
+        var formData = new FormData(this);
 
-    </script>
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ?',
+            text: 'คุณต้องการเบิกสินค้าหรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            didOpen: () => {
+                Swal.getConfirmButton().focus();
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/admin/product/withdraw-product',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false, // ✅ ต้องมี
+                    processData: false, // ✅ ต้องมี
+                    success: function(response) {
+                        if (response == true) {
+                            $('#withdraw_product')[0].reset();
+                            Swal.fire('เบิกสินค้าเรียบร้อยแล้ว', '', 'success');
+                            $('#withdrawModal').modal('hide');
+                            loadData(page);
+                        }
+                    },
+                    error: function(error) {
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        console.error('เกิดข้อผิดพลาด:', error);
+                    }
+                });
+            }
+        });
+    });
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+    $('#insert_user').on('submit', function(event) {
+        event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
+
+        if (!this.checkValidity()) {
+            this.reportValidity();
+            return console.log('ฟอร์มไม่ถูกต้อง');
+        }
+
+        var formData = new FormData(this);
+
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ?',
+            text: 'คุณต้องการเพิ่มสินค้าหรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            didOpen: () => {
+                Swal.getConfirmButton().focus();
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ $page_url }}',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false, // ✅ ต้องมี
+                    processData: false, // ✅ ต้องมี
+                    success: function(response) {
+                        if (response == true) {
+                            $('#insert_user')[0].reset();
+                            Swal.fire('เพิ่มสินค้าเรียบร้อยแล้ว', '', 'success');
+                            $('#addserviceModal').modal('hide');
+                            loadData(page);
+                        }
+                    },
+                    error: function(error) {
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        console.error('เกิดข้อผิดพลาด:', error);
+                    }
+                });
+            }
+        });
+    });
+//////////////////////////////////////////////////////////////////////////////////////////////
+    function updateSort(el) {
+        // return alert(v);
+        let id       = el.dataset.id;
+        let oldSort  = el.dataset.old;   // ค่าเดิม
+        let newSort  = el.value;          // ค่าใหม่
+        if(newSort == ''){
+            return loadData(page);
+        }
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ?',
+            text: 'คุณต้องการเปลี่ยนลำดับหรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            didOpen: () => Swal.getConfirmButton().focus()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ $page_url }}/update-sort/' + id,
+                    type: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        id: id,
+                        old_sort: oldSort,
+                        new_sort: newSort
+                    },
+                    success: function (response) {
+                        if (response == true) {
+                            Swal.fire('เปลี่ยนลำดับเรียบร้อยแล้ว', '', 'success');
+                            loadData(page);
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    }
+                });
+            }
+        });
+    }
+//////////////////////////////////////////////////////////////////////////////////////////////
+    // window.onload = function() {
+    //     $('#addserviceModal').modal('show');
+    // };
+    $('#bs-datepicker-format').datepicker({
+        format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
+        autoclose: true, // ปิด datepicker เมื่อเลือกวันที่
+        todayHighlight: true // ไฮไลต์วันที่ปัจจุบัน
+    });
+    $('#select2Position1').select2();
+    $('#select2Product').select2({ dropdownParent: $('.card-body') });
+
+</script>
 </body>
 
 </html>
