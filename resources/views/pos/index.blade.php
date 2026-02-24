@@ -503,8 +503,21 @@
                                             </div>
                                             <div class="mt-2">
                                                 <div class="fw-bold mb-2">รายการสินค้า</div>
-                                                <div id="summary-product-list"></div>
-                                                <hr>
+                                                <table class="table table-sm table-bordered">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>สินค้า</th>
+                                                            <th class="text-center">จำนวน</th>
+                                                            <th class="text-end">รวม</th>
+                                                            <th class="text-center">ลบ</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="summary-product-list">
+                                                        <tr>
+                                                            <td class="text-muted">ยังไม่มีสินค้า</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                         <div class="card-footer bg-white">
@@ -1033,7 +1046,10 @@
 
         $('.qty-input').each(function () {
 
-            let qty = parseInt($(this).val());
+            const input = this; // ✅ ประกาศให้ชัด
+            const productId = input.name.match(/\[(.*?)\]/)[1];
+
+            let qty = parseInt($(this).val()) || 0;
             if (qty <= 0) return;
 
             let card = $(this).closest('.card-body');
@@ -1047,18 +1063,42 @@
             let total = price * qty;
 
             rows.push(`
-                <div class="product-row">
-                    <span class="product-name">${name} × ${qty}</span>
-                    <span class="product-price">฿${total.toLocaleString()}</span>
-                </div>
+                <tr>
+                    <td>${name}</td>
+                    <td class="text-center">${qty}</td>
+                    <td class="text-end">
+                        ฿${total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td class="text-center">
+                        <a href="javascript:;"
+                            class="btn btn-xs btn-danger rounded-pill px-2 py-1"
+                            onclick="removeItem(${productId})">
+                            <i class="fa fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
             `);
         });
 
         $('#summary-product-list').html(
             rows.length
                 ? rows.join('')
-                : `<div class="text-muted">- ไม่มีสินค้า -</div>`
+                : `<tr>
+                        <td colspan="4" class="text-center text-muted">
+                            ยังไม่มีสินค้า
+                        </td>
+                </tr>`
         );
+    }
+    function removeItem(productId) {
+
+        const input = document.querySelector(`input[name="qty[${productId}]"]`);
+
+        if (input) {
+            input.value = 0;
+        }
+
+        calculate();
     }
     // function setRoomCoursePrice() {
 

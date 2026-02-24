@@ -751,6 +751,7 @@
         const saleType = document.querySelector('input[name="customer_type"]:checked')?.value || '2';
 
         document.querySelectorAll('.qty-input').forEach(input => {
+            
             const productId = input.name.match(/\[(.*?)\]/)[1];
             const qty = parseInt(input.value) || 0;
             if (qty <= 0) return;
