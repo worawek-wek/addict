@@ -230,6 +230,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/pdf', [OrderProductController::class, 'pdf'])->name('order-products.pdf');
             Route::post('/closures', [OrderProductController::class, 'closures'])->name('order-products.closures');
             Route::get('/{id}', [OrderProductController::class, 'show'])->name('order-products.show');
+            Route::post('/{id}/status', [OrderProductController::class, 'updateStatus'])->name('order-rooms.update-status');
             Route::post('/{id}/confirm-payment', [OrderProductController::class, 'confirmPayment'])->name('order-products.update-confirm-payment');
             Route::post('/{id}/update-payment-method', [OrderProductController::class, 'updatePaymentMethod'])->name('order-products.update-payment-method');
         });

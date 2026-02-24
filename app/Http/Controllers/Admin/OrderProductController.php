@@ -150,6 +150,22 @@ class OrderProductController extends Controller
     }
 
 
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status_id' => 'required|exists:order_status,id'
+        ]);
+
+        $order = Order::findOrFail($id);
+        $order->payment_status = $request->status_id;
+        $order->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'อัปเดตสถานะเรียบร้อยแล้ว',
+            'status'  => $order->status->name
+        ]);
+    }
     public function pdf()
     {
         $closures = DailySalesClosure::orderBy("id", "DESC")->where('ref_account_id', Auth::id())->take(2)->get();
@@ -281,9 +297,10 @@ class OrderProductController extends Controller
     }
     public function confirmPayment(Request $request, $id)
     {
-
+        // return $request;
         $order = Order::findOrFail($id);
         $order->payment_status = 1;
+        $order->payment_method = $request->payment_channel;
         $order->save();
 
         return response()->json([

@@ -296,7 +296,7 @@
                                         <div class="px-4 mt-4">
                                             <label class="form-label fw-bold">ช่องทางชำระเงิน</label>
 
-                                            <div class="row g-3 payment-methods payment-card">
+                                            <div class="row g-3 payment-methods">
 
                                                 <!-- เงินสด -->
                                                 <div class="col-md-6">
