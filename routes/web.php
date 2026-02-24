@@ -216,6 +216,7 @@ Route::prefix('admin')->group(function () {
         });
 
         Route::prefix('order-rooms')->group(function () {
+            Route::delete('/{id}', [OrderRoomController::class, 'destroy'])->name('order-rooms.destroy');
             Route::get('/', [OrderRoomController::class, 'index'])->name('order-rooms.index');
             Route::get('/datatable', [OrderRoomController::class, 'datatable'])->name('order-rooms.datatable');
             Route::get('/{id}', [OrderRoomController::class, 'show'])->name('order-rooms.show');

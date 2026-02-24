@@ -13,6 +13,7 @@ use App\Models\OrderStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OrderRoomController extends Controller
 {
@@ -314,5 +315,17 @@ class OrderRoomController extends Controller
             'options_commission' => $commission_options_value,
             'sales_cheer_charge' => $price_options_sales
         ]);
+    }
+    
+    public function destroy($id)
+    {
+        try {
+            Order::destroy($id);
+            DB::commit();
+            return true;
+        } catch (QueryException $err) {
+            DB::rollBack();
+        }
+        //
     }
 }

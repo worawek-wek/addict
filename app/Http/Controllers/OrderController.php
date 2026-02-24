@@ -282,6 +282,8 @@ class OrderController extends Controller
     {
         try{
             Order::destroy($id);
+            OrderHasAddonOption::where('ref_order_id', $id)->delete();
+            OrderHasProduct::where('ref_order_id', $id)->delete();
             DB::commit();
             return true;
         } catch (QueryException $err) {

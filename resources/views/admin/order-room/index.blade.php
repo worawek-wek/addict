@@ -168,6 +168,35 @@
                 }
             });
         }
+        function Delete(id, v, element) {
+            $(element).prop('checked', v === 1 ? false : true);
+            Swal.fire({
+                title: 'ยืนยันการดำเนินการ?',
+                text: 'คุณต้องการลบหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                didOpen: () => Swal.getConfirmButton().focus()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: 'admin/order-rooms/' + id,
+                        type: 'DELETE',
+                        data: { _token: "{{ csrf_token() }}" },
+                        success: function (response) {
+                            if (response == true) {
+                                Swal.fire('ลบเรียบร้อยแล้ว', '', 'success');
+                                loadData(page);
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        }
+                    });
+                }
+            });
+        }
     </script>
 </body>
 
