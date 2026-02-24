@@ -24,7 +24,7 @@
                 <td>{{ $order->end_time }}</td>
                 <td><span class="badge {{ $order->status->color }}">{{ $order->status->name }}</span></td>
                 <td>
-                    <div class="d-flex justify-content-center align-items-center gap-3">
+                    <div class="d-flex gap-3">
                         <div class="dropdown">
                             <button class="btn btn-info btn-sm dropdown-toggle" type="button" id="actionDropdown{{ $order->id }}" data-bs-toggle="dropdown" aria-expanded="false">
                                 จัดการ
