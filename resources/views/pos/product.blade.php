@@ -149,7 +149,6 @@
                                                     $totalRemain = \App\Models\StockReadyForSale::where('ref_product_id', $product->id)->sum('qty') ?? 0;
                                                     $inStock = $totalRemain > 0;
                                                 @endphp
-
                                                                 <input type="hidden"
                                                                         name="price_cus[{{ $product->id }}]"
                                                                         value="{{ $product->price }}"
@@ -344,11 +343,24 @@
                                         </div>
                                         <div class="px-4 mt-3">
                                             <div class="fw-bold mb-2">รายการสินค้า</div>
-                                            <div id="invoiceItems" class="small">
-                                                <div class="text-muted">ยังไม่มีสินค้า</div>
+                                            <div class="small">
+                                                <table class="table table-sm table-bordered">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>สินค้า</th>
+                                                            <th class="text-center">จำนวน</th>
+                                                            <th class="text-end">รวม</th>
+                                                            <th class="text-center">ลบ</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="invoiceItems">
+                                                        <tr>
+                                                            <td class="text-muted">ยังไม่มีสินค้า</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
-                                        <hr class="mx-4">
                                         <div class="card-footer bg-white">
                                             <div class="d-flex justify-content-between"><span>Subtotal</span><span>THB  <span id="subtotal">{{ number_format($subtotal, 2) }}</span></span></div>
                                             <div class="d-flex justify-content-between"><span>Discount</span><span>- THB  <span id="discount">{{ number_format($discount, 2) }}</span></span></div>
@@ -739,7 +751,7 @@
         const saleType = document.querySelector('input[name="customer_type"]:checked')?.value || '2';
 
         document.querySelectorAll('.qty-input').forEach(input => {
-
+            const productId = input.name.match(/\[(.*?)\]/)[1];
             const qty = parseInt(input.value) || 0;
             if (qty <= 0) return;
 
@@ -755,15 +767,31 @@
             subtotal += total;
 
             html += `
-                <div class="d-flex justify-content-between mb-1">
-                    <span>${name} × ${qty}</span>
-                    <span>฿${total.toLocaleString()}</span>
-                </div>
+                    <tr>
+                        <td>${name}</td>
+                        <td class="text-center">${qty}</td>
+                        <td class="text-end">
+                            ฿${total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td class="text-center">
+                            <a href="javascript:;"
+                                class="btn btn-xs btn-danger rounded-pill px-2 py-1"
+                                onclick="removeItem(${productId})">
+                                <i class="fa fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
             `;
         });
 
         if (!hasItem) {
-            html = `<div class="text-muted">ยังไม่มีสินค้า</div>`;
+            html = `
+                <tr>
+                    <td colspan="4" class="text-center text-muted">
+                        ยังไม่มีสินค้า
+                    </td>
+                </tr>
+            `;
         }
 
         // render item list
@@ -777,6 +805,16 @@
 
         // hidden input (เอาไว้ submit)
         document.getElementById('total_value').value = subtotal;
+    }
+    function removeItem(productId) {
+
+        const input = document.querySelector(`input[name="qty[${productId}]"]`);
+
+        if (input) {
+            input.value = 0;
+        }
+
+        calculate();
     }
 </script>
 
