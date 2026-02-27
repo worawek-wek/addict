@@ -345,7 +345,7 @@ class ReportController extends Controller
         $query = Order::withSum('addons', 'price')
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
-            ->with(['branch', 'customer', 'user', 'room', 'status'])
+            ->with(['branch', 'customer', 'user', 'room', 'status', 'seller', 'course'])
             // ->where('type', 1)
             // ->select('orders.*')
             ->orderByRaw("
@@ -597,14 +597,27 @@ class ReportController extends Controller
 
         $data['orderRooms'] = $query->get();
 
+        // Pre-fetch all UserHasRoomTypeCommission rows as a lookup map keyed by userId_roomTypeId_courseId
+        $data['userCommissionMap'] = \App\Models\UserHasRoomTypeCommission::select('ref_user_id','ref_room_type_id','ref_course_id','price','coupon')
+            ->get()
+            ->keyBy(fn($r) => "{$r->ref_user_id}_{$r->ref_room_type_id}_{$r->ref_course_id}");
+
+        // Pre-fetch all RoomTypeHasCourse rows as a lookup map keyed by roomTypeId_courseId
+        $data['roomTypeCourseMap'] = \App\Models\RoomTypeHasCourse::select('ref_room_type_id','ref_course_id','price','commission','coupon')
+            ->get()
+            ->keyBy(fn($r) => "{$r->ref_room_type_id}_{$r->ref_course_id}");
+
         $data['discounts_summary'] = $data['orderRooms']->sum('discount');
         $data['addons_sum_price'] = $data['orderRooms']->sum('addons_sum_price');
         $data['summary_receive_price'] = $data['orderRooms']->sum('price');
         $data['summary_receive_price_after_discount'] = $data['orderRooms']->sum('total_price');
-        $data['summary_type_payment_cash'] = $data['orderRooms']->where('payment_method', 'เงินสด')->sum('total_price');
-        $data['summary_type_payment_credit'] = $data['orderRooms']->where('payment_method', 'เครดิต')->sum('total_price');
-        $data['summary_type_payment_transfer'] = $data['orderRooms']->where('payment_method', 'qr_code')->sum('total_price' );
-        $data['summary_type_payment_al'] = $data['orderRooms']->where('payment_method', 'alipay')->sum('total_price');
+        $data['report_start_date'] = request('start_date') ?? date('d/m/Y');
+        $data['report_end_date']   = request('end_date')   ?? date('d/m/Y');
+        $nonCancelledOrders = $data['orderRooms']->where('ref_status_id', '!=', 4);
+        $data['summary_type_payment_cash'] = $nonCancelledOrders->where('payment_method', 'cash')->sum('total_price');
+        $data['summary_type_payment_credit'] = $nonCancelledOrders->where('payment_method', 'credit_card')->sum('total_price');
+        $data['summary_type_payment_transfer'] = $nonCancelledOrders->where('payment_method', 'qr_code')->sum('total_price');
+        $data['summary_type_payment_al'] = $nonCancelledOrders->where('payment_method', 'alipay')->sum('total_price');
 
 
         $html = view('admin.report.report-saleMonthly-pdf', $data)->render();

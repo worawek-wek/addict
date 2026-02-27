@@ -126,9 +126,9 @@
                 <td>{{ $order->id ?? $loop->index + 1 }}</td>
                 <td>{{ date('d/m/Y', strtotime($order->created_at)) }}</td>
                 <td>{{ date('H:i', strtotime($order->created_at)) }}</td>
-                <td>{{ @$order->seller->user_id }}</td>
-                <td>{{ @$order->seller->name }}</td>
-                <td style="text-align:left;">{{ @$order->user->name }} + {{ @$order->course->name }}</td>
+                <td>{{ $order->seller->id ?? '-' }}</td>
+                <td>{{ $order->seller->name ?? '-' }}</td>
+                <td style="text-align:left;">{{ $order->user->name ?? '-' }} + {{ $order->course->name ?? '-' }}</td>
                 <td>1</td>
                 <td style="text-align:right;">{{ number_format($order->total_price) }}</td>
                 <td style="text-align:right;">{{ number_format($order->total_price) }}</td>
@@ -174,8 +174,8 @@
 @php
     $summary = [];
     foreach ($orders as $order) {
-        $supervisor = @$order->seller->name ?: '-';
-        $supervisorId = @$order->seller->user_id ?: '-';
+        $supervisor = $order->seller->name ?? '-';
+        $supervisorId = $order->seller->id ?? '-';
         $duration = 0;
         if ($order->start_time && $order->end_time) {
             $start = \Carbon\Carbon::parse($order->start_time);
@@ -201,7 +201,6 @@
             <tr>
                 <th style="width:15%; text-align:center; color:#333;">รหัสผู้ดูแล</th>
                 <th style="width:45%; text-align:left; color:#333;">ชื่อผู้ดูแล</th>
-                <th style="width:20%; text-align:right; color:#333;">ยอดชั่วโมง</th>
                 <th style="width:20%; text-align:right; color:#333;">รวมเงิน (บาท)</th>
             </tr>
         </thead>
@@ -211,14 +210,11 @@
                     <tr>
                         <td style="text-align:center;">{{ $supervisorId }}</td>
                         <td style="text-align:left; font-weight:500;">{{ $item['name'] }}</td>
-                        <td style="text-align:right;">{{ number_format($item['hours'], 2) }} ชม.</td>
                         <td style="text-align:right; font-weight:600;">{{ number_format($item['total']) }}</td>
                     </tr>
                 @endforeach
                 <tr style="background-color:#e8e8e8; font-weight:bold;">
                     <td colspan="2" style="text-align:right; padding-right:12px;">รวมทั้งสิ้น</td>
-                    <td style="text-align:right;">{{ number_format(array_sum(array_column($summary, 'hours')), 2) }}
-                        ชม.</td>
                     <td style="text-align:right; font-size:12px;">
                         {{ number_format(array_sum(array_column($summary, 'total'))) }}</td>
                 </tr>

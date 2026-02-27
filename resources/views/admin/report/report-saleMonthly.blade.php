@@ -112,7 +112,7 @@
                                                                     class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
                                                                     type="button"
                                                                     onclick="printPDF()">
-                                                                    
+
                                                                     <span>
                                                                         <i class="ti ti-file-upload me-0 me-sm-1"></i>
                                                                         <span class="d-none d-sm-inline-block">พิมพ์
@@ -215,7 +215,7 @@
             autoclose: true,      // ปิด datepicker เมื่อเลือกวันที่
             todayHighlight: true  // ไฮไลต์วันที่ปัจจุบัน
         });
-        
+
         // ⭐ สำคัญมาก: set ค่าเริ่มต้นให้ datepicker รู้
         $('#start_date').datepicker('setDate', $('#start_date').val());
         $('#end_date').datepicker('setDate', $('#end_date').val());
@@ -241,13 +241,13 @@
                 $('#end_date').datepicker('clearDates');
             }
 
-            loadData("admin/report/report-sale-monthly");
+            loadData(page);
         });
 
         $('#end_date').on('changeDate', function (e) {
             $('#start_date').datepicker('setEndDate', e.date);
 
-            loadData("admin/report/report-sale-monthly");
+            loadData(page);
         });
     // document.addEventListener('DOMContentLoaded', function() {
     //     // Initialize datepickers
