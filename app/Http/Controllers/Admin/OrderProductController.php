@@ -55,23 +55,24 @@ class OrderProductController extends Controller
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::with(['branch', 'customer', 'user', 'room', 'status'])
-            ->where('ref_account_id', Auth::id())
-            ->where('type', 2)
-            ->select('orders.*')
-            ->orderByRaw("
-            CASE
-                WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
-                WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
-                WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
-                WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
-                WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
-                WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
-                WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
-                ELSE 8 -- ไม่ระบุ
-            END
-        ")
-            ->orderBy('id', "DESC")
-            ->orderBy('start_time');
+                        ->where('ref_account_id', Auth::id())
+                        ->where('type', 2)
+                        ->select('orders.*')
+                        ->orderByRaw("
+                                        CASE
+                                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
+                                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
+                                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
+                                            WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
+                                            WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
+                                            WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
+                                            WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
+                                            ELSE 8 -- ไม่ระบุ
+                                        END
+                                    ")
+                        ->orderBy('id', "DESC")
+                        ->whereNull('ref_daily_sales_closure_id')
+                        ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
@@ -83,11 +84,12 @@ class OrderProductController extends Controller
         if (request()->filled('branch_id')) {
             $query->where('ref_branch_id', request()->branch_id);
         }
-        $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->where('ref_account_id', Auth::id())->first();
+        // $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->where('ref_account_id', Auth::id())->first(); //////////////////////////
 
-        if (@$DailySalesClosure) {
-            $query->where('created_at', ">" ,$DailySalesClosure->date_time);
-        }
+        // if (@$DailySalesClosure) { //////////////////////////
+        //     $query->where('created_at', ">" , $DailySalesClosure->date_time); //////////////////////////
+        // } //////////////////////////
+
         // filter ค้นหา
         if (request()->filled('search')) {
             $search = request()->search;
@@ -158,6 +160,7 @@ class OrderProductController extends Controller
 
         $order = Order::findOrFail($id);
         $order->payment_status = $request->status_id;
+        $order->ref_status_id = $request->ref_status_id;
         $order->save();
 
         return response()->json([
@@ -168,7 +171,7 @@ class OrderProductController extends Controller
     }
     public function pdf()
     {
-        $closures = DailySalesClosure::orderBy("id", "DESC")->where('ref_account_id', Auth::id())->take(2)->get();
+        $closures = DailySalesClosure::orderBy("id", "DESC")->where('ref_account_id', Auth::id())->take(1)->get();
         $DailySalesClosure = $closures[0] ?? null;
         $DailySalesClosure_before = $closures[1] ?? null;
 
@@ -179,7 +182,7 @@ class OrderProductController extends Controller
         }
 
         $product_emplaoy = OrderHasProduct::whereHas('order', function ($query) use ($DailySalesClosure) {
-                                    $query->where('created_at', ">" ,$DailySalesClosure->date_time)
+                                    $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
                                             ->where('customer_type', 1)
                                             ->where('ref_account_id', Auth::id());
                                 })
@@ -192,7 +195,7 @@ class OrderProductController extends Controller
         $data['product_employee'] = $product_emplaoy->get();
 
         $product_customer = OrderHasProduct::whereHas('order', function ($query) use ($DailySalesClosure) {
-                                    $query->where('created_at', ">" ,$DailySalesClosure->date_time)
+                                    $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
                                     ->where('customer_type', 2)
                                     ->where('ref_account_id', Auth::id());
                                 })
@@ -204,7 +207,7 @@ class OrderProductController extends Controller
                                 );
         $data['product_customer'] = $product_customer->get();
 
-        $payment_channel = Order::where('orders.created_at', ">" , $DailySalesClosure->date_time)
+        $payment_channel = Order::where('orders.ref_daily_sales_closure_id',  $DailySalesClosure->id)
                                 ->where('orders.ref_account_id', Auth::id())
                                 ->groupBy('orders.payment_method')
                                 ->whereNotNull("orders.payment_method")
@@ -234,7 +237,7 @@ class OrderProductController extends Controller
         // }
 
         // if (@$DailySalesClosure) {
-        //     $query->where('created_at', ">" ,$DailySalesClosure->date_time);
+        //     $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id);
         // }
             
         $data['total_price'] = 0;
@@ -285,9 +288,16 @@ class OrderProductController extends Controller
     public function closures()
     {
 
-        $order = new DailySalesClosure;
-        $order->ref_account_id = Auth::id();
-        $order->save();
+        $dsc_insert = new DailySalesClosure;
+        $dsc_insert->ref_account_id = Auth::id();
+        $dsc_insert->save();
+
+        Order::where('ref_daily_sales_closure_id')
+                ->where('ref_account_id', Auth::id())
+                ->where('type', 2)
+                ->whereNull('ref_daily_sales_closure_id')
+                ->where('payment_status', 1)
+                ->update(["ref_daily_sales_closure_id" => $dsc_insert->id]);        
 
         return response()->json([
             'success' => true,

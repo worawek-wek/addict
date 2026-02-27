@@ -43,9 +43,14 @@ class RoomTypeController extends Controller
     {
         try {
 
-            $user = RoomType::find($id);
-            $user->ref_status_id = $request->ref_status_id;
-            $user->save();
+            $room_type = RoomType::find($id);
+            if(@$request->has("ref_status_id")){
+                $room_type->ref_status_id = $request->ref_status_id;
+            }
+            if(@$request->has("ref_front_status_id")){
+                $room_type->ref_front_status_id = $request->ref_front_status_id;
+            }
+            $room_type->save();
 
             DB::commit();
             return true;

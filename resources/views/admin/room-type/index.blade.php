@@ -347,6 +347,36 @@
         });
     }
 
+    function changeFrontStatus(id, v, element) {
+        $(element).prop('checked', v === 1 ? false : true);
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ?',
+            text: 'คุณต้องการเปลี่ยนสถานะหรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            didOpen: () => Swal.getConfirmButton().focus()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ $page_url }}/change-status/' + id,
+                    type: 'POST',
+                    data: { ref_front_status_id: v, _token: "{{ csrf_token() }}" },
+                    success: function (response) {
+                        if (response == true) {
+                            Swal.fire('เปลี่ยนสถานะเรียบร้อยแล้ว', '', 'success');
+                            loadData(page);
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    }
+                });
+            }
+        });
+    }
+
     function updateSort(el) {
         // return alert(v);
         let id       = el.dataset.id;

@@ -430,11 +430,18 @@ class POSController extends Controller
             if($q == 0){
                 continue;
             }
-            if($request->input('customer_type') ?? 2 == 1){
-                $price = Product::find($id)->price_staff;
-            }else{
-                $price = Product::find($id)->price;
-            }
+            $customerType = $request->input('customer_type', 2); // default = 2
+
+            $product = Product::find($id);
+
+            $price = $customerType == 1 
+                ? $product->price_staff 
+                : $product->price;
+            // if(@$request->input('customer_type') == 1){
+            //     $price = Product::find($id)->price_staff;
+            // }else{
+            //     $price = Product::find($id)->price;
+            // }
             // 1) บันทึกสินค้าใน order_has_products
             $order->products()->create([
                 'ref_product_id' => $id,

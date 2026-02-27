@@ -188,9 +188,12 @@
             <div class="section-title">ช่องทางการชำระเงิน</div>
             <table width="100%">
                 <tbody>
+                    @php
+                        $payment_total_price = 0;
+                    @endphp
                 @foreach ($payment_channel as $key => $item3)
                 @php
-                    $total_price += $item3->total_price;
+                    $payment_total_price += $item3->total_price;
                 @endphp
                     <tr>
                         <td>{{ $key+1 }}</td>
@@ -210,17 +213,17 @@
                     <tr>
                         <td>1</td>
                         <td>ต้นทุน</td>
-                        <td align="right">{{ number_format($total_cost,2) }}</td>
+                        <td align="right">{{ number_format(@$total_cost ?? 0,2) }}</td>
                     </tr>
                     <tr>
                         <td>2</td>
                         <td>ยอดขาย</td>
-                        <td align="right">{{ number_format($total_price,2) }}</td>
+                        <td align="right">{{ number_format($payment_total_price,2) }}</td>
                     </tr>
                     <tr>
                         <td>3</td>
                         <td>กำไร</td>
-                        <td align="right">{{ number_format($total_price-$total_cost,2) }}</td>
+                        <td align="right">{{ number_format($total_price-(@$total_cost ?? 0),2) }}</td>
                     </tr>
                 </thead>
             </table> 

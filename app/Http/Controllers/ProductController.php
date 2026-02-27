@@ -11,6 +11,7 @@ use App\Models\CardStocks;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
+use Carbon\Carbon;
 
 DB::beginTransaction();
 
@@ -133,6 +134,12 @@ class ProductController extends Controller
             // filter เฉพาะสาขาของตัวเอง
             $results = $results->where('products.ref_branch_id', $user->ref_branch_id);
         }
+        
+        if (@$request->created_at) {
+            $created_at = Carbon::createFromFormat('d/m/Y', $request->created_at)->format('Y-m-d');
+            $results = $results->WhereDate('card_stocks.created_at', $created_at);
+        }
+
         if (request()->filled('search')) {
             $search = request()->search;
             $results->Where(function ($query) use ($request) {
@@ -297,6 +304,31 @@ class ProductController extends Controller
         }
         //
     }
+    public function card_stock_report_update(Request $request, $id)
+    {
+        $card_stocks = CardStocks::find($id);
+        if ($card_stocks->quantity > $request->quantity) {
+            $card_stocks->remain = $card_stocks->remain - abs($card_stocks->quantity - $request->quantity);
+        } else {
+            $card_stocks->remain = $card_stocks->remain + abs($card_stocks->quantity - $request->quantity);
+        }
+        try {
+            
+            $card_stocks->ref_product_id = $request->ref_product_id;
+            $card_stocks->type = 1;
+            $card_stocks->label = $request->label;
+            $card_stocks->quantity = $request->quantity;
+            $card_stocks->remark = $request->remark;
+            $card_stocks->cost_price = $request->cost_price;
+            $card_stocks->save();
+
+            DB::commit();
+            return true;
+        } catch (QueryException $err) {
+            DB::rollBack();
+        }
+        //
+    }
 
     /**
      * Display the specified resource.
@@ -330,6 +362,29 @@ class ProductController extends Controller
             $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
         }        // $data['title'] = 'Profile';
         return view('admin/product/view', $data);
+    }
+    
+    public function card_stock_report_edit($id)
+    {
+
+        $data['page_url'] = 'admin/card_stock_report';
+        $data['stock'] = CardStocks::find($id);
+        $user = Auth::user();
+        if ($user->ref_position_id == 0) {
+            // super admin เห็นทุก branch
+            $data['product'] = Product::get();
+        } else {
+            // เห็นเฉพาะสาขาของตัวเอง
+            $data['product'] = Product::where('ref_branch_id', $user->ref_branch_id)->get();
+        }
+        if ($user->work_status == 3) {
+            // super admin เห็นทุก branch
+            $data['branch'] = Branch::orderBy('name')->get();
+        } else {
+            // เห็นเฉพาะสาขาของตัวเอง
+            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        }        // $data['title'] = 'Profile';
+        return view('admin/product/card_stock_report_view', $data);
     }
 
     /**

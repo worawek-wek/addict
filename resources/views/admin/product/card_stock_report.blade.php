@@ -4,6 +4,9 @@
     data-theme="theme-default" data-assets-path="assets/" data-template="vertical-menu-template">
 
 <head>
+    <link rel="stylesheet" href="assets/vendor/libs/bootstrap-datepicker/bootstrap-datepicker.css" />
+    <script src="assets/vendor/libs/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+
     @include('admin/layout/inc_header')
     <title>Dashboard - CRM | Vuexy - Bootstrap Admin Template</title>
 </head>
@@ -96,19 +99,22 @@
                                             <div class="tab-pane fade show active" id="navs-pills-top-home"
                                                 role="tabpanel">
                                                 <div class="row p-3">
-                                                    <div class="col-lg-4">
+                                                    <div class="col-lg-6">
                                                         <div class="d-flex align-items-center mb-2 mb-md-0">
                                                             <label class="">Show</label>
                                                             <select onchange='loadData("{{$page_url}}/datatable")' name="limit" class="form-select ms-2 me-2 p_search" style="width:100px">
-                                                                <option value="5">5</option>
                                                                 <option value="10">10</option>
-                                                                <option value="15">15</option>
-                                                                <option value="20">20</option>
+                                                                <option value="25">25</option>
+                                                                <option value="50">50</option>
                                                                 <option value="100">100</option>
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-8 flex text-end" style="padding-right: unset !important;">
+                                                    <div class="col-sm-3 d-flex align-items-center gap-2">
+                                                        <label for="booking_date" class="mb-0">วันที่นำเข้า</label>
+                                                        <input type="text" onchange='loadData("{{$page_url}}/datatable")' name="created_at" class="form-control datepicker p_search" placeholder="วัน/เดือน/ปี" style="max-width:200px;" required/>
+                                                    </div>
+                                                    <div class="col-md-3 flex text-end" style="padding-right: unset !important;">
                                                         {{-- <button
                                                                 style="padding-right: 14px;padding-left: 14px;"
                                                                 class="btn btn-success buttons-collection btn-warning waves-effect waves-light me-2"
@@ -120,7 +126,6 @@
                                                                     ดาวน์โหลด Excel
                                                                 </span>
                                                         </button> --}}
-                                                        
                                                         <button
                                                             class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
                                                             type="button"
@@ -346,6 +351,11 @@
         //     $('#addserviceModal').modal('show');
         // };
         $('#bs-datepicker-format').datepicker({
+            format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
+            autoclose: true,      // ปิด datepicker เมื่อเลือกวันที่
+            todayHighlight: true  // ไฮไลต์วันที่ปัจจุบัน
+        });
+        $('.datepicker').datepicker({
             format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
             autoclose: true,      // ปิด datepicker เมื่อเลือกวันที่
             todayHighlight: true  // ไฮไลต์วันที่ปัจจุบัน

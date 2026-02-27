@@ -31,7 +31,17 @@
                 <td class="text-center">
                     <div class="d-flex justify-content-center align-items-center gap-3">
                         <!-- Toggle Switch -->
-                        <label class="switch switch-success mb-0">
+                        <label class="switch switch-info mb-0 me-4">
+                            <input type="checkbox" class="switch-input"
+                                onchange="changeFrontStatus({{ $row->id }}, this.checked ? 1 : 0, this)"
+                                @if ($row->ref_front_status_id == 1) checked @endif
+                            />
+                            <span class="switch-toggle-slider">
+                                <span class="switch-on"><i class="ti ti-check"></i></span>
+                                <span class="switch-off"><i class="ti ti-x"></i></span>
+                            </span>
+                        </label>
+                        <label class="switch switch-success mb-0 mx-2 me-3">
                             <input type="checkbox" class="switch-input"
                                 onchange="changeStatus({{ $row->id }}, this.checked ? 1 : 0, this)"
                                 @if ($row->ref_status_id == 1) checked @endif

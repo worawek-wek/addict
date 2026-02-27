@@ -145,7 +145,7 @@ function confirmOrder(orderId) {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    status_id: 4,
+                    status_id: 1,
                     payment_channel: result.value
                 })
             })
@@ -177,15 +177,13 @@ function cancelOrder(orderId) {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ status_id: 3 })
+                body: JSON.stringify({ status_id: 3, ref_status_id: 4 })
             })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    Swal.fire('สำเร็จ!', 'ยกเลิกคำสั่งซื้อเรียบร้อย', 'success')
-                        .then(() => 
-                            loadData(page)
-                        );
+                    Swal.fire('สำเร็จ!', 'ยกเลิกคำสั่งซื้อเรียบร้อย', 'success');
+                        loadData(page)
                 } else {
                     Swal.fire('ผิดพลาด!', data.message || 'ไม่สามารถยกเลิกคำสั่งซื้อได้', 'error');
                 }

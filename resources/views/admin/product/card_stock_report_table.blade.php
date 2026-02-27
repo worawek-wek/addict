@@ -26,47 +26,61 @@
                 <th class="text-center">
                     สาขา
                 </th>
-                    <th class="text-center">
-                        ราคาต้นทุน
-                    </th>
+                <th class="text-center">
+                    ราคาต้นทุน
+                </th>
                 <th class="text-center">
                     หมายเหตุ
                 </th>
+                {{-- <th class="text-center">
+                    จัดการ
+                </th> --}}
             </tr>
         </thead>
         <tbody>
             @foreach ($list_data as $key => $row)
             <tr class="odd">
-                <td class="text-center">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $list_data->firstItem()+$key }}
                 </td>
-                <td class="text-center">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ date('d/m/Y',strtotime($row->created_at)) }}
                 </td>
-                <td class="text-center">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->label }}
                 </td>
-                <td class="text-center">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->product_name }}
                 </td>
-                <td class="text-center text-success">
+                <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->type == 1 ?$row->quantity:''; }}
                 </td>
-                <td class="text-center text-success">
+                <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->type == 2 ?$row->quantity:''; }}
                 </td>
-                <td class="text-center">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->remain }}
                 </td>
-                <td class="text-center">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->branch_name }}
                 </td>
-                    <td class="text-center">
+                    <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                         {{ number_format($row->cost_price, 2) }}
                     </td>
                 <td class="text-center">
                     {{ $row->remark }}
                 </td>
+                {{-- <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-warning btn-sm px-2"
+                                type="button"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modal-commission-room"
+                                onclick="commission_room({{ $row->id }}, 'room')">
+                            นำออก
+                        </button>
+                    </div>
+                </td> --}}
             </tr>
             @endforeach
         </tbody>

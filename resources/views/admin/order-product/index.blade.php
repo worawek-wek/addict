@@ -60,7 +60,7 @@
                                                         type="button" aria-haspopup="dialog" aria-expanded="false"
                                                         onclick="printSummaryReport()"
                                                         >
-                                                        <span><i class="ti ti-receipt"></i> พิมพ์รายงานสรุปยอดขาย</span>
+                                                        <span><i class="ti ti-receipt"></i> พิมพ์รายงานสรุปยอดขายล่าสุด</span>
                                                     </button>
                                                     <button
                                                         style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"

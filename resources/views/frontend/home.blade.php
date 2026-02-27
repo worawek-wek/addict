@@ -96,7 +96,7 @@
                             <div class="col-12">
                                 <h4 class="bg-cream ff-playfair p-2">Room</h4>
                                 <div class="d-flex gap-2 flex-wrap" id="room-selector">
-                                    @php
+                                    {{-- @php
                                         $room_type = [];
                                         if(Auth::guard('customer')->user()?->first_name == "local"){
                                             $room_type_fix_1 = App\Models\RoomType::with('room_type_has_course')->find(1);
@@ -120,21 +120,22 @@
                                                         "detail" => $room_type_fix_3
                                                         ];
                                         $price = 1000;
-                                    @endphp
+                                    @endphp --}}
                                     @foreach ($room_type as $key => $item)
                                         
                                     <input type="radio"
-                                        class="btn-check"
-                                        name="roomType"
-                                        id="roomType1{{$key}}"
-                                        value="{{ $item['detail']->id }}"
-                                        data-name="{{ $item['name'] }}"
-                                        @foreach ($item['detail']->room_type_has_course as $key1 => $c_item)
-                                            data-{{ $c_item->ref_course_id }}="{{ $c_item->price }}"
-                                        @endforeach
-                                        {{-- data-sixty="{{ $price+700 }}"
-                                        data-ninety="{{ $price+900 }}" --}}
-                                        >
+                                            class="btn-check"
+                                            name="roomType"
+                                            id="roomType1{{$key}}"
+                                            {{-- 
+                                            value="{{ $item['detail']->id }}"
+                                            data-name="{{ $item['name'] }}"
+                                            @foreach ($item['detail']->room_type_has_course as $key1 => $c_item)
+                                                data-{{ $c_item->ref_course_id }}="{{ $c_item->price }}"
+                                            @endforeach --}}
+                                            {{-- data-sixty="{{ $price+700 }}"
+                                            data-ninety="{{ $price+900 }}" --}}
+                                            >
 
                                     <label class="btn btn-purple-check d-flex flex-column justify-content-center text-center"
                                         style="width: 19%; min-width: 120px;"
