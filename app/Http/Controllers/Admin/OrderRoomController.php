@@ -10,6 +10,7 @@ use App\Models\DailySalesClosure;
 use App\Models\Order;
 use App\Models\RoomTypeHasCourse;
 use App\Models\OrderStatus;
+use App\Models\StockReadyForSale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;

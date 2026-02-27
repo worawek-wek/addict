@@ -10,6 +10,7 @@ use App\Models\CommissionsHistory;
 use App\Models\Order;
 use App\Models\OrderStatus;
 use App\Models\OrderHasProduct;
+use App\Models\StockReadyForSale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -154,6 +155,7 @@ class OrderProductController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        // return 123;
         $request->validate([
             'status_id' => 'required|exists:order_status,id'
         ]);
@@ -162,6 +164,15 @@ class OrderProductController extends Controller
         $order->payment_status = $request->status_id;
         $order->ref_status_id = $request->ref_status_id;
         $order->save();
+
+        if($request->ref_status_id == 4){
+            foreach($order->products as $product){
+                StockReadyForSale::where('ref_product_id', $product->ref_product_id)
+                                    ->orderByDesc('id')
+                                    ->limit(1)
+                                    ->increment('qty', $product->quantity);
+            }
+        }
 
         return response()->json([
             'success' => true,
