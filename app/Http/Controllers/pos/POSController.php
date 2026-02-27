@@ -426,6 +426,7 @@ class POSController extends Controller
 
 
         // --- โค้ดส่วนที่เหลือของคุณ (ทำงานกับตัวแปร $order ที่ได้มา) ---
+        $list_product = "";
         foreach ($request->qty as $id => $q) {
             if($q == 0){
                 continue;
@@ -459,6 +460,12 @@ class POSController extends Controller
                 $stock->qty = $newRemain;
                 $stock->save();
             }
+            $list_product .= '<tr>
+                                <td>'.$product->name.'</td>
+                                <td>'.$q.'</td>
+                                <td>'.$price.'</td>
+                                <td>'.$price*$q.'</td>
+                            </tr>';
         }
 
         // 3) คำนวณยอดรวม
@@ -471,6 +478,71 @@ class POSController extends Controller
         $order->updated_at  = now();
         $order->save();
         if(!$request->input('ref_room_type_id')){
+        // $room_type = RoomType::find(1);
+        // $room_type_name = $room_type->name;
+        // dd(\Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i'));
+        $qr = QrCode::size(150)->generate(url("admin/order-rooms/$order->id"));
+
+            $slip = "<!DOCTYPE html>
+                        <html lang='th'>
+                        <head>
+                            <meta charset='UTF-8'>
+                            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                            <title>รายละเอียดการจอง</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; font-size: 11px; }
+                                .invoice { width: 69mm; font-size: 11px;padding: 20px; }
+                                .header { display: flex; justify-content: space-between; align-items: end; font-weight: bold; font-size: 10px; }
+                                .title { flex-grow: 1; text-align: center; font-size: 11px; }
+                                .right-align { text-align: right; }
+                                table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 11px; border-top: 1px solid #000; }
+                                th, td { padding: 2px; text-align: left; font-size: 11px; }
+                                th { border-bottom: 1px solid #000; }
+                                td { border-bottom: 1px solid #000; }
+
+                                @media print {
+                                    @page {
+                                        size: 69mm auto;
+                                        margin: 0;
+                                    }
+
+                                    body {
+                                        width: 69mm;
+                                        margin: 0;
+                                    }
+
+                                    .invoice {
+                                        width: 69mm;
+                                    }
+                                }
+                            </style>
+
+                        </head>
+                        <body>
+                            <div class='invoice'>
+                                <div class='header' align='right'>
+                                    <span class='title'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  ใบแจ้งหนี้ชั่วคราว </span>
+                                    <span class='right-align'>No_: $order->order_number</span>
+                                </div>
+                                <p class='right-align'><strong>แคชเชียร์:</strong> Addict</p>
+                                <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+
+                                <table>
+                                    <tr>
+                                        <th>รายการสินค้า</th>
+                                        <th>จำนวน</th>
+                                        <th>@ ราคา</th>
+                                        <th>รวม</th>
+                                    </tr>".$list_product."
+                                </table>
+                            </div>                            
+                        </body>
+                    </html>
+                    ";
+            return response()->json([
+                                        'status' => true,
+                                        'data' => $slip
+                                    ]);
             return 1;
         }
         $room_type = RoomType::find($request->input('ref_room_type_id'));

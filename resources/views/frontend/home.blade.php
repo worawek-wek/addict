@@ -127,6 +127,7 @@
                                             class="btn-check"
                                             name="roomType"
                                             id="roomType1{{$key}}"
+                                            value="{{ $item->id }}"
                                             {{-- 
                                             value="{{ $item['detail']->id }}"
                                             data-name="{{ $item['name'] }}"

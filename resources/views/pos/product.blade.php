@@ -415,6 +415,7 @@
     <div class="layout-overlay layout-menu-toggle"></div>
     <div class="drag-target"></div>
 </div>
+<iframe id="print-iframe" style="display: none;"></iframe>
 
 
 @include('admin/layout/inc_js')
@@ -517,6 +518,8 @@
         $('#insert_product').on('submit', function(event) {
             event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
 
+            const iframe = document.getElementById('print-iframe');
+
             if (!this.checkValidity()) {
                 this.reportValidity();
                 return console.log('ฟอร์มไม่ถูกต้อง');
@@ -543,7 +546,7 @@
                         contentType: false, // ✅ ต้องมี
                         processData: false, // ✅ ต้องมี
                         success: function(response) {
-                            if (response == true) {
+                            if (response.status == true) {
                                 // $('#insert_product')[0].reset();
                                 Swal.fire({
                                     title: 'เพิ่มคำสั่งซื้อเรียบร้อยแล้ว',
@@ -552,7 +555,17 @@
                                     timerProgressBar: true,
                                     showConfirmButton: false
                                 }).then(() => {
-                                    window.location.href = '/pos/room';
+
+                                    const doc = iframe.contentWindow.document;
+                                    doc.open();
+                                    doc.write(response.data);
+                                    doc.close();
+
+                                    // รอโหลดก่อนค่อยพิมพ์
+                                    iframe.onload = function () {
+                                        iframe.contentWindow.focus();
+                                        iframe.contentWindow.print();
+                                    };
                                 });
                                 // $('#addserviceModal').modal('hide');
                                 // loadData(page);
