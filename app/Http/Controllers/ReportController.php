@@ -544,6 +544,7 @@ class ReportController extends Controller
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
             ->with(['branch', 'customer', 'user', 'room', 'status' , 'room_type'])
+            ->whereIn('ref_status_id', [2, 3, 4])
             // ->where('type', 1)
             // ->select('orders.*')
             ->orderByRaw("
