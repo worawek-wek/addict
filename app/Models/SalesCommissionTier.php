@@ -13,6 +13,8 @@ class SalesCommissionTier extends Model
         'min_sales_amount',
         'max_sales_amount',
         'commission_rate',
+        'commission_price',
+        'commission_by',
         'created_at',
     ];
 }

@@ -69,17 +69,38 @@
                                                     <input type="number" step="0.01" name="max_sales_amount"
                                                         class="form-control" required>
                                                 </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label">อัตราคอมมิชชั่น (%)</label>
-                                                    <input type="number" step="0.01" name="commission_rate"
-                                                        class="form-control" required>
+                                                <div class="col-md-3 d-flex justify-content-end align-items-center">
+                                                    <div class="form-check">
+                                                        <input name="commission_by" class="form-check-input me-2 commission_by" type="checkbox" value="1" id="commission_by" />
+                                                        <label class="form-check-label" for="commission_by">
+                                                            อัตราคอมมิชชั่น (%)
+                                                        </label>
+                                                    </div>
                                                 </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label">อัตราคอมมิชชั่น (บาท)</label>
-                                                    <input type="number" step="1" name="commission_price"
-                                                        class="form-control" required>
+                                                <div class="col-md-3">
+                                                    <input type="number" step="0.01" name="commission_rate" class="form-control">
+                                                </div>
+                                                <div class="col-md-3 d-flex justify-content-end align-items-center">
+                                                    <div class="form-check">
+                                                        <input name="commission_by" class="form-check-input me-2 commission_by" type="checkbox" value="2" id="commission_by_2" />
+                                                        <label class="form-check-label" for="commission_by_2">
+                                                            อัตราคอมมิชชั่น (บาท)
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <input type="number" step="1" name="commission_price" class="form-control">
                                                 </div>
                                             </div>
+                                            <script>
+                                                document.querySelectorAll('.commission_by').forEach(function(checkbox) {
+                                                    checkbox.addEventListener('change', function() {
+                                                        document.querySelectorAll('.commission_by').forEach(function(item) {
+                                                            if (item !== checkbox) item.checked = false;
+                                                        });
+                                                    });
+                                                });
+                                            </script>
                                             <div class="mt-4 text-end">
                                                 <a href="{{ route('commission.index') }}"
                                                     class="btn btn-label-secondary">ย้อนกลับ</a>

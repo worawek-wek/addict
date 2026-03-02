@@ -44,13 +44,15 @@ class SalesCommissionTierController extends Controller
         $request->validate([
             'min_sales_amount' => 'required|numeric',
             'max_sales_amount' => 'required|numeric',
-            'commission_rate' => 'required|numeric',
+            'commission_by' => 'required|numeric',
         ]);
         SalesCommissionTier::create([
             'ref_branch_id' => $request->ref_branch_id,
             'min_sales_amount' => $request->min_sales_amount,
             'max_sales_amount' => $request->max_sales_amount,
             'commission_rate' => $request->commission_rate,
+            'commission_price' => $request->commission_price,
+            'commission_by' => $request->commission_by,
             'created_at' => now(),
         ]);
         return redirect()->route('sales_commission_tier.index')->with('success', 'บันทึกข้อมูลสำเร็จ');
