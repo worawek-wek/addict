@@ -264,6 +264,7 @@ class ReportController extends Controller
             ->withSum('products', 'price')
             ->with(['branch', 'customer', 'user', 'room', 'status'])
             ->where('type', 1)
+            ->whereIn('ref_status_id', [2, 3]) // ยกเลิก
             // ->select('orders.*')
             ->orderByRaw("
                         CASE
@@ -470,8 +471,8 @@ class ReportController extends Controller
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
             ->with(['branch', 'customer', 'user', 'room', 'status'])
-            // ->where('type', 1)
-            // ->select('orders.*')
+            ->where('type', 1)
+            ->whereIn('ref_status_id', [2, 3])
             ->orderByRaw("
                         CASE
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
@@ -578,9 +579,8 @@ class ReportController extends Controller
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
             ->with(['branch', 'customer', 'user', 'room', 'status', 'room_type'])
-            ->where('payment_status', 1)
-            ->whereIn('ref_status_id', [2, 3, 4])
-            // ->where('type', 1)
+            ->where('type', 1)
+            ->whereIn('ref_status_id', [2, 3])
             // ->select('orders.*')
             ->orderByRaw("
                         CASE
