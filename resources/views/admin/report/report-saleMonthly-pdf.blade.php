@@ -27,7 +27,7 @@
         font-weight: bold;
     }
 </style>
-<div class="text-center">
+<div class="text-center ">
     <span class="text-center">รายงานยอดขายรวม วันที่ {{ $report_start_date }} - {{ $report_end_date }} , พิมพ์เมื่อ
         {{ date('d/m/Y H:i') }}</span>
 </div>
@@ -138,8 +138,8 @@
                         $groupCommissionSum += $usedCommission;
                         // Cancelled orders don't count towards totals (excluded like payment channels)
                         $groupCoursePriceSum += $isCancelled ? 0 : $coursePrice;
-                        $groupDiscountSum += $isCancelled ? 0 : ($order->discount ?? 0);
-                        $groupDrinkSum += $isCancelled ? 0 : ($order->products_sum_price ?? 0);
+                        $groupDiscountSum += $isCancelled ? 0 : $order->discount ?? 0;
+                        $groupDrinkSum += $isCancelled ? 0 : $order->products_sum_price ?? 0;
                     @endphp
                     <tr>
                         <td>{{ $globalIndex }}</td>
@@ -164,7 +164,7 @@
                         <td>{{ $isCancelled ? '-' : number_format($order->discount ?? 0) }}</td>
                         <td>{{ $isCancelled ? '-' : number_format($order->products_sum_price ?? 0) }}</td>
                         <td>{{ $isCancelled ? '-' : number_format($usedCoupon) }}</td>
-                        <td>{{ $isCancelled ? '-' : number_format($actualRevenue + ($order->products_sum_price ?? 0)) }}</td>
+                        <td>{{ $isCancelled ? '-' : number_format($actualRevenue) }}</td>
                         <td>{{ $order->status->name }}</td>
                     </tr>
                 @endforeach
@@ -209,7 +209,7 @@
 </table>
 
 <!-- สรุปยอดรวมทั้งหมด (Summary Box) -->
-<div style="margin-top:30px; width:100%;">
+<div style="margin-top:10px; width:100%;">
     <table style="width: 60%; margin: 0 auto; border: 2px solid #333; font-size: 12px;">
         <tr style="background: #f7f7f7; font-weight: bold;">
             <td colspan="2" style="text-align:center; border-bottom:2px solid #333;">สรุปยอดรวม</td>
@@ -232,7 +232,7 @@
 </div>
 
 
-<div style="margin-top:30px; width:100%;">
+<div style="margin-top:10px; width:100%;">
     <table style="width: 60%; margin: 0 auto; border: 2px solid #333; font-size: 12px;">
         <tr style="background: #f7f7f7; font-weight: bold;">
             <td colspan="2" style="text-align:center; border-bottom:2px solid #333;">การรับเงินจากช่องทางต่างๆ</td>
