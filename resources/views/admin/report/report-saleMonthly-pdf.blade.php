@@ -42,6 +42,8 @@
             <th>ชม.</th>
             <th>ชำระเงิน</th>
             <th>ค่านวด</th>
+            <th>ส่วนลด</th>
+            <th>เครื่องดื่ม</th>
             <th>คูปอง</th>
             <th>รับจริงของร้าน</th>
             <th>สถานะ</th>
@@ -50,7 +52,7 @@
     <tbody>
         @if ($orderRooms->isEmpty())
             <tr>
-                <td colspan="10" class="text-center">ไม่มีข้อมูล</td>
+                <td colspan="12" class="text-center">ไม่มีข้อมูล</td>
             </tr>
         @else
             @php
@@ -61,12 +63,14 @@
                 $grandNetSum = 0;
                 $grandCoursePriceSum = 0;
                 $grandCouponSum = 0;
+                $grandDiscountSum = 0;
+                $grandDrinkSum = 0;
             @endphp
 
             @foreach ($roomGroups as $roomName => $orders)
                 {{-- Room Group Header --}}
                 <tr style="background-color: #d9d9d9; font-weight: bold;">
-                    <td colspan="10" style="text-align: left; padding-left: 10px;">
+                    <td colspan="12" style="text-align: left; padding-left: 10px;">
                         ห้อง: {{ $roomName }} ({{ $orders->count() }} รายการ)
                     </td>
                 </tr>
@@ -80,6 +84,8 @@
                     $groupCommissionSum = 0;
                     $groupCoursePriceSum = 0;
                     $groupNetSum = 0;
+                    $groupDiscountSum = 0;
+                    $groupDrinkSum = 0;
                 @endphp
 
                 @foreach ($orders as $order)
@@ -132,6 +138,8 @@
                         $groupCommissionSum += $usedCommission;
                         // Cancelled orders don't count towards totals (excluded like payment channels)
                         $groupCoursePriceSum += $isCancelled ? 0 : $coursePrice;
+                        $groupDiscountSum += $isCancelled ? 0 : ($order->discount ?? 0);
+                        $groupDrinkSum += $isCancelled ? 0 : ($order->products_sum_price ?? 0);
                     @endphp
                     <tr>
                         <td>{{ $globalIndex }}</td>
@@ -153,8 +161,10 @@
                         </td>
                         <td>{{ $order->payment_method }}</td>
                         <td>{{ number_format($coursePrice) }}</td>
+                        <td>{{ $isCancelled ? '-' : number_format($order->discount ?? 0) }}</td>
+                        <td>{{ $isCancelled ? '-' : number_format($order->products_sum_price ?? 0) }}</td>
                         <td>{{ $isCancelled ? '-' : number_format($usedCoupon) }}</td>
-                        <td>{{ $isCancelled ? '-' : number_format($actualRevenue) }}</td>
+                        <td>{{ $isCancelled ? '-' : number_format($actualRevenue + ($order->products_sum_price ?? 0)) }}</td>
                         <td>{{ $order->status->name }}</td>
                     </tr>
                 @endforeach
@@ -164,10 +174,14 @@
                     $grandNetSum += $groupNetSum;
                     $grandCoursePriceSum += $groupCoursePriceSum;
                     $grandCouponSum += $groupCouponSum;
+                    $grandDiscountSum += $groupDiscountSum;
+                    $grandDrinkSum += $groupDrinkSum;
                 @endphp
                 <tr style="background-color: #f0f0f0; font-weight: bold;">
                     <td colspan="6" style="text-align: right;">รวม {{ $roomName }}</td>
                     <td>{{ number_format($groupCoursePriceSum) }}</td>
+                    <td>{{ number_format($groupDiscountSum) }}</td>
+                    <td>{{ number_format($groupDrinkSum) }}</td>
                     <td>{{ number_format($groupCouponSum) }}</td>
                     <td>{{ number_format($groupNetSum) }}</td>
                     <td></td>
@@ -175,7 +189,7 @@
 
                 {{-- Spacing row between groups --}}
                 <tr>
-                    <td colspan="10" style="border: none; padding: 2px;"></td>
+                    <td colspan="12" style="border: none; padding: 2px;"></td>
                 </tr>
             @endforeach
 
@@ -183,6 +197,8 @@
             <tr style="font-weight: bold; background: #e0e0e0;">
                 <td colspan="6" style="text-align: right;">รวมยอดทั้งหมด</td>
                 <td>{{ number_format($grandCoursePriceSum) }}</td>
+                <td>{{ number_format($grandDiscountSum ?? 0) }}</td>
+                <td>{{ number_format($grandDrinkSum ?? 0) }}</td>
                 <td>{{ number_format($grandCouponSum) }}</td>
                 <td>{{ number_format($grandNetSum) }}</td>
                 <td></td>

@@ -78,7 +78,7 @@
     รายงานผู้ดูแลพนักงาน
 </div>
 <div style="font-size:11px; margin-bottom:8px;">
-    วันที่ {{ date('d/m/Y') }} , เวลา {{ date('H:i') }}
+    วันที่ {{ $report_start_date }} - {{ $report_end_date }} , พิมพ์เมื่อ {{ date('d/m/Y H:i') }}
 </div>
 
 <table>
@@ -123,7 +123,7 @@
             @endphp
 
             <tr>
-                <td>{{ $order->id ?? $loop->index + 1 }}</td>
+                <td>{{ $loop->index + 1 }}</td>
                 <td>{{ date('d/m/Y', strtotime($order->created_at)) }}</td>
                 <td>{{ date('H:i', strtotime($order->created_at)) }}</td>
                 <td>{{ $order->seller->id ?? '-' }}</td>
@@ -171,56 +171,36 @@
 </table>
 
 {{-- Summary Section --}}
-@php
-    $summary = [];
-    foreach ($orders as $order) {
-        $supervisor = $order->seller->name ?? '-';
-        $supervisorId = $order->seller->id ?? '-';
-        $duration = 0;
-        if ($order->start_time && $order->end_time) {
-            $start = \Carbon\Carbon::parse($order->start_time);
-            $end = \Carbon\Carbon::parse($order->end_time);
-            $duration = $end->diffInMinutes($start) / 60; // use total minutes for fractional hours
-        }
-        if (!isset($summary[$supervisorId])) {
-            $summary[$supervisorId] = [
-                'name' => $supervisor,
-                'hours' => 0,
-                'total' => 0,
-            ];
-        }
-        $summary[$supervisorId]['hours'] += $duration;
-        $summary[$supervisorId]['total'] += $order->total_price;
-    }
-@endphp
-
 <div class="summary-section">
     <div class="summary-title">สรุปยอดรวมตามผู้ดูแล</div>
     <table class="summary-table">
         <thead>
             <tr>
-                <th style="width:15%; text-align:center; color:#333;">รหัสผู้ดูแล</th>
-                <th style="width:45%; text-align:left; color:#333;">ชื่อผู้ดูแล</th>
-                <th style="width:20%; text-align:right; color:#333;">รวมเงิน (บาท)</th>
+                <th style="width:10%; text-align:center; color:#000;">รหัสผู้ดูแล</th>
+                <th style="width:35%; text-align:left; color:#000;">ชื่อผู้ดูแล</th>
+                <th style="width:10%; text-align:center; color:#000;">จำนวน</th>
+                <th style="width:15%; text-align:right; color:#000;">ค่านวดรวม (บาท)</th>
             </tr>
         </thead>
         <tbody>
-            @if (!empty($summary))
-                @foreach ($summary as $supervisorId => $item)
+            @if ($summary_data->isNotEmpty())
+                @foreach ($summary_data as $item)
                     <tr>
-                        <td style="text-align:center;">{{ $supervisorId }}</td>
+                        <td style="text-align:center;">{{ $item['user_id'] }}</td>
                         <td style="text-align:left; font-weight:500;">{{ $item['name'] }}</td>
-                        <td style="text-align:right; font-weight:600;">{{ number_format($item['total']) }}</td>
+                        <td style="text-align:center;">{{ $item['count'] }}</td>
+                        <td style="text-align:right; font-weight:600;">{{ number_format($item['total_price']) }}</td>
                     </tr>
                 @endforeach
                 <tr style="background-color:#e8e8e8; font-weight:bold;">
                     <td colspan="2" style="text-align:right; padding-right:12px;">รวมทั้งสิ้น</td>
+                    <td style="text-align:center;">{{ $summary_data->sum('count') }}</td>
                     <td style="text-align:right; font-size:12px;">
-                        {{ number_format(array_sum(array_column($summary, 'total'))) }}</td>
+                        {{ number_format($summary_data->sum('total_price')) }}</td>
                 </tr>
             @else
                 <tr>
-                    <td colspan="4" style="text-align:center; padding:16px;">ไม่มีข้อมูล</td>
+                    <td colspan="6" style="text-align:center; padding:16px;">ไม่มีข้อมูล</td>
                 </tr>
             @endif
         </tbody>

@@ -182,6 +182,7 @@ class ReportController extends Controller
             ->orderBy('booking_date')
             ->orderBy('start_time');
 
+
         $userBranchId = Auth::user()->ref_branch_id ?? null;
         if ($userBranchId) {
             $orderRooms->where('ref_branch_id', $userBranchId);
@@ -398,10 +399,27 @@ class ReportController extends Controller
 
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
-
         $data['orderRooms'] = $query->get();
 
-        $html = view('admin.report.report-overseeEmp-pdf', $data)->render();
+
+        $data['summary_data'] = $data['orderRooms']
+            ->groupBy('ref_user_id')
+            ->map(function ($orders) {
+                return [
+                    'user_id'             =>$orders->first()->seller->user_code ?? 'ไม่ระบุ',
+                    'name'                => optional($orders->first()->seller)->name ?? 'ไม่ระบุ',
+                    'total_price'         => $orders->where('ref_status_id', '!=', 4)->sum('total_price'),
+                    'count'               => $orders->where('ref_status_id', '!=', 4)->count(),
+                ];
+            })
+            ->sortByDesc('total_price')
+            ->values();
+
+        $data['report_start_date'] = request('start_date') ?? date('d/m/Y');
+        $data['report_end_date']   = request('end_date')   ?? date('d/m/Y');
+
+
+        $html = view('admin.report.report-overseeEmp-pdf', $data,)->render();
 
         $pdf = new \Mpdf\Mpdf([
             'default_font_size' => 10,
@@ -543,7 +561,8 @@ class ReportController extends Controller
         $query = Order::withSum('addons', 'price')
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
-            ->with(['branch', 'customer', 'user', 'room', 'status' , 'room_type'])
+            ->with(['branch', 'customer', 'user', 'room', 'status', 'room_type'])
+            ->where('payment_status', 1)
             ->whereIn('ref_status_id', [2, 3, 4])
             // ->where('type', 1)
             // ->select('orders.*')
@@ -599,12 +618,12 @@ class ReportController extends Controller
         $data['orderRooms'] = $query->get();
 
         // Pre-fetch all UserHasRoomTypeCommission rows as a lookup map keyed by userId_roomTypeId_courseId
-        $data['userCommissionMap'] = \App\Models\UserHasRoomTypeCommission::select('ref_user_id','ref_room_type_id','ref_course_id','price','coupon')
+        $data['userCommissionMap'] = \App\Models\UserHasRoomTypeCommission::select('ref_user_id', 'ref_room_type_id', 'ref_course_id', 'price', 'coupon')
             ->get()
             ->keyBy(fn($r) => "{$r->ref_user_id}_{$r->ref_room_type_id}_{$r->ref_course_id}");
 
         // Pre-fetch all RoomTypeHasCourse rows as a lookup map keyed by roomTypeId_courseId
-        $data['roomTypeCourseMap'] = \App\Models\RoomTypeHasCourse::select('ref_room_type_id','ref_course_id','price','commission','coupon')
+        $data['roomTypeCourseMap'] = \App\Models\RoomTypeHasCourse::select('ref_room_type_id', 'ref_course_id', 'price', 'commission', 'coupon')
             ->get()
             ->keyBy(fn($r) => "{$r->ref_room_type_id}_{$r->ref_course_id}");
 
