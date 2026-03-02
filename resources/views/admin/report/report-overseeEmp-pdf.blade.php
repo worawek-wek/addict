@@ -98,72 +98,80 @@
     <tbody>
 
         @php
-            $sumTotal = 0;
-            $sumCustomer = 0;
-            $orders = $orderRooms->values();
+            $grouped = $orderRooms->groupBy('ref_user_id');
+            $globalIndex = 0;
         @endphp
 
-        @foreach ($orders as $order)
-            @php
-                $sumTotal += $order->total_price;
-                $sumCustomer++;
-                $next = $loop->last ? null : $orders->get($loop->index + 1);
-
-                $start = \Carbon\Carbon::parse($order->start_time);
-                $end = \Carbon\Carbon::parse($order->end_time);
-                $diff = $start->diff($end);
-                $durStr = '';
-                if ($diff->h > 0) {
-                    $durStr .= $diff->h . ' ชม. ';
-                }
-                if ($diff->i > 0) {
-                    $durStr .= $diff->i . ' นาที';
-                }
-                $durStr = trim($durStr) ?: '-';
-            @endphp
-
+        @if ($orderRooms->isEmpty())
             <tr>
-                <td>{{ $loop->index + 1 }}</td>
-                <td>{{ date('d/m/Y', strtotime($order->created_at)) }}</td>
-                <td>{{ date('H:i', strtotime($order->created_at)) }}</td>
-                <td>{{ $order->seller->id ?? '-' }}</td>
-                <td>{{ $order->seller->name ?? '-' }}</td>
-                <td style="text-align:left;">{{ $order->user->name ?? '-' }} + {{ $order->course->name ?? '-' }}</td>
-                <td>1</td>
-                <td style="text-align:right;">{{ number_format($order->total_price) }}</td>
-                <td style="text-align:right;">{{ number_format($order->total_price) }}</td>
+                <td colspan="9" style="text-align:center; padding:12px;">ไม่มีข้อมูล</td>
             </tr>
+        @else
+            @foreach ($grouped as $sellerId => $groupOrders)
+                @php
+                    $firstOrder = $groupOrders->first();
+                    $sellerCode = $firstOrder->seller->user_id ?? '-';
+                    $sellerName = $firstOrder->seller->name ?? 'ไม่ระบุ';
+                    $groupTotal = $groupOrders->where('ref_status_id', '!=', 4)->sum('total_price');
+                    $groupCount = $groupOrders->where('ref_status_id', '!=', 4)->count();
+                @endphp
 
-            {{-- Subtotal when supervisor group changes --}}
-            @if (!$next || $next->ref_user_id != $order->ref_user_id)
+                {{-- Group Header --}}
+                <tr style="background-color:#d9d9d9; font-weight:bold;">
+                    <td colspan="9" style="text-align:left; padding-left:8px;">
+                        ผู้ดูแล: [{{ $sellerCode }}] {{ $sellerName }} ({{ $groupCount }} รายการ)
+                    </td>
+                </tr>
+
+                @foreach ($groupOrders as $order)
+                    @php
+                        $globalIndex++;
+                        $isCancelled = $order->ref_status_id == 4;
+                        $start = \Carbon\Carbon::parse($order->start_time);
+                        $end = \Carbon\Carbon::parse($order->end_time);
+                        $diff = $start->diff($end);
+                        $durStr = '';
+                        if ($diff->h > 0) $durStr .= $diff->h . ' ชม. ';
+                        if ($diff->i > 0) $durStr .= $diff->i . ' นาที';
+                        $durStr = trim($durStr) ?: '-';
+                    @endphp
+                    <tr @if($isCancelled) style="color:#999; text-decoration:line-through;" @endif>
+                        <td>{{ $globalIndex }}</td>
+                        <td>{{ date('d/m/Y', strtotime($order->created_at)) }}</td>
+                        <td>{{ date('H:i', strtotime($order->created_at)) }}</td>
+                        <td>{{ $sellerCode }}</td>
+                        <td>{{ $sellerName }}</td>
+                        <td style="text-align:left;">{{ $order->user->name ?? '-' }} + {{ $order->course->name ?? '-' }}</td>
+                        <td>{{ $durStr }}</td>
+                        <td style="text-align:right;">{{ number_format($order->total_price) }}</td>
+                        <td style="text-align:right;">{{ $isCancelled ? '-' : number_format($order->total_price) }}</td>
+                    </tr>
+                @endforeach
+
+                {{-- Group Subtotal --}}
                 <tr class="subtotal-row">
-                    <td colspan="5" style=""></td>
-                    <td style="text-align:right;">รวมต่อคน</td>
-                    <td style="text-align:center;">{{ $sumCustomer }}</td>
-                    <td style=""></td>
-                    <td style="text-align:right; text-decoration:underline;">{{ number_format($sumTotal) }}</td>
+                    <td colspan="5"></td>
+                    <td style="text-align:right;">รวม {{ $sellerName }}</td>
+                    <td style="text-align:center;">{{ $groupCount }}</td>
+                    <td></td>
+                    <td style="text-align:right; text-decoration:underline;">{{ number_format($groupTotal) }}</td>
                 </tr>
                 <tr>
                     <td colspan="9" style="border:none; padding:4px;"></td>
                 </tr>
-                @php
-                    $sumTotal = 0;
-                    $sumCustomer = 0;
-                @endphp
-            @endif
-        @endforeach
+            @endforeach
 
-        {{-- Grand Total --}}
-        @if (!$orders->isEmpty())
+            {{-- Grand Total --}}
             @php
-                $grandTotal = $orders->sum('total_price');
-                $grandCustomer = $orders->count();
+                $grandTotal = $orderRooms->where('ref_status_id', '!=', 4)->sum('total_price');
+                $grandCount = $orderRooms->where('ref_status_id', '!=', 4)->count();
             @endphp
-        @endif
-
-        @if ($orders->isEmpty())
-            <tr>
-                <td colspan="9" style="text-align:center; padding:12px;">ไม่มีข้อมูล</td>
+            <tr style="font-weight:bold; background:#e0e0e0;">
+                <td colspan="5" style="text-align:right;">รวมยอดทั้งหมด</td>
+                <td></td>
+                <td style="text-align:center;">{{ $grandCount }}</td>
+                <td></td>
+                <td style="text-align:right;">{{ number_format($grandTotal) }}</td>
             </tr>
         @endif
 
@@ -179,7 +187,7 @@
                 <th style="width:10%; text-align:center; color:#000;">รหัสผู้ดูแล</th>
                 <th style="width:35%; text-align:left; color:#000;">ชื่อผู้ดูแล</th>
                 <th style="width:10%; text-align:center; color:#000;">จำนวน</th>
-                <th style="width:15%; text-align:right; color:#000;">ค่านวดรวม (บาท)</th>
+                <th style="width:15%; text-align:right; color:#000;">รวม (บาท)</th>
             </tr>
         </thead>
         <tbody>
@@ -200,7 +208,7 @@
                 </tr>
             @else
                 <tr>
-                    <td colspan="6" style="text-align:center; padding:16px;">ไม่มีข้อมูล</td>
+                    <td colspan="4" style="text-align:center; padding:16px;">ไม่มีข้อมูล</td>
                 </tr>
             @endif
         </tbody>

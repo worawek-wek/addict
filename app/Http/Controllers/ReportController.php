@@ -76,7 +76,8 @@ class ReportController extends Controller
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
             ->with(['branch', 'customer', 'user', 'room', 'status'])
-            // ->where('type', 1)
+            ->where('type', 1)
+            ->whereIn('ref_status_id', [2, 3])
             // ->select('orders.*')
             ->orderByRaw("
                         CASE
@@ -166,7 +167,9 @@ class ReportController extends Controller
         $orderRooms = Order::withSum('addons', 'price')
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
-            ->with(['branch', 'customer', 'user', 'room', 'status'])
+            ->with(['branch', 'customer', 'user', 'room', 'status', 'seller', 'course'])
+            ->where('type', 1)
+            ->whereIn('ref_status_id', [2, 3])
             ->orderByRaw("
                         CASE
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
@@ -213,6 +216,17 @@ class ReportController extends Controller
         $data['orderRooms'] = collect($orderRooms->get());
         $data['summary_total_price'] = $data['orderRooms']->sum('total_price');
 
+        $data['userCommissionMap'] = \App\Models\UserHasRoomTypeCommission::select('ref_user_id', 'ref_room_type_id', 'ref_course_id', 'price', 'coupon')
+            ->get()
+            ->keyBy(fn($r) => "{$r->ref_user_id}_{$r->ref_room_type_id}_{$r->ref_course_id}");
+
+        $data['roomTypeCourseMap'] = \App\Models\RoomTypeHasCourse::select('ref_room_type_id', 'ref_course_id', 'price', 'commission', 'coupon')
+            ->get()
+            ->keyBy(fn($r) => "{$r->ref_room_type_id}_{$r->ref_course_id}");
+
+        $data['report_start_date'] = request('start_date') ?? date('d/m/Y');
+        $data['report_end_date']   = request('end_date')   ?? date('d/m/Y');
+
         $html = view('admin.report.report-couponReport-pdf', $data)->render();
 
         $pdf = new \Mpdf\Mpdf([
@@ -229,6 +243,7 @@ class ReportController extends Controller
 
         $limit = $request->limit ?? 10;
         $orderRooms = $this->OEgetOrderRooms($limit);
+
 
         $user = Auth::user();
 
@@ -248,7 +263,7 @@ class ReportController extends Controller
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
             ->with(['branch', 'customer', 'user', 'room', 'status'])
-            // ->where('type', 1)
+            ->where('type', 1)
             // ->select('orders.*')
             ->orderByRaw("
                         CASE
@@ -347,7 +362,8 @@ class ReportController extends Controller
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
             ->with(['branch', 'customer', 'user', 'room', 'status', 'seller', 'course'])
-            // ->where('type', 1)
+            ->where('type', 1)
+            ->whereIn('ref_status_id', [2, 3]) // ยกเลิก
             // ->select('orders.*')
             ->orderByRaw("
                         CASE
@@ -406,7 +422,7 @@ class ReportController extends Controller
             ->groupBy('ref_user_id')
             ->map(function ($orders) {
                 return [
-                    'user_id'             =>$orders->first()->seller->user_code ?? 'ไม่ระบุ',
+                    'user_id'             => $orders->first()->seller->user_code ?? 'ไม่ระบุ',
                     'name'                => optional($orders->first()->seller)->name ?? 'ไม่ระบุ',
                     'total_price'         => $orders->where('ref_status_id', '!=', 4)->sum('total_price'),
                     'count'               => $orders->where('ref_status_id', '!=', 4)->count(),

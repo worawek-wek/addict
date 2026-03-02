@@ -4,99 +4,136 @@
         border-collapse: collapse;
         font-size: 10px;
     }
-    th, td {
+
+    th,
+    td {
         border: 1px solid #000;
         padding: 4px 6px;
         text-align: center;
     }
+
     thead th {
         background-color: #f0f0f0;
         font-weight: bold;
     }
 </style>
-<span style="font-size: 12px; font-weight: bold;">รายงานคูปองพนักงาน วันที่ {{ date('d/m/Y') }}  , เวลา {{ date('H:i') }}</span>
+<span style="font-size: 12px; font-weight: bold;">รายงานคูปองพนักงาน วันที่ {{ $report_start_date }} -
+    {{ $report_end_date }} , พิมพ์เมื่อ {{ date('d/m/Y H:i') }}</span>
 
 <table class="table table-striped">
     <thead>
         <tr>
-            {{-- <th style="width: 8%;">ลำดับ</th> --}}
+            <th class="text-center">#</th>
             <th class="text-center">วันที่</th>
             <th class="text-center">เวลา</th>
-            <th class="text-center">ชื่อพนักงาน</th>
+            <th class="text-center">ชื่อพนักงาน + คอร์ส</th>
             <th class="text-center">ชม.</th>
-            <th class="text-center">จำนวนลูกค้า</th>
-            <th class="text-center">@ราคา</th>
             <th class="text-center">รวมเงิน</th>
-            <th class="text-center">รหัสผู้ดูแล</th>
             <th class="text-center">ชื่อผู้ดูแล</th>
         </tr>
     </thead>
     <tbody>
         @php
-            $sumTotal = 0;
-            $sumCustomer = 0;
-            $orders = $orderRooms->values();
+            $grouped = $orderRooms->groupBy('ref_user_id');
+            $globalIndex = 0;
+            $grandTotal = 0;
+            $grandCommission = 0;
+            $grandNet = 0;
         @endphp
 
-        @foreach ($orders as $order)
-            @php
-                $sumTotal += $order->total_price;
-                $next = $loop->last ? null : $orders->get($loop->index + 1);
-                $sumCustomer++;
-            @endphp
-
+        @if ($orderRooms->isEmpty())
             <tr>
-                <td class="text-center">{{ date('d/m/Y', strtotime($order->created_at)) }}</td>
-                <td class="text-center">{{ date('H:i', strtotime($order->created_at)) }}</td>
-                <td class="text-center">{{ @$order->user->name." + ".@$order->course->name }}</td>
-
-                <td class="text-center">
-                    @php
-                        $start = \Carbon\Carbon::parse($order->start_time);
-                        $end   = \Carbon\Carbon::parse($order->end_time);
-                        $diff  = $start->diff($end);
-                    @endphp
-
-                    @if($diff->h > 0) {{ $diff->h }} ชม. @endif
-                    @if($diff->i > 0) {{ $diff->i }} นาที @endif
-                </td>
-
-                <td class="text-center">1</td>
-                <td class="text-center">{{ number_format($order->total_price) }}</td>
-                <td class="text-center">{{ number_format($order->total_price) }}</td>
-                <td class="text-center">{{ @$order->seller->user_id }}</td>
-                <td class="text-center">{{ @$order->seller->name }}</td>
+                <td colspan="8" class="text-center">ไม่มีข้อมูล</td>
             </tr>
+        @else
+            @foreach ($grouped as $userId => $groupOrders)
+                @php
+                    $firstOrder = $groupOrders->first();
+                    $employeeName = $firstOrder->user->name ?? 'ไม่ระบุ';
+                    $groupTotal = 0;
+                    $groupCommission = 0;
+                    $groupCount = $groupOrders->count();
+                @endphp
 
-            {{-- ✅ ถ้า user ถัดไปไม่ใช่คนเดียวกัน ให้สรุปยอด --}}
-            @if (!$next || $next->ref_user_id != $order->ref_user_id)
-                <tr class="table-warning fw-bold" style="background-color: #fff7f0;">
-                    <th colspan="4" class="text-start">รวมยอด</th>
-                    <th class="text-center">{{ $sumCustomer }}</th>
-                    <th class="text-center"></th>
-                    <th class="text-center">{{ number_format($sumTotal) }}</th>
-                    <th colspan="2"></th>
+                {{-- Group Header --}}
+                <tr style="background-color:#d9d9d9; font-weight:bold;">
+                    <td colspan="7" style="text-align:left; padding-left:8px;">
+                        พนักงาน: {{ $employeeName }} ({{ $groupCount }} รายการ)
+                    </td>
+                </tr>
+
+                @foreach ($groupOrders as $order)
+                    @php
+                        $globalIndex++;
+
+                        // Look up commission
+                        $ucKey = "{$order->ref_user_id}_{$order->ref_room_type_id}_{$order->service_laundry_cost}";
+                        $rtcKey = "{$order->ref_room_type_id}_{$order->service_laundry_cost}";
+                        $uc = $userCommissionMap->get($ucKey);
+                        $rtc = $roomTypeCourseMap->get($rtcKey);
+
+                        if ($uc && ($uc->price > 0 || $uc->coupon > 0)) {
+                            $commission = $uc->price;
+                        } elseif ($rtc) {
+                            $commission = $rtc->commission;
+                        } else {
+                            $commission = 0;
+                        }
+
+                        $net = $order->total_price - $commission;
+                        $groupTotal += $order->total_price;
+                        $groupCommission += $commission;
+
+                        $start = \Carbon\Carbon::parse($order->start_time);
+                        $end = \Carbon\Carbon::parse($order->end_time);
+                        $diff = $start->diff($end);
+                        $durStr = '';
+                        if ($diff->h > 0) {
+                            $durStr .= $diff->h . ' ชม. ';
+                        }
+                        if ($diff->i > 0) {
+                            $durStr .= $diff->i . ' นาที';
+                        }
+                        $durStr = trim($durStr) ?: '-';
+                    @endphp
+                    <tr>
+                        <td>{{ $globalIndex }}</td>
+                        <td>{{ date('d/m/Y', strtotime($order->created_at)) }}</td>
+                        <td>{{ date('H:i', strtotime($order->created_at)) }}</td>
+                        <td style="text-align:left;">{{ $order->user->name ?? '-' }} + {{ $order->course->name ?? '-' }}
+                        </td>
+                        <td>{{ $durStr }}</td>
+                        <td style="text-align:right;">{{ number_format($commission) }}</td>
+                        <td style="text-align:left;">{{ $order->seller->name ?? '-' }}</td>
+                    </tr>
+                @endforeach
+
+                @php
+                    $groupNet = $groupTotal - $groupCommission;
+                    $grandTotal += $groupTotal;
+                    $grandCommission += $groupCommission;
+                    $grandNet += $groupNet;
+                @endphp
+
+                {{-- Group Subtotal --}}
+                <tr style="background-color:#f0f0f0; font-weight:bold;">
+                    <td colspan="4" style="text-align:right;">รวม {{ $employeeName }}</td>
+                    <td style="text-align:center;">{{ $groupCount }}</td>
+                    <td style="text-align:right;">{{ number_format($groupCommission) }}</td>
+                    <td colspan="1"></td>
                 </tr>
                 <tr>
-                    <th colspan="9">&nbsp;</th>
+                    <td colspan="10" style="border:none; padding:3px;"></td>
                 </tr>
-                @php
-                    $sumTotal = 0;
-                    $sumCustomer = 0;
-                @endphp
-            @endif
-        @endforeach
-        <tr>
-            <th colspan="6" class="text-end">รวมทั้งหมด</th>
-            <th class="text-center">{{ number_format($summary_total_price,2) }}</th>
-            <th colspan="4"></th>
-        </tr>
+            @endforeach
 
-        @if ($orders->isEmpty())
-            <tr>
-                <td colspan="9" class="text-center">ไม่มีข้อมูล</td>
+            {{-- Grand Total --}}
+            <tr style="font-weight:bold; background:#e0e0e0;">
+                <td colspan="3" style="text-align:right;">รวมยอดทั้งหมด</td>
+                <td style="text-align:center;">{{ $orderRooms->count() }}</td>
+                <td style="text-align:right;">{{ number_format($grandCommission) }}</td>
+                <td colspan="2"></td>
             </tr>
         @endif
-
     </tbody>
 </table>
