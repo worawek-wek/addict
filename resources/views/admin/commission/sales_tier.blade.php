@@ -58,6 +58,7 @@
                                                         value="{{ auth()->user()->ref_branch_id }}">
                                                     @endif
                                                 </div>
+                                                <div></div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">ยอดขายขั้นต่ำ</label>
                                                     <input type="number" step="0.01" name="min_sales_amount"
@@ -71,6 +72,11 @@
                                                 <div class="col-md-6">
                                                     <label class="form-label">อัตราคอมมิชชั่น (%)</label>
                                                     <input type="number" step="0.01" name="commission_rate"
+                                                        class="form-control" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">อัตราคอมมิชชั่น (บาท)</label>
+                                                    <input type="number" step="1" name="commission_price"
                                                         class="form-control" required>
                                                 </div>
                                             </div>
@@ -106,6 +112,7 @@
                                                         <th class="text-center">ยอดขายขั้นต่ำ</th>
                                                         <th class="text-center">ยอดขายสูงสุด</th>
                                                         <th class="text-center">อัตราคอมมิชชั่น (%)</th>
+                                                        <th class="text-center">อัตราคอมมิชชั่น (บาท)</th>
                                                         <th class="text-center">จัดการ</th>
                                                     </tr>
                                                 </thead>
@@ -113,15 +120,21 @@
                                                     @foreach($tiers as $tier)
                                                     <tr data-branch="{{ $tier->ref_branch_id }}">
                                                         <td class="text-center">{{ $loop->iteration }}</td>
-                                                        <td class="text-center">{{
-                                                            optional($branchMap[$tier->ref_branch_id] ?? null)->name ??
-                                                            '-' }}</td>
-                                                        <td class="text-center">{{
-                                                            number_format($tier->min_sales_amount,2) }}</td>
-                                                        <td class="text-center">{{
-                                                            number_format($tier->max_sales_amount,2) }}</td>
-                                                        <td class="text-center">{{
-                                                            number_format($tier->commission_rate,2) }}</td>
+                                                        <td class="text-center">
+                                                            {{optional($branchMap[$tier->ref_branch_id] ?? null)->name ?? '-' }}
+                                                        </td>
+                                                        <td class="text-center">
+                                                            {{number_format($tier->min_sales_amount,2) }}
+                                                        </td>
+                                                        <td class="text-center">
+                                                            {{number_format($tier->max_sales_amount,2) }}
+                                                        </td>
+                                                        <td class="text-center">
+                                                            {{number_format($tier->commission_rate,2) }}
+                                                        </td>
+                                                        <td class="text-center">
+                                                            {{number_format($tier->commission_price,2) }}
+                                                        </td>
                                                         <td class="text-center">
                                                             <form
                                                                 action="{{ route('sales_commission_tier.destroy', $tier->id) }}"
