@@ -69,6 +69,10 @@
                     <i class="ti ti-shopping-cart"></i>
                     ขายสินค้า
                 </a>
+                <a href="{{ url('pos/drink') }}" class="btn btn-danger d-flex align-items-center justify-content-center gap-2">
+                    <i class="fa fa-wine-glass"></i>
+                    ขายดื่ม
+                </a>
 
             </div>
             

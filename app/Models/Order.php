@@ -76,6 +76,10 @@ class Order extends Model
     {
         return $this->hasMany(OrderHasProduct::class, 'ref_order_id');
     }
+    public function drinks()
+    {
+        return $this->hasMany(OrderHasDrink::class, 'ref_order_id');
+    }
     public function user_commission()
     {
         return $this->hasOne(UserHasRoomTypeCommission::class, 'ref_user_id', 'ref_user_id')

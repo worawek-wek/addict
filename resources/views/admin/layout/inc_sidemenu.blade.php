@@ -209,6 +209,12 @@
             </a>
         </li>
         <li class="menu-item">
+            <a href="/admin/order-drinks" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-file-invoice"></i>
+                <div data-i18n="การขายดื่ม">การขายดื่ม</div>
+            </a>
+        </li>
+        <li class="menu-item">
             <a href="/admin/user" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-copy"></i>
                 <div data-i18n="บุคลากร">บุคลากร</div>
@@ -218,6 +224,12 @@
             <a href="/admin/product" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-receipt-tax"></i>
                 <div data-i18n="สินค้า">สินค้า</div>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a href="/admin/drink" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-receipt-tax"></i>
+                <div data-i18n="ดื่ม">ดื่ม</div>
             </a>
         </li>
 
@@ -305,7 +317,12 @@
                 </li>
                 <li class="menu-item">
                     <a href="/admin/card_stock_report" class="menu-link">
-                        <div data-i18n="รายงานสต็อกการ์ด">รายงานสต็อกการ์ด</div>
+                        <div data-i18n="รายงานสต็อกการ์ด(สินค้า)">รายงานสต็อกการ์ด(สินค้า)</div>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/admin/drink_card_stock_report" class="menu-link">
+                        <div data-i18n="รายงานสต็อกการ์ด(ดื่ม)">รายงานสต็อกการ์ด(ดื่ม)</div>
                     </a>
                 </li>
                 <li class="menu-item">

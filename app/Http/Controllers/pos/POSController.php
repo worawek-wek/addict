@@ -14,9 +14,11 @@ use App\Models\Product;
 use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\RoomTypeHasCourse;
+use App\Models\DrinkStockReadyForSale;
 use App\Models\Course;
 use App\Models\User;
 use App\Models\Branch;
+use App\Models\Drink;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
@@ -122,6 +124,56 @@ class POSController extends Controller
         $data['branches'] = Branch::all();
 
         return view('pos.product', $data);
+    }
+    public function drink(Request $request, $drink_id = null)
+    {
+        // ---------------- Products + Search ----------------
+        $q = trim((string) $request->get('q', ''));
+
+        $branchId = Auth::user()->ref_branch_id ?? null;
+        $data['drinks'] = Drink::with('latestStock')
+                                    ->when($q !== '', fn($b) => $b->where('name', 'like', "%{$q}%"))
+                                    ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
+                                    ->where('ref_status_id', 1)
+                                    ->orderBy('name')
+                                    ->get();
+
+        if ($request->ajax() || $request->boolean('ajax')) {
+            return view('pos.partials.drink-grid', $data)->render();
+        }
+
+        // ---------------- Cart Totals ----------------
+        $data['branches'] = Branch::all();
+        $data['room_type'] = RoomType::orderBy('sort')->where('ref_status_id', 1)->get();
+        $data['course'] = Course::orderBy('sort')->where('ref_status_id', 1)->get();
+        $cart = Session::get('cart', []);
+        $data['cart'] = $cart;
+        $subtotal = collect($cart)->sum(fn($i) => (float)($i['price'] ?? 0) * (int)($i['qty'] ?? 0));
+        $discount = 0;
+        $tax = 0;
+        $data['subtotal'] = $subtotal;
+        $data['discount'] = $discount;
+        $data['tax'] = $tax;
+        $data['total'] = $subtotal - $discount + $tax;
+        $data['room_id'] = 1;
+        $data['drink_id'] = $drink_id;
+
+        // ---------------- Rooms (only by branch) ----------------
+        $branchId = Auth::user()->ref_branch_id ?? null;
+
+        $rooms = Room::query()
+            ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
+            ->orderBy('id')
+            ->get();
+
+        $data['roomGroups'] = $this->groupRoomsForModal($rooms);
+
+        $data['storefrontName'] = 'Cashier';
+        $data['users'] = User::orderBy('name')->get();
+
+        $data['branches'] = Branch::all();
+
+        return view('pos.drink', $data);
     }
 
     public function get_user(Request $request)
@@ -658,6 +710,147 @@ class POSController extends Controller
 
                             // <div style='page-break-before: always;'></div>
         return 1;
+    }
+    
+    public function drink_checkout(Request $request)
+    {
+            $mama_id = $request->input('mama_id');
+            $order = Order::create([
+                'type'      => 3,
+                'ref_branch_id'      => Auth::user()->ref_branch_id,
+                'order_number'    => Auth::user()->ref_branch_id . strtoupper(uniqid()),
+                'ref_customer_id'   => $request->input('customer_id') ?: null,
+                'ref_account_id'    => Auth::id(),
+                'ref_user_id'    => $request->input('staff_id') ?? null,
+                'customer_type'     => $request->input('customer_type') ?? 2,
+                'ref_seller_id'     => $request->input('reception_id'),
+                'ref_room_id'     => $request->input('ref_room_id') ?? null,
+                'ref_room_type_id'     => $request->input('ref_room_type_id') ?? null,
+                'service_laundry_cost'     => $request->input('ref_course_id') ?? null,
+                'ref_status_id'      => 2,
+                'booking_date'     => Carbon::today(),
+                'start_time'      => Carbon::now()->format('H:i:s'),
+                'end_time'        => @$duration ? Carbon::now()->addMinutes($duration)->format('H:i:s'): null,
+                // 'total_price' => 3000,
+                'discount' => preg_replace('/[^0-9.]/', '', $request->input('discount') ?? 0.00),
+                'total_price' => preg_replace('/[^0-9.]/', '', $request->input('total_price')),
+                'payment_method' => $request->input('payment_method') ?? null,
+                'payment_status' => $request->input('payment_status') ?? 1,
+            ]);
+
+        // --- โค้ดส่วนที่เหลือของคุณ (ทำงานกับตัวแปร $order ที่ได้มา) ---
+        $list_drink = "";
+        foreach ($request->qty as $id => $q) {
+            if($q == 0){
+                continue;
+            }
+            $customerType = $request->input('customer_type', 2); // default = 2
+
+            $drink = Product::find($id);
+
+            $price = $customerType == 1 
+                ? $drink->price_staff 
+                : $drink->price;
+            // if(@$request->input('customer_type') == 1){
+            //     $price = Product::find($id)->price_staff;
+            // }else{
+            //     $price = Product::find($id)->price;
+            // }
+            // 1) บันทึกสินค้าใน order_has_drinks
+            $order->drinks()->create([
+                'ref_drink_id' => $id,
+                'price'          => $price,
+                'quantity'       => $q,
+            ]);
+
+            // 2) ลด stock
+            $stock = DrinkStockReadyForSale::where('ref_drink_id', $id)
+                ->where('qty', '!=', 0)
+                ->first();
+
+            if ($stock) {
+                $newRemain = max(0, $stock->qty - $q);
+                $stock->qty = $newRemain;
+                $stock->save();
+            }
+            $list_drink .= '<tr>
+                                <td>'.$drink->name.'</td>
+                                <td>'.$q.'</td>
+                                <td>'.$price.'</td>
+                                <td>'.$price*$q.'</td>
+                            </tr>';
+        }
+
+        $order->updated_at  = now();
+        $order->save();
+        if(!$request->input('ref_room_type_id')){
+        // $room_type = RoomType::find(1);
+        // $room_type_name = $room_type->name;
+        // dd(\Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i'));
+        $qr = QrCode::size(150)->generate(url("admin/order-rooms/$order->id"));
+
+            $slip = "<!DOCTYPE html>
+                        <html lang='th'>
+                        <head>
+                            <meta charset='UTF-8'>
+                            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                            <title>รายละเอียดการจอง</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; font-size: 11px; }
+                                .invoice { width: 69mm; font-size: 11px;padding: 20px; }
+                                .header { display: flex; justify-content: space-between; align-items: end; font-weight: bold; font-size: 10px; }
+                                .title { flex-grow: 1; text-align: center; font-size: 11px; }
+                                .right-align { text-align: right; }
+                                table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 11px; border-top: 1px solid #000; }
+                                th, td { padding: 2px; text-align: left; font-size: 11px; }
+                                th { border-bottom: 1px solid #000; }
+                                td { border-bottom: 1px solid #000; }
+
+                                @media print {
+                                    @page {
+                                        size: 69mm auto;
+                                        margin: 0;
+                                    }
+
+                                    body {
+                                        width: 69mm;
+                                        margin: 0;
+                                    }
+
+                                    .invoice {
+                                        width: 69mm;
+                                    }
+                                }
+                            </style>
+
+                        </head>
+                        <body>
+                            <div class='invoice'>
+                                <div class='header' align='right'>
+                                    <span class='title'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  ใบแจ้งหนี้ชั่วคราว </span>
+                                    <span class='right-align'>No_: $order->order_number</span>
+                                </div>
+                                <p class='right-align'><strong>แคชเชียร์:</strong> Addict</p>
+                                <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+
+                                <table>
+                                    <tr>
+                                        <th>รายการสินค้า</th>
+                                        <th>จำนวน</th>
+                                        <th>@ ราคา</th>
+                                        <th>รวม</th>
+                                    </tr>".$list_drink."
+                                </table>
+                            </div>                            
+                        </body>
+                    </html>
+                    ";
+            return response()->json([
+                                        'status' => true,
+                                        'data' => $slip
+                                    ]);
+            return 1;
+        }
     }
 
 

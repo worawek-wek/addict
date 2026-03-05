@@ -3,6 +3,7 @@
 use App\Http\Controllers\AddonOptionController;
 use App\Http\Controllers\Admin\OrderRoomController;
 use App\Http\Controllers\Admin\OrderProductController;
+use App\Http\Controllers\Admin\OrderDrinkController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PageController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\DrinkController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DarkModeController;
 use App\Http\Controllers\Front\FrontHomeController;
@@ -80,10 +82,13 @@ Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/product', 'product')->name('product');
         Route::get('/product/{product_id}', 'product')->name('product');
+        Route::get('/drink', 'drink')->name('drink');
+        Route::get('/drink/{drink_id}', 'drink')->name('drink');
         Route::post('/add/{id}', 'addToCart')->name('add');
         Route::post('/update/{id}', 'updateCart')->name('update');
         Route::post('/remove/{id}', 'removeFromCart')->name('remove');
         Route::post('/checkout', 'checkout')->name('checkout');
+        Route::post('/drink-checkout', 'drink_checkout')->name('drink-checkout');
         Route::get('/get-user', 'get_user')->name('pos-get-user');
         Route::post('/calculate', 'calculate')->name('api.calculate');
         Route::post('/api/calculate-summary', 'calculateSummary')->name('api.calculateSummary');
@@ -235,6 +240,17 @@ Route::prefix('admin')->group(function () {
             Route::post('/{id}/update-payment-method', [OrderProductController::class, 'updatePaymentMethod'])->name('order-products.update-payment-method');
         });
 
+        Route::prefix('order-drinks')->group(function () {
+            Route::get('/', [OrderDrinkController::class, 'index'])->name('order-drinks.index');
+            Route::get('/datatable', [OrderDrinkController::class, 'datatable'])->name('order-drinks.datatable');
+            Route::get('/pdf', [OrderDrinkController::class, 'pdf'])->name('order-drinks.pdf');
+            Route::post('/closures', [OrderDrinkController::class, 'closures'])->name('order-drinks.closures');
+            Route::get('/{id}', [OrderDrinkController::class, 'show'])->name('order-drinks.show');
+            Route::post('/{id}/status', [OrderDrinkController::class, 'updateStatus'])->name('order-rooms.update-status');
+            Route::post('/{id}/confirm-payment', [OrderDrinkController::class, 'confirmPayment'])->name('order-drinks.update-confirm-payment');
+            Route::post('/{id}/update-payment-method', [OrderDrinkController::class, 'updatePaymentMethod'])->name('order-drinks.update-payment-method');
+        });
+
         Route::controller(ReportController::class)->group(function () {
             Route::get('report/view-overview', 'view_overview')->name('report.view_overview');
             Route::get('report/rent-bill', 'rent_bill')->name('report.rent_bill');
@@ -298,6 +314,24 @@ Route::prefix('admin')->group(function () {
             Route::get('product/{id}', 'edit')->name('product');
             Route::post('product/{id}', 'update')->name('product.update');
             Route::delete('product/{id}', 'destroy')->name('user.destroy');
+        });
+        
+        Route::controller(DrinkController::class)->group(function () {
+            Route::get('drink', 'index')->name('drink');
+            Route::get('drink/datatable', 'datatable')->name('drink.datatable');
+            Route::post('drink/change-status/{id}', 'change_status')->name('drink.change-status');
+            Route::post('drink/update-sort/{id}', 'update_sort')->name('drink.update-sort');
+            Route::get('drink_card_stock_report', 'card_stock_report')->name('drink_card_stock_report');
+            Route::get('drink_card_stock_report/datatable', 'card_stock_report_datatable')->name('drink_card_stock_report.datatable');
+            Route::get('drink_card_stock_report/pdf', 'card_stock_report_pdf')->name('drink_card_stock_report.pdf');
+            Route::post('drink_card_stock_report', 'card_stock_report_store')->name('drink_card_stock_report.insert');
+            Route::post('drink_card_stock_report/{stock_id}', 'card_stock_report_update')->name('drink_card_stock_report.update');
+            Route::get('drink_card_stock_report/{id}', 'card_stock_report_edit')->name('drink_card_stock_report_edit');
+            Route::post('drink', 'store')->name('drink.insert');
+            Route::post('drink/withdraw-drink', 'withdraw')->name('drink.drink-withdraw');
+            Route::get('drink/{id}', 'edit')->name('drink');
+            Route::post('drink/{id}', 'update')->name('drink.update');
+            Route::delete('drink/{id}', 'destroy')->name('user.destroy');
         });
 
         Route::controller(OrderController::class)->group(function () {
