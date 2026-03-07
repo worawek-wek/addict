@@ -163,6 +163,13 @@ Route::prefix('admin')->group(function () {
         // Cheer Charge CRUD
         Route::post('cheer-charge', 'storeCheer')->name('cheer_charge.store');
         Route::delete('cheer-charge/{id}', 'destroyCheer')->name('cheer_charge.destroy');
+        ////////////////////////////////////////////
+        Route::get('drink-sales-commission-tier', 'drink_index')->name('drink_sales_commission_tier.index');
+        Route::post('drink-sales-commission-tier', 'drink_store')->name('drink_sales_commission_tier.store');
+        Route::delete('drink-sales-commission-tier/{id}', 'drink_destroy')->name('drink_sales_commission_tier.destroy');
+        // Cheer Charge CRUD
+        Route::post('drink-cheer-charge', 'drink_storeCheer')->name('drink_cheer_charge.store');
+        Route::delete('drink-cheer-charge/{id}', 'drink_destroyCheer')->name('drink_cheer_charge.destroy');
     });
     Route::get('dark-mode-switcher', [DarkModeController::class, 'switch'])->name('dark-mode-switcher');
     Route::get('color-scheme-switcher/{color_scheme}', [ColorSchemeController::class, 'switch'])->name('color-scheme-switcher');
@@ -177,6 +184,7 @@ Route::prefix('admin')->group(function () {
         Route::delete('commission/{id}', 'destroy')->name('commission.destroy');
         Route::get('commission/view-massage', 'view_massage')->name('commission.view_massage');
         Route::get('commission/view-sales', 'view_sales')->name('commission.view_sales');
+        Route::get('commission/view-sales/datatable', 'view_sales_datatable')->name('commission.view_sales_datatable');
         Route::get('commission/sales-orders', 'salesOrders')->name('commission.sales_orders');
         Route::get('commission/massage-orders', 'massageOrders')->name('commission.massage_orders');
     });

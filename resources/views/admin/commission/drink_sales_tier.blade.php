@@ -35,10 +35,10 @@
                                 <div class="card mb-4">
                                     <div class="card-header bg-main text-white">
                                         <h5 class="mb-0"><i class="ti ti-currency-dollar"></i>
-                                            ตั้งค่าคอมมิชชั่นพนักงานขาย (ขายนวด + ขายสินค้า)</h5>
+                                            ตั้งค่าคอมมิชชั่นพนักงานขาย (ขายดื่ม)</h5>
                                     </div>
                                     <div class="card-body">
-                                        <form action="{{ route('sales_commission_tier.store') }}" method="POST">
+                                        <form action="{{ route('drink_sales_commission_tier.store') }}" method="POST">
                                             @csrf
                                             <div class="row g-3">
                                                 <div class="col-md-6">
@@ -158,7 +158,7 @@
                                                         </td>
                                                         <td class="text-center">
                                                             <form
-                                                                action="{{ route('sales_commission_tier.destroy', $tier->id) }}"
+                                                                action="{{ route('drink_sales_commission_tier.destroy', $tier->id) }}"
                                                                 method="POST" style="display:inline-block;">
                                                                 @csrf
                                                                 @method('DELETE')

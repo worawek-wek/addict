@@ -45,7 +45,7 @@
                                                         <div class="card-body py-3 px-4">
                                                             <div class="row g-3">
                                                                 <div class="col-md-6">
-                                                                    <div class="mb-2 fw-bold text-main"
+                                                                    {{-- <div class="mb-2 fw-bold text-main"
                                                                         style="font-size: 1.1rem;"><i
                                                                             class="ti ti-user me-1"></i> พนักงานนวด
                                                                     </div>
@@ -62,26 +62,34 @@
                                                                             <i class="ti ti-user fs-5"></i>
                                                                             <span>ตั้งค่าเริ่มต้นพนักงานนวด</span>
                                                                         </a>
+                                                                    </div> --}}
+                                                                    <div class="d-flex flex-column gap-2">
+                                                                        <a href="{{ route('sales_commission_tier.index') }}"
+                                                                            class="btn btn-warning d-flex align-items-center gap-2"
+                                                                            style="min-width:180px;">
+                                                                            <i class="ti ti-settings fs-5"></i>
+                                                                            <span>ตั้งค่าคอมมิชชั่นพนักงานขาย (นวด+สินค้า)</span>
+                                                                        </a>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-md-6">
-                                                                    <div class="mb-2 fw-bold text-info"
+                                                                    {{-- <div class="mb-2 fw-bold text-info"
                                                                         style="font-size: 1.1rem;"><i
                                                                             class="ti ti-settings me-1"></i> พนักงานขาย
-                                                                    </div>
+                                                                    </div> --}}
                                                                     <div class="d-flex flex-column gap-2">
-                                                                        <a href="{{ route('sales_commission_tier.index') }}"
-                                                                            class="btn btn-info d-flex align-items-center gap-2"
+                                                                        <a href="{{ route('drink_sales_commission_tier.index') }}"
+                                                                            class="btn btn-primary d-flex align-items-center gap-2"
                                                                             style="min-width:180px;">
                                                                             <i class="ti ti-settings fs-5"></i>
-                                                                            <span>ตั้งค่าคอมมิชชั่นพนักงานขาย</span>
+                                                                            <span>ตั้งค่าคอมมิชชั่นพนักงานขาย (ดื่ม)</span>
                                                                         </a>
-                                                                        <a href="{{ route('cheer_charge.index') }}"
+                                                                        {{-- <a href="{{ route('cheer_charge.index') }}"
                                                                             class="btn btn-warning d-flex align-items-center gap-2"
                                                                             style="min-width:180px;">
                                                                             <i class="ti ti-star fs-5"></i>
                                                                             <span>ตั้งค่าค่าเชียร์พนักงานขาย</span>
-                                                                        </a>
+                                                                        </a> --}}
                                                                     </div>
                                                                 </div>
                                                             </div>

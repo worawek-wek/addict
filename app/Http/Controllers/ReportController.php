@@ -306,7 +306,6 @@ class ReportController extends Controller
             });
         }
 
-
         if (request('start_date')) {
             $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
                 ->startOfDay();

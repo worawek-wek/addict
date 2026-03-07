@@ -8,6 +8,7 @@ use App\Models\MassageCommission;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class CommissionController extends Controller
 {
@@ -99,71 +100,190 @@ class CommissionController extends Controller
         return view('admin.commission.view_massage', compact('staffData'));
     }
 
-    // แสดงค่าคอมมิชชั่นพนักงานขาย
+    // แสดงค่าคอมมิชชั่นพนักงานขาย view_sales_datatable
     public function view_sales(Request $request)
     {
-        $usersQuery = \App\Models\User::with(['branch', 'position'])
-            ->where('ref_position_id', 1); // เฉพาะพนักงานขาย
-        $users = $usersQuery->get();
+        $page_url = "admin/commission/view-sales";
+        // $usersQuery = \App\Models\User::with(['branch', 'position'])
+        //     ->where('ref_position_id', 1); // เฉพาะพนักงานขาย
+        // $users = $usersQuery->get();
 
-        $staffData = [];
-        $range = $request->input('range', '1');
-        $start = $request->input('start');
-        $end = $request->input('end');
-        $today = now();
+        // $staffData = [];
+        // $range = $request->input('range', '1');
+        // $start = $request->input('start');
+        // $end = $request->input('end');
+        // $today = now();
 
-        if ($range === 'custom' && $start && $end) {
-            $startDate = date('Y-m-d', strtotime($start));
-            $endDate = date('Y-m-d', strtotime($end));
-        } else {
-            $days = in_array($range, ['1', '7', '14', '30']) ? (int)$range : 1;
-            $startDate = $today->copy()->subDays($days - 1)->format('Y-m-d');
-            $endDate = $today->format('Y-m-d');
-        }
+        // if ($range === 'custom' && $start && $end) {
+        //     $startDate = date('Y-m-d', strtotime($start));
+        //     $endDate = date('Y-m-d', strtotime($end));
+        // } else {
+        //     $days = in_array($range, ['1', '7', '14', '30']) ? (int)$range : 1;
+        //     $startDate = $today->copy()->subDays($days - 1)->format('Y-m-d');
+        //     $endDate = $today->format('Y-m-d');
+        // }
 
-        foreach ($users as $user) {
-            // Get all orders for this seller in the date range
-            $orders = \App\Models\Order::where('ref_seller_id', $user->id)
-                ->whereDate('booking_date', '>=', $startDate)
-                ->whereDate('booking_date', '<=', $endDate)
-                ->get();
+        // foreach ($users as $user) {
+        //     // Get all orders for this seller in the date range
+        //     $orders = \App\Models\Order::where('ref_seller_id', $user->id)
+        //         ->whereDate('booking_date', '>=', $startDate)
+        //         ->whereDate('booking_date', '<=', $endDate)
+        //         ->get();
 
-            $totalSales = $orders->sum('total_price');
-            $commission = 0;
+        //     $totalSales = $orders->sum('total_price');
+        //     $commission = 0;
 
-            // Find tier for this branch and sales amount
-            $tier = \App\Models\SalesCommissionTier::where('ref_branch_id', $user->ref_branch_id)
-                ->where('min_sales_amount', '<=', $totalSales)
-                ->where('max_sales_amount', '>=', $totalSales)
-                ->first();
+        //     // Find tier for this branch and sales amount
+        //     $tier = \App\Models\SalesCommissionTier::where('ref_branch_id', $user->ref_branch_id)
+        //         ->where('min_sales_amount', '<=', $totalSales)
+        //         ->where('max_sales_amount', '>=', $totalSales)
+        //         ->first();
 
-            if ($tier) {
-                $commission = $totalSales * ($tier->commission_rate / 100);
-            }
+        //     if ($tier) {
+        //         $commission = $totalSales * ($tier->commission_rate / 100);
+        //     }
 
-            // ดึง cheer_charge จาก commissions_history โดย filter ตาม booking_date ของ order
-            $cheer_charge = CommissionsHistory::where('user_sales_id', $user->id)
-                ->whereHas('order', function ($q) use ($startDate, $endDate) {
-                    $q->whereDate('booking_date', '>=', $startDate)
-                        ->whereDate('booking_date', '<=', $endDate);
-                })
-                ->sum('price_options_sales');
+        //     // ดึง cheer_charge จาก commissions_history โดย filter ตาม booking_date ของ order
+        //     $cheer_charge = CommissionsHistory::where('user_sales_id', $user->id)
+        //         ->whereHas('order', function ($q) use ($startDate, $endDate) {
+        //             $q->whereDate('booking_date', '>=', $startDate)
+        //                 ->whereDate('booking_date', '<=', $endDate);
+        //         })
+        //         ->sum('price_options_sales');
 
-            $staffData[] = [
-                'id' => $user->id,
-                'name' => $user->name,
-                'nickname' => $user->nickname,
-                'branch' => $user->branch ? $user->branch->name : null,
-                'position' => $user->position ? $user->position->position_name : null,
-                'commission' => $commission,
-                'cheer_charge' => $cheer_charge,
-            ];
-        }
-        if ($request->ajax() || $request->input('ajax') == '1') {
-            return view('admin.commission._table_body', compact('staffData'));
-        }
-        return view('admin.commission.view_sales', compact('staffData'));
+        //     $staffData[] = [
+        //         'id' => $user->id,
+        //         'name' => $user->name,
+        //         'nickname' => $user->nickname,
+        //         'branch' => $user->branch ? $user->branch->name : null,
+        //         'position' => $user->position ? $user->position->position_name : null,
+        //         'commission' => $commission,
+        //         'cheer_charge' => $cheer_charge,
+        //     ];
+        // }
+        // if ($request->ajax() || $request->input('ajax') == '1') {
+        //     return view('admin.commission._table_body', compact('staffData'));
+        // }
+        return view('admin.commission.view_sales', compact('page_url'));
     }
+    public function view_sales_datatable(Request $request)
+    {
+        // $user = Auth::user();
+        $results = User::where('ref_position_id', 1)->orderBy('id');
+
+        if (request('name')) {
+            $results->Where(function ($query) use ($request) {
+                                    $query->where('name','LIKE','%'.request('name').'%')
+                                            ->orWhere('nickname','LIKE','%'.request('name').'%');
+                                });
+        }
+        
+        // if (@$request->created_at) {
+        //     $created_at = Carbon::createFromFormat('d/m/Y', $request->created_at)->format('Y-m-d');
+        //     $results = $results->WhereDate('drink_card_stocks.created_at', $created_at);
+        // }
+
+        // if (request()->filled('search')) {
+        //     $search = request()->search;
+        //     $results->Where(function ($query) use ($request) {
+
+        //                             $query->where('drink_card_stocks.label','LIKE','%'.$request->search.'%')
+
+        //                                 ->orWhere('drinks.name','LIKE','%'.$request->search.'%')
+
+        //                                 ->orWhere('drink_card_stocks.remark','LIKE','%'.$request->search.'%');
+
+        //                         });
+        // }
+        // if(@$request->brand_name){
+        //     $results = $results->Where('brand_name','LIKE','%'.$request->brand_name.'%');
+        // }
+
+        if (request('start_date')) {
+            $data['start_date'] = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+
+            $data['end_date'] = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+        }
+
+        $limit = 15;
+        if (@$request['limit']) {
+            $limit = $request['limit'];
+        }
+
+        $results = $results->paginate($limit);
+
+        $data['list_data'] = $results->appends(request()->query());
+        $data['query'] = request()->query();
+        $data['query']['limit'] = $limit;
+
+        $data['page_url'] = 'admin/card_stock_report';
+        $data['list_data'] = $results;
+        return view('admin.commission.view_sales_table', $data);
+    }
+    // public function view_sales(Request $request)
+    // {
+    //     $usersQuery = \App\Models\User::with(['branch', 'position'])
+    //         ->where('ref_position_id', 1); // เฉพาะพนักงานขาย
+    //     $users = $usersQuery->get();
+
+    //     $staffData = [];
+    //     $range = $request->input('range', '1');
+    //     $start = $request->input('start');
+    //     $end = $request->input('end');
+    //     $today = now();
+
+    //     if ($range === 'custom' && $start && $end) {
+    //         $startDate = date('Y-m-d', strtotime($start));
+    //         $endDate = date('Y-m-d', strtotime($end));
+    //     } else {
+    //         $days = in_array($range, ['1', '7', '14', '30']) ? (int)$range : 1;
+    //         $startDate = $today->copy()->subDays($days - 1)->format('Y-m-d');
+    //         $endDate = $today->format('Y-m-d');
+    //     }
+
+    //     foreach ($users as $user) {
+    //         // Get all orders for this seller in the date range
+    //         $orders = \App\Models\Order::where('ref_seller_id', $user->id)
+    //             ->whereDate('booking_date', '>=', $startDate)
+    //             ->whereDate('booking_date', '<=', $endDate)
+    //             ->get();
+
+    //         $totalSales = $orders->sum('total_price');
+    //         $commission = 0;
+
+    //         // Find tier for this branch and sales amount
+    //         $tier = \App\Models\SalesCommissionTier::where('ref_branch_id', $user->ref_branch_id)
+    //             ->where('min_sales_amount', '<=', $totalSales)
+    //             ->where('max_sales_amount', '>=', $totalSales)
+    //             ->first();
+
+    //         if ($tier) {
+    //             $commission = $totalSales * ($tier->commission_rate / 100);
+    //         }
+
+    //         // ดึง cheer_charge จาก commissions_history โดย filter ตาม booking_date ของ order
+    //         $cheer_charge = CommissionsHistory::where('user_sales_id', $user->id)
+    //             ->whereHas('order', function ($q) use ($startDate, $endDate) {
+    //                 $q->whereDate('booking_date', '>=', $startDate)
+    //                     ->whereDate('booking_date', '<=', $endDate);
+    //             })
+    //             ->sum('price_options_sales');
+
+    //         $staffData[] = [
+    //             'id' => $user->id,
+    //             'name' => $user->name,
+    //             'nickname' => $user->nickname,
+    //             'branch' => $user->branch ? $user->branch->name : null,
+    //             'position' => $user->position ? $user->position->position_name : null,
+    //             'commission' => $commission,
+    //             'cheer_charge' => $cheer_charge,
+    //         ];
+    //     }
+    //     if ($request->ajax() || $request->input('ajax') == '1') {
+    //         return view('admin.commission._table_body', compact('staffData'));
+    //     }
+    //     return view('admin.commission.view_sales', compact('staffData'));
+    // }
     // แสดงฟอร์มสร้างใหม่
     public function create()
     {

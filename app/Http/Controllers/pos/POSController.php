@@ -19,6 +19,7 @@ use App\Models\Course;
 use App\Models\User;
 use App\Models\Branch;
 use App\Models\Drink;
+use App\Models\DrinkCardStocks;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
@@ -746,38 +747,46 @@ class POSController extends Controller
             }
             $customerType = $request->input('customer_type', 2); // default = 2
 
-            $drink = Product::find($id);
+            $drink = Drink::find($id);
 
             $price = $customerType == 1 
                 ? $drink->price_staff 
                 : $drink->price;
             // if(@$request->input('customer_type') == 1){
-            //     $price = Product::find($id)->price_staff;
+            //     $price = Drink::find($id)->price_staff;
             // }else{
-            //     $price = Product::find($id)->price;
+            //     $price = Drink::find($id)->price;
             // }
             // 1) บันทึกสินค้าใน order_has_drinks
-            $order->drinks()->create([
-                'ref_drink_id' => $id,
-                'price'          => $price,
-                'quantity'       => $q,
-            ]);
 
             // 2) ลด stock
             $stock = DrinkStockReadyForSale::where('ref_drink_id', $id)
                 ->where('qty', '!=', 0)
                 ->first();
 
+
+                
+            $main_stock = DrinkCardStocks::find($stock->ref_lot_id);
+            $product_cost = $main_stock->cost_price/$main_stock->quantity;
+            
             if ($stock) {
                 $newRemain = max(0, $stock->qty - $q);
                 $stock->qty = $newRemain;
                 $stock->save();
             }
+            
+            $order->drinks()->create([
+                'ref_drink_id' => $id,
+                'price'          => $price,
+                'quantity'       => $q,
+                'cost'       => $product_cost,
+            ]);
+
             $list_drink .= '<tr>
                                 <td>'.$drink->name.'</td>
-                                <td>'.$q.'</td>
-                                <td>'.$price.'</td>
-                                <td>'.$price*$q.'</td>
+                                <td style="text-align: center;">'.$q.'</td>
+                                <td style="text-align: right;">'.$price.'</td>
+                                <td style="text-align: right;">'.$price*$q.'</td>
                             </tr>';
         }
 
@@ -836,10 +845,16 @@ class POSController extends Controller
                                 <table>
                                     <tr>
                                         <th>รายการสินค้า</th>
-                                        <th>จำนวน</th>
-                                        <th>@ ราคา</th>
-                                        <th>รวม</th>
+                                        <th style='text-align: center;'>จำนวน</th>
+                                        <th style='text-align: right;'>@ ราคา</th>
+                                        <th style='text-align: right;'>รวม</th>
                                     </tr>".$list_drink."
+                                    <tr>
+                                        <td>ส่วนลด</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td style='text-align: right;'>$order->discount</td>
+                                    </tr>
                                 </table>
                             </div>                            
                         </body>

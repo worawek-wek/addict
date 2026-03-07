@@ -10,7 +10,7 @@ class SalesCommissionTierController extends Controller
 {
     public function index()
     {
-        $tiers = SalesCommissionTier::orderBy('min_sales_amount')->get();
+        $tiers = SalesCommissionTier::orderBy('min_sales_amount')->where('type', 1)->get();
         $branches = Branch::orderBy('name')->get();
         $branchMap = $branches->keyBy('id');
         $addonOptions = \App\Models\AddonOption::orderBy('name')->get();
@@ -48,10 +48,11 @@ class SalesCommissionTierController extends Controller
         ]);
         SalesCommissionTier::create([
             'ref_branch_id' => $request->ref_branch_id,
+            'type' => 1,
             'min_sales_amount' => $request->min_sales_amount,
             'max_sales_amount' => $request->max_sales_amount,
-            'commission_rate' => $request->commission_rate,
-            'commission_price' => $request->commission_price,
+            'commission_rate' => $request->commission_rate ?? 0,
+            'commission_price' => $request->commission_price ?? 0,
             'commission_by' => $request->commission_by,
             'created_at' => now(),
         ]);
@@ -62,5 +63,61 @@ class SalesCommissionTierController extends Controller
     {
         SalesCommissionTier::destroy($id);
         return redirect()->route('sales_commission_tier.index')->with('success', 'ลบข้อมูลสำเร็จ');
+    }
+    public function drink_index()
+    {
+        $tiers = SalesCommissionTier::orderBy('min_sales_amount')->where('type', 2)->get();
+        $branches = Branch::orderBy('name')->get();
+        $branchMap = $branches->keyBy('id');
+        $addonOptions = \App\Models\AddonOption::orderBy('name')->get();
+        $cheerCharges = \App\Models\CheerCharge::where('ref_branch_id', auth()->user()->ref_branch_id)->get();
+        return view('admin.commission.drink_sales_tier', compact('tiers', 'branches', 'branchMap', 'addonOptions', 'cheerCharges'));
+    }
+    public function drink_storeCheer(Request $request)
+    {
+        $request->validate([
+            'addon_options_id' => 'required|exists:addon_options,id',
+            'type' => 'required|in:percent,baht',
+            'amount' => 'required|numeric',
+        ]);
+        \App\Models\CheerCharge::create([
+            'ref_branch_id' => auth()->user()->ref_branch_id,
+            'addon_options_id' => $request->addon_options_id,
+            'type' => $request->type,
+            'amount' => $request->amount,
+        ]);
+        return redirect()->route('drink_sales_commission_tier.index')->with('success', 'บันทึก Cheer สำเร็จ');
+    }
+
+    public function drink_destroyCheer($id)
+    {
+        \App\Models\CheerCharge::destroy($id);
+        return redirect()->route('drink_sales_commission_tier.index')->with('success', 'ลบ Cheer สำเร็จ');
+    }
+
+    public function drink_store(Request $request)
+    {
+        $request->validate([
+            'min_sales_amount' => 'required|numeric',
+            'max_sales_amount' => 'required|numeric',
+            'commission_by' => 'required|numeric',
+        ]);
+        SalesCommissionTier::create([
+            'ref_branch_id' => $request->ref_branch_id,
+            'type' => 2,
+            'min_sales_amount' => $request->min_sales_amount,
+            'max_sales_amount' => $request->max_sales_amount,
+            'commission_rate' => $request->commission_rate ?? 0,
+            'commission_price' => $request->commission_price ?? 0,
+            'commission_by' => $request->commission_by,
+            'created_at' => now(),
+        ]);
+        return redirect()->route('drink_sales_commission_tier.index')->with('success', 'บันทึกข้อมูลสำเร็จ');
+    }
+
+    public function drink_destroy($id)
+    {
+        SalesCommissionTier::destroy($id);
+        return redirect()->route('drink_sales_commission_tier.index')->with('success', 'ลบข้อมูลสำเร็จ');
     }
 }

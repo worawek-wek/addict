@@ -873,8 +873,10 @@
         // ➖ ลดจำนวน
         if (e.target.classList.contains('qty-minus')) {
             const input = e.target.nextElementSibling;
-            let val = parseInt(input.value || 1);
-            if (val > 1) input.value = val - 1;
+            const min = parseInt(input.min || 0);
+            let val = parseInt(input.value || 0);
+
+            if (val > min) input.value = val - 1;
             input.dispatchEvent(new Event('change'));
         }
     });

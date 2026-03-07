@@ -13,6 +13,7 @@ class OrderHasDrink extends Model
         'ref_drink_id',
         'price',
         'quantity',
+        'cost',
     ];
     public $timestamps = true;
     protected $primaryKey = 'id';

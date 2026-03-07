@@ -38,128 +38,91 @@
                                                 <a href="{{ route('commission.index') }}" class="btn btn-main">
                                                     <i class="ti ti-currency-dollar"></i> จัดการค่าคอมมิชชั่น
                                                 </a>
-                                                <a href="{{ route('commission.view_massage') }}" class="btn btn-info">
-                                                    <i class="ti ti-user"></i> ดูค่าคอมมิชชั่นพนักงานนวด
-                                                </a>
-                                            </div>
-                                            <div class="col-sm-12">
-                                                <form id="filter-form" class="row g-2 align-items-center" method="GET" action="">
-                                                    <div class="col-auto">
-                                                        <select class="form-select" id="date-range" name="range">
-                                                            <option value="1">1 วันล่าสุด</option>
-                                                            <option value="7">7 วันล่าสุด</option>
-                                                            <option value="14">14 วันล่าสุด</option>
-                                                            <option value="30">1 เดือนล่าสุด</option>
-                                                            <option value="custom">ระบุวันที่เอง</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="col-auto" id="custom-date-fields" style="display:none;">
-                                                        <input type="date" class="form-control" name="start" id="start-date" value="{{ request('start') }}">
-                                                    </div>
-                                                    <div class="col-auto" id="custom-date-fields-end" style="display:none;">
-                                                        <input type="date" class="form-control" name="end" id="end-date" value="{{ request('end') }}">
-                                                    </div>
-                                                    <div class="col-auto" id="search-btn" style="display:none;">
-                                                        <button type="submit" class="btn btn-primary">ค้นหา</button>
-                                                    </div>
-                                                </form>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="card-body px-0 pt-0">
-                                        <div class="table-responsive">
-                                            <table class="datatables-basic table dataTable no-footer dtr-column" id="commission-table-view" aria-describedby="commission-table-view_info">
-                                                <thead class="border-top">
-                                                    <tr class="table-info">
-                                                        <th class="text-center" style="width: 10px;">#</th>
-                                                        <th class="text-center">ชื่อพนักงาน</th>
-                                                        <th class="text-center">สาขา</th>
-                                                        <th class="text-center">ชื่อตำแหน่ง</th>
-                                                        <th class="text-center">จำนวนเงินคอมมิชชั่น</th>
-                                                        <th class="text-center">ค่าเชียร์</th>
-                                                        <th class="text-center">ดู Order</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="commission-table-body">
-                                                    @foreach($staffData as $i => $staff)
-                                                    <tr>
-                                                        <td class="text-center">{{ $i + 1 }}</td>
-                                                        <td class="text-center">{{ $staff['name'] }}{{ $staff['nickname'] ? ' (' . $staff['nickname'] . ')' : '' }}</td>
-                                                        <td class="text-center">{{ $staff['branch'] }}</td>
-                                                        <td class="text-center">{{ $staff['position'] }}</td>
-                                                        <td class="text-center">{{ number_format($staff['commission'], 2) }} บาท</td>
-                                                        <td class="text-center">{{ isset($staff['cheer_charge']) ? number_format($staff['cheer_charge'], 2) . ' บาท' : '0.00 บาท' }}</td>
-                                                        <td class="text-center">
-                                                            <a href="#" class="btn btn-sm btn-outline-info order-link-btn" data-base-url="{{ route('commission.sales_orders') }}" data-user-id="{{ $staff['id'] }}" target="_blank">
-                                                                ดู Order
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                            <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
-                                            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-                                            <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-                                            <script>
-                                                function reloadTable() {
-                                                    var params = $('#filter-form').serialize();
-                                                    $.ajax({
-                                                        url: window.location.pathname + '?ajax=1&' + params,
-                                                        type: 'GET',
-                                                        success: function(res) {
-                                                            $('#commission-table-body').html(res);
-                                                            updateOrderLinks();
-                                                        }
-                                                    });
-                                                }
+                                        <div class="row p-3">
+                                            <div class="col-lg-2">
+                                                <div class="d-flex align-items-center mb-2 mb-md-0">
+                                                    <label class="">Show</label>
+                                                    <select onchange='loadData("{{ $page_url }}/datatable")'
+                                                        name="limit" class="form-select ms-2 me-2 p_search"
+                                                        style="width:100px">
+                                                        <option value="10">10</option>
+                                                        <option value="20">20</option>
+                                                        <option value="50">50</option>
+                                                        <option value="100">100</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-2">
+                                                <div class="input-group input-group-merge">
+                                                    <span class="input-group-text"><i
+                                                            class="ti ti-search"></i></span>
+                                                    <input
+                                                        oninput='loadData("{{ $page_url }}/datatable")'
+                                                        name="name" type="text" class="form-control p_search"
+                                                        placeholder="ค้นหาชื่อพนักงาน..." />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-8 flex text-end" style="padding-right: unset !important;">
+                                                    <div
+                                                        class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
+                                                        <label class="me-3">ตั้งแต่วันที่:</label>
+                                                        <div id="DataTables_Table_0_filter" class="dataTables_filter mx-n2 me-2">
+                                                            @php
+                                                                $day = date('d');
 
-                                                function updateOrderLinks() {
-                                                    var range = $('#date-range').val();
-                                                    var start = $('#start-date').val();
-                                                    var end = $('#end-date').val();
-                                                    $('.order-link-btn').each(function() {
-                                                        var baseUrl = $(this).data('base-url');
-                                                        var userId = $(this).data('user-id');
-                                                        var url = baseUrl + '?user_id=' + userId + '&range=' + range + '&start=' + start + '&end=' + end;
-                                                        $(this).attr('href', url);
-                                                    });
-                                                }
-                                                $(document).ready(function() {
-                                                    $('#commission-table-view').DataTable({
-                                                        language: {
-                                                            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/th.json'
-                                                        },
-                                                        pageLength: 10,
-                                                        ordering: true,
-                                                        searching: true,
-                                                        lengthChange: false
-                                                    });
-                                                    $('#date-range').on('change', function() {
-                                                        if ($(this).val() === 'custom') {
-                                                            $('#custom-date-fields').show();
-                                                            $('#custom-date-fields-end').show();
-                                                        } else {
-                                                            $('#custom-date-fields').hide();
-                                                            $('#custom-date-fields-end').hide();
-                                                        }
-                                                        reloadTable();
-                                                    });
-                                                    if ($('#date-range').val() === 'custom') {
-                                                        $('#custom-date-fields').show();
-                                                        $('#custom-date-fields-end').show();
-                                                    }
-                                                    $('#start-date, #end-date').on('change', function() {
-                                                        if ($('#date-range').val() === 'custom') {
-                                                            reloadTable();
-                                                        }
-                                                    });
-                                                    updateOrderLinks();
-                                                    $(document).on('mouseenter', '.order-link-btn', function() {
-                                                        updateOrderLinks();
-                                                    });
-                                                });
-                                            </script>
+                                                                if ($day >= 15) {
+                                                                    $start_date = date('15/m/Y');
+                                                                } else {
+                                                                    $start_date = date('01/m/Y');
+                                                                }
+                                                            @endphp
+                                                            <input name="start_date" id="start_date" type="text" class="form-control p_search search_date" onchange='loadData("{{ $page_url }}/datatable")' value="{{ $start_date }}">
+                                                        </div>
+                                                        <label class="me-3">ถึงวันที่:</label>
+                                                        <div
+                                                            class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
+                                                            <div id="DataTables_Table_0_filter" class="dataTables_filter mx-n2 me-2">
+                                                                <input name="end_date" id="end_date" type="text" class="form-control p_search search_date" onchange='loadData("{{ $page_url }}/datatable")' value="{{ date('d/m/Y') }}">
+                                                            </div>
+                                                        <div class="dt-buttons btn-group flex-wrap d-flex mb-6 mb-sm-0">
+                                                            <button
+                                                                class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
+                                                                type="button"
+                                                                onclick="printPdf()">
+                                                                <span>
+                                                                    <i class="ti ti-file-upload me-0 me-sm-1"></i>
+                                                                    <span class="d-none d-sm-inline-block">พิมพ์
+                                                                    </span>
+                                                                </span>
+                                                            </button>
+                                                            {{-- <div class="btn-group">
+                                                                <button
+                                                                    class="btn btn-success buttons-collection  btn-warning waves-effect waves-light"
+                                                                    tabindex="0" aria-controls="DataTables_Table_0"
+                                                                    type="button" aria-haspopup="dialog"
+                                                                    aria-expanded="false">
+                                                                    <span><i class="ti ti-upload me-1"></i>ดาวน์โหลด
+                                                                        Excel
+                                                                    </span>
+                                                                </button>
+                                                            </div> --}}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="tab-content p-0" id="pills-tabContent">
+                                            <div class="tab-pane fade show active" id="pills-profile"
+                                                role="tabpanel" aria-labelledby="pills-profile-tab"
+                                                tabindex="0">
+                                                <div id="table-data">
+                                                    {{-- GET ตาราง --}}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -174,3 +137,65 @@
     @include('admin/layout/inc_js')
 </body>
 </html>
+<script>
+    var page = "{{ $page_url }}/datatable";
+    var searchData = {};
+    loadData(page);
+
+    function loadData(pages) {
+
+        $('.p_search').each(function() {
+            var inputName = $(this).attr('name'); // ดึงชื่อ attribute 'name' ของ input
+            var inputValue = $(this).val(); // ดึงค่า value ของ input
+
+            searchData[inputName] = inputValue; // เก็บข้อมูลลงในออบเจ็กต์ searchData
+        });
+
+        // alert(page);
+        page = pages;
+        $.ajax({
+            type: "GET",
+            url: pages,
+            data: searchData,
+            success: function(data) {
+                $("#table-data").html(data);
+            }
+        });
+        // alert(page);
+    }
+    
+    $('.search_date').datepicker({
+        format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
+        autoclose: true,      // ปิด datepicker เมื่อเลือกวันที่
+        todayHighlight: true  // ไฮไลต์วันที่ปัจจุบัน
+    });
+    // ⭐ สำคัญมาก: set ค่าเริ่มต้นให้ datepicker รู้
+    $('#start_date').datepicker('setDate', $('#start_date').val());
+    $('#end_date').datepicker('setDate', $('#end_date').val());
+
+    // ⭐ ผูกข้อจำกัดตั้งแต่โหลด
+    const startInit = $('#start_date').datepicker('getDate');
+    const endInit   = $('#end_date').datepicker('getDate');
+
+    if (startInit) {
+        $('#end_date').datepicker('setStartDate', startInit);
+    }
+
+    if (endInit) {
+        $('#start_date').datepicker('setEndDate', endInit);
+    }
+
+    // event หลังจากนั้น
+    $('#start_date').on('changeDate', function (e) {
+        $('#end_date').datepicker('setStartDate', e.date);
+
+        const endDate = $('#end_date').datepicker('getDate');
+        if (endDate && endDate < e.date) {
+            $('#end_date').datepicker('clearDates');
+        }
+    });
+
+    $('#end_date').on('changeDate', function (e) {
+        $('#start_date').datepicker('setEndDate', e.date);
+    });
+</script>

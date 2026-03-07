@@ -283,7 +283,7 @@
                             <div data-i18n="จัดการค่าคอมมิชชั่น">จัดการค่าคอมมิชชั่น</div>
                         </a>
                     </li>
-                    <li class="menu-item">
+                    {{-- <li class="menu-item">
                         <a href="/admin/commission/view-massage" class="menu-link">
                             <i class="menu-icon tf-icons ti ti-user"></i>
                             <div data-i18n="ค่าคอมพนักงานนวด">ค่าคอมพนักงานนวด</div>
@@ -294,7 +294,7 @@
                             <i class="menu-icon tf-icons ti ti-user-dollar"></i>
                             <div data-i18n="ค่าคอมพนักงานขาย">ค่าคอมพนักงานขาย</div>
                         </a>
-                    </li>
+                    </li> --}}
                 </ul>
             </li>
         @endif
@@ -305,11 +305,11 @@
                 <div data-i18n="ระบบรายงาน">ระบบรายงาน</div>
             </a>
             <ul class="menu-sub">
-                <li class="menu-item">
+                {{-- <li class="menu-item">
                     <a href="/admin/order" class="menu-link">
                         <div data-i18n="รายงานขายสินค้า">รายงานขายสินค้า</div>
                     </a>
-                </li>
+                </li> --}}
                 <li class="menu-item">
                     <a href="/admin/sales_report" class="menu-link">
                         <div data-i18n="รายงานยอดขายสินค้าของสาขา">รายงานยอดขายสินค้าของสาขา</div>
@@ -335,6 +335,16 @@
                         <div data-i18n="รายงานผู้ดูแลพนักงาน">รายงานผู้ดูแลพนักงาน</div>
                     </a>
                 </li>
+                <li class="menu-item">
+                    <a href="/admin/commission/view-sales" class="menu-link">
+                        <div data-i18n="รายงานค่าคอมพนักงานขาย">รายงานค่าคอมพนักงานขาย</div>
+                    </a>
+                </li>
+                {{-- <li class="menu-item">
+                    <a href="/admin/report/oversee-employee" class="menu-link">
+                        <div data-i18n="รายงานผู้ดูแลพนักงาน">รายงานผู้ดูแลพนักงาน</div>
+                    </a>
+                </li> --}}
                 <li class="menu-item">
                     <a href="/admin/report/monthly-sale" class="menu-link">
                         <div data-i18n="รายงานยอดขายรวม">รายงานยอดขายรวม</div>

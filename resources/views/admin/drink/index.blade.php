@@ -203,11 +203,12 @@
                         <div class="row g-3 p-4">
                             
                             <div class="col-sm-6">
+                                <label for="select2drink" class="form-label">เลือกดื่ม</label><span class="text-danger">*</span>
                                 <select onchange='loadData("{{ $page_url }}/datatable")'
                                         name="ref_drink_id" id="select2drink"
                                         class="select2 form-select form-select-lg p_search"
                                         data-allow-clear="true">
-                                    <option value="all">ดื่ม</option>
+                                    <option selected disabled hidden value="">ดื่ม</option>
                                     @foreach ($drink as $pos)
                                         <option value="{{ $pos->id }}">{{ $pos->name }}</option>
                                     @endforeach
@@ -217,8 +218,7 @@
                             <div class="col-sm-6">
                             </div>
                             <div class="col-sm-6">
-                                <label for="" class="form-label">จำนวนที่เบิก</label><span class="text-danger">
-                                    *</span>
+                                <label for="" class="form-label">จำนวนที่เบิก</label><span class="text-danger">*</span>
                                 <input name="qty" type="number" class="form-control" placeholder="จำนวนที่เบิก"
                                     required />
                             </div>

@@ -13,6 +13,7 @@ class OrderHasProduct extends Model
         'ref_product_id',
         'price',
         'quantity',
+        'cost',
     ];
     public $timestamps = true;
     protected $primaryKey = 'id';

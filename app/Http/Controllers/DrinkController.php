@@ -261,9 +261,13 @@ class DrinkController extends Controller
     {
         try {
 
+            $stock_main = DrinkCardStocks::where('ref_drink_id', $request->ref_drink_id)->first();
+            
             $drink = new DrinkStockReadyForSale;
             $drink->ref_drink_id = $request->ref_drink_id;
-            $drink->qty = $request->qty;;
+            $drink->qty = $request->qty;
+            $drink->ref_lot_id = $stock_main->id;
+            $drink->remain = $request->qty;
             $drink->save();
 
             DB::commit();

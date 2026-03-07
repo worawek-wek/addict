@@ -10,6 +10,7 @@ class SalesCommissionTier extends Model
     public $timestamps = false;
     protected $fillable = [
         'ref_branch_id',
+        'type',
         'min_sales_amount',
         'max_sales_amount',
         'commission_rate',

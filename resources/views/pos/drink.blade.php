@@ -9,7 +9,52 @@
 
     <title>Dashboard - CRM | Vuexy - Bootstrap Admin Template</title>
 </head>
+<link rel="stylesheet" href="../../assets/vendor/libs/spinkit/spinkit.css" />
 
+<div id="loadingOverlay" style="display: none;">
+    <div class="col">
+        <!-- Chase -->
+        <div class="sk-chase sk-primary m-auto">
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+  /* พื้นหลังทึบ */
+  #loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(234, 244, 255, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* สปินเนอร์หมุน */
+  .spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #28c76f;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
 <style>
     .table th {
         font-size: 15px;
@@ -74,46 +119,21 @@
         border-radius: 12px;
     }
 
-    /* hover ปกติ */
     .payment-card:hover {
         border-color: #0d6efd;
         transform: translateY(-3px);
     }
 
-    /* checked ปกติ */
     .btn-check:checked + .payment-card {
         border-color: #0d6efd;
         background-color: #f0f7ff;
-    }
-
-    /* ========================= */
-    /* 🔒 disabled state */
-    /* ========================= */
-    .payment-card.disabled {
-        opacity: 0.5;
-        filter: grayscale(100%);
-        cursor: not-allowed;
-        pointer-events: none;     /* กัน hover / click */
-        transform: none !important;
-    }
-
-    /* กัน hover ตอน disabled */
-    .payment-card.disabled:hover {
-        border-color: #eee;
-        transform: none;
-    }
-
-    /* กัน checked style ตอน disabled */
-    .btn-check:disabled + .payment-card {
-        border-color: #eee;
-        background-color: #f8f9fa;
     }
 </style>
 
 <body>
 <!-- Layout wrapper -->
-<div class="pt-3">
-    <div>
+<div class="layout-content-navbar pt-3">
+    <div class="">
         <div>
             <div class="container-fluid">
                     <style>
@@ -132,43 +152,13 @@
                     <form method="POST" id="insert_drink" action="{{ route('pos.checkout') }}">
                     {{-- <form id="insert_order"> --}}
                         @csrf
-                        <input type="hidden" name="type" value="2">
+                        <input type="hidden" name="ref_room_id" value="{{ $room_id }}">
                         <div class="container-fluid">
                             <div class="row">
 
                                 <div class="col-md-9">
                                     <div class="card">
                                         <div class="card-body">
-                                        <div class="col-12">
-                                            <h4 class="label-pos ff-playfair p-2 mt-4">พนักงานนวด</h4>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="d-flex gap-4 flex-wrap" id="addon-options-list">
-                                                @foreach ($users as $item)
-                                                <div class="snack-item" style="position: relative; width: 14%;">
-                                                    <input type="checkbox" class="btn-check addon-checkbox calculate" name="ref_option_id[]" onchange="calculate()"
-                                                        id="addon{{ $item->id }}" value="{{ $item->id }}"
-                                                        {{-- data-name="{{ $item->name }}" data-price="{{ $item->price }}" --}}
-                                                        autocomplete="off">
-                                                    <label
-                                                        class="btn btn-purple-check d-flex flex-column justify-content-center text-center"
-                                                        for="addon{{ $item->id }}">
-                                                        
-                                                        {{-- <label class="form-check-label d-block" for="user{{ $item->id }}"> --}}
-                                                            <img src="/upload/user/{{ $item->image_name }}" class="mw-100 mb-2">
-                                                            {{-- <p class="fw-medium mb-0">{{ $item->nickname }}</p> --}}
-                                                            <div class="d-inline-flex align-items-center bg-light px-3 py-2 rounded shadow-sm">
-                                                                <i class="fa-solid fa-star text-warning me-2"></i>
-                                                                <span class="fw-bold">{{ $item->nickname }}</span>
-                                                            </div>
-                                                            {{-- {{ $item->id }} --}}
-                                                        {{-- </label> --}}
-                                                        {{-- <small>{{ number_format($item->price, 2) }} ฿</small> --}}
-                                                    </label>
-                                                </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
                                         <div class="col-12 mt-2">
                                             <h4 class="label-pos ff-playfair p-2">สินค้า</h4>
                                         </div>
@@ -248,131 +238,180 @@
                                         </div>
                                     </div>
                                 </div>
-                                </div>
+                            </div>
 
-                                <div class="col-md-3">
-                                    <div class="card shadow-sm border-0 pt-4">
-                                        {{-- <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                            <span class="fw-bold">Invoice</span>
+                            <div class="col-md-3">
+                                <div class="card shadow-sm border-0">
+                                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold">Invoice</span>
+                                        <span class="text-muted">#0001</span>
+                                    </div>
+                                    <div class="mb-3 px-4">
+                                        <label class="form-label fw-bold">เลือกพนักงานขาย</label>
+                                            <div class="d-flex align-items-center justify-content-between app-academy-md-80">
+                                            <input name="reception_name" type="text" id="reception" placeholder="แตะบัตรพนักงาน หรือ ป้อนรหัสพนักงาน" class="form-control me-2 reception-input" required/>
+                                            <input name="reception_id" type="hidden" id="salesReceptionSelect">
+                                            <input type="hidden" name="ref_position_id" value="1">
+                                            </div>
+                                    </div>
+                                    <div class="mb-3 px-4">
+                                        <label class="form-label fw-bold">เลือกพนักงานนวด</label>
+                                            <div class="d-flex align-items-center justify-content-between app-academy-md-80">
+                                            <input name="staff_name" type="text" id="staff" placeholder="แตะบัตรพนักงานนวด หรือ ป้อนพนักงานนวด" class="form-control me-2 staff-input" required/>
+                                            <input name="staff_id" type="hidden" id="salesStaffSelect">
+                                            <input type="hidden" name="ref_position_id" value="1">
+                                            </div>
+                                    </div>
+                                    <div class="mb-3 px-4">
+                                        <label class="form-label fw-bold">ส่วนลด</label>
+                                            <div class="d-flex align-items-center justify-content-between app-academy-md-80">
+                                            <input name="discount" type="text" placeholder="ส่วนลด" class="form-control me-2 calculate" id="discount-list" oninput="calculate()"/>
+                                            </div>
+                                    </div>
+                                    <div class="row g-3 payment-methods px-4">
+
+                                        <div class="col-md-6">
+                                            <input type="radio" class="btn-check calculate"
+                                                name="payment_method"
+                                                id="pay-cash"
+                                                value="cash"
+                                                required>
+
+                                            <label class="card payment-card text-center p-3" for="pay-cash">
+                                                <i class="bi bi-cash-coin fs-1 text-success"></i>
+                                                <div class="mt-2 fw-bold">เงินสด</div>
+                                            </label>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <input type="radio" class="btn-check calculate"
+                                                name="payment_method"
+                                                id="pay-credit"
+                                                value="credit_card"
+                                                required>
+
+                                            <label class="card payment-card text-center p-3" for="pay-credit">
+                                                <i class="bi bi-credit-card-2-front fs-1 text-primary"></i>
+                                                <div class="mt-2 fw-bold">บัตรเครดิต</div>
+                                            </label>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <input type="radio" class="btn-check calculate"
+                                                name="payment_method"
+                                                id="pay-alipay"
+                                                value="alipay"
+                                                required>
+
+                                            <label class="card payment-card text-center p-3" for="pay-alipay">
+                                                <i class="bi bi-phone fs-1 text-info"></i>
+                                                <div class="mt-2 fw-bold">Alipay</div>
+                                            </label>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <input type="radio" class="btn-check calculate"
+                                                name="payment_method"
+                                                id="pay-qr"
+                                                value="qr_code"
+                                                required>
+
+                                            <label class="card payment-card text-center p-3" for="pay-qr">
+                                                <i class="bi bi-qr-code-scan fs-1 text-dark"></i>
+                                                <div class="mt-2 fw-bold">QR Code</div>
+                                                <div class="small text-muted">PromptPay / WeChat / Alipay</div>
+                                            </label>
+                                        </div>
+
+                                    </div>
+                                        {{-- <div class="card-body" style="max-height: 350px; overflow-y: auto;">
+                                            @forelse($cart as $item)
+                                                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="bi bi-cup-straw me-2" style="font-size: 1.6rem;"></i>
+                                                        <div>
+                                                            <div class="text-truncate" style="max-width: 180px" title="{{ $item['name'] }}">
+                                                                {{ $item['name'] }}
+                                                            </div>
+                                                            <small class="text-muted">THB {{ number_format($item['price'], 2) }}</small>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        
+                                                        <form action="{{ route('pos.update', $item['id']) }}" method="POST">
+                                                            @csrf
+                                                            <button type="submit" name="qty" value="{{ $item['qty'] - 1 }}"
+                                                                class="btn btn-sm btn-outline-dark">-</button>
+                                                        </form>
+
+                                                        <form action="{{ route('pos.update', $item['id']) }}" method="POST" class="mx-1">
+                                                            @csrf
+                                                            <input type="number" name="qty"
+                                                                class="form-control form-control-sm text-center qty-input"
+                                                                value="{{ $item['qty'] }}" min="0" max="{{ $item['stock'] ?? 999 }}"
+                                                                step="1" style="width:72px">
+                                                        </form>
+
+                                                        <form action="{{ route('pos.update', $item['id']) }}" method="POST">
+                                                            @csrf
+                                                            <button type="submit" name="qty" value="{{ $item['qty'] + 1 }}"
+                                                                class="btn btn-sm btn-outline-dark">+</button>
+                                                        </form>
+
+                                                        <form action="{{ route('pos.remove', $item['id']) }}" method="POST">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            @empty
+                                                <p class="text-muted text-center mb-0">No items in cart</p>
+                                            @endforelse
                                         </div> --}}
-                                        {{-- <div class="mb-3 px-4">
-                                        <label class="form-label fw-bold">ผู้ซื้อ</label>
-                                            <div class="d-flex gap-3">
+                                        <style>
+                                            .drink-row {
+                                                display: flex;
+                                                justify-content: space-between;
+                                                font-size: 14px;
+                                                margin-bottom: 4px;
+                                            }
+                                            .drink-name {
+                                                color: #555;
+                                            }
+                                            .drink-price {
+                                                white-space: nowrap;
+                                            }
+                                            .summary-row {
+                                                display: flex;
+                                                justify-content: space-between;
+                                                font-size: 14px;
+                                                margin-bottom: 4px;
+                                            }
+                                            .summary-left {
+                                                color: #555;
+                                            }
+                                            .summary-right {
+                                                white-space: nowrap;
+                                            }
+                                        </style>
+                                        <div class="card-footer">
+                                            <h6 class="fw-bold mb-3">รายละเอียดการเลือก</h6>
 
-                                                <div>
-                                                    <input type="radio" class="btn-check sale-type calculate"
-                                                        name="customer_type" id="sale-customer" value="2" checked>
-                                                    <label class="btn btn-outline-primary" for="sale-customer">
-                                                        ลูกค้า
-                                                    </label>
-                                                </div>
+                                            <div id="summary-room"></div>
+                                            <div id="summary-course"></div>
 
-                                                <div>
-                                                    <input type="radio" class="btn-check sale-type calculate"
-                                                        name="customer_type" id="sale-staff" value="1">
-                                                    <label class="btn btn-outline-secondary" for="sale-staff">
-                                                        พนักงาน
-                                                    </label>
-                                                </div>
+                                            <hr class="my-2">
 
+                                            <div id="summary-price"></div>
+                                            
+                                            <div class="mt-2">
+                                                <div class="fw-bold mb-2">Options</div>
+                                                <div id="summary-option-list"></div>
+                                                <hr>
                                             </div>
-                                        </div> --}}
-                                        <div class="mb-3 px-4">
-                                            <label class="form-label fw-bold">เลือกพนักงานขาย</label>
-                                            {{-- <select id="salesStaffSelect" class="form-select"></select> --}}
-                                            {{-- <form id="form_staff"> --}}
-                                                <div class="d-flex align-items-center justify-content-between app-academy-md-80">
-                                                    <input name="reception_name" type="text" id="reception" placeholder="แสกนบัตรพนักงาน" class="form-control me-2 reception-input" required/>
-                                                    <input name="reception_id" type="hidden" id="salesReceptionSelect">
-                                                    <input type="hidden" name="ref_position_id" value="1">
-                                                </div>
-                                            {{-- </form> --}}
-                                        </div>
-                                        <div class="px-4 mt-4">
-                                            <label class="form-label fw-bold">สถานะการชำระเงิน</label>
-
-                                            <div class="row g-3 px-2">
-
-                                                <!-- ชำระแล้ว -->
-                                                <div class="col-md-6">
-                                                    <input type="radio" class="btn-check"
-                                                        name="payment_status"
-                                                        id="status-paid"
-                                                        value="1" checked>
-
-                                                    <label class="card payment-card text-center p-3" for="status-paid">
-                                                        <i class="bi bi-check-circle-fill fs-1 text-success"></i>
-                                                        <div class="mt-2 fw-bold">ชำระแล้ว</div>
-                                                    </label>
-                                                </div>
-
-                                                <!-- ค้างชำระ -->
-                                                <div class="col-md-6">
-                                                    <input type="radio" class="btn-check"
-                                                        name="payment_status"
-                                                        id="status-pending"
-                                                        value="0">
-
-                                                    <label class="card payment-card text-center p-3" for="status-pending">
-                                                        <i class="bi bi-clock-history fs-1 text-warning"></i>
-                                                        <div class="mt-2 fw-bold">ยังไม่ชำระ</div>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="px-4 mt-4">
-                                            <label class="form-label fw-bold">ช่องทางชำระเงิน</label>
-
-                                            <div class="row g-3 payment-methods">
-
-                                                <!-- เงินสด -->
-                                                <div class="col-md-6">
-                                                    <input type="radio" class="btn-check payment-method"
-                                                        name="payment_method" id="pay-cash" value="cash">
-                                                    <label class="card payment-card text-center p-3" for="pay-cash">
-                                                        <i class="bi bi-cash-coin fs-1 text-success"></i>
-                                                        <div class="mt-2 fw-bold">เงินสด</div>
-                                                    </label>
-                                                </div>
-
-                                                <!-- บัตรเครดิต -->
-                                                <div class="col-md-6">
-                                                    <input type="radio" class="btn-check payment-method"
-                                                        name="payment_method" id="pay-credit" value="credit_card">
-                                                    <label class="card payment-card text-center p-3" for="pay-credit">
-                                                        <i class="bi bi-credit-card-2-front fs-1 text-primary"></i>
-                                                        <div class="mt-2 fw-bold">บัตรเครดิต</div>
-                                                    </label>
-                                                </div>
-                                                <!-- Alipay -->
-                                                <div class="col-md-6">
-                                                    <input type="radio"
-                                                        class="btn-check payment-method"
-                                                        name="payment_method"
-                                                        id="pay-alipay"
-                                                        value="alipay">
-
-                                                    <label class="card payment-card text-center p-3" for="pay-alipay">
-                                                        <i class="bi bi-phone fs-1 text-info"></i>
-                                                        <div class="mt-2 fw-bold">Alipay</div>
-                                                    </label>
-                                                </div>
-                                                <!-- QR -->
-                                                <div class="col-md-6">
-                                                    <input type="radio" class="btn-check payment-method"
-                                                        name="payment_method" id="pay-qr" value="qr_code">
-                                                    <label class="card payment-card text-center p-3" for="pay-qr">
-                                                        <i class="bi bi-qr-code-scan fs-1"></i>
-                                                        <div class="mt-2 fw-bold">QR Code</div>
-                                                    </label>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                        <div class="px-4 mt-3">
-                                            <div class="fw-bold mb-2">รายการสินค้า</div>
-                                            <div class="small">
+                                            <div class="mt-2">
+                                                <div class="fw-bold mb-2">รายการสินค้า</div>
                                                 <table class="table table-sm table-bordered">
                                                     <thead class="table-light">
                                                         <tr>
@@ -382,7 +421,7 @@
                                                             <th class="text-center">ลบ</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody id="invoiceItems">
+                                                    <tbody id="summary-drink-list">
                                                         <tr>
                                                             <td class="text-muted">ยังไม่มีสินค้า</td>
                                                         </tr>
@@ -397,7 +436,6 @@
                                             <hr>
                                             <div class="d-flex justify-content-between fw-bold"><span>Total</span><span>THB <span id="total">{{ number_format($total, 2) }}</span></span></div>
                                             <input type="hidden" name="total_price" id="total_value">
-
                                             <button type="submit" class="btn btn-dark w-100 mt-3">
                                                 Checkout
                                             </button>
@@ -408,27 +446,206 @@
                             </div>
                         </div>
                     </form>
-{{-- <script>
-    document.addEventListener('click', function (e) {
+                {{-- ================== MODAL #1 : เลือกห้อง + customer ================== --}}
+                <div class="modal fade" id="checkoutRoomModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content shadow rounded-4 p-3">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title">Choose Room & Customer</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
 
-        // ➕ เพิ่มจำนวน
-        if (e.target.classList.contains('qty-plus')) {
-            const input = e.target.previousElementSibling;
-            const max = parseInt(input.max || 9999);
-            let val = parseInt(input.value || 1);
-            if (val < max) input.value = val + 1;
-            input.dispatchEvent(new Event('change'));
-        }
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">เลือกพนักงานขาย</label>
+                                    {{-- <select id="salesStaffSelect" class="form-select"></select> --}}
+                                    <form id="form_staff">
+                                        <div class="d-flex align-items-center justify-content-between app-academy-md-80">
+                                        <input name="user_code" type="text" placeholder="แสกนบัตรพนักงาน" class="form-control me-2"/>
+                                        <input type="hidden" id="salesStaffSelect">
+                                        <input type="hidden" name="ref_position_id" value="1">
+                                        </div>
+                                    </form>
+                                </div>
 
-        // ➖ ลดจำนวน
-        if (e.target.classList.contains('qty-minus')) {
-            const input = e.target.nextElementSibling;
-            let val = parseInt(input.value || 1);
-            if (val > 1) input.value = val - 1;
-            input.dispatchEvent(new Event('change'));
-        }
-    });
-</script> --}}
+                                <hr class="my-3">
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Choose a room</label>
+                                    <div class="store-pill mb-2">{{ $storefrontName ?? 'Cashier' }}</div>
+
+                                    @foreach ($roomGroups ?? [] as $group)
+                                        <div class="fw-bold mb-2">{{ $group['name'] }}</div>
+                                        <div class="mb-3 d-flex flex-wrap gap-2">
+                                            @foreach ($group['rooms'] as $room)
+                                                <button type="button" class="room-chip btn btn-outline-secondary room-chip-disabled"
+                                                    data-room-id="{{ $room['id'] }}" disabled data-bs-toggle="tooltip" data-bs-placement="top" title="Please select a sales staff first">{{ $room['label'] }}</button>
+                                            @endforeach
+                                        </div>
+                                    @endforeach
+
+                                    <input type="hidden" id="selectedRoomId">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Customers in this room</label>
+                                    <select id="customerSelect" class="form-select" disabled>
+                                        <option value="">-- กรุณาเลือก --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer border-0 pt-0">
+                                <button type="button" class="btn btn-dark w-100" id="nextToPaymentBtn" disabled>
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ================== MODAL #Walkin ================== --}}
+                <div class="modal fade" id="walkinModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content shadow rounded-4 p-3">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title">Walk-in Customer</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">เลือกเบอร์สมาชิก (ไม่บังคับ)</label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-telephone fs-5 text-muted"></i>
+                                        <select id="walkinPhoneSelect" class="form-select" style="width: 100%"></select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">เลือกพนักงาน (บังคับ)</label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-person-badge fs-5 text-muted"></i>
+
+                                    <form id="form_user">
+                                        <div class="d-flex align-items-center justify-content-between app-academy-md-80">
+                                        <input name="user_code" type="text" id="user" placeholder="แสกนบัตรพนักงาน" onclick="clearInput('user')" class="form-control me-2"/>
+                                        <input type="hidden" id="walkinStaffSelect">
+                                        <input type="hidden" name="ref_position_id" value="2">
+                                        </div>
+                                        {{-- <button type="submit" class="btn btn-primary mt-2" onclick="focusInput()">คลิ๊กที่นี่เมื่อแตะบัตรไม่ได้</button> --}}
+                                    </form>
+                                        {{-- <select id="walkinStaffSelect" class="form-select" style="width: 100%"></select> --}}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">เลือกเวลา (บังคับ)</label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-clock fs-5 text-muted"></i>
+                                        <select id="walkinTimeSelect" class="form-select" style="width: 100%">
+                                            <option value="" selected disabled>-- กรุณาเลือกเวลา --</option>
+                                            <option value="40">40 นาที</option>
+                                            <option value="60">60 นาที</option>
+                                            <option value="90">90 นาที</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">เลือกสินค้าเสริม (ไม่บังคับ)</label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-plus-circle fs-5 text-muted"></i>
+                                        <select id="walkinAddonSelect" class="form-select" style="width: 100%"></select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer border-0 pt-0">
+                                <button type="button" class="btn btn-dark w-100" id="walkinNextBtn" disabled>
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ================== MODAL #2 : Payment Method ================== --}}
+                <div class="modal fade" id="checkoutPaymentModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content shadow rounded-4 p-3">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title">วิธีการชำระเงิน</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <form method="POST" action="{{ route('pos.checkout') }}">
+                                @csrf
+                                <input type="hidden" name="room_id" id="formRoomId">
+                                <input type="hidden" name="order_id" id="formOrderId">
+                                <input type="hidden" name="payment_method" id="paymentMethod">
+                                <input type="hidden" name="customer_id" id="formCustomerId">
+                                <input type="hidden" name="staff_id" id="formStaffId">
+                                <input type="hidden" name="addon_id" id="formAddonId">
+                                <input type="hidden" name="mama_id" id="formMamaId">
+                                <input type="hidden" name="duration_minutes" id="formDuration">
+                                <input type="hidden" name="total_price" id="formTotalPrice">
+
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold">สรุปรายการ</h6>
+                                        <div id="paymentSummary" class="border-top pt-2">
+                                            <p class="text-center text-muted py-3">กำลังโหลด...</p>
+                                        </div>
+                                        <hr class="my-2">
+                                        <div class="d-flex justify-content-between fw-bold fs-5">
+                                            <span>ยอดรวมสุทธิ</span>
+                                            <span id="paymentTotal">THB 0.00</span>
+                                        </div>
+                                    </div>
+
+                                    <hr class="my-3">
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">เลือกวิธีการชำระเงิน</label>
+                                        <div class="list-group">
+                                            <label class="list-group-item">
+                                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="cash">
+                                                เงินสด (Cash)
+                                            </label>
+                                            <label class="list-group-item">
+                                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="promptpay">
+                                                โอน/สแกน QR Code (PromptPay)
+                                            </label>
+                                            <label class="list-group-item">
+                                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="credit_card">
+                                                บัตรเครดิต/เดบิต (Credit/Debit Card)
+                                            </label>
+                                            <label class="list-group-item">
+                                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="wechat">
+                                                WeChat Pay
+                                            </label>
+                                            <label class="list-group-item">
+                                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="alipay">
+                                                Alipay
+                                            </label>
+                                            <label class="list-group-item">
+                                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="ewallet">
+                                                TrueMoney Wallet / LINE Pay (E-Wallet)
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer border-0 pt-0">
+                                    <button type="submit" class="btn btn-dark w-100" id="confirmBtn" disabled>
+                                        Confirm Payment
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
                 <!-- Footer -->
                 @include('admin/layout/inc_footer')
                 <!-- / Footer -->
@@ -444,8 +661,8 @@
     <div class="layout-overlay layout-menu-toggle"></div>
     <div class="drag-target"></div>
 </div>
-<iframe id="print-iframe" style="display: none;"></iframe>
 
+<iframe id="print-iframe" style="display: none;"></iframe>
 
 @include('admin/layout/inc_js')
 
@@ -464,89 +681,10 @@
     .other-btn.active { background-color: #5e2a5f; color: #fff; }
 </style>
 <script>
-    document.querySelectorAll('.qty-input, input[name="customer_type"]').forEach(el => {
-        el.addEventListener('change', function () {
-
-            // ===== customer_type เปลี่ยน =====
-            if (this.name === 'customer_type') {
-
-                const saleType =
-                    document.querySelector('input[name="customer_type"]:checked')?.value || '2';
-
-                // 🔥 สลับ class ปุ่ม
-                document.querySelectorAll('input[name="customer_type"]').forEach(radio => {
-                    const label = document.querySelector(`label[for="${radio.id}"]`);
-
-                    if (!label) return;
-
-                    if (radio.checked) {
-                        label.classList.remove('btn-outline-secondary');
-                        label.classList.add('btn-outline-primary');
-                    } else {
-                        label.classList.remove('btn-outline-primary');
-                        label.classList.add('btn-outline-secondary');
-                    }
-                });
-
-                    console.log(111)
-                // (ของเดิม) อัปเดตราคาบนการ์ดสินค้า
-
-                    document.querySelectorAll('.drink-price').forEach(priceEl => {
-                        console.log(priceEl);
-
-                        const price = saleType === '1'
-                            ? Number(priceEl.dataset.priceStaff)
-                            : Number(priceEl.dataset.priceCustomer);
-
-                        priceEl.textContent =
-                            'THB ' + price.toLocaleString('th-TH', { minimumFractionDigits: 2 });
-                        // optional: เปลี่ยนสี
-                        priceEl.classList.toggle('text-success', saleType === '1');
-                        priceEl.classList.toggle('text-primary', saleType !== '1');
-                    });
-                }
-
-            // ===== ของเดิม =====
-            calculate();
-        });
-    });
-    function togglePaymentMethod() {
-
-        const status = $('input[name="payment_status"]:checked').val();
-
-        $('.payment-method').each(function () {
-
-            const card = $(this).closest('.payment-card');
-
-            if (status == 1) {
-                $(this)
-                    .prop('disabled', false)
-                    .prop('required', true);
-
-                card.removeClass('disabled');
-
-            } else {
-                $(this)
-                    .prop('disabled', true)
-                    .prop('required', false)
-                    .prop('checked', false);
-
-                card.addClass('disabled');
-            }
-        });
-    }
-
-// bind event
-    document.querySelectorAll('input[name="payment_status"]').forEach(el => {
-        el.addEventListener('change', togglePaymentMethod);
-    });
-
-    // init ตอนโหลด
-    togglePaymentMethod();
+    
 
         $('#insert_drink').on('submit', function(event) {
             event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
-
             const iframe = document.getElementById('print-iframe');
 
             if (!this.checkValidity()) {
@@ -572,43 +710,62 @@
                         url: '/pos/drink-checkout',
                         type: 'POST',
                         data: formData,
-                        contentType: false, // ✅ ต้องมี
-                        processData: false, // ✅ ต้องมี
+                        contentType: false,
+                        processData: false,
                         success: function(response) {
+
                             if (response.status == true) {
-                                // $('#insert_drink')[0].reset();
+
                                 Swal.fire({
                                     title: 'เพิ่มคำสั่งซื้อเรียบร้อยแล้ว',
                                     icon: 'success',
-                                    timer: 2000,
-                                    timerProgressBar: true,
+                                    timer: 1500,
                                     showConfirmButton: false
                                 }).then(() => {
 
-                                    const doc = iframe.contentWindow.document;
-                                    doc.open();
-                                    doc.write(response.data);
-                                    doc.close();
+                                    const newWindow = window.open('', '_blank');
 
-                                    // รอโหลดก่อนค่อยพิมพ์
-                                    iframe.onload = function () {
-                                        iframe.contentWindow.focus();
-                                        iframe.contentWindow.print();
-                                    };
+                                    newWindow.document.write(`
+                                        <html>
+                                        <head>
+                                            <title>Print</title>
+                                        </head>
+                                        <body>
+
+                                            ${response.data}
+
+                                            <script>
+                                                window.onload = function () {
+                                                    window.print();
+                                                };
+
+                                                window.onafterprint = function () {
+                                                    window.close();
+                                                };
+                                            <\/script>
+
+                                        </body>
+                                        </html>
+                                    `);
+
+                                    newWindow.document.close();
+
+                                    // รีเฟรชหน้าหลักทันที
+                                    location.reload();
+
                                 });
-                                // $('#addserviceModal').modal('hide');
-                                // loadData(page);
+
                             }
+
                         },
                         error: function(error) {
                             Swal.fire('เกิดข้อผิดพลาด', '', 'error');
-                            console.error('เกิดข้อผิดพลาด:', error);
+                            console.error(error);
                         }
                     });
                 }
             });
         });
-
         $('#insert_order').on('submit', function(event) {
             event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
             if(!this.checkValidity()) {
@@ -650,7 +807,7 @@
             input.dispatchEvent(new Event('change'));
         }
     });
-    calculate();
+    // calculate();
     document.querySelectorAll('.staff-input').forEach(input => {
         input.addEventListener('click', function () {
             this.value = '';
@@ -784,6 +941,139 @@
 
         return payload;
     }
+    function summaryRow(label, value, boldLabel = false) {
+        return `
+            <div class="d-flex justify-content-between align-items-start mb-1">
+                <span class="${boldLabel ? 'fw-bold' : 'text-muted'}">${label}</span>
+                <span class="fw-semibold text-end">${value}</span>
+            </div>
+        `;
+    }
+    function renderSummary() {
+
+        let roomName = $('input[name="ref_room_type_id"]:checked')
+            .closest('label')
+            .find('.h6')
+            .text();
+
+        let courseName = $('input[name="ref_course_id"]:checked')
+            .next('label')
+            .text()
+            .trim();
+
+        $('#summary-room').html(
+            summaryRow('รูปแบบห้อง', roomName, true)   // 👈 ตัวหนา
+        );
+
+        $('#summary-course').html(
+            summaryRow('Time Period', courseName, true) // 👈 ตัวหนา
+        );
+    }
+    function renderProductSummary() {
+
+        let rows = [];
+
+        $('.qty-input').each(function () {
+
+            const input = this; // ✅ ประกาศให้ชัด
+            const drinkId = input.name.match(/\[(.*?)\]/)[1];
+
+            let qty = parseInt($(this).val()) || 0;
+            if (qty <= 0) return;
+
+            let card = $(this).closest('.card-body');
+            let name = card.find('.card-title').text();
+
+            // ราคา/ชิ้น
+            let priceText = card.find('.fw-bold').text().replace(/[^\d.]/g, '');
+            let price = Number(priceText);
+
+            // ราคารวมต่อสินค้า
+            let total = price * qty;
+
+            rows.push(`
+                <tr>
+                    <td>${name}</td>
+                    <td class="text-center">${qty}</td>
+                    <td class="text-end">
+                        ฿${total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td class="text-center">
+                        <a href="javascript:;"
+                            class="btn btn-xs btn-danger rounded-pill px-2 py-1"
+                            onclick="removeItem(${drinkId})">
+                            <i class="fa fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+            `);
+        });
+
+        $('#summary-drink-list').html(
+            rows.length
+                ? rows.join('')
+                : `<tr>
+                        <td colspan="4" class="text-center text-muted">
+                            ยังไม่มีสินค้า
+                        </td>
+                </tr>`
+        );
+    }
+    function removeItem(drinkId) {
+
+        const input = document.querySelector(`input[name="qty[${drinkId}]"]`);
+
+        if (input) {
+            input.value = 0;
+        }
+
+        calculate();
+    }
+    // function setRoomCoursePrice() {
+
+    //     let roomId = $('input[name="ref_room_type_id"]:checked').val();
+    //     let courseId = $('input[name="ref_course_id"]:checked').val();
+
+    //     let price = 0;
+
+    //     if (roomId == 1 && courseId == 1) price = 1000;
+    //     if (roomId == 1 && courseId == 2) price = 2000;
+    //     if (roomId == 1 && courseId == 3) price = 1000;
+
+    //     renderRoomCoursePrice(price);
+    // }
+    // function renderRoomCoursePrice(price) {
+    //     $('#summary-price').html(
+    //         summaryRow(
+    //             'ราคา',
+    //             `<span class="fw-bold fs-6">${Number(price).toLocaleString()} ฿</span>`
+    //         )
+    //     );
+    // }
+    function renderOptionSummary() {
+
+        let rows = [];
+
+        $('.addon-checkbox:checked').each(function () {
+
+            let name = $(this).data('name');
+            let price = Number($(this).data('price'));
+
+            rows.push(`
+                <div class="summary-row">
+                    <span class="summary-left">${name}</span>
+                    <span class="summary-right">฿${price.toLocaleString()}</span>
+                </div>
+            `);
+        });
+
+        $('#summary-option-list').html(
+            rows.length
+                ? rows.join('')
+                : `<div class="text-muted">- ไม่มี Options -</div>`
+        );
+    }
+    
     function calculate() {
 
         let subtotal = 0;
@@ -794,7 +1084,7 @@
 
         document.querySelectorAll('.qty-input').forEach(input => {
             
-            const drinkId = input.name.match(/\[(.*?)\]/)[1];
+            const productId = input.name.match(/\[(.*?)\]/)[1];
             const qty = parseInt(input.value) || 0;
             if (qty <= 0) return;
 
@@ -819,7 +1109,7 @@
                         <td class="text-center">
                             <a href="javascript:;"
                                 class="btn btn-xs btn-danger rounded-pill px-2 py-1"
-                                onclick="removeItem(${drinkId})">
+                                onclick="removeItem(${productId})">
                                 <i class="fa fa-trash"></i>
                             </a>
                         </td>
@@ -836,28 +1126,31 @@
                 </tr>
             `;
         }
-
         // render item list
-        document.getElementById('invoiceItems').innerHTML = html;
+        document.getElementById('summary-drink-list').innerHTML = html;
 
-        // render price
-        const formatted = subtotal.toLocaleString('th-TH', { minimumFractionDigits: 2 });
+        // subtotal
+        let subtotalValue = subtotal;
 
-        document.getElementById('subtotal').innerText = formatted;
-        document.getElementById('total').innerText = formatted;
+        // รับค่าส่วนลด
+        let discount = parseFloat($('#discount-list').val());
+        if (isNaN(discount)) discount = 0;
 
-        // hidden input (เอาไว้ submit)
-        document.getElementById('total_value').value = subtotal;
-    }
-    function removeItem(drinkId) {
+        // คำนวณ total
+        let total = subtotalValue - discount;
+        if (total < 0) total = 0;
 
-        const input = document.querySelector(`input[name="qty[${drinkId}]"]`);
+        // format แสดงผล
+        const subtotalFormatted = subtotalValue.toLocaleString('th-TH', { minimumFractionDigits: 2 });
+        const totalFormatted = total.toLocaleString('th-TH', { minimumFractionDigits: 2 });
 
-        if (input) {
-            input.value = 0;
-        }
+        // render
+        document.getElementById('discount').innerText = discount.toLocaleString('th-TH', { minimumFractionDigits: 2 });
+        document.getElementById('subtotal').innerText = subtotalFormatted;
+        document.getElementById('total').innerText = totalFormatted;
 
-        calculate();
+        // hidden input
+        document.getElementById('total_value').value = total;
     }
 </script>
 
