@@ -102,8 +102,6 @@
                                                 });
                                             </script>
                                             <div class="mt-4 text-end">
-                                                <a href="{{ route('commission.index') }}"
-                                                    class="btn btn-label-secondary">ย้อนกลับ</a>
                                                 <button type="submit" class="btn btn-main ms-2">บันทึก</button>
                                             </div>
                                         </form>

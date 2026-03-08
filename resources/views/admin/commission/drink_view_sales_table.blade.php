@@ -18,11 +18,11 @@
             @php
                 $total_price = \App\Models\OrderHasProduct::whereHas('order', function ($query) use ($staff) {
                                                             $query->where('ref_seller_id', $staff->id)
-                                                                    ->whereIn('type', [1, 2]);
+                                                                    ->whereIn('type', [3]);
                                                         })
                                                         ->whereBetween('created_at', [$start_date, $end_date])
                                                         ->sum('price') ?? 0;
-                $sale_commission = \App\Models\SalesCommissionTier::where('type', 1)->where('min_sales_amount', '<=', $total_price)->where('max_sales_amount', '>=', $total_price)->first(); // ดึงการตั้งค่า คอมมิชชั่น ที่ตรงกับยอดขายรวม
+                $sale_commission = \App\Models\SalesCommissionTier::where('type', 2)->where('min_sales_amount', '<=', $total_price)->where('max_sales_amount', '>=', $total_price)->first(); // ดึงการตั้งค่า คอมมิชชั่น ที่ตรงกับยอดขายรวม
                 if($sale_commission && $sale_commission->commission_by == 1){ // ถ้าเป็น เปอร์เซ็นต์
                     $sale_commission->commission_price = $sale_commission->commission_rate*$total_price/100; // เปอร์เซ็นต์ * ยอดขายรวม / 100
                 }

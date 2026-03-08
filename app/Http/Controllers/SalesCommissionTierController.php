@@ -10,12 +10,20 @@ class SalesCommissionTierController extends Controller
 {
     public function index()
     {
+        $page_url = 'admin/sales-commission-tier';
         $tiers = SalesCommissionTier::orderBy('min_sales_amount')->where('type', 1)->get();
         $branches = Branch::orderBy('name')->get();
         $branchMap = $branches->keyBy('id');
         $addonOptions = \App\Models\AddonOption::orderBy('name')->get();
         $cheerCharges = \App\Models\CheerCharge::where('ref_branch_id', auth()->user()->ref_branch_id)->get();
-        return view('admin.commission.sales_tier', compact('tiers', 'branches', 'branchMap', 'addonOptions', 'cheerCharges'));
+        return view('admin.commission.sales_tier', compact('tiers', 'branches', 'branchMap', 'addonOptions', 'cheerCharges', 'page_url'));
+    }
+    public function view($id)
+    {
+        $tiers = SalesCommissionTier::find($id);
+        $branches = Branch::orderBy('name')->get();
+        $branchMap = $branches->keyBy('id');
+        return view('admin.commission.sales_tier_view', compact('branches', 'tiers'));
     }
     public function storeCheer(Request $request)
     {
@@ -57,6 +65,25 @@ class SalesCommissionTierController extends Controller
             'created_at' => now(),
         ]);
         return redirect()->route('sales_commission_tier.index')->with('success', 'บันทึกข้อมูลสำเร็จ');
+    }
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'min_sales_amount' => 'required|numeric',
+            'max_sales_amount' => 'required|numeric',
+            'commission_by' => 'required|numeric',
+        ]);
+        SalesCommissionTier::where('id', $id)->update([
+            'ref_branch_id' => $request->ref_branch_id,
+            'type' => 1,
+            'min_sales_amount' => $request->min_sales_amount,
+            'max_sales_amount' => $request->max_sales_amount,
+            'commission_rate' => $request->commission_rate ?? 0,
+            'commission_price' => $request->commission_price ?? 0,
+            'commission_by' => $request->commission_by,
+            'created_at' => now(),
+        ]);
+        return 1;
     }
 
     public function destroy($id)

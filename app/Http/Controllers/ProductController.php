@@ -171,6 +171,16 @@ class ProductController extends Controller
 
         return view('admin/product/card_stock_report_table', $data);
     }
+    public function get_stock(Request $request, $product_id)
+    {
+        $stock = CardStocks::where('ref_product_id', $product_id)->get();
+        return $stock;
+    }
+    public function get_stock_by_id(Request $request, $stock_id)
+    {
+        $stock = CardStocks::find($stock_id);
+        return $stock;
+    }
 
     public function card_stock_report_pdf(Request $request)
     {
@@ -263,6 +273,7 @@ class ProductController extends Controller
 
             $product = new StockReadyForSale;
             $product->ref_product_id = $request->ref_product_id;
+            $product->ref_lot_id = $request->ref_lot_id;
             $product->qty = $request->qty;;
             $product->save();
 

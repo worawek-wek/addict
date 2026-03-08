@@ -76,12 +76,21 @@
                                             <div
                                                 class="card-header d-flex border-top rounded-0 flex-wrap py-0 flex-column flex-md-row align-items-start">
                                                 <div class="me-5 ms-n4 pe-5 mb-n6 mb-md-0">
+                                                    <div class="row g-3 justify-content-between">
+                                                        <div class="col-sm-12 mb-2">
+                                                            <h4 class="mb-0">
+                                                                <i class="tf-icons ti ti-user-dollar text-main ti-md me-2"></i>
+                                                                รายงานผู้ดูแลพนักงาน
+                                                            </h4>
+                                                        </div>
+                                                    </div>
 
                                                     <!-- <label><input type="search" class="form-control"
                                                                 placeholder="Search Product"
                                                                 aria-controls="DataTables_Table_0"></label> -->
                                                     <div class="dataTables_length mx-n2 ms-2"
                                                         id="DataTables_Table_0_length">
+                                                        
                                                         <label>Show
                                                             <select name="DataTables_Table_0_length"
                                                                 aria-controls="DataTables_Table_0" class="form-select">

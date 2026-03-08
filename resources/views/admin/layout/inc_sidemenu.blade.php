@@ -273,22 +273,23 @@
             <li class="menu-item">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="menu-icon tf-icons ti ti-adjustments-horizontal"></i>
-                    <div data-i18n="คอมมิชัน">คอมมิชัน</div>
+                    <div data-i18n="ตั้งค่าคอมมิชชั่น">ตั้งค่าคอมมิชชั่น</div>
                 </a>
                 <ul class="menu-sub">
                     <!-- ค่าคอมมิชชั่น -->
                     <li class="menu-item">
-                        <a href="/admin/commission" class="menu-link">
+                        <a href="/admin/sales-commission-tier" class="menu-link">
                             <i class="menu-icon tf-icons ti ti-currency-dollar"></i>
-                            <div data-i18n="จัดการค่าคอมมิชชั่น">จัดการค่าคอมมิชชั่น</div>
+                            <div data-i18n="ขายนวด + ขายสินค้า">ขายนวด + ขายสินค้า</div>
                         </a>
                     </li>
-                    {{-- <li class="menu-item">
-                        <a href="/admin/commission/view-massage" class="menu-link">
+                    <li class="menu-item">
+                        <a href="/admin/drink-sales-commission-tier" class="menu-link">
                             <i class="menu-icon tf-icons ti ti-user"></i>
-                            <div data-i18n="ค่าคอมพนักงานนวด">ค่าคอมพนักงานนวด</div>
+                            <div data-i18n="ขายดื่ม">ขายดื่ม</div>
                         </a>
                     </li>
+                    {{-- 
                     <li class="menu-item">
                         <a href="/admin/commission/view-sales" class="menu-link">
                             <i class="menu-icon tf-icons ti ti-user-dollar"></i>
@@ -337,7 +338,12 @@
                 </li>
                 <li class="menu-item">
                     <a href="/admin/commission/view-sales" class="menu-link">
-                        <div data-i18n="รายงานค่าคอมพนักงานขาย">รายงานค่าคอมพนักงานขาย</div>
+                        <div data-i18n="รายงานค่าคอม (นวด+สินค้า)">รายงานค่าคอม (นวด+สินค้า)</div>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/admin/commission/drink-view-sales" class="menu-link">
+                        <div data-i18n="รายงานค่าคอม<br>(ดื่ม)">รายงานค่าคอม<br>(ดื่ม)</div>
                     </a>
                 </li>
                 {{-- <li class="menu-item">

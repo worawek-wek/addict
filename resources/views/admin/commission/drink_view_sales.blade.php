@@ -31,12 +31,12 @@
                                             <div class="col-sm-6 mb-2">
                                                 <h4 class="mb-0">
                                                     <i class="tf-icons ti ti-user-dollar text-main ti-md me-2"></i>
-                                                    รายงานค่าคอม (นวด+สินค้า)
+                                                    รายงานค่าคอม (ดื่ม)
                                                 </h4>
                                             </div>
                                             <div class="col-sm-6 d-flex justify-content-end gap-2">
                                                 <a href="{{ route('sales_commission_tier.index') }}" class="btn btn-main">
-                                                    <i class="ti ti-currency-dollar"></i> จัดการค่าคอมมิชชั่น (นวด+สินค้า)
+                                                    <i class="ti ti-currency-dollar"></i> จัดการค่าคอมมิชชั่น (ดื่ม)
                                                 </a>
                                             </div>
                                         </div>

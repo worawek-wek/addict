@@ -149,6 +149,14 @@ Route::get('dark-mode-switcher', [DarkModeController::class, 'switch'])->name('d
 Route::get('color-scheme-switcher/{color_scheme}', [ColorSchemeController::class, 'switch'])->name('color-scheme-switcher');
 
 Route::prefix('admin')->group(function () {
+    Route::controller(AuthController::class)->middleware('loggedin')->group(function () {
+        Route::get('login', 'loginView')->name('admin.login');
+        Route::post('login', 'login')->name('login.check');
+        Route::get('register', 'registerView')->name('register.index');
+        Route::post('register', 'register')->name('register.store');
+    });
+
+    Route::middleware('auth')->group(function () {
     // Massage Default Setting CRUD
     Route::controller(App\Http\Controllers\MassageDefaultSettingController::class)->group(function () {
         Route::get('massage-default-setting', 'index')->name('massage_default_setting.index');
@@ -158,7 +166,9 @@ Route::prefix('admin')->group(function () {
     // Sales Commission Tier CRUD
     Route::controller(SalesCommissionTierController::class)->group(function () {
         Route::get('sales-commission-tier', 'index')->name('sales_commission_tier.index');
+        Route::get('sales-commission-tier/{id}', 'view')->name('sales_commission_tier.view');
         Route::post('sales-commission-tier', 'store')->name('sales_commission_tier.store');
+        Route::post('sales-commission-tier/{id}', 'update')->name('sales_commission_tier.update');
         Route::delete('sales-commission-tier/{id}', 'destroy')->name('sales_commission_tier.destroy');
         // Cheer Charge CRUD
         Route::post('cheer-charge', 'storeCheer')->name('cheer_charge.store');
@@ -183,8 +193,15 @@ Route::prefix('admin')->group(function () {
         Route::put('commission/{id}', 'update')->name('commission.update');
         Route::delete('commission/{id}', 'destroy')->name('commission.destroy');
         Route::get('commission/view-massage', 'view_massage')->name('commission.view_massage');
+        
         Route::get('commission/view-sales', 'view_sales')->name('commission.view_sales');
         Route::get('commission/view-sales/datatable', 'view_sales_datatable')->name('commission.view_sales_datatable');
+        Route::get('commission/view-sales/pdf', 'view_sales_pdf')->name('commission.view-sales-pdf');
+        
+        Route::get('commission/drink-view-sales', 'drink_view_sales')->name('commission.drink_view_sales');
+        Route::get('commission/drink-view-sales/datatable', 'drink_view_sales_datatable')->name('commission.drink_view_sales_datatable');
+        Route::get('commission/drink-view-sales/pdf', 'drink_view_sales_pdf')->name('commission.drink-view-sales-pdf');
+
         Route::get('commission/sales-orders', 'salesOrders')->name('commission.sales_orders');
         Route::get('commission/massage-orders', 'massageOrders')->name('commission.massage_orders');
     });
@@ -209,14 +226,6 @@ Route::prefix('admin')->group(function () {
         Route::post('cheer-charge', 'store')->name('cheer_charge.store');
         Route::delete('cheer-charge/{id}', 'destroy')->name('cheer_charge.destroy');
     });
-    Route::controller(AuthController::class)->middleware('loggedin')->group(function () {
-        Route::get('login', 'loginView')->name('admin.login');
-        Route::post('login', 'login')->name('login.check');
-        Route::get('register', 'registerView')->name('register.index');
-        Route::post('register', 'register')->name('register.store');
-    });
-
-    Route::middleware('auth')->group(function () {
         Route::controller(CustomerController::class)->group(function () {
             Route::get('customer', 'index')->name('customer.index');
             Route::get('customer/datatable', 'datatable')->name('customer.datatable');
@@ -312,6 +321,8 @@ Route::prefix('admin')->group(function () {
             Route::post('product/change-status/{id}', 'change_status')->name('product.change-status');
             Route::post('product/update-sort/{id}', 'update_sort')->name('product.update-sort');
             Route::get('card_stock_report', 'card_stock_report')->name('card_stock_report');
+            Route::get('card_stock_report/get-stock/{product_id}', 'get_stock')->name('card_stock_report.get-stock');
+            Route::get('card_stock_report/get-stock-by-id/{stock_id}', 'get_stock_by_id')->name('card_stock_report.get-stock-by-id');
             Route::get('card_stock_report/datatable', 'card_stock_report_datatable')->name('card_stock_report.datatable');
             Route::get('card_stock_report/pdf', 'card_stock_report_pdf')->name('card_stock_report.pdf');
             Route::post('card_stock_report', 'card_stock_report_store')->name('card_stock_report.insert');

@@ -18,6 +18,28 @@
         padding-top: 14px;
         padding-bottom: 14px;
     }
+
+    .modalHeadDecor .modal-header {
+        padding: 0;
+    }
+
+    .modalHeadDecor .modal-title {
+        padding: 1.25rem 1.5rem 1.25rem;
+        color: white;
+        background-color: #54BAB9;
+        position: relative;
+    }
+
+    .modalHeadDecor .modal-title::after {
+        position: absolute;
+        top: 0;
+        right: -65px;
+        content: '';
+        width: 0;
+        height: 0;
+        border-top: 65px solid #54BAB9;
+        border-right: 65px solid transparent;
+    }
 </style>
 
 <body>
@@ -102,8 +124,6 @@
                                                 });
                                             </script>
                                             <div class="mt-4 text-end">
-                                                <a href="{{ route('commission.index') }}"
-                                                    class="btn btn-label-secondary">ย้อนกลับ</a>
                                                 <button type="submit" class="btn btn-main ms-2">บันทึก</button>
                                             </div>
                                         </form>
@@ -157,6 +177,9 @@
                                                             @endif
                                                         </td>
                                                         <td class="text-center">
+                                                            <button type="button" class="btn btn-icon btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editCommissionModal" onclick="editCommission({{ $tier->id }})">
+                                                                <i class="ti ti-edit"></i>
+                                                            </button>
                                                             <form
                                                                 action="{{ route('sales_commission_tier.destroy', $tier->id) }}"
                                                                 method="POST" style="display:inline-block;">
@@ -186,6 +209,14 @@
             </div>
         </div>
     </div>
+    
+    {{-- Modal: Edit Customer --}}
+    <div class="modal fade modalHeadDecor" id="editCommissionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" id="view">
+
+        </div>
+    </div>
+
     @include('admin/layout/inc_js')
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -229,6 +260,16 @@
                 });
             @endif
         });
+        
+        function editCommission(id) {
+            $.ajax({
+                type: "GET",
+                url: "{{ $page_url }}/" + id,
+                success: function(data) {
+                    $("#view").html(data);
+                }
+            });
+        }
     </script>
 </body>
 
