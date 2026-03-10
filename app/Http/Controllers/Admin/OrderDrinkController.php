@@ -170,7 +170,7 @@ class OrderDrinkController extends Controller
                 StockReadyForSale::where('ref_drink_id', $drink->ref_drink_id)
                                     ->orderByDesc('id')
                                     ->limit(1)
-                                    ->increment('qty', $drink->quantity);
+                                    ->increment('remain', $drink->quantity);
             }
         }
 

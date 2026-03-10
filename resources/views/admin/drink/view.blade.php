@@ -68,7 +68,7 @@
                                             <li class="d-flex align-items-center mb-3">
                                                 <i class="ti ti-crown text-heading"></i><span
                                                     class="fw-medium mx-2 me-4 text-heading">คงเหลือ:</span>
-                                                <span>{{ \App\Models\CardStocks::where('ref_drink_id', $drink->id)->latest()->value('remain') ?? 0 }}</span>
+                                                <span>{{ \App\Models\DrinkCardStocks::where('ref_drink_id', $drink->id)->latest()->value('remain') ?? 0 }}</span>
                                             </li>
                                             <li class="d-flex align-items-center mb-3">
                                                 <i class="ti ti-user text-heading"></i><span

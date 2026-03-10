@@ -491,26 +491,32 @@ class POSController extends Controller
             $price = $customerType == 1 
                 ? $product->price_staff 
                 : $product->price;
+
             // if(@$request->input('customer_type') == 1){
             //     $price = Product::find($id)->price_staff;
             // }else{
             //     $price = Product::find($id)->price;
             // }
             // 1) บันทึกสินค้าใน order_has_products
+
+            // 2) ลด stock
+            $stock = StockReadyForSale::where('ref_product_id', $id)
+                ->where('remain', '!=', 0)
+                ->first();
+
+            $main_stock = CardStocks::find($stock->ref_lot_id);
+            $product_cost = $main_stock->cost_price/$main_stock->quantity;
+
             $order->products()->create([
                 'ref_product_id' => $id,
                 'price'          => $price,
                 'quantity'       => $q,
+                'cost'       => $product_cost,
             ]);
-
-            // 2) ลด stock
-            $stock = StockReadyForSale::where('ref_product_id', $id)
-                ->where('qty', '!=', 0)
-                ->first();
-
+            
             if ($stock) {
-                $newRemain = max(0, $stock->qty - $q);
-                $stock->qty = $newRemain;
+                $newRemain = max(0, $stock->remain - $q);
+                $stock->remain = $newRemain;
                 $stock->save();
             }
             $list_product .= '<tr>
@@ -761,17 +767,15 @@ class POSController extends Controller
 
             // 2) ลด stock
             $stock = DrinkStockReadyForSale::where('ref_drink_id', $id)
-                ->where('qty', '!=', 0)
+                ->where('remain', '!=', 0)
                 ->first();
 
-
-                
             $main_stock = DrinkCardStocks::find($stock->ref_lot_id);
             $product_cost = $main_stock->cost_price/$main_stock->quantity;
-            
+
             if ($stock) {
-                $newRemain = max(0, $stock->qty - $q);
-                $stock->qty = $newRemain;
+                $newRemain = max(0, $stock->remain - $q);
+                $stock->remain = $newRemain;
                 $stock->save();
             }
             

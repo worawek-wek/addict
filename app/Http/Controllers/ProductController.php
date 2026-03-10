@@ -270,11 +270,15 @@ class ProductController extends Controller
     public function withdraw(Request $request)
     {
         try {
+            $card_stocks = CardStocks::find($request->ref_lot_id);
+            $card_stocks->remain = $card_stocks->remain-$request->qty;
+            $card_stocks->save();
 
             $product = new StockReadyForSale;
             $product->ref_product_id = $request->ref_product_id;
             $product->ref_lot_id = $request->ref_lot_id;
-            $product->qty = $request->qty;;
+            $product->qty = $request->qty;
+            $product->remain = $request->qty;
             $product->save();
 
             DB::commit();

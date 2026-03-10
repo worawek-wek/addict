@@ -170,7 +170,7 @@ class OrderProductController extends Controller
                 StockReadyForSale::where('ref_product_id', $product->ref_product_id)
                                     ->orderByDesc('id')
                                     ->limit(1)
-                                    ->increment('qty', $product->quantity);
+                                    ->increment('remain', $product->quantity);
             }
         }
 
