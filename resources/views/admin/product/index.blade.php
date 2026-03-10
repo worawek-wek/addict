@@ -255,11 +255,6 @@
                                     </label>
                                 @endforeach
                             </div>
-                            {{-- <div class="col-sm-12"></div> --}}
-                            {{-- <div class="col-sm-6">
-                                <label for="" class="form-label">บัตรสินค้า</label><span class="text-danger"> *</span>
-                                <input name="user_code" type="password" class="form-control" placeholder="บัตรสินค้า" required />
-                            </div> --}}
                             <div class="col-sm-6">
                             </div>
                             <div class="col-sm-6">
@@ -280,16 +275,6 @@
                                 <input name="price_staff" type="text" class="form-control" placeholder="ราคาขาย"
                                     required />
                             </div>
-                            {{-- <div class="col-sm-6">
-                                <label for="" class="form-label">ต้นทุน</label><span class="text-danger">
-                                    *</span>
-                                <input name="cost" type="text" class="form-control" placeholder="ต้นทุน"
-                                    required />
-                            </div> --}}
-                            {{-- <div class="col-sm-6">
-                                <label for="" class="form-label">คงเหลือ</label><span class="text-danger"> *</span>
-                                <input name="stock" type="text" class="form-control" placeholder="คงเหลือ" required />
-                            </div> --}}
                             <script>
                                 //// ทำ input เงินเดือน เริ่ม
                                 function formatSalary() {
@@ -327,7 +312,6 @@
     <!-- / Layout wrapper -->
     @include('admin/layout/inc_js')
 <script>
-    
         let select2Product = null;
         let select2Stock = null;
 

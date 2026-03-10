@@ -38,18 +38,18 @@
             @foreach ($list_data as $key => $row)
             @php
                 $view = 'style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance" onclick="view('.$row->id.')"';
-                $remain = \App\Models\DrinkCardStocks::where('ref_drink_id', $row->id)->sum('remain') ?? 0;
-                $qty = \App\Models\DrinkStockReadyForSale::where('ref_drink_id', $row->id)->sum('qty') ?? 0;
+                $s_remain = \App\Models\DrinkCardStocks::where('ref_drink_id', $row->id)->sum('remain') ?? 0;
+                $r_remain = \App\Models\DrinkStockReadyForSale::where('ref_drink_id', $row->id)->sum('remain') ?? 0;
             @endphp
             <tr class="odd">
                 <td class="text-center" {!! $view !!}>
                     {{ $list_data->firstItem()+$key }}
                 </td>
                 <td class="text-center" {!! $view !!}>
-                    {{ $remain-$qty }}
+                    {{ $s_remain }}
                 </td>
                 <td class="text-center" {!! $view !!}>
-                    {{ $qty }}
+                    {{ $r_remain }}
                 </td>
                 <td class="text-center" {!! $view !!}>
                     {{ $row->name }}

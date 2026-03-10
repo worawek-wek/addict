@@ -172,6 +172,16 @@ class DrinkController extends Controller
         return view('admin/drink/card_stock_report_table', $data);
     }
 
+    public function get_stock(Request $request, $drink_id)
+    {
+        $stock = DrinkCardStocks::where('ref_drink_id', $drink_id)->get();
+        return $stock;
+    }
+    public function get_stock_by_id(Request $request, $stock_id)
+    {
+        $stock = DrinkCardStocks::find($stock_id);
+        return $stock;
+    }
     public function card_stock_report_pdf(Request $request)
     {
         $user = Auth::user();
@@ -261,12 +271,14 @@ class DrinkController extends Controller
     {
         try {
 
-            $stock_main = DrinkCardStocks::where('ref_drink_id', $request->ref_drink_id)->first();
-            
+            $card_stocks = DrinkCardStocks::find($request->ref_lot_id);
+            $card_stocks->remain = $card_stocks->remain-$request->qty;
+            $card_stocks->save();
+
             $drink = new DrinkStockReadyForSale;
             $drink->ref_drink_id = $request->ref_drink_id;
+            $drink->ref_lot_id = $request->ref_lot_id;
             $drink->qty = $request->qty;
-            $drink->ref_lot_id = $stock_main->id;
             $drink->remain = $request->qty;
             $drink->save();
 

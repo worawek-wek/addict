@@ -341,6 +341,8 @@ Route::prefix('admin')->group(function () {
             Route::post('drink/change-status/{id}', 'change_status')->name('drink.change-status');
             Route::post('drink/update-sort/{id}', 'update_sort')->name('drink.update-sort');
             Route::get('drink_card_stock_report', 'card_stock_report')->name('drink_card_stock_report');
+            Route::get('drink_card_stock_report/get-stock/{product_id}', 'get_stock')->name('drink_card_stock_report.get-stock');
+            Route::get('drink_card_stock_report/get-stock-by-id/{stock_id}', 'get_stock_by_id')->name('drink_card_stock_report.get-stock-by-id');
             Route::get('drink_card_stock_report/datatable', 'card_stock_report_datatable')->name('drink_card_stock_report.datatable');
             Route::get('drink_card_stock_report/pdf', 'card_stock_report_pdf')->name('drink_card_stock_report.pdf');
             Route::post('drink_card_stock_report', 'card_stock_report_store')->name('drink_card_stock_report.insert');

@@ -555,17 +555,44 @@
                                     timerProgressBar: true,
                                     showConfirmButton: false
                                 }).then(() => {
+                                    const newWindow = window.open('', '_blank');
+                                    newWindow.document.write(`
+                                        <html>
+                                        <head>
+                                            <title>Print</title>
+                                        </head>
+                                        <body>
 
-                                    const doc = iframe.contentWindow.document;
-                                    doc.open();
-                                    doc.write(response.data);
-                                    doc.close();
+                                            ${response.data}
 
-                                    // รอโหลดก่อนค่อยพิมพ์
-                                    iframe.onload = function () {
-                                        iframe.contentWindow.focus();
-                                        iframe.contentWindow.print();
-                                    };
+                                            <script>
+                                                window.onload = function () {
+                                                    window.print();
+                                                };
+
+                                                window.onafterprint = function () {
+                                                    window.close();
+                                                };
+                                            <\/script>
+
+                                        </body>
+                                        </html>
+                                    `);
+
+                                    newWindow.document.close();
+
+                                    // รีเฟรชหน้าหลักทันที
+                                    location.reload();
+                                    // const doc = iframe.contentWindow.document;
+                                    // doc.open();
+                                    // doc.write(response.data);
+                                    // doc.close();
+
+                                    // // รอโหลดก่อนค่อยพิมพ์
+                                    // iframe.onload = function () {
+                                    //     iframe.contentWindow.focus();
+                                    //     iframe.contentWindow.print();
+                                    // };
                                 });
                                 // $('#addserviceModal').modal('hide');
                                 // loadData(page);

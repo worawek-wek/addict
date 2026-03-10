@@ -203,24 +203,24 @@
                         <div class="row g-3 p-4">
                             
                             <div class="col-sm-6">
-                                <label for="select2drink" class="form-label">เลือกดื่ม</label><span class="text-danger">*</span>
-                                <select onchange='loadData("{{ $page_url }}/datatable")'
-                                        name="ref_drink_id" id="select2drink"
-                                        class="select2 form-select form-select-lg p_search"
-                                        data-allow-clear="true">
-                                    <option selected disabled hidden value="">ดื่ม</option>
-                                    @foreach ($drink as $pos)
-                                        <option value="{{ $pos->id }}">{{ $pos->name }}</option>
+                                <label>เลือกสินค้า</label>
+                                <select name="ref_drink_id" id="select2Drink" class="">
+                                    <option selected disabled hidden value="">เลือกสินค้า</option>
+                                    @foreach ($drink as $dr)
+                                        <option value="{{ $dr->id }}">{{ $dr->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
 
-                            <div class="col-sm-6">
+                            <div class="col-sm-4">
+                                <label>เลือก Lot</label>
+                                <select name="ref_lot_id" id="select2Stock" class="">
+                                </select>
                             </div>
                             <div class="col-sm-6">
-                                <label for="" class="form-label">จำนวนที่เบิก</label><span class="text-danger">*</span>
-                                <input name="qty" type="number" class="form-control" placeholder="จำนวนที่เบิก"
-                                    required />
+                                <label for="" class="form-label">จำนวนที่เบิก</label><span class="text-danger">
+                                    *</span>
+                                <input name="qty" type="number" class="form-control" id="stock_qty" placeholder="จำนวนที่เบิก" required />
                             </div>
                         </div>
                     </div>
@@ -255,11 +255,6 @@
                                     </label>
                                 @endforeach
                             </div>
-                            {{-- <div class="col-sm-12"></div> --}}
-                            {{-- <div class="col-sm-6">
-                                <label for="" class="form-label">บัตรดื่ม</label><span class="text-danger"> *</span>
-                                <input name="user_code" type="password" class="form-control" placeholder="บัตรดื่ม" required />
-                            </div> --}}
                             <div class="col-sm-6">
                             </div>
                             <div class="col-sm-6">
@@ -280,16 +275,6 @@
                                 <input name="price_staff" type="text" class="form-control" placeholder="ราคาขาย"
                                     required />
                             </div>
-                            {{-- <div class="col-sm-6">
-                                <label for="" class="form-label">ต้นทุน</label><span class="text-danger">
-                                    *</span>
-                                <input name="cost" type="text" class="form-control" placeholder="ต้นทุน"
-                                    required />
-                            </div> --}}
-                            {{-- <div class="col-sm-6">
-                                <label for="" class="form-label">คงเหลือ</label><span class="text-danger"> *</span>
-                                <input name="stock" type="text" class="form-control" placeholder="คงเหลือ" required />
-                            </div> --}}
                             <script>
                                 //// ทำ input เงินเดือน เริ่ม
                                 function formatSalary() {
@@ -327,6 +312,85 @@
     <!-- / Layout wrapper -->
     @include('admin/layout/inc_js')
 <script>
+        let select2Drink = null;
+        let select2Stock = null;
+
+        select2Drink = new TomSelect("#select2Drink", {
+                        create: false,
+                        maxItems: 1,
+                        allowEmptyOption: true,
+                        sortField: { field: "text", direction: "asc" }
+                    });
+
+        select2Stock = new TomSelect("#select2Stock", {
+                        create: false,
+                        maxItems: 1,
+                        allowEmptyOption: true,
+                        sortField: { field: "text", direction: "asc" }
+                    });
+
+    $('#select2Drink').on('change', function () {
+            const drink_id = $(this).val();
+            if (drink_id) {
+            
+                document.getElementById('loadingOverlay').style.display = 'flex';
+
+            if (select2Stock) {
+                select2Stock.destroy();
+            }
+            $('#select2Stock').html('<option selected disabled hidden value="">เลือก Lot</option>');
+
+                $.ajax({
+                    url: 'admin/drink_card_stock_report/get-stock/' + drink_id,
+                    type: 'GET',
+                    success: function (data) {
+                        data.forEach(function (stock) {
+                            $('#select2Stock').append(
+                                `<option value="${stock.id}">${stock.label}</option>`
+                            );
+                        });
+
+                        select2Stock = new TomSelect("#select2Stock", {
+                            create: false,
+                            maxItems: 1,
+                            allowEmptyOption: true,
+                            sortField: { field: "text", direction: "asc" }
+                        });
+                        document.getElementById('loadingOverlay').style.display = 'none';
+                    },
+                    error: function(error) {
+                        document.getElementById('loadingOverlay').style.display = 'none';
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        console.error('เกิดข้อผิดพลาด:', error);
+                    }
+                });
+            }
+        });
+        
+        $('#select2Stock').on('change', function () {
+            var stock_id = $(this).val();
+            
+            if (stock_id) {
+            
+                document.getElementById('loadingOverlay').style.display = 'flex';
+
+                $.ajax({
+                    url: 'admin/drink_card_stock_report/get-stock-by-id/' + stock_id,
+                    type: 'GET',
+                    success: function (data) {
+
+                        $('#stock_qty').val(data.remain).attr('max', data.remain);;
+                        
+                        document.getElementById('loadingOverlay').style.display = 'none';
+                    },
+                    error: function(error) {
+                        document.getElementById('loadingOverlay').style.display = 'none';
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        console.error('เกิดข้อผิดพลาด:', error);
+                    }
+                });
+            }
+        });
 //////////////////////////////////////////////////////////////////////////////////////////////
     var page = "{{ $page_url }}/datatable";
     var searchData = {};
