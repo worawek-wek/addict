@@ -57,14 +57,21 @@
                                                     </div>
                                                 </div>
                                                 <div class="col-sm-3 mb-2">
-                                                    <div class="input-group input-group-merge">
+                                                    {{-- <div class="input-group input-group-merge">
                                                         <span class="input-group-text"><i
                                                                 class="ti ti-search"></i></span>
                                                         <input
                                                             oninput='loadData("{{ route('order-rooms.datatable') }}")'
                                                             name="search" type="text" class="form-control p_search"
                                                             placeholder="ค้นหาชื่อลูกค้า..." />
-                                                    </div>
+                                                    </div> --}}
+                                                    <select name="childselect" id="childselect" class="form-select p_search" onchange="onDateRangeChange()">
+                                                        <option value="">-- เลือกชื่อเด็ก --</option>
+                                                        @foreach ($getchild as $item)
+                                                            <option value="{{ $item->ref_user_id }}">{{ $item->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
                                                 </div>
                                             </div>
 

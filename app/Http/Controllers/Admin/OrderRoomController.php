@@ -20,6 +20,17 @@ class OrderRoomController extends Controller
 {
     public function index()
     {
+        $getchild = Order::join('users', 'orders.ref_user_id', '=', 'users.id')
+        ->select(
+            'orders.ref_user_id',
+            'users.name',
+        )
+        ->groupBy(
+            'orders.ref_user_id',
+            'users.name',
+        )
+        ->get();
+
         // โหลดหน้าแรกพร้อมข้อมูลเริ่มต้น
         $limit = request()->limit ?? 10;
         $orderRooms = $this->getOrderRooms($limit);
@@ -32,14 +43,15 @@ class OrderRoomController extends Controller
             // เห็นเฉพาะสาขาตัวเอง
             $branches = Branch::where('id', $user->ref_branch_id)->get();
         }
-        return view('admin.order-room.index', compact('orderRooms', 'branches'));
+        return view('admin.order-room.index', compact('orderRooms', 'branches', 'getchild'));
     }
 
     public function datatable(Request $request)
     {
-
         $limit = $request->limit ?? 10;
-        $orderRooms = $this->getOrderRooms($limit);
+        $childSelect = $request->childselect;
+
+        $orderRooms = $this->getOrderRooms($limit, $childSelect);
 
         $user = Auth::user();
 
@@ -48,9 +60,9 @@ class OrderRoomController extends Controller
         } else {
             $branches = Branch::where('id', $user->ref_branch_id)->get();
         }
+
         return view('admin.order-room.datatable', compact('orderRooms', 'branches'));
     }
-
     private function getOrderRooms($limit)
     {
         $now = Carbon::now()->format('Y-m-d H:i:s');
@@ -317,7 +329,7 @@ class OrderRoomController extends Controller
             'sales_cheer_charge' => $price_options_sales
         ]);
     }
-    
+
     public function destroy($id)
     {
         try {

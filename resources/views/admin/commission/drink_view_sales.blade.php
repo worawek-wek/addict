@@ -163,11 +163,11 @@
         });
         // alert(page);
     }
-    
+
     function printPdf(){
 
         var searchData = {};
-        
+
         $('.p_search').each(function() {
             var inputName = $(this).attr('name');
             var inputValue = $(this).val();
@@ -178,11 +178,11 @@
         let queryString = $.param(searchData);
 
         window.open(
-            '/admin/commission/view-sales/pdf?' + queryString,
+            '/admin/commission/drink-view-sales/pdf?' + queryString,
             '_blank'
         );
     }
-    
+
     $('.search_date').datepicker({
         format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
         autoclose: true,      // ปิด datepicker เมื่อเลือกวันที่
