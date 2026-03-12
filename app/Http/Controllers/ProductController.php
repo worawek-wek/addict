@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\ProductType;
 use App\Models\StockReadyForSale;
 use App\Models\CardStocks;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 use Carbon\Carbon;
+use Exception;
 
 DB::beginTransaction();
 
@@ -27,7 +29,8 @@ class ProductController extends Controller
         $data['page_url'] = 'admin/product';
         $data['page'] = 'สินค้า';
         $user = Auth::user();
-        $data['product'] = Product::orderBy('name')->get();
+        $data['product'] = Product::with('producttype')->get();
+        $data['producttype'] = ProductType::all();
 
         if ($user->work_status == 3) {
             // super admin เห็นทุก branch
@@ -134,7 +137,7 @@ class ProductController extends Controller
             // filter เฉพาะสาขาของตัวเอง
             $results = $results->where('products.ref_branch_id', $user->ref_branch_id);
         }
-        
+
         if (@$request->created_at) {
             $created_at = Carbon::createFromFormat('d/m/Y', $request->created_at)->format('Y-m-d');
             $results = $results->WhereDate('card_stocks.created_at', $created_at);
@@ -206,7 +209,7 @@ class ProductController extends Controller
 
                                 });
         }
-        
+
         $data['list_data'] = $results->get();
 
         $html = view('admin/product/card_stock_report_pdf', $data)->render();
@@ -328,7 +331,7 @@ class ProductController extends Controller
             $card_stocks->remain = $card_stocks->remain + abs($card_stocks->quantity - $request->quantity);
         }
         try {
-            
+
             $card_stocks->ref_product_id = $request->ref_product_id;
             $card_stocks->type = 1;
             $card_stocks->label = $request->label;
@@ -378,7 +381,7 @@ class ProductController extends Controller
         }        // $data['title'] = 'Profile';
         return view('admin/product/view', $data);
     }
-    
+
     public function card_stock_report_edit($id)
     {
 
@@ -447,4 +450,94 @@ class ProductController extends Controller
         }
         //
     }
+
+    // ==========================================
+    // ระบบจัดการประเภทสินค้า (Product Type CRUD)
+    // ==========================================
+    public function getAllProductTypes()
+    {
+        $productTypes = ProductType::orderBy('id', 'desc')->get();
+        return response()->json($productTypes);
+    }
+
+    public function storeProductType(Request $request)
+    {
+        // 1. เช็คก่อนว่ามีค่า name ส่งมาหรือไม่
+        if (empty($request->name)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'ไม่มีชื่อประเภทสินค้าส่งมา'
+            ], 400);
+        }
+
+        try {
+            $save = [
+                'name'       => $request->name,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ];
+
+            $inserted = DB::table('product_type')->insert($save);
+            if (!$inserted) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'คำสั่ง Insert คืนค่า False (บันทึกไม่ลงโดยไม่ทราบสาเหตุ)'
+                ], 500);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'เพิ่มประเภทสินค้าสำเร็จ'
+            ]);
+
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Database Error: ' . $e->getMessage()
+            ], 500);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'System Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    public function updateProductType(Request $request, $id)
+    {
+        try {
+            $productType = ProductType::findOrFail($id);
+            $productType->update([
+                'name' => $request->name
+            ]);
+
+            return response()->json(['status' => true, 'message' => 'แก้ไขประเภทสินค้าสำเร็จ']);
+        } catch (Exception $e) {
+            Log::error('Update Product Type Error: ' . $e->getMessage());
+            return response()->json(['status' => false, 'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteProductType($id)
+    {
+        try {
+            $productType = ProductType::findOrFail($id);
+            $productCount = Product::where('type_id', $id)->count();
+
+            if ($productCount > 0) {
+                return response()->json([
+                    'status' => false,
+                    'message' => "ไม่สามารถลบได้ เนื่องจากมีสินค้าใช้หมวดหมู่นี้อยู่จำนวน {$productCount} รายการ"
+                ], 400);
+            }
+
+            $productType->delete();
+
+            return response()->json(['status' => true, 'message' => 'ลบหมวดหมู่สำเร็จ']);
+        } catch (Exception $e) {
+            Log::error('Delete Product Type Error: ' . $e->getMessage());
+            return response()->json(['status' => false, 'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()], 500);
+        }
+    }
+
 }

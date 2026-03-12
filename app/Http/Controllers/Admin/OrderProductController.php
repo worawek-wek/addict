@@ -193,29 +193,37 @@ class OrderProductController extends Controller
             $date_before = date('d/m/Y', strtotime($DailySalesClosure->date_time)) . " 00:00:00";
         }
 
-        $product_emplaoy = OrderHasProduct::whereHas('order', function ($query) use ($DailySalesClosure) {
-            $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
-                ->where('customer_type', 1)
-                ->where('ref_account_id', Auth::id());
-        })
-            ->groupBy('ref_product_id')
+        $product_employee = OrderHasProduct::join('products', 'order_has_products.ref_product_id', '=', 'products.id')
+            ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id') // Join เพื่อดึงชื่อประเภท
+            ->whereHas('order', function ($query) use ($DailySalesClosure) {
+                $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
+                      ->where('customer_type', 1)
+                      ->where('ref_account_id', Auth::id());
+            })
+            ->groupBy('products.type_id', 'product_type.name')
             ->select(
-                'ref_product_id',
-                DB::raw('SUM(quantity) as total_qty'),
-                DB::raw('SUM(price * quantity) as total_price')
+                'products.type_id',
+                'product_type.name as type_name',
+                DB::raw('SUM(order_has_products.quantity) as total_qty'),
+                DB::raw('SUM(order_has_products.price * order_has_products.quantity) as total_price'),
+                DB::raw('SUM(order_has_products.cost * order_has_products.quantity) as total_cost')
             );
-        $data['product_employee'] = $product_emplaoy->get();
+        $data['product_employee'] = $product_employee->get();
 
-        $product_customer = OrderHasProduct::whereHas('order', function ($query) use ($DailySalesClosure) {
-            $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
-                ->where('customer_type', 2)
-                ->where('ref_account_id', Auth::id());
-        })
-            ->groupBy('ref_product_id')
+        $product_customer = OrderHasProduct::join('products', 'order_has_products.ref_product_id', '=', 'products.id')
+            ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id')
+            ->whereHas('order', function ($query) use ($DailySalesClosure) {
+                $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
+                      ->where('customer_type', 2)
+                      ->where('ref_account_id', Auth::id());
+            })
+            ->groupBy('products.type_id', 'product_type.name')
             ->select(
-                'ref_product_id',
-                DB::raw('SUM(quantity) as total_qty'),
-                DB::raw('SUM(price * quantity) as total_price')
+                'products.type_id',
+                'product_type.name as type_name',
+                DB::raw('SUM(order_has_products.quantity) as total_qty'),
+                DB::raw('SUM(order_has_products.price * order_has_products.quantity) as total_price'),
+                DB::raw('SUM(order_has_products.cost * order_has_products.quantity) as total_cost')
             );
         $data['product_customer'] = $product_customer->get();
 
@@ -234,8 +242,9 @@ class OrderProductController extends Controller
                 DB::raw('SUM(order_has_products.price * order_has_products.quantity) as total_price')
             );
         $data['payment_channel'] = $payment_channel->get();
-        // ->orderBy('booking_date')
-        // ->orderBy('start_time');
+
+            // ->orderBy('booking_date')
+            // ->orderBy('start_time');
 
         // // ✅ filter เฉพาะสาขาของ user ที่ login
         // $userBranchId = Auth::user()->ref_branch_id ?? null;
@@ -305,11 +314,11 @@ class OrderProductController extends Controller
         $dsc_insert->save();
 
         Order::where('ref_daily_sales_closure_id')
-            ->where('ref_account_id', Auth::id())
-            ->where('type', 2)
-            ->whereNull('ref_daily_sales_closure_id')
-            ->where('payment_status', 1)
-            ->update(["ref_daily_sales_closure_id" => $dsc_insert->id]);
+                ->where('ref_account_id', Auth::id())
+                ->where('type', 2)
+                ->whereNull('ref_daily_sales_closure_id')
+                ->where('payment_status', 1)
+                ->update(["ref_daily_sales_closure_id" => $dsc_insert->id]);
 
         return response()->json([
             'success' => true,

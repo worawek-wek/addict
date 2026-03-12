@@ -41,4 +41,10 @@ class Product extends Model
     {
         return $this->cardStocks()->sum('remain');
     }
+
+    public function producttype()
+    {
+        return $this->hasOne(ProductType::class, 'id', 'type_id');
+    }
+
 }

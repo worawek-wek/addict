@@ -76,6 +76,11 @@
                                                 <span>{{ $product->name }}</span>
                                             </li>
                                             <li class="d-flex align-items-center mb-3">
+                                                <i class="ti ti-garden-cart text-heading"></i><span
+                                                    class="fw-medium mx-2 me-4 text-heading">ประเภทสินค้า:</span>
+                                                <span>{{ $product->producttype->name }}</span>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-3">
                                                 <i class="ti ti-user text-heading"></i><span
                                                     class="fw-medium mx-2 me-4 text-heading">ราคาขาย(ลูกค้า):</span>
                                                 <span>{{ $product->price }}</span>
@@ -126,6 +131,10 @@
                                             @endforeach
                                         </div>
                                         <div class="col-sm-6">
+                                            <label for="" class="form-label">ประเภทสินค้า</label><span class="text-danger">
+                                                *</span>
+                                                <input  type="text" class="form-control"
+                                                placeholder="ประเภทสินค้า" value="{{ $product->producttype->name }}" disabled>
                                         </div>
                                         <div class="col-sm-6">
                                             <label for="" class="form-label">ชื่อสินค้า</label><span

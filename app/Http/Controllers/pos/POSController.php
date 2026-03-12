@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\OrderHasAddonOption;
 use App\Models\OrderHasProduct;
 use App\Models\Product;
+use App\Models\ProductType;
 use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\RoomTypeHasCourse;
@@ -89,7 +90,7 @@ class POSController extends Controller
             $data['product_id'] = $product_id;
         }
         $branchId = Auth::user()->ref_branch_id ?? null;
-        $data['products'] = Product::with('latestStock')
+        $data['products'] = Product::with('latestStock', 'producttype')
                                     ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
                                     ->where('ref_status_id', 1)
                                     ->orderBy('name')
@@ -478,53 +479,62 @@ class POSController extends Controller
         // // ------------------------------------
 
 
-        // --- โค้ดส่วนที่เหลือของคุณ (ทำงานกับตัวแปร $order ที่ได้มา) ---
-        $list_product = "";
+        $customerType = $request->input('customer_type', 2);
+        $grouped_products = [];
+
         foreach ($request->qty as $id => $q) {
             if($q == 0){
                 continue;
             }
-            $customerType = $request->input('customer_type', 2); // default = 2
 
             $product = Product::find($id);
+            if(!$product) continue;
 
-            $price = $customerType == 1
-                ? $product->price_staff
-                : $product->price;
+            $price = $customerType == 1 ? $product->price_staff : $product->price;
 
-            // if(@$request->input('customer_type') == 1){
-            //     $price = Product::find($id)->price_staff;
-            // }else{
-            //     $price = Product::find($id)->price;
-            // }
-            // 1) บันทึกสินค้าใน order_has_products
-
-            // 2) ลด stock
             $stock = StockReadyForSale::where('ref_product_id', $id)
                 ->where('remain', '!=', 0)
                 ->first();
 
-            $main_stock = CardStocks::find($stock->ref_lot_id);
-            $product_cost = $main_stock->cost_price/$main_stock->quantity;
+            $product_cost = 0;
+            if ($stock) {
+                $main_stock = CardStocks::find($stock->ref_lot_id);
+                if ($main_stock && $main_stock->quantity > 0) {
+                    $product_cost = $main_stock->cost_price / $main_stock->quantity;
+                }
+
+                $newRemain = max(0, $stock->remain - $q);
+                $stock->remain = $newRemain;
+                $stock->save();
+            }
 
             $order->products()->create([
                 'ref_product_id' => $id,
                 'price'          => $price,
                 'quantity'       => $q,
-                'cost'       => $product_cost,
+                'cost'           => $product_cost,
             ]);
 
-            if ($stock) {
-                $newRemain = max(0, $stock->remain - $q);
-                $stock->remain = $newRemain;
-                $stock->save();
+            $type = \App\Models\ProductType::find($product->type_id);
+            $typeName = $type ? $type->name : 'อื่นๆ / ไม่ระบุประเภท';
+
+            $grouped_products[$typeName][] = '<tr>
+                <td>'.$product->name.'</td>
+                <td class="text-center">'.$q.'</td>
+                <td class="text-right">'.number_format($price, 2).'</td>
+                <td class="text-right">'.number_format($price * $q, 2).'</td>
+            </tr>';
+        }
+
+        $list_product = "";
+        foreach ($grouped_products as $typeName => $rows) {
+            $list_product .= '<tr class="table-active" style="background-color: #f3f4f6;">
+                <td colspan="4"><strong>'.$typeName.'</strong></td>
+            </tr>';
+
+            foreach ($rows as $row) {
+                $list_product .= $row;
             }
-            $list_product .= '<tr>
-                                <td>'.$product->name.'</td>
-                                <td>'.$q.'</td>
-                                <td>'.$price.'</td>
-                                <td>'.$price*$q.'</td>
-                            </tr>';
         }
 
         // 3) คำนวณยอดรวม
@@ -543,61 +553,69 @@ class POSController extends Controller
         $qr = QrCode::size(150)->generate(url("admin/order-rooms/$order->id"));
 
             $slip = "<!DOCTYPE html>
-                        <html lang='th'>
-                        <head>
-                            <meta charset='UTF-8'>
-                            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-                            <title>รายละเอียดการจอง</title>
-                            <style>
-                                body { font-family: Arial, sans-serif; font-size: 11px; }
-                                .invoice { width: 69mm; font-size: 11px;padding: 20px; }
-                                .header { display: flex; justify-content: space-between; align-items: end; font-weight: bold; font-size: 10px; }
-                                .title { flex-grow: 1; text-align: center; font-size: 11px; }
-                                .right-align { text-align: right; }
-                                table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 11px; border-top: 1px solid #000; }
-                                th, td { padding: 2px; text-align: left; font-size: 11px; }
-                                th { border-bottom: 1px solid #000; }
-                                td { border-bottom: 1px solid #000; }
+                <html lang='th'>
+                <head>
+                    <meta charset='UTF-8'>
+                    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                    <title>รายละเอียดการจอง</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; font-size: 11px; margin: 0; padding: 0; }
+                        .invoice { width: 69mm; font-size: 11px; padding: 10px; box-sizing: border-box; }
+                        .header { display: flex; justify-content: space-between; align-items: end; font-weight: bold; font-size: 10px; margin-bottom: 5px; }
+                        .title { flex-grow: 1; text-align: center; font-size: 11px; }
+                        .right-align { text-align: right; }
+                        .info-text { margin: 2px 0; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 11px; border-top: 1px dashed #000; border-bottom: 1px dashed #000; }
+                        th, td { padding: 3px 2px; text-align: left; font-size: 11px; }
+                        th { border-bottom: 1px dashed #000; }
 
-                                @media print {
-                                    @page {
-                                        size: 69mm auto;
-                                        margin: 0;
-                                    }
+                        .category-header { background-color: #f0f0f0; font-weight: bold; font-style: italic; border-bottom: 1px dotted #ccc; }
 
-                                    body {
-                                        width: 69mm;
-                                        margin: 0;
-                                    }
+                        .text-right { text-align: right; }
+                        .text-center { text-align: center; }
 
-                                    .invoice {
-                                        width: 69mm;
-                                    }
-                                }
-                            </style>
+                        @media print {
+                            @page {
+                                size: 69mm auto;
+                                margin: 0;
+                            }
+                            body {
+                                width: 69mm;
+                                margin: 0;
+                            }
+                            .invoice {
+                                width: 69mm;
+                                padding: 5px;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class='invoice'>
+                        <div class='header' align='right'>
+                            <span class='title'>ใบแจ้งหนี้ชั่วคราว</span>
+                            <span class='right-align'>No_: " . $order->order_number . "</span>
+                        </div>
+                        <p class='right-align info-text'><strong>แคชเชียร์:</strong> Addict</p>
+                        <p class='info-text'><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date('Y-m-d', strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
 
-                        </head>
-                        <body>
-                            <div class='invoice'>
-                                <div class='header' align='right'>
-                                    <span class='title'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  ใบแจ้งหนี้ชั่วคราว </span>
-                                    <span class='right-align'>No_: $order->order_number</span>
-                                </div>
-                                <p class='right-align'><strong>แคชเชียร์:</strong> Addict</p>
-                                <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>รายการสินค้า</th>
+                                    <th class='text-center'>จำนวน</th>
+                                    <th class='text-right'>@ ราคา</th>
+                                    <th class='text-right'>รวม</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                " . $list_product . "
+                            </tbody>
+                        </table>
 
-                                <table>
-                                    <tr>
-                                        <th>รายการสินค้า</th>
-                                        <th>จำนวน</th>
-                                        <th>@ ราคา</th>
-                                        <th>รวม</th>
-                                    </tr>".$list_product."
-                                </table>
-                            </div>
-                        </body>
-                    </html>
-                    ";
+                        </div>
+                </body>
+                </html>";
             return response()->json([
                                         'status' => true,
                                         'data' => $slip
