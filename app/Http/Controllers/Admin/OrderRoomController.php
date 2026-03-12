@@ -21,6 +21,7 @@ class OrderRoomController extends Controller
     public function index()
     {
         $getchild = Order::join('users', 'orders.ref_user_id', '=', 'users.id')
+        ->where('orders.type', 1)
         ->select(
             'orders.ref_user_id',
             'users.name',
@@ -63,7 +64,7 @@ class OrderRoomController extends Controller
 
         return view('admin.order-room.datatable', compact('orderRooms', 'branches'));
     }
-    private function getOrderRooms($limit)
+    private function getOrderRooms($limit, $childSelect = null)
     {
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
@@ -82,6 +83,10 @@ class OrderRoomController extends Controller
         // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
         if (request()->filled('branch_id')) {
             $query->where('ref_branch_id', request()->branch_id);
+        }
+
+        if (!empty($childSelect)) {
+            $query->where('ref_user_id', $childSelect);
         }
 
         $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
