@@ -8,10 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class ProductType extends Model
 {
     protected $fillable = [
-        'name',
+        'name'
     ];
 
-    public $timestamps = true;
+    public $timestamps = false;
     protected $primaryKey = 'id';
     protected $table = 'product_type';
 

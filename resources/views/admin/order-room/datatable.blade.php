@@ -4,6 +4,7 @@
             <th>#</th>
             <th>สาขา</th>
             <th>ลูกค้า</th>
+            <th>ชื่อเด็ก</th>
             <th>ห้อง</th>
             <th>วันที่จอง</th>
             <th>เวลาเช็คอิน</th>
@@ -18,6 +19,7 @@
                 <td>{{ $loop->iteration + (($orderRooms->currentPage() - 1) * $orderRooms->perPage()) }}</td>
                 <td>{{ $order->branch->name ?? '-' }}</td>
                 <td>{{ $order->customer->name ?? '-' }}</td>
+                <td>{{ $order->user->name ?? '-' }}</td>
                 <td>{{ $order->room->name ?? '-' }}</td>
                 <td>{{ $order->booking_date }}</td>
                 <td>{{ $order->start_time }}</td>

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 use Carbon\Carbon;
+use Exception;
 
 DB::beginTransaction();
 
@@ -449,4 +450,94 @@ class ProductController extends Controller
         }
         //
     }
+
+    // ==========================================
+    // ระบบจัดการประเภทสินค้า (Product Type CRUD)
+    // ==========================================
+    public function getAllProductTypes()
+    {
+        $productTypes = ProductType::orderBy('id', 'desc')->get();
+        return response()->json($productTypes);
+    }
+
+    public function storeProductType(Request $request)
+    {
+        // 1. เช็คก่อนว่ามีค่า name ส่งมาหรือไม่
+        if (empty($request->name)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'ไม่มีชื่อประเภทสินค้าส่งมา'
+            ], 400);
+        }
+
+        try {
+            $save = [
+                'name'       => $request->name,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ];
+
+            $inserted = DB::table('product_type')->insert($save);
+            if (!$inserted) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'คำสั่ง Insert คืนค่า False (บันทึกไม่ลงโดยไม่ทราบสาเหตุ)'
+                ], 500);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'เพิ่มประเภทสินค้าสำเร็จ'
+            ]);
+
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Database Error: ' . $e->getMessage()
+            ], 500);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'System Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    public function updateProductType(Request $request, $id)
+    {
+        try {
+            $productType = ProductType::findOrFail($id);
+            $productType->update([
+                'name' => $request->name
+            ]);
+
+            return response()->json(['status' => true, 'message' => 'แก้ไขประเภทสินค้าสำเร็จ']);
+        } catch (Exception $e) {
+            Log::error('Update Product Type Error: ' . $e->getMessage());
+            return response()->json(['status' => false, 'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteProductType($id)
+    {
+        try {
+            $productType = ProductType::findOrFail($id);
+            $productCount = Product::where('type_id', $id)->count();
+
+            if ($productCount > 0) {
+                return response()->json([
+                    'status' => false,
+                    'message' => "ไม่สามารถลบได้ เนื่องจากมีสินค้าใช้หมวดหมู่นี้อยู่จำนวน {$productCount} รายการ"
+                ], 400);
+            }
+
+            $productType->delete();
+
+            return response()->json(['status' => true, 'message' => 'ลบหมวดหมู่สำเร็จ']);
+        } catch (Exception $e) {
+            Log::error('Delete Product Type Error: ' . $e->getMessage());
+            return response()->json(['status' => false, 'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()], 500);
+        }
+    }
+
 }

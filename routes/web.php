@@ -193,11 +193,11 @@ Route::prefix('admin')->group(function () {
         Route::put('commission/{id}', 'update')->name('commission.update');
         Route::delete('commission/{id}', 'destroy')->name('commission.destroy');
         Route::get('commission/view-massage', 'view_massage')->name('commission.view_massage');
-        
+
         Route::get('commission/view-sales', 'view_sales')->name('commission.view_sales');
         Route::get('commission/view-sales/datatable', 'view_sales_datatable')->name('commission.view_sales_datatable');
         Route::get('commission/view-sales/pdf', 'view_sales_pdf')->name('commission.view-sales-pdf');
-        
+
         Route::get('commission/drink-view-sales', 'drink_view_sales')->name('commission.drink_view_sales');
         Route::get('commission/drink-view-sales/datatable', 'drink_view_sales_datatable')->name('commission.drink_view_sales_datatable');
         Route::get('commission/drink-view-sales/pdf', 'drink_view_sales_pdf')->name('commission.drink-view-sales-pdf');
@@ -333,8 +333,13 @@ Route::prefix('admin')->group(function () {
             Route::get('product/{id}', 'edit')->name('product');
             Route::post('product/{id}', 'update')->name('product.update');
             Route::delete('product/{id}', 'destroy')->name('user.destroy');
+
+            Route::get('product-type/get-all', 'getAllProductTypes');
+            Route::post('product-type/store', 'storeProductType');
+            Route::post('product-type/update/{id}', 'updateProductType');
+            Route::delete('product-type/delete/{id}', 'deleteProductType');
         });
-        
+
         Route::controller(DrinkController::class)->group(function () {
             Route::get('drink', 'index')->name('drink');
             Route::get('drink/datatable', 'datatable')->name('drink.datatable');
@@ -419,6 +424,8 @@ Route::prefix('admin')->group(function () {
         Route::get('logout', [AuthController::class, 'logout'])->name('logout');
     });
 });
+
+
 
 Route::get('change_date_format/{date}', [UserController::class, 'ChangeDateFormat'])->name('change_date_format');
 Route::get('admin/commission/order-detail/{orderId}', [CommissionController::class, 'orderDetailAjax']);

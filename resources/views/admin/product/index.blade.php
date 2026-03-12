@@ -145,6 +145,14 @@
                                                             data-bs-toggle="modal" data-bs-target="#addserviceModal">
                                                             <span><i class="ti ti-plus"></i> เพิ่มสินค้า</span>
                                                         </button>
+                                                        <button style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
+                                                            class="btn buttons-collection btn-primary waves-effect waves-light"
+                                                            type="button"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#manageProductTypeModal"
+                                                            onclick="loadProductTypes()">
+                                                            <span><i class="ti ti-settings"></i> ประเภทสินค้า</span>
+                                                        </button>
                                                     </div>
                                                 </div>
                                                 <div class="card-body px-0 pt-0">
@@ -315,6 +323,44 @@
         </div>
     </div>
 
+    <div class="modal fade modalHeadDecor" id="manageProductTypeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content rounded-0">
+                <div class="modal-header rounded-0">
+                    <h5 class="modal-title" id="exampleModalLabelType">&nbsp;จัดการประเภทสินค้า</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+
+                    <form id="formAddProductType" class="mb-4 d-flex gap-2">
+                        <input type="text" id="new_type_name" class="form-control" placeholder="กรอกชื่อประเภทสินค้าใหม่ที่นี่..." required>
+                        <button type="submit" class="btn btn-success text-nowrap"><i class="ti ti-plus"></i> เพิ่ม</button>
+                    </form>
+
+                    <hr>
+
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="15%" class="text-center">ลำดับ</th>
+                                    <th>ชื่อประเภทสินค้า</th>
+                                    <th width="25%" class="text-center">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productTypeTableBody">
+                                <tr><td colspan="3" class="text-center">กำลังโหลดข้อมูล...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+                <div class="modal-footer rounded-0 justify-content-center">
+                    <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!--set rent Modal -->
 
     <!-- / Layout wrapper -->
@@ -639,6 +685,146 @@
     $('#select2Position1').select2();
     // $('#select2Product').select2({ dropdownParent: $('.card-body') });
     // $('#select2Stock').select2({ dropdownParent: $('.card-body') });
+
+    // ==========================================
+    // ระบบจัดการประเภทสินค้า (Product Type CRUD)
+    // ==========================================
+
+    function loadProductTypes() {
+        $('#productTypeTableBody').html('<tr><td colspan="3" class="text-center"><i class="ti ti-loader ti-spin"></i> กำลังโหลด...</td></tr>');
+
+        $.ajax({
+            url: '/admin/product-type/get-all',
+            type: 'GET',
+            success: function(response) {
+                let html = '';
+                if(response.length > 0) {
+                    response.forEach((item, index) => {
+                        html += `
+                            <tr>
+                                <td class="text-center">${index + 1}</td>
+                                <td>${item.name}</td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-icon btn-warning waves-effect" onclick="editProductType(${item.id}, '${item.name}')" title="แก้ไข">
+                                        <i class="ti ti-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-icon btn-danger waves-effect" onclick="deleteProductType(${item.id})" title="ลบ">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    html = '<tr><td colspan="3" class="text-center text-muted">ยังไม่มีข้อมูลประเภทสินค้า</td></tr>';
+                }
+                $('#productTypeTableBody').html(html);
+            },
+            error: function(error) {
+                $('#productTypeTableBody').html('<tr><td colspan="3" class="text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>');
+            }
+        });
+    }
+
+    $('#formAddProductType').on('submit', function(event) {
+        event.preventDefault();
+        let typeName = $('#new_type_name').val();
+
+        $.ajax({
+            url: '/admin/product-type/store',
+            type: 'POST',
+            data: {
+                _token: "{{ csrf_token() }}",
+                name: typeName
+            },
+            success: function(response) {
+                if (response.status == true || response == true) {
+                    $('#new_type_name').val('');
+                    Swal.fire({
+                        title: 'เพิ่มสำเร็จ',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    loadProductTypes();
+                }
+            },
+            error: function(error) {
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเพิ่มข้อมูลได้', 'error');
+            }
+        });
+    });
+
+    function editProductType(id, oldName) {
+        Swal.fire({
+            title: 'แก้ไขประเภทสินค้า',
+            input: 'text',
+            inputValue: oldName,
+            showCancelButton: true,
+            confirmButtonText: 'บันทึก',
+            cancelButtonText: 'ยกเลิก',
+            inputValidator: (value) => {
+                if (!value) { return 'กรุณากรอกชื่อประเภทสินค้า!'; }
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value !== oldName) {
+                $.ajax({
+                    url: '/admin/product-type/update/' + id,
+                    type: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        name: result.value
+                    },
+                    success: function(response) {
+                        Swal.fire({
+                            title: 'แก้ไขสำเร็จ',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        loadProductTypes();
+                    },
+                    error: function() {
+                        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถแก้ไขข้อมูลได้', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    function deleteProductType(id) {
+        Swal.fire({
+            title: 'ยืนยันการลบ?',
+            text: "หากลบแล้วจะไม่สามารถกู้คืนได้!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#8592a3',
+            confirmButtonText: 'ใช่, ลบเลย!',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/admin/product-type/delete/' + id,
+                    type: 'DELETE',
+                    data: { _token: "{{ csrf_token() }}" },
+                    success: function(response) {
+                        Swal.fire({
+                            title: 'ลบข้อมูลแล้ว',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        loadProductTypes(); // โหลดตารางใหม่
+                    },
+                    error: function() {
+                        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถลบข้อมูลได้ (อาจมีสินค้าผูกอยู่)', 'error');
+                    }
+                });
+            }
+        });
+    }
+
 
 </script>
 </body>
