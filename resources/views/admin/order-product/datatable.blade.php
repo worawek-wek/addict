@@ -27,7 +27,7 @@
         background: #f8f9fa;
     }
 
-    .payment-card input:checked + .card-content {
+    .payment-card input:checked+.card-content {
         font-weight: bold;
         color: #7066e0;
     }
@@ -52,24 +52,47 @@
     <tbody>
         @foreach ($orderProducts as $order)
             <tr>
-                <td class="text-center">{{ $loop->iteration + (($orderProducts->currentPage() - 1) * $orderProducts->perPage()) }}</td>
+                <td class="text-center">
+                    {{ $loop->iteration + ($orderProducts->currentPage() - 1) * $orderProducts->perPage() }}</td>
                 <td class="text-center">{{ $order->order_number ?? '-' }}</td>
                 <td class="text-center">{{ $order->branch->name ?? '-' }}</td>
                 <td class="text-center">{{ $order->seller->nickname ?? '-' }}</td>
                 <td class="text-center">{{ $order->total_price }}</td>
-                <td class="text-center">@if($order->payment_status == 3) <span class="badge bg-danger">ยกเลิกคำสั่งซื้อ</span>  @elseif($order->payment_status == 0) <span class="badge bg-warning">ยังไม่ชำระเงิน</span> @else <span class="badge bg-success">ชำระเงินแล้ว</span> @endif </td>
+                <td class="text-center">
+                    @if ($order->payment_status == 3)
+                        <span class="badge bg-danger">ยกเลิกคำสั่งซื้อ</span>
+                    @elseif($order->payment_status == 0)
+                        <span class="badge bg-warning">ยังไม่ชำระเงิน</span>
+                    @else
+                        <span class="badge bg-success">ชำระเงินแล้ว</span>
+                    @endif
+                </td>
                 <td class="text-center">
                     <div class="dropdown">
-                        <button class="btn btn-info btn-sm dropdown-toggle" type="button" id="actionDropdown{{ $order->id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button class="btn btn-info btn-sm dropdown-toggle" type="button"
+                            id="actionDropdown{{ $order->id }}" data-bs-toggle="dropdown" aria-expanded="false">
                             จัดการ
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="actionDropdown{{ $order->id }}">
-                            <li><a class="dropdown-item" href="#" onclick="view({{ $order->id }}); return false;">ดู</a></li>
-                            <li><a class="dropdown-item text-danger" href="#" onclick="cancelOrder({{ $order->id }}); return false;">ยกเลิกคำสั่งซื้อ</a></li>
-                            @if ($order->payment_status == 0)
-                                <li><a class="dropdown-item text-success" href="#" onclick="confirmOrder({{ $order->id }}); return false;">ยืนยันชำระเงิน</a></li>
-                                <li><a class="dropdown-item text-danger" href="#" onclick="cancelOrder({{ $order->id }}); return false;">ยกเลิกคำสั่งซื้อ</a></li>
+                            <li><a class="dropdown-item" href="#"
+                                    onclick="view({{ $order->id }}); return false;">ดู</a></li>
+                            @if ($order->payment_status != 3)
+                                <li><a class="dropdown-item text-primary" href="#"
+                                        onclick="printReceipt({{ $order->id }}); return false;">ปริ้นใบเสร็จ</a>
+                                </li>
                             @endif
+                            @if ($order->payment_status == 0)
+                                <li><a class="dropdown-item text-success" href="#"
+                                        onclick="confirmOrder({{ $order->id }}); return false;">ยืนยันชำระเงิน</a>
+                                </li>
+                                <li><a class="dropdown-item text-warning" href="#"
+                                        onclick="editOrder({{ $order->id }}); return false;">แก้ไขคำสั่งซื้อ</a>
+                                </li>
+                                <li><a class="dropdown-item text-danger" href="#"
+                                        onclick="cancelOrder({{ $order->id }}); return false;">ยกเลิกคำสั่งซื้อ</a>
+                                </li>
+                            @endif
+
                         </ul>
                     </div>
                 </td>
@@ -85,11 +108,11 @@
 </table>
 
 <script>
-function confirmOrder(orderId) {
-    Swal.fire({
-        title: 'เลือกช่องทางการชำระเงิน',
-        icon: 'question',
-        html: `
+    function confirmOrder(orderId) {
+        Swal.fire({
+            title: 'เลือกช่องทางการชำระเงิน',
+            icon: 'question',
+            html: `
             <div class="payment-wrapper">
                 <label class="payment-card">
                     <input type="radio" name="payment_channel" value="cash" checked>
@@ -124,74 +147,103 @@ function confirmOrder(orderId) {
                 </label>
             </div>
         `,
-        showCancelButton: true,
-        confirmButtonText: 'ยืนยันการชำระเงิน',
-        cancelButtonText: 'ยกเลิก',
-        focusConfirm: false,
-        preConfirm: () => {
-            const selected = document.querySelector('input[name="payment_channel"]:checked');
-            if (!selected) {
-                Swal.showValidationMessage('กรุณาเลือกช่องทางการชำระเงิน');
-                return false;
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยันการชำระเงิน',
+            cancelButtonText: 'ยกเลิก',
+            focusConfirm: false,
+            preConfirm: () => {
+                const selected = document.querySelector('input[name="payment_channel"]:checked');
+                if (!selected) {
+                    Swal.showValidationMessage('กรุณาเลือกช่องทางการชำระเงิน');
+                    return false;
+                }
+                return selected.value;
             }
-            return selected.value;
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
+        }).then((result) => {
+            if (result.isConfirmed) {
 
-            fetch(`/admin/order-products/${orderId}/confirm-payment`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    status_id: 1,
-                    payment_channel: result.value
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire('สำเร็จ!', 'ชำระเงินเรียบร้อย', 'success')
-                        .then(() => loadData(page));
-                }
-            });
-        }
-    });
-}
-function cancelOrder(orderId) {
-    Swal.fire({
-        title: 'ยืนยันการยกเลิกคำสั่งซื้อ?',
-        text: 'คุณต้องการยกเลิกคำสั่งซื้อนี้หรือไม่',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'ใช่, ยกเลิกคำสั่งซื้อ',
-        cancelButtonText: 'ไม่ยกเลิก'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(`/admin/order-products/${orderId}/status`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ status_id: 3, ref_status_id: 4 })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire('สำเร็จ!', 'ยกเลิกคำสั่งซื้อเรียบร้อย', 'success');
-                        loadData(page)
-                } else {
-                    Swal.fire('ผิดพลาด!', data.message || 'ไม่สามารถยกเลิกคำสั่งซื้อได้', 'error');
-                }
-            });
-        }
-    });
-}
+                fetch(`/admin/order-products/${orderId}/confirm-payment`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            status_id: 1,
+                            payment_channel: result.value
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire('สำเร็จ!', 'ชำระเงินเรียบร้อย', 'success')
+                                .then(() => {
+                                    loadData(page);
+                                    printReceipt(orderId);
+                                });
+                        }
+                    });
+            }
+        });
+    }
+
+    function cancelOrder(orderId) {
+        Swal.fire({
+            title: 'ยืนยันการยกเลิกคำสั่งซื้อ?',
+            text: 'คุณต้องการยกเลิกคำสั่งซื้อนี้หรือไม่',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'ใช่, ยกเลิกคำสั่งซื้อ',
+            cancelButtonText: 'ไม่ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/admin/order-products/${orderId}/status`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            status_id: 3,
+                            ref_status_id: 4
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire('สำเร็จ!', 'ยกเลิกคำสั่งซื้อเรียบร้อย', 'success');
+                            loadData(page)
+                        } else {
+                            Swal.fire('ผิดพลาด!', data.message || 'ไม่สามารถยกเลิกคำสั่งซื้อได้', 'error');
+                        }
+                    });
+            }
+        });
+    }
+
+
+    const editOrder = (orderId) => {
+        window.location.href = `/admin/order-products/edit/${orderId}`;
+    }
+
+    function printReceipt(orderId) {
+        // remove any previous iframe
+        const old = document.getElementById('slip-print-frame');
+        if (old) old.remove();
+
+        const iframe = document.createElement('iframe');
+        iframe.id  = 'slip-print-frame';
+        iframe.src = `/admin/order-products/${orderId}/slip`;
+        iframe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;border:none;visibility:hidden;';
+        document.body.appendChild(iframe);
+
+        iframe.onload = function () {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+        };
+    }
 </script>
 </table>
 

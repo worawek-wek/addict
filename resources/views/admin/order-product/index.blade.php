@@ -7,10 +7,13 @@
     <title>การขายสินค้า (Order Products)</title>
 </head>
 <style>
-        @media print {
-            body { margin: 0; }
+    @media print {
+        body {
+            margin: 0;
         }
+    }
 </style>
+
 <body>
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
@@ -56,19 +59,18 @@
                                                     <button
                                                         style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
                                                         class="btn btn-primary buttons-collection  btn-info waves-effect waves-light me-2"
-                                                        tabindex="0" aria-controls="DataTables_Table_0"
-                                                        type="button" aria-haspopup="dialog" aria-expanded="false"
-                                                        onclick="printSummaryReport()"
-                                                        >
-                                                        <span><i class="ti ti-receipt"></i> พิมพ์รายงานสรุปยอดขายล่าสุด</span>
+                                                        tabindex="0" aria-controls="DataTables_Table_0" type="button"
+                                                        aria-haspopup="dialog" aria-expanded="false"
+                                                        onclick="printSummaryReport()">
+                                                        <span><i class="ti ti-receipt"></i>
+                                                            พิมพ์รายงานสรุปยอดขายล่าสุด</span>
                                                     </button>
                                                     <button
                                                         style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
                                                         class="btn btn-warning buttons-collection  btn-info waves-effect waves-light"
-                                                        tabindex="0" aria-controls="DataTables_Table_0"
-                                                        type="button" aria-haspopup="dialog" aria-expanded="false"
-                                                        onclick="closures()"
-                                                        >
+                                                        tabindex="0" aria-controls="DataTables_Table_0" type="button"
+                                                        aria-haspopup="dialog" aria-expanded="false"
+                                                        onclick="closures()">
                                                         <span><i class="ti ti-receipt"></i> ปิดการขายวันนี้</span>
                                                     </button>
                                                 </div>
@@ -83,7 +85,8 @@
                                             <div class="col-lg-4">
                                                 <div class="d-flex align-items-center mb-2 mb-md-0">
                                                     <label class="me-2">แสดง</label>
-                                                    <select onchange='loadData("{{ route('order-products.datatable') }}")'
+                                                    <select
+                                                        onchange='loadData("{{ route('order-products.datatable') }}")'
                                                         name="limit" class="form-select p_search" style="width:120px">
                                                         <option value="25" selected>25</option>
                                                         <option value="50">50</option>
@@ -152,7 +155,7 @@
 
 
         function printSummaryReport() {
-            
+
             const iframe = document.getElementById('print-iframe');
 
             $.ajax({
@@ -165,7 +168,7 @@
                     doc.close();
 
                     // รอโหลดก่อนค่อยพิมพ์
-                    iframe.onload = function () {
+                    iframe.onload = function() {
                         iframe.contentWindow.focus();
                         iframe.contentWindow.print();
                     };
@@ -176,6 +179,7 @@
                 }
             });
         }
+
         function closures() {
             Swal.fire({
                 title: 'ยืนยันการปิดการขาย?',
@@ -187,25 +191,28 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch(`/admin/order-products/closures`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ status_id: 4 })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire('สำเร็จ!', 'ปิดการขายเรียบร้อย', 'success')
-                                .then(() => location.reload());
-                        } else {
-                            Swal.fire('ผิดพลาด!', data.message || 'ไม่สามารถปิดการขายได้', 'error');
-                        }
-                    });
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                status_id: 4
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('สำเร็จ!', 'ปิดการขายเรียบร้อย', 'success')
+                                    .then(() => location.reload());
+                            } else {
+                                Swal.fire('ผิดพลาด!', data.message || 'ไม่สามารถปิดการขายได้', 'error');
+                            }
+                        });
                 }
             });
         }
+
         function onDateRangeChange() {
             var val = $('select[name="date_range"]').val();
             if (val === 'custom') {

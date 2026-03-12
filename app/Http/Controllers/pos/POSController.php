@@ -488,8 +488,8 @@ class POSController extends Controller
 
             $product = Product::find($id);
 
-            $price = $customerType == 1 
-                ? $product->price_staff 
+            $price = $customerType == 1
+                ? $product->price_staff
                 : $product->price;
 
             // if(@$request->input('customer_type') == 1){
@@ -513,7 +513,7 @@ class POSController extends Controller
                 'quantity'       => $q,
                 'cost'       => $product_cost,
             ]);
-            
+
             if ($stock) {
                 $newRemain = max(0, $stock->remain - $q);
                 $stock->remain = $newRemain;
@@ -594,7 +594,7 @@ class POSController extends Controller
                                         <th>รวม</th>
                                     </tr>".$list_product."
                                 </table>
-                            </div>                            
+                            </div>
                         </body>
                     </html>
                     ";
@@ -702,7 +702,7 @@ class POSController extends Controller
                                 <span style='padding-top:10px'>ให้เก็บไว้ตรวจสอบ</span>
 
                             </div>
-                            
+
                                 <div style='padding: 10px;'>
                                 $qr
                                 </div>
@@ -718,7 +718,7 @@ class POSController extends Controller
                             // <div style='page-break-before: always;'></div>
         return 1;
     }
-    
+
     public function drink_checkout(Request $request)
     {
             $mama_id = $request->input('mama_id');
@@ -755,8 +755,8 @@ class POSController extends Controller
 
             $drink = Drink::find($id);
 
-            $price = $customerType == 1 
-                ? $drink->price_staff 
+            $price = $customerType == 1
+                ? $drink->price_staff
                 : $drink->price;
             // if(@$request->input('customer_type') == 1){
             //     $price = Drink::find($id)->price_staff;
@@ -778,7 +778,7 @@ class POSController extends Controller
                 $stock->remain = $newRemain;
                 $stock->save();
             }
-            
+
             $order->drinks()->create([
                 'ref_drink_id' => $id,
                 'price'          => $price,
@@ -860,7 +860,7 @@ class POSController extends Controller
                                         <td style='text-align: right;'>$order->discount</td>
                                     </tr>
                                 </table>
-                            </div>                            
+                            </div>
                         </body>
                     </html>
                     ";
@@ -958,13 +958,13 @@ class POSController extends Controller
 
         $room_course = $rthc->price;
         $subtotal = $room_course;
-        
+
         if(@$request->ref_option_id){
             $subtotal += AddonOption::whereIn('id', $request->ref_option_id)->sum('price');
         }
         // return $request;
         foreach($request->qty ?? [] as $key => $qty){
-        // return $qty;    
+        // return $qty;
             if($qty > 0){
                 $subtotal += Product::find($key)->price*$qty;
             }
@@ -975,7 +975,7 @@ class POSController extends Controller
         $total = $subtotal-$discount;
         // $subtotal -= $discount;
         // }
-        
+
         return response()->json([
             // 'items' => $items,
             'room_course' => number_format($room_course, 2),
@@ -1007,7 +1007,7 @@ class POSController extends Controller
                     40 => 'forty_minutes',
                     60 => 'sixty_minutes',
                     90 => 'ninety_minutes',
-                    default => null
+                    default => null,
                 };
 
                 if ($priceColumn && isset($room->{$priceColumn})) {

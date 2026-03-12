@@ -10,6 +10,7 @@ use App\Models\CommissionsHistory;
 use App\Models\Order;
 use App\Models\OrderStatus;
 use App\Models\OrderHasProduct;
+use App\Models\Product;
 use App\Models\StockReadyForSale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -56,10 +57,10 @@ class OrderProductController extends Controller
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::with(['branch', 'customer', 'user', 'room', 'status'])
-                        ->where('ref_account_id', Auth::id())
-                        ->where('type', 2)
-                        ->select('orders.*')
-                        ->orderByRaw("
+            ->where('ref_account_id', Auth::id())
+            ->where('type', 2)
+            ->select('orders.*')
+            ->orderByRaw("
                                         CASE
                                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
                                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
@@ -71,9 +72,9 @@ class OrderProductController extends Controller
                                             ELSE 8 -- ไม่ระบุ
                                         END
                                     ")
-                        ->orderBy('id', "DESC")
-                        ->whereNull('ref_daily_sales_closure_id')
-                        ->orderBy('start_time');
+            ->orderBy('id', "DESC")
+            ->whereNull('ref_daily_sales_closure_id')
+            ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
@@ -165,12 +166,12 @@ class OrderProductController extends Controller
         $order->ref_status_id = $request->ref_status_id;
         $order->save();
 
-        if($request->ref_status_id == 4){
-            foreach($order->products as $product){
+        if ($request->ref_status_id == 4) {
+            foreach ($order->products as $product) {
                 StockReadyForSale::where('ref_product_id', $product->ref_product_id)
-                                    ->orderByDesc('id')
-                                    ->limit(1)
-                                    ->increment('remain', $product->quantity);
+                    ->orderByDesc('id')
+                    ->limit(1)
+                    ->increment('remain', $product->quantity);
             }
         }
 
@@ -186,55 +187,55 @@ class OrderProductController extends Controller
         $DailySalesClosure = $closures[0] ?? null;
         $DailySalesClosure_before = $closures[1] ?? null;
 
-        if(@$DailySalesClosure_before){
+        if (@$DailySalesClosure_before) {
             $date_before = date('d/m/Y H:i:s', strtotime($DailySalesClosure_before->date_time));
-        }else{
-            $date_before = date('d/m/Y', strtotime($DailySalesClosure->date_time))." 00:00:00";
+        } else {
+            $date_before = date('d/m/Y', strtotime($DailySalesClosure->date_time)) . " 00:00:00";
         }
 
         $product_emplaoy = OrderHasProduct::whereHas('order', function ($query) use ($DailySalesClosure) {
-                                    $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
-                                            ->where('customer_type', 1)
-                                            ->where('ref_account_id', Auth::id());
-                                })
-                                ->groupBy('ref_product_id')
-                                ->select(
-                                    'ref_product_id',
-                                    DB::raw('SUM(quantity) as total_qty'),
-                                    DB::raw('SUM(price * quantity) as total_price')
-                                );
+            $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
+                ->where('customer_type', 1)
+                ->where('ref_account_id', Auth::id());
+        })
+            ->groupBy('ref_product_id')
+            ->select(
+                'ref_product_id',
+                DB::raw('SUM(quantity) as total_qty'),
+                DB::raw('SUM(price * quantity) as total_price')
+            );
         $data['product_employee'] = $product_emplaoy->get();
 
         $product_customer = OrderHasProduct::whereHas('order', function ($query) use ($DailySalesClosure) {
-                                    $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
-                                    ->where('customer_type', 2)
-                                    ->where('ref_account_id', Auth::id());
-                                })
-                                ->groupBy('ref_product_id')
-                                ->select(
-                                    'ref_product_id',
-                                    DB::raw('SUM(quantity) as total_qty'),
-                                    DB::raw('SUM(price * quantity) as total_price')
-                                );
+            $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
+                ->where('customer_type', 2)
+                ->where('ref_account_id', Auth::id());
+        })
+            ->groupBy('ref_product_id')
+            ->select(
+                'ref_product_id',
+                DB::raw('SUM(quantity) as total_qty'),
+                DB::raw('SUM(price * quantity) as total_price')
+            );
         $data['product_customer'] = $product_customer->get();
 
         $payment_channel = Order::where('orders.ref_daily_sales_closure_id',  $DailySalesClosure->id)
-                                ->where('orders.ref_account_id', Auth::id())
-                                ->groupBy('orders.payment_method')
-                                ->whereNotNull("orders.payment_method")
-                                ->join(
-                                    'order_has_products',
-                                    'orders.id',
-                                    '=',
-                                    'order_has_products.ref_order_id'
-                                )
-                                ->select(
-                                    'orders.payment_method',
-                                    DB::raw('SUM(order_has_products.price * order_has_products.quantity) as total_price')
-                                );
+            ->where('orders.ref_account_id', Auth::id())
+            ->groupBy('orders.payment_method')
+            ->whereNotNull("orders.payment_method")
+            ->join(
+                'order_has_products',
+                'orders.id',
+                '=',
+                'order_has_products.ref_order_id'
+            )
+            ->select(
+                'orders.payment_method',
+                DB::raw('SUM(order_has_products.price * order_has_products.quantity) as total_price')
+            );
         $data['payment_channel'] = $payment_channel->get();
-            // ->orderBy('booking_date')
-            // ->orderBy('start_time');
+        // ->orderBy('booking_date')
+        // ->orderBy('start_time');
 
         // // ✅ filter เฉพาะสาขาของ user ที่ login
         // $userBranchId = Auth::user()->ref_branch_id ?? null;
@@ -250,7 +251,7 @@ class OrderProductController extends Controller
         // if (@$DailySalesClosure) {
         //     $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id);
         // }
-            
+
         $data['total_price'] = 0;
         $data['DailySalesClosure_before'] = $DailySalesClosure_before;
         $data['date_before'] = $date_before;
@@ -304,11 +305,11 @@ class OrderProductController extends Controller
         $dsc_insert->save();
 
         Order::where('ref_daily_sales_closure_id')
-                ->where('ref_account_id', Auth::id())
-                ->where('type', 2)
-                ->whereNull('ref_daily_sales_closure_id')
-                ->where('payment_status', 1)
-                ->update(["ref_daily_sales_closure_id" => $dsc_insert->id]);        
+            ->where('ref_account_id', Auth::id())
+            ->where('type', 2)
+            ->whereNull('ref_daily_sales_closure_id')
+            ->where('payment_status', 1)
+            ->update(["ref_daily_sales_closure_id" => $dsc_insert->id]);
 
         return response()->json([
             'success' => true,
@@ -324,11 +325,109 @@ class OrderProductController extends Controller
         $order->payment_method = $request->payment_channel;
         $order->save();
 
+
         return response()->json([
             'success' => true,
             'message' => 'คอนเฟิร์มชำระเงินเรียบร้อยแล้ว',
             'status'  => 'ชำระเงิน'
         ]);
+    }
+
+
+    public function printSlip($id)
+    {
+        $order = Order::with(['branch', 'products.product', 'seller'])->findOrFail($id);
+        return view('admin.order-product.slip', compact('order'));
+    }
+
+    public function edit(Request $request, $id)
+    {
+        $order = Order::with(['branch', 'products.product', 'seller'])->findOrFail($id);
+        $products = Product::where('ref_branch_id', $order->ref_branch_id)
+            ->orWhereNull('ref_branch_id')
+            ->get()
+            ->map(function ($p) {
+                $p->stock = StockReadyForSale::where('ref_product_id', $p->id)->sum('remain');
+                return $p;
+            });
+        return view('admin.order-product.edit', compact('order', 'products'));
+    }
+
+    public function updateProducts(Request $request, $id)
+    {
+        try {
+            DB::beginTransaction();
+            $updated_by = Auth::id();
+            $order = Order::find($id);
+            $discount = $request->input('discount', 0);
+            $payment_method = $request->input('payment_method', null);
+
+            //get items from request
+            $items = $request->input('items', []);
+            //clear old items
+            $order->products()->delete();
+            //
+
+            $order->discount        = $discount;
+            $order->payment_method  = $request->input('payment_method', $order->payment_method);
+            $order->total_price     = 0;
+            $order->updated_by      = $updated_by;
+
+            //add new items
+            foreach ($items as $item) {
+                $product = Product::find($item['product_id']);
+                if ($product) {
+                    $price    = isset($item['price']) ? floatval($item['price']) : $product->price;
+                    $quantity = $item['qty'] ?? $item['quantity'] ?? 1;
+                    $totalPrice = $price * $quantity;
+                    OrderHasProduct::create([
+                        'ref_order_id'   => $order->id,
+                        'ref_product_id' => $product->id,
+                        'quantity'       => $quantity,
+                        'price'          => $price,
+                        'total_price'    => $totalPrice,
+                        'cost'     => 0.00,
+                    ]);
+                    $order->total_price += $totalPrice;
+                } else {
+                    throw new \Exception("ไม่พบสินค้า ID: " . $item['product_id']);
+                }
+            }
+
+
+            // Apply discount
+            $order->total_price = max(0, $order->total_price - $discount);
+
+            if ($order->payment_status == null && !empty($payment_method)) {
+                $order->payment_method = $payment_method;
+                $order->payment_status = 1;
+            } elseif ($order->payment_status == 1 && empty($payment_method)) {
+                $order->payment_method = null;
+                $order->payment_status = null;
+            }
+
+            $order->save();
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'บันทึกเรียบร้อย']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()]);
+        }
+    }
+
+    public function removeProduct(Request $request, $id, $productId)
+    {
+        $order = Order::findOrFail($id);
+        $row = $order->products()->where('ref_product_id', $productId)->first();
+        if ($row) {
+            StockReadyForSale::where('ref_product_id', $productId)
+                ->orderByDesc('id')->limit(1)->increment('remain', $row->quantity);
+            $row->delete();
+            $total = $order->products()->sum(DB::raw('price * quantity'));
+            $order->total_price = $total;
+            $order->save();
+        }
+        return response()->json(['success' => true]);
     }
     public function updatePaymentMethod(Request $request, $id)
     {
@@ -369,9 +468,15 @@ class OrderProductController extends Controller
         if ($order->user && $order->service_laundry_cost) {
             $duration = null;
             switch ($order->service_laundry_cost) {
-                case 'forty_minutes': $duration = 40; break;
-                case 'sixty_minutes': $duration = 60; break;
-                case 'ninety_minutes': $duration = 90; break;
+                case 'forty_minutes':
+                    $duration = 40;
+                    break;
+                case 'sixty_minutes':
+                    $duration = 60;
+                    break;
+                case 'ninety_minutes':
+                    $duration = 90;
+                    break;
             }
             if ($duration) {
                 $commission = \App\Models\MassageCommission::where('ref_user_id', $order->user->id)

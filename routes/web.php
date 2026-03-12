@@ -48,14 +48,13 @@ use Illuminate\Support\Facades\Hash;
 
 Route::get('/clc', function () {
 
-	Artisan::call('cache:clear');
-	Artisan::call('config:clear');
-	Artisan::call('config:cache');
-	Artisan::call('view:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('config:clear');
+    Artisan::call('config:cache');
+    Artisan::call('view:clear');
     Artisan::call('route:clear');
 
-	return "Cleared!";
-
+    return "Cleared!";
 });
 
 Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
@@ -94,7 +93,6 @@ Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
         Route::post('/api/calculate-summary', 'calculateSummary')->name('api.calculateSummary');
         Route::get('/{room_id}', 'index')->name('index');
     });
-
 });
 
 Route::get('/', function () {
@@ -157,75 +155,75 @@ Route::prefix('admin')->group(function () {
     });
 
     Route::middleware('auth')->group(function () {
-    // Massage Default Setting CRUD
-    Route::controller(App\Http\Controllers\MassageDefaultSettingController::class)->group(function () {
-        Route::get('massage-default-setting', 'index')->name('massage_default_setting.index');
-        Route::post('massage-default-setting', 'store')->name('massage_default_setting.store');
-        Route::put('massage-default-setting/{id}', 'update')->name('massage_default_setting.update');
-    });
-    // Sales Commission Tier CRUD
-    Route::controller(SalesCommissionTierController::class)->group(function () {
-        Route::get('sales-commission-tier', 'index')->name('sales_commission_tier.index');
-        Route::get('sales-commission-tier/{id}', 'view')->name('sales_commission_tier.view');
-        Route::post('sales-commission-tier', 'store')->name('sales_commission_tier.store');
-        Route::post('sales-commission-tier/{id}', 'update')->name('sales_commission_tier.update');
-        Route::delete('sales-commission-tier/{id}', 'destroy')->name('sales_commission_tier.destroy');
-        // Cheer Charge CRUD
-        Route::post('cheer-charge', 'storeCheer')->name('cheer_charge.store');
-        Route::delete('cheer-charge/{id}', 'destroyCheer')->name('cheer_charge.destroy');
-        ////////////////////////////////////////////
-        Route::get('drink-sales-commission-tier', 'drink_index')->name('drink_sales_commission_tier.index');
-        Route::post('drink-sales-commission-tier', 'drink_store')->name('drink_sales_commission_tier.store');
-        Route::delete('drink-sales-commission-tier/{id}', 'drink_destroy')->name('drink_sales_commission_tier.destroy');
-        // Cheer Charge CRUD
-        Route::post('drink-cheer-charge', 'drink_storeCheer')->name('drink_cheer_charge.store');
-        Route::delete('drink-cheer-charge/{id}', 'drink_destroyCheer')->name('drink_cheer_charge.destroy');
-    });
-    Route::get('dark-mode-switcher', [DarkModeController::class, 'switch'])->name('dark-mode-switcher');
-    Route::get('color-scheme-switcher/{color_scheme}', [ColorSchemeController::class, 'switch'])->name('color-scheme-switcher');
+        // Massage Default Setting CRUD
+        Route::controller(App\Http\Controllers\MassageDefaultSettingController::class)->group(function () {
+            Route::get('massage-default-setting', 'index')->name('massage_default_setting.index');
+            Route::post('massage-default-setting', 'store')->name('massage_default_setting.store');
+            Route::put('massage-default-setting/{id}', 'update')->name('massage_default_setting.update');
+        });
+        // Sales Commission Tier CRUD
+        Route::controller(SalesCommissionTierController::class)->group(function () {
+            Route::get('sales-commission-tier', 'index')->name('sales_commission_tier.index');
+            Route::get('sales-commission-tier/{id}', 'view')->name('sales_commission_tier.view');
+            Route::post('sales-commission-tier', 'store')->name('sales_commission_tier.store');
+            Route::post('sales-commission-tier/{id}', 'update')->name('sales_commission_tier.update');
+            Route::delete('sales-commission-tier/{id}', 'destroy')->name('sales_commission_tier.destroy');
+            // Cheer Charge CRUD
+            Route::post('cheer-charge', 'storeCheer')->name('cheer_charge.store');
+            Route::delete('cheer-charge/{id}', 'destroyCheer')->name('cheer_charge.destroy');
+            ////////////////////////////////////////////
+            Route::get('drink-sales-commission-tier', 'drink_index')->name('drink_sales_commission_tier.index');
+            Route::post('drink-sales-commission-tier', 'drink_store')->name('drink_sales_commission_tier.store');
+            Route::delete('drink-sales-commission-tier/{id}', 'drink_destroy')->name('drink_sales_commission_tier.destroy');
+            // Cheer Charge CRUD
+            Route::post('drink-cheer-charge', 'drink_storeCheer')->name('drink_cheer_charge.store');
+            Route::delete('drink-cheer-charge/{id}', 'drink_destroyCheer')->name('drink_cheer_charge.destroy');
+        });
+        Route::get('dark-mode-switcher', [DarkModeController::class, 'switch'])->name('dark-mode-switcher');
+        Route::get('color-scheme-switcher/{color_scheme}', [ColorSchemeController::class, 'switch'])->name('color-scheme-switcher');
 
-    // Commission CRUD
-    Route::controller(CommissionController::class)->group(function () {
-        Route::get('commission', 'index')->name('commission.index');
-        Route::get('commission/create', 'create')->name('commission.create');
-        Route::post('commission', 'store')->name('commission.store');
-        Route::get('commission/{id}/edit', 'edit')->name('commission.edit');
-        Route::put('commission/{id}', 'update')->name('commission.update');
-        Route::delete('commission/{id}', 'destroy')->name('commission.destroy');
-        Route::get('commission/view-massage', 'view_massage')->name('commission.view_massage');
-        
-        Route::get('commission/view-sales', 'view_sales')->name('commission.view_sales');
-        Route::get('commission/view-sales/datatable', 'view_sales_datatable')->name('commission.view_sales_datatable');
-        Route::get('commission/view-sales/pdf', 'view_sales_pdf')->name('commission.view-sales-pdf');
-        
-        Route::get('commission/drink-view-sales', 'drink_view_sales')->name('commission.drink_view_sales');
-        Route::get('commission/drink-view-sales/datatable', 'drink_view_sales_datatable')->name('commission.drink_view_sales_datatable');
-        Route::get('commission/drink-view-sales/pdf', 'drink_view_sales_pdf')->name('commission.drink-view-sales-pdf');
+        // Commission CRUD
+        Route::controller(CommissionController::class)->group(function () {
+            Route::get('commission', 'index')->name('commission.index');
+            Route::get('commission/create', 'create')->name('commission.create');
+            Route::post('commission', 'store')->name('commission.store');
+            Route::get('commission/{id}/edit', 'edit')->name('commission.edit');
+            Route::put('commission/{id}', 'update')->name('commission.update');
+            Route::delete('commission/{id}', 'destroy')->name('commission.destroy');
+            Route::get('commission/view-massage', 'view_massage')->name('commission.view_massage');
 
-        Route::get('commission/sales-orders', 'salesOrders')->name('commission.sales_orders');
-        Route::get('commission/massage-orders', 'massageOrders')->name('commission.massage_orders');
-    });
+            Route::get('commission/view-sales', 'view_sales')->name('commission.view_sales');
+            Route::get('commission/view-sales/datatable', 'view_sales_datatable')->name('commission.view_sales_datatable');
+            Route::get('commission/view-sales/pdf', 'view_sales_pdf')->name('commission.view-sales-pdf');
 
-    /// Room Group CRUD include assign/remove rooms to/from group
-    Route::prefix('room-groups')->controller(RoomGroupController::class)->group(function () {
-        Route::get('/', 'index')->name('room_groups.index');
-        Route::get('/datatable', 'datatable')->name('room_groups.datatable');
-        Route::get('/getAll/{id?}', 'getRoom')->name('room_groups.getAll');
-        Route::get('/getRoom/{id}', 'getRoom')->name('room_groups.getRoom');
-        Route::post('/addRoom/{id}', 'addRoomToGroup')->name('room_groups.addRoom');
-        Route::post('/removeRoom/{roomId}', 'removeRoomFromGroup')->name('room_groups.removeRoom');
-        Route::put('update/{id}', 'update')->name('room_groups.update');
-        Route::post('/create', 'create')->name('room_groups.create');
-        Route::delete('/delete/{id}', 'delete')->name('room_groups.delete');
-    });
+            Route::get('commission/drink-view-sales', 'drink_view_sales')->name('commission.drink_view_sales');
+            Route::get('commission/drink-view-sales/datatable', 'drink_view_sales_datatable')->name('commission.drink_view_sales_datatable');
+            Route::get('commission/drink-view-sales/pdf', 'drink_view_sales_pdf')->name('commission.drink-view-sales-pdf');
+
+            Route::get('commission/sales-orders', 'salesOrders')->name('commission.sales_orders');
+            Route::get('commission/massage-orders', 'massageOrders')->name('commission.massage_orders');
+        });
+
+        /// Room Group CRUD include assign/remove rooms to/from group
+        Route::prefix('room-groups')->controller(RoomGroupController::class)->group(function () {
+            Route::get('/', 'index')->name('room_groups.index');
+            Route::get('/datatable', 'datatable')->name('room_groups.datatable');
+            Route::get('/getAll/{id?}', 'getRoom')->name('room_groups.getAll');
+            Route::get('/getRoom/{id}', 'getRoom')->name('room_groups.getRoom');
+            Route::post('/addRoom/{id}', 'addRoomToGroup')->name('room_groups.addRoom');
+            Route::post('/removeRoom/{roomId}', 'removeRoomFromGroup')->name('room_groups.removeRoom');
+            Route::put('update/{id}', 'update')->name('room_groups.update');
+            Route::post('/create', 'create')->name('room_groups.create');
+            Route::delete('/delete/{id}', 'delete')->name('room_groups.delete');
+        });
 
 
-    ////
-    Route::controller(CheerChargeController::class)->group(function () {
-        Route::get('cheer-charge', 'index')->name('cheer_charge.index');
-        Route::post('cheer-charge', 'store')->name('cheer_charge.store');
-        Route::delete('cheer-charge/{id}', 'destroy')->name('cheer_charge.destroy');
-    });
+        ////
+        Route::controller(CheerChargeController::class)->group(function () {
+            Route::get('cheer-charge', 'index')->name('cheer_charge.index');
+            Route::post('cheer-charge', 'store')->name('cheer_charge.store');
+            Route::delete('cheer-charge/{id}', 'destroy')->name('cheer_charge.destroy');
+        });
         Route::controller(CustomerController::class)->group(function () {
             Route::get('customer', 'index')->name('customer.index');
             Route::get('customer/datatable', 'datatable')->name('customer.datatable');
@@ -250,10 +248,14 @@ Route::prefix('admin')->group(function () {
             Route::get('/', [OrderProductController::class, 'index'])->name('order-products.index');
             Route::get('/datatable', [OrderProductController::class, 'datatable'])->name('order-products.datatable');
             Route::get('/pdf', [OrderProductController::class, 'pdf'])->name('order-products.pdf');
+            Route::get('/{id}/slip', [OrderProductController::class, 'printSlip'])->name('order-products.slip');
             Route::post('/closures', [OrderProductController::class, 'closures'])->name('order-products.closures');
             Route::get('/{id}', [OrderProductController::class, 'show'])->name('order-products.show');
             Route::post('/{id}/status', [OrderProductController::class, 'updateStatus'])->name('order-rooms.update-status');
             Route::post('/{id}/confirm-payment', [OrderProductController::class, 'confirmPayment'])->name('order-products.update-confirm-payment');
+            Route::get('/edit/{id}', [OrderProductController::class, 'edit'])->name('order-products.edit');
+            Route::post('/edit/{id}/update', [OrderProductController::class, 'updateProducts'])->name('order-products.update-products');
+            Route::delete('/edit/{id}/product/{productId}', [OrderProductController::class, 'removeProduct'])->name('order-products.remove-product');
             Route::post('/{id}/update-payment-method', [OrderProductController::class, 'updatePaymentMethod'])->name('order-products.update-payment-method');
         });
 
@@ -334,7 +336,7 @@ Route::prefix('admin')->group(function () {
             Route::post('product/{id}', 'update')->name('product.update');
             Route::delete('product/{id}', 'destroy')->name('user.destroy');
         });
-        
+
         Route::controller(DrinkController::class)->group(function () {
             Route::get('drink', 'index')->name('drink');
             Route::get('drink/datatable', 'datatable')->name('drink.datatable');
