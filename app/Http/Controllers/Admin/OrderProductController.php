@@ -192,47 +192,56 @@ class OrderProductController extends Controller
             $date_before = date('d/m/Y', strtotime($DailySalesClosure->date_time))." 00:00:00";
         }
 
-        $product_emplaoy = OrderHasProduct::whereHas('order', function ($query) use ($DailySalesClosure) {
-                                    $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
-                                            ->where('customer_type', 1)
-                                            ->where('ref_account_id', Auth::id());
-                                })
-                                ->groupBy('ref_product_id')
-                                ->select(
-                                    'ref_product_id',
-                                    DB::raw('SUM(quantity) as total_qty'),
-                                    DB::raw('SUM(price * quantity) as total_price')
-                                );
-        $data['product_employee'] = $product_emplaoy->get();
+        $product_employee = OrderHasProduct::join('products', 'order_has_products.ref_product_id', '=', 'products.id')
+            ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id') // Join เพื่อดึงชื่อประเภท
+            ->whereHas('order', function ($query) use ($DailySalesClosure) {
+                $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
+                      ->where('customer_type', 1)
+                      ->where('ref_account_id', Auth::id());
+            })
+            ->groupBy('products.type_id', 'product_type.name')
+            ->select(
+                'products.type_id',
+                'product_type.name as type_name',
+                DB::raw('SUM(order_has_products.quantity) as total_qty'),
+                DB::raw('SUM(order_has_products.price * order_has_products.quantity) as total_price'),
+                DB::raw('SUM(order_has_products.cost * order_has_products.quantity) as total_cost')
+            );
+        $data['product_employee'] = $product_employee->get();
 
-        $product_customer = OrderHasProduct::whereHas('order', function ($query) use ($DailySalesClosure) {
-                                    $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
-                                    ->where('customer_type', 2)
-                                    ->where('ref_account_id', Auth::id());
-                                })
-                                ->groupBy('ref_product_id')
-                                ->select(
-                                    'ref_product_id',
-                                    DB::raw('SUM(quantity) as total_qty'),
-                                    DB::raw('SUM(price * quantity) as total_price')
-                                );
+        $product_customer = OrderHasProduct::join('products', 'order_has_products.ref_product_id', '=', 'products.id')
+            ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id')
+            ->whereHas('order', function ($query) use ($DailySalesClosure) {
+                $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
+                      ->where('customer_type', 2)
+                      ->where('ref_account_id', Auth::id());
+            })
+            ->groupBy('products.type_id', 'product_type.name')
+            ->select(
+                'products.type_id',
+                'product_type.name as type_name',
+                DB::raw('SUM(order_has_products.quantity) as total_qty'),
+                DB::raw('SUM(order_has_products.price * order_has_products.quantity) as total_price'),
+                DB::raw('SUM(order_has_products.cost * order_has_products.quantity) as total_cost')
+            );
         $data['product_customer'] = $product_customer->get();
 
         $payment_channel = Order::where('orders.ref_daily_sales_closure_id',  $DailySalesClosure->id)
-                                ->where('orders.ref_account_id', Auth::id())
-                                ->groupBy('orders.payment_method')
-                                ->whereNotNull("orders.payment_method")
-                                ->join(
-                                    'order_has_products',
-                                    'orders.id',
-                                    '=',
-                                    'order_has_products.ref_order_id'
-                                )
-                                ->select(
-                                    'orders.payment_method',
-                                    DB::raw('SUM(order_has_products.price * order_has_products.quantity) as total_price')
-                                );
+            ->where('orders.ref_account_id', Auth::id())
+            ->groupBy('orders.payment_method')
+            ->whereNotNull("orders.payment_method")
+            ->join(
+                'order_has_products',
+                'orders.id',
+                '=',
+                'order_has_products.ref_order_id'
+            )
+            ->select(
+                'orders.payment_method',
+                DB::raw('SUM(order_has_products.price * order_has_products.quantity) as total_price')
+            );
         $data['payment_channel'] = $payment_channel->get();
+
             // ->orderBy('booking_date')
             // ->orderBy('start_time');
 
@@ -250,7 +259,7 @@ class OrderProductController extends Controller
         // if (@$DailySalesClosure) {
         //     $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id);
         // }
-            
+
         $data['total_price'] = 0;
         $data['DailySalesClosure_before'] = $DailySalesClosure_before;
         $data['date_before'] = $date_before;
@@ -308,7 +317,7 @@ class OrderProductController extends Controller
                 ->where('type', 2)
                 ->whereNull('ref_daily_sales_closure_id')
                 ->where('payment_status', 1)
-                ->update(["ref_daily_sales_closure_id" => $dsc_insert->id]);        
+                ->update(["ref_daily_sales_closure_id" => $dsc_insert->id]);
 
         return response()->json([
             'success' => true,

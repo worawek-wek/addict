@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\ProductType;
 use App\Models\StockReadyForSale;
 use App\Models\CardStocks;
 use Illuminate\Support\Facades\Auth;
@@ -27,7 +28,8 @@ class ProductController extends Controller
         $data['page_url'] = 'admin/product';
         $data['page'] = 'สินค้า';
         $user = Auth::user();
-        $data['product'] = Product::orderBy('name')->get();
+        $data['product'] = Product::with('producttype')->get();
+        $data['producttype'] = ProductType::all();
 
         if ($user->work_status == 3) {
             // super admin เห็นทุก branch
@@ -134,7 +136,7 @@ class ProductController extends Controller
             // filter เฉพาะสาขาของตัวเอง
             $results = $results->where('products.ref_branch_id', $user->ref_branch_id);
         }
-        
+
         if (@$request->created_at) {
             $created_at = Carbon::createFromFormat('d/m/Y', $request->created_at)->format('Y-m-d');
             $results = $results->WhereDate('card_stocks.created_at', $created_at);
@@ -206,7 +208,7 @@ class ProductController extends Controller
 
                                 });
         }
-        
+
         $data['list_data'] = $results->get();
 
         $html = view('admin/product/card_stock_report_pdf', $data)->render();
@@ -328,7 +330,7 @@ class ProductController extends Controller
             $card_stocks->remain = $card_stocks->remain + abs($card_stocks->quantity - $request->quantity);
         }
         try {
-            
+
             $card_stocks->ref_product_id = $request->ref_product_id;
             $card_stocks->type = 1;
             $card_stocks->label = $request->label;
@@ -378,7 +380,7 @@ class ProductController extends Controller
         }        // $data['title'] = 'Profile';
         return view('admin/product/view', $data);
     }
-    
+
     public function card_stock_report_edit($id)
     {
 

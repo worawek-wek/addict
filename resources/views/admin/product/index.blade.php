@@ -189,7 +189,7 @@
         <div class="drag-target"></div>
     </div>
     <!--add service  Modal -->
-    
+
     <div class="modal fade modalHeadDecor" id="withdrawModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content rounded-0">
@@ -201,7 +201,7 @@
                     @csrf
                     <div class="modal-body">
                         <div class="row g-3 p-4">
-                            
+
                             <div class="col-sm-6">
                                 <label>เลือกสินค้า</label>
                                 <select name="ref_product_id" id="select2Product" class="">
@@ -256,6 +256,14 @@
                                 @endforeach
                             </div>
                             <div class="col-sm-6">
+                                <label for="" class="form-label">ประเภทสินค้า</label><span class="text-danger">
+                                    *</span>
+                                <select name="producttype" id="producttype" class="form-control">
+                                    <option value="">---เลือกประเภทสินค้า---</option>
+                                    @foreach ($producttype as $item)
+                                        <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div class="col-sm-6">
                                 <label for="" class="form-label">ชื่อสินค้า</label><span class="text-danger">
@@ -332,7 +340,7 @@
     $('#select2Product').on('change', function () {
             const product_id = $(this).val();
             if (product_id) {
-            
+
                 document.getElementById('loadingOverlay').style.display = 'flex';
 
             if (select2Stock) {
@@ -366,12 +374,12 @@
                 });
             }
         });
-        
+
         $('#select2Stock').on('change', function () {
             var stock_id = $(this).val();
-            
+
             if (stock_id) {
-            
+
                 document.getElementById('loadingOverlay').style.display = 'flex';
 
                 $.ajax({
@@ -380,7 +388,7 @@
                     success: function (data) {
 
                         $('#stock_qty').val(data.remain).attr('max', data.remain);;
-                        
+
                         document.getElementById('loadingOverlay').style.display = 'none';
                     },
                     error: function(error) {

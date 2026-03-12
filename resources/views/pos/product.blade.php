@@ -291,7 +291,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="px-4 mt-4">
                                             <label class="form-label fw-bold">ช่องทางชำระเงิน</label>
 
@@ -516,7 +516,7 @@
     togglePaymentMethod();
 
         $('#insert_product').on('submit', function(event) {
-            event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
+            event.preventDefault();
 
             const iframe = document.getElementById('print-iframe');
 
@@ -526,6 +526,8 @@
             }
 
             var formData = new FormData(this);
+
+            var paymentStatus = formData.get('payment_status');
 
             Swal.fire({
                 title: 'ยืนยันการดำเนินการ?',
@@ -547,7 +549,6 @@
                         processData: false, // ✅ ต้องมี
                         success: function(response) {
                             if (response.status == true) {
-                                // $('#insert_product')[0].reset();
                                 Swal.fire({
                                     title: 'เพิ่มคำสั่งซื้อเรียบร้อยแล้ว',
                                     icon: 'success',
@@ -555,47 +556,33 @@
                                     timerProgressBar: true,
                                     showConfirmButton: false
                                 }).then(() => {
-                                    const newWindow = window.open('', '_blank');
-                                    newWindow.document.write(`
-                                        <html>
-                                        <head>
-                                            <title>Print</title>
-                                        </head>
-                                        <body>
+                                    if (paymentStatus == '0') {
+                                        location.reload();
+                                    } else {
+                                        const newWindow = window.open('', '_blank');
+                                        newWindow.document.write(`
+                                            <html>
+                                            <head>
+                                                <title>Print</title>
+                                            </head>
+                                            <body>
+                                                ${response.data}
+                                                <script>
+                                                    window.onload = function () {
+                                                        window.print();
+                                                    };
+                                                    window.onafterprint = function () {
+                                                        window.close();
+                                                    };
+                                                <\/script>
+                                            </body>
+                                            </html>
+                                        `);
+                                        newWindow.document.close();
 
-                                            ${response.data}
-
-                                            <script>
-                                                window.onload = function () {
-                                                    window.print();
-                                                };
-
-                                                window.onafterprint = function () {
-                                                    window.close();
-                                                };
-                                            <\/script>
-
-                                        </body>
-                                        </html>
-                                    `);
-
-                                    newWindow.document.close();
-
-                                    // รีเฟรชหน้าหลักทันที
-                                    location.reload();
-                                    // const doc = iframe.contentWindow.document;
-                                    // doc.open();
-                                    // doc.write(response.data);
-                                    // doc.close();
-
-                                    // // รอโหลดก่อนค่อยพิมพ์
-                                    // iframe.onload = function () {
-                                    //     iframe.contentWindow.focus();
-                                    //     iframe.contentWindow.print();
-                                    // };
+                                        location.reload();
+                                    }
                                 });
-                                // $('#addserviceModal').modal('hide');
-                                // loadData(page);
                             }
                         },
                         error: function(error) {
@@ -620,7 +607,7 @@
                 type: 'GET',
                 data: $(this).serialize(),
                 success: function(response) {
-                    
+
                 },
                 error: function(error) {
 
@@ -791,7 +778,7 @@
         const saleType = document.querySelector('input[name="customer_type"]:checked')?.value || '2';
 
         document.querySelectorAll('.qty-input').forEach(input => {
-            
+
             const productId = input.name.match(/\[(.*?)\]/)[1];
             const qty = parseInt(input.value) || 0;
             if (qty <= 0) return;
