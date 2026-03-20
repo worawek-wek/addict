@@ -1,7 +1,7 @@
 <div class="modal-content rounded-0">
     <div class="modal-header rounded-0">
         <span class="modal-title">
-            <span class="h5">&nbsp;รายละเอียด คอมมิชชั่น รอบ วันที่ {{ $list_data[0]->from_date.' - '.$list_data[0]->to_date }} &nbsp;</span>
+            <span class="h5">&nbsp;รายละเอียด คอมมิชชั่น รอบ วันที่ {{ date('d/m/Y', strtotime($list_data[0]->from_date)).' - '.date('d/m/Y', strtotime($list_data[0]->to_date)) }} &nbsp;</span>
         </span>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
@@ -13,9 +13,8 @@
                     <tr class="table-info">
                         <th class="text-center" style="width: 10px;">#</th>
                         <th class="text-center">ชื่อพนักงาน</th>
-                        <th class="text-center">จำนวนเงินคอมมิชชั่น</th>
-                        <th class="text-center">สาขา</th>
-                        <th class="text-center">ชื่อตำแหน่ง</th>
+                        <th class="text-center">คอมมิชชั่นที่ได้รับ</th>
+                        <th class="text-center">ยอดขาย</th>
                         {{-- <th class="text-center">ค่าเชียร์</th> --}}
                         {{-- <th class="text-center">ดู Order</th> --}}
                     </tr>
@@ -24,10 +23,9 @@
                     @foreach($list_data as $i => $staff)
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
-                        <td class="text-center">{{ $staff->name }}{{ $staff->nickname ? ' (' . $staff->nickname . ')' : '' }}</td>
-                        <td class="text-center">{{ $staff->name }}{{ $staff->nickname ? ' (' . $staff->nickname . ')' : '' }}</td>
-                        <td class="text-center">{{ $staff->name }}{{ $staff->nickname ? ' (' . $staff->nickname . ')' : '' }}</td>
-                        <td class="text-center">{{ $staff->name }}{{ $staff->nickname ? ' (' . $staff->nickname . ')' : '' }}</td>
+                        <td class="text-center">{{ $staff->user->name }}{{ $staff->user->nickname ? ' (' . $staff->user->nickname . ')' : '' }}</td>
+                        <td class="text-center">{{ $staff->commission }}</td>
+                        <td class="text-center">{{ $staff->sales_received }}</td>
                     </tr>
                     @endforeach
                 </tbody>
