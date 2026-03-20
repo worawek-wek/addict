@@ -116,7 +116,7 @@ class CommissionController extends Controller
     public function get_history_by_round($round)
     {
         // $user = Auth::user();
-        $results = HistoryCommission::orderBy('id')->get();
+        $results = HistoryCommission::where('round', $round)->get();
 
         $data['list_data'] = $results;
         return view('admin.commission.view_sales_history', $data);
