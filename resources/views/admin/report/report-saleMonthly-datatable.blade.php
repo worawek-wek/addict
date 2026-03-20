@@ -86,43 +86,48 @@
         </tbody>
     </table>
 
-    {{-- Grand Total --}}
+    {{-- Grand Total (current page summary) --}}
     <div class="d-flex align-items-center px-3 py-2 mt-3 rounded fw-bold"
          style="background:#dee2e6; font-size:13px; gap:16px;">
-        <span>รวมยอดทั้งหมด</span>
+        <span>รวมหน้านี้</span>
         <span>ค่านวด: {{ number_format($grandCoursePriceSum) }}</span>
         <span>คูปอง: {{ number_format($grandCouponSum) }}</span>
-        <span class="ms-auto text-success">รับจริง: {{ number_format($grandNetSum) }} บาท</span>
+        <span class="ms-auto text-success">รับจริงหน้านี้: {{ number_format($grandNetSum) }} บาท</span>
     </div>
 
-    {{-- Summary Boxes --}}
+    {{-- All-data Total bar --}}
+    <div class="d-flex align-items-center px-3 py-2 mt-1 rounded fw-bold"
+         style="background:#c3e6cb; font-size:13px; gap:16px;">
+        <span>รวมทั้งหมด (ตามช่วงวันที่)</span>
+        <span class="ms-auto text-dark">รับจริงทั้งหมด: {{ number_format($totalNetSum) }} บาท</span>
+    </div>
+
+    {{-- Summary Boxes (totals over ALL filtered records, not just this page) --}}
     <div class="row mt-4 g-3">
         <div class="col-md-5">
             <div class="card">
-                <div class="card-header fw-bold">การรับเงินจากช่องทางต่างๆ</div>
+                <div class="card-header fw-bold">การรับเงินจากช่องทางต่างๆ (ทั้งหมด)</div>
                 <div class="card-body p-0">
                     <table class="table table-bordered mb-0">
                         <tr>
-                            <td>เงินสด</td>
-                            <td class="text-end">{{ number_format($summary_type_payment_cash, 2) }} บาท</td>
+                            <td>ยอดรับจริงร้าน</td>
+                            <td class="text-end">{{ number_format($totalNetSum, 2) }} บาท</td>
                         </tr>
                         <tr>
                             <td>QR Code</td>
-                            <td class="text-end">{{ number_format($summary_type_payment_transfer, 2) }} บาท</td>
+                            <td class="text-end">{{ number_format($totalNetTransfer, 2) }} บาท</td>
                         </tr>
                         <tr>
                             <td>บัตรเครดิต</td>
-                            <td class="text-end">{{ number_format($summary_type_payment_credit, 2) }} บาท</td>
+                            <td class="text-end">{{ number_format($totalNetCredit, 2) }} บาท</td>
                         </tr>
                         <tr>
                             <td>Alipay</td>
-                            <td class="text-end">{{ number_format($summary_type_payment_al, 2) }} บาท</td>
+                            <td class="text-end">{{ number_format($totalNetAl, 2) }} บาท</td>
                         </tr>
                         <tr class="fw-bold table-info">
-                            <td>รวมทั้งหมด</td>
-                            <td class="text-end">
-                                {{ number_format($grandNetSum, 2) }} บาท
-                            </td>
+                            <td>คงเหลือเงินสดรับจริง</td>
+                            <td class="text-end">{{ number_format($totalNetCash, 2) }} บาท</td>
                         </tr>
                     </table>
                 </div>

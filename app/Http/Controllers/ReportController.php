@@ -476,7 +476,6 @@ class ReportController extends Controller
     }
     public function monthly_sale_datatable(Request $request)
     {
-
         $limit = $request->limit ?? 10;
         $orderRooms = $this->getOrderRooms($limit);
 
@@ -487,6 +486,7 @@ class ReportController extends Controller
         } else {
             $branches = Branch::where('id', $user->ref_branch_id)->get();
         }
+
         $userCommissionMap = \App\Models\UserHasRoomTypeCommission::select('ref_user_id', 'ref_room_type_id', 'ref_course_id', 'price', 'coupon')
             ->get()
             ->keyBy(fn($r) => "{$r->ref_user_id}_{$r->ref_room_type_id}_{$r->ref_course_id}");
@@ -495,21 +495,43 @@ class ReportController extends Controller
             ->get()
             ->keyBy(fn($r) => "{$r->ref_room_type_id}_{$r->ref_course_id}");
 
-        $nonCancelled = $orderRooms->getCollection()->where('ref_status_id', '!=', 4);
-        $summary_type_payment_cash     = $nonCancelled->where('payment_method', 'cash')->sum('total_price');
-        $summary_type_payment_credit   = $nonCancelled->where('payment_method', 'credit_card')->sum('total_price');
-        $summary_type_payment_transfer = $nonCancelled->where('payment_method', 'qr_code')->sum('total_price');
-        $summary_type_payment_al       = $nonCancelled->where('payment_method', 'alipay')->sum('total_price');
+        // Compute summary totals over ALL filtered records (not just current page)
+        $allOrders = $this->buildOrderRoomsQuery()->get();
+        $totalNetSum = $totalNetCash = $totalNetTransfer = $totalNetCredit = $totalNetAl = 0.0;
+        foreach ($allOrders as $order) {
+            if ($order->ref_status_id == 4) continue;
+            $coursePrice    = $order->total_price ?? 0;
+            $usedCoupon     = 0;
+            $usedCommission = 0;
+            $ucKey = "{$order->ref_user_id}_{$order->ref_room_type_id}_{$order->service_laundry_cost}";
+            $uc    = $userCommissionMap->get($ucKey);
+            if ($uc && ($uc->price > 0 || $uc->coupon > 0)) {
+                $usedCommission = $uc->price;
+                $usedCoupon     = $uc->coupon;
+            } else {
+                $rtcKey       = "{$order->ref_room_type_id}_{$order->service_laundry_cost}";
+                $roomTypeCourse = $roomTypeCourseMap->get($rtcKey);
+                if ($roomTypeCourse) {
+                    $usedCommission = $roomTypeCourse->commission;
+                    $usedCoupon     = $roomTypeCourse->coupon;
+                }
+            }
+            $rev = $coursePrice - ($usedCoupon + $usedCommission);
+            $totalNetSum += $rev;
+            if ($order->payment_method === 'cash')        $totalNetCash     += $rev;
+            if ($order->payment_method === 'qr_code')     $totalNetTransfer += $rev;
+            if ($order->payment_method === 'credit_card') $totalNetCredit   += $rev;
+            if ($order->payment_method === 'alipay')      $totalNetAl       += $rev;
+        }
 
         return view('admin.report.report-saleMonthly-datatable', compact(
             'orderRooms', 'branches',
             'userCommissionMap', 'roomTypeCourseMap',
-            'summary_type_payment_cash', 'summary_type_payment_credit',
-            'summary_type_payment_transfer', 'summary_type_payment_al'
+            'totalNetSum', 'totalNetCash', 'totalNetTransfer', 'totalNetCredit', 'totalNetAl'
         ));
     }
 
-    private function getOrderRooms($limit)
+    private function buildOrderRoomsQuery()
     {
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
@@ -533,24 +555,16 @@ class ReportController extends Controller
                     ")
             ->orderBy('created_at', 'ASC');
 
-        // ✅ filter เฉพาะสาขาของ user ที่ login
+        // filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
         if ($userBranchId) {
             $query->where('ref_branch_id', $userBranchId);
         }
 
-        // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
         if (request()->filled('branch_id')) {
             $query->where('ref_branch_id', request()->branch_id);
         }
 
-        // $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
-
-        // if (@$DailySalesClosure) {
-        //     $query->where('created_at', ">" ,$DailySalesClosure->date_time);
-        // }
-
-        // filter ค้นหา
         if (request()->filled('search')) {
             $search = request()->search;
             $query->whereHas('customer', function ($q) use ($search) {
@@ -559,13 +573,17 @@ class ReportController extends Controller
         }
 
         if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
-                ->startOfDay();
-
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
-                ->endOfDay();
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
+
+        return $query;
+    }
+
+    private function getOrderRooms($limit)
+    {
+        $query = $this->buildOrderRoomsQuery();
 
         $orderRooms = $query->paginate($limit);
 
