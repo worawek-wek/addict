@@ -7,8 +7,10 @@
     @include('admin/layout/inc_header')
     <title>Dashboard - CRM | Vuexy - Bootstrap Admin Template</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js"></script>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js">
+    </script>
 
 </head>
 
@@ -98,28 +100,31 @@
                                                         class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
                                                         <div id="DataTables_Table_0_filter"
                                                             class="dataTables_filter mx-n2 me-2">
-                                                            <input name="start_date" id="start_date" type="text" class="form-control p_search search_date" value="{{ date('d/m/Y') }}">
+                                                            <input name="start_date" id="start_date" type="text"
+                                                                class="form-control p_search search_date"
+                                                                value="{{ date('d/m/Y') }}">
                                                         </div>
                                                         <label class="me-3">ถึงวันที่:</label>
                                                         <div
                                                             class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
                                                             <div id="DataTables_Table_0_filter"
                                                                 class="dataTables_filter mx-n2 me-2">
-                                                                <input name="end_date" id="end_date" type="text" class="form-control p_search search_date" value="{{ date('d/m/Y') }}">
+                                                                <input name="end_date" id="end_date" type="text"
+                                                                    class="form-control p_search search_date"
+                                                                    value="{{ date('d/m/Y') }}">
                                                             </div>
 
-                                                                <button
-                                                                    class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
-                                                                    type="button"
-                                                                    onclick="printPDF()">
+                                                            <button
+                                                                class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
+                                                                type="button" onclick="printPDF()">
 
-                                                                    <span>
-                                                                        <i class="ti ti-file-upload me-0 me-sm-1"></i>
-                                                                        <span class="d-none d-sm-inline-block">พิมพ์
-                                                                        </span>
+                                                                <span>
+                                                                    <i class="ti ti-printer me-0 me-sm-1"></i>
+                                                                    <span class="d-none d-sm-inline-block">พิมพ์
                                                                     </span>
-                                                                </button>
-                                                                {{-- <div class="btn-group">
+                                                                </span>
+                                                            </button>
+                                                            {{-- <div class="btn-group">
                                                                     <button
                                                                         class="btn btn-success buttons-collection  btn-warning waves-effect waves-light"
                                                                         tabindex="0"
@@ -131,124 +136,126 @@
                                                                         </span>
                                                                     </button>
                                                                 </div> --}}
-                                                            </div>
                                                         </div>
-
                                                     </div>
+
                                                 </div>
-                                                <div id="table-data"><!-- ตารางจะถูกโหลดตรงนี้ --></div>
                                             </div>
+                                            <div id="table-data"><!-- ตารางจะถูกโหลดตรงนี้ --></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <!-- / Content -->
-
-                            <!-- Footer -->
-                            @include('admin/layout/inc_footer')
-                            <!-- / Footer -->
-
-                            <div class="content-backdrop fade"></div>
                         </div>
-                        <!-- / Content wrapper -->
+                        <!-- / Content -->
+
+                        <!-- Footer -->
+                        @include('admin/layout/inc_footer')
+                        <!-- / Footer -->
+
+                        <div class="content-backdrop fade"></div>
                     </div>
-                    <!-- / Layout page -->
+                    <!-- / Content wrapper -->
                 </div>
-
-                <!-- Overlay -->
-                <div class="layout-overlay layout-menu-toggle"></div>
-
-                <!-- Drag Target Area To SlideIn Menu On Small Screens -->
-                <div class="drag-target"></div>
+                <!-- / Layout page -->
             </div>
-            <!-- / Layout wrapper -->
 
-            @include('admin/layout/inc_js')
+            <!-- Overlay -->
+            <div class="layout-overlay layout-menu-toggle"></div>
+
+            <!-- Drag Target Area To SlideIn Menu On Small Screens -->
+            <div class="drag-target"></div>
+        </div>
+        <!-- / Layout wrapper -->
+
+        @include('admin/layout/inc_js')
 </body>
 
 </html>
 
 <script>
-        var page = "{{ route('report-sale-monthly.datatable') }}";
-        var searchData = {};
-        loadData(page);
+    var page = "{{ route('report-sale-monthly.datatable') }}";
+    var searchData = {};
+    loadData(page);
 
-        function loadData(pages) {
-            $('.p_search').each(function() {
-                var inputName = $(this).attr('name');
-                var inputValue = $(this).val();
-                searchData[inputName] = inputValue;
-            });
-
-            // If not custom, clear custom date fields
-            // if ($('select[name="date_range"]').val() !== 'custom') {
-            //     searchData['start_date'] = '';
-            //     searchData['end_date'] = '';
-            // }
-
-            page = pages;
-            $.ajax({
-                type: "GET",
-                url: pages,
-                data: searchData,
-                success: function(data) {
-                    $("#table-data").html(data);
-
-                    // bind pagination click
-                    $('#table-data .pagination a').on('click', function(e) {
-                        e.preventDefault();
-                        loadData($(this).attr('href'));
-                    });
-                }
-            });
-        }
-        function printPDF() {
-            let start = document.getElementById('start_date').value;
-            let end = document.getElementById('end_date').value;
-
-            let url = `/admin/report/monthly-sale/pdf?start_date=${encodeURIComponent(start)}&end_date=${encodeURIComponent(end)}`;
-
-            window.open(url, '_blank');
-        }
-        $('.search_date').datepicker({
-            format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
-            autoclose: true,      // ปิด datepicker เมื่อเลือกวันที่
-            todayHighlight: true  // ไฮไลต์วันที่ปัจจุบัน
+    function loadData(pages) {
+        $('.p_search').each(function() {
+            var inputName = $(this).attr('name');
+            var inputValue = $(this).val();
+            searchData[inputName] = inputValue;
         });
 
-        // ⭐ สำคัญมาก: set ค่าเริ่มต้นให้ datepicker รู้
-        $('#start_date').datepicker('setDate', $('#start_date').val());
-        $('#end_date').datepicker('setDate', $('#end_date').val());
+        // If not custom, clear custom date fields
+        // if ($('select[name="date_range"]').val() !== 'custom') {
+        //     searchData['start_date'] = '';
+        //     searchData['end_date'] = '';
+        // }
 
-        // ⭐ ผูกข้อจำกัดตั้งแต่โหลด
-        const startInit = $('#start_date').datepicker('getDate');
-        const endInit   = $('#end_date').datepicker('getDate');
+        page = pages;
+        $.ajax({
+            type: "GET",
+            url: pages,
+            data: searchData,
+            success: function(data) {
+                $("#table-data").html(data);
 
-        if (startInit) {
-            $('#end_date').datepicker('setStartDate', startInit);
-        }
-
-        if (endInit) {
-            $('#start_date').datepicker('setEndDate', endInit);
-        }
-
-        // event หลังจากนั้น
-        $('#start_date').on('changeDate', function (e) {
-            $('#end_date').datepicker('setStartDate', e.date);
-
-            const endDate = $('#end_date').datepicker('getDate');
-            if (endDate && endDate < e.date) {
-                $('#end_date').datepicker('clearDates');
+                // bind pagination click
+                $('#table-data .pagination a').on('click', function(e) {
+                    e.preventDefault();
+                    loadData($(this).attr('href'));
+                });
             }
-
-            loadData(page);
         });
+    }
 
-        $('#end_date').on('changeDate', function (e) {
-            $('#start_date').datepicker('setEndDate', e.date);
+    function printPDF() {
+        let start = document.getElementById('start_date').value;
+        let end = document.getElementById('end_date').value;
 
-            loadData(page);
-        });
+        let url =
+            `/admin/report/monthly-sale/pdf?start_date=${encodeURIComponent(start)}&end_date=${encodeURIComponent(end)}`;
+
+        window.open(url, '_blank');
+    }
+    $('.search_date').datepicker({
+        format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
+        autoclose: true, // ปิด datepicker เมื่อเลือกวันที่
+        todayHighlight: true // ไฮไลต์วันที่ปัจจุบัน
+    });
+
+    // ⭐ สำคัญมาก: set ค่าเริ่มต้นให้ datepicker รู้
+    $('#start_date').datepicker('setDate', $('#start_date').val());
+    $('#end_date').datepicker('setDate', $('#end_date').val());
+
+    // ⭐ ผูกข้อจำกัดตั้งแต่โหลด
+    const startInit = $('#start_date').datepicker('getDate');
+    const endInit = $('#end_date').datepicker('getDate');
+
+    if (startInit) {
+        $('#end_date').datepicker('setStartDate', startInit);
+    }
+
+    if (endInit) {
+        $('#start_date').datepicker('setEndDate', endInit);
+    }
+
+    // event หลังจากนั้น
+    $('#start_date').on('changeDate', function(e) {
+        $('#end_date').datepicker('setStartDate', e.date);
+
+        const endDate = $('#end_date').datepicker('getDate');
+        if (endDate && endDate < e.date) {
+            $('#end_date').datepicker('clearDates');
+        }
+
+        loadData(page);
+    });
+
+    $('#end_date').on('changeDate', function(e) {
+        $('#start_date').datepicker('setEndDate', e.date);
+
+        loadData(page);
+    });
     // document.addEventListener('DOMContentLoaded', function() {
     //     // Initialize datepickers
     //     flatpickr("#datepicker-from", {
