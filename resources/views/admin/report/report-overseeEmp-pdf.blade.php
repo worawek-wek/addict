@@ -125,6 +125,7 @@
                     </td>
                 </tr>
 
+
                 @foreach ($groupOrders as $order)
                     @php
                         $globalIndex++;
@@ -136,7 +137,7 @@
                         if ($diff->h > 0) $durStr .= $diff->h . ' ชม. ';
                         if ($diff->i > 0) $durStr .= $diff->i . ' นาที';
                         $durStr = trim($durStr) ?: '-';
-                        $netPrice = $order->total_price - ($order->addons_sum_price ?? 0);
+                        $netPrice = $order->total_price - ($order->addons_sum_price ?? 0)  ;
                     @endphp
                     <tr @if($isCancelled) style="color:#999; text-decoration:line-through;" @endif>
                         <td>{{ $globalIndex }}</td>

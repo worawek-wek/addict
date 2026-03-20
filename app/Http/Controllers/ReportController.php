@@ -361,7 +361,7 @@ class ReportController extends Controller
         $query = Order::withSum('addons', 'price')
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
-            ->with(['branch', 'customer', 'user', 'room', 'status', 'seller', 'course'])
+            ->with(['branch', 'customer', 'user', 'room', 'status', 'seller', 'course','drinks'])
             ->where('type', 1)
             ->whereIn('ref_status_id', [2, 3]) // ยกเลิก
             // ->select('orders.*')
@@ -425,7 +425,7 @@ class ReportController extends Controller
                     'user_id'             => $orders->first()->seller->user_code ?? 'ไม่ระบุ',
                     'name'                => optional($orders->first()->seller)->name ?? 'ไม่ระบุ',
                     'total_price'         => $orders->where('ref_status_id', '!=', 4)->sum(function($o) {
-                        return $o->total_price - ($o->addons_sum_price ?? 0);
+                        return $o->total_price - ($o->addons_sum_price ?? 0) - ($o->drinks_sum_price ?? 0);
                     }),
                     'count'               => $orders->where('ref_status_id', '!=', 4)->count(),
                 ];
