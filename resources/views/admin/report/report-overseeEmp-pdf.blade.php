@@ -98,7 +98,7 @@
     <tbody>
 
         @php
-            $grouped = $orderRooms->groupBy('ref_user_id');
+            $grouped = $orderRooms->groupBy('ref_seller_id');
             $globalIndex = 0;
         @endphp
 
@@ -112,7 +112,9 @@
                     $firstOrder = $groupOrders->first();
                     $sellerCode = $firstOrder->seller->user_id ?? '-';
                     $sellerName = $firstOrder->seller->name ?? 'ไม่ระบุ';
-                    $groupTotal = $groupOrders->where('ref_status_id', '!=', 4)->sum('total_price');
+                    $groupTotal = $groupOrders->where('ref_status_id', '!=', 4)->sum(function($o) {
+                        return $o->total_price - ($o->addons_sum_price ?? 0);
+                    });
                     $groupCount = $groupOrders->where('ref_status_id', '!=', 4)->count();
                 @endphp
 
@@ -134,6 +136,7 @@
                         if ($diff->h > 0) $durStr .= $diff->h . ' ชม. ';
                         if ($diff->i > 0) $durStr .= $diff->i . ' นาที';
                         $durStr = trim($durStr) ?: '-';
+                        $netPrice = $order->total_price - ($order->addons_sum_price ?? 0);
                     @endphp
                     <tr @if($isCancelled) style="color:#999; text-decoration:line-through;" @endif>
                         <td>{{ $globalIndex }}</td>
@@ -143,8 +146,8 @@
                         <td>{{ $sellerName }}</td>
                         <td style="text-align:left;">{{ $order->user->name ?? '-' }} + {{ $order->course->name ?? '-' }}</td>
                         <td>{{ $durStr }}</td>
-                        <td style="text-align:right;">{{ number_format($order->total_price) }}</td>
-                        <td style="text-align:right;">{{ $isCancelled ? '-' : number_format($order->total_price) }}</td>
+                        <td style="text-align:right;">{{ number_format($netPrice) }}</td>
+                        <td style="text-align:right;">{{ $isCancelled ? '-' : number_format($netPrice) }}</td>
                     </tr>
                 @endforeach
 
@@ -163,7 +166,9 @@
 
             {{-- Grand Total --}}
             @php
-                $grandTotal = $orderRooms->where('ref_status_id', '!=', 4)->sum('total_price');
+                $grandTotal = $orderRooms->where('ref_status_id', '!=', 4)->sum(function($o) {
+                    return $o->total_price - ($o->addons_sum_price ?? 0);
+                });
                 $grandCount = $orderRooms->where('ref_status_id', '!=', 4)->count();
             @endphp
             <tr style="font-weight:bold; background:#e0e0e0;">

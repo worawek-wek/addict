@@ -419,12 +419,14 @@ class ReportController extends Controller
 
 
         $data['summary_data'] = $data['orderRooms']
-            ->groupBy('ref_user_id')
+            ->groupBy('ref_seller_id')
             ->map(function ($orders) {
                 return [
                     'user_id'             => $orders->first()->seller->user_code ?? 'ไม่ระบุ',
                     'name'                => optional($orders->first()->seller)->name ?? 'ไม่ระบุ',
-                    'total_price'         => $orders->where('ref_status_id', '!=', 4)->sum('total_price'),
+                    'total_price'         => $orders->where('ref_status_id', '!=', 4)->sum(function($o) {
+                        return $o->total_price - ($o->addons_sum_price ?? 0);
+                    }),
                     'count'               => $orders->where('ref_status_id', '!=', 4)->count(),
                 ];
             })
