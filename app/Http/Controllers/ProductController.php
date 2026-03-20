@@ -483,6 +483,8 @@ class ProductController extends Controller
             ];
 
             $inserted = DB::table('product_type')->insert($save);
+            DB::commit();
+
             if (!$inserted) {
                 return response()->json([
                     'status' => false,
@@ -494,14 +496,15 @@ class ProductController extends Controller
                 'status' => true,
                 'message' => 'เพิ่มประเภทสินค้าสำเร็จ'
             ]);
-
         } catch (QueryException $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => 'Database Error: ' . $e->getMessage()
             ], 500);
 
         } catch (Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => 'System Error: ' . $e->getMessage()
