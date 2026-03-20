@@ -974,8 +974,8 @@ class POSController extends Controller
         // return $request;
         $rthc = RoomTypeHasCourse::where('ref_room_type_id', $request->ref_room_type_id)->where('ref_course_id', $request->ref_course_id)->first();
 
-        $room_course = $rthc->price;
-        $subtotal = $room_course;
+        $room_course = @$rthc->price ?? 0;
+        $subtotal = @$room_course ?? 0;
 
         if(@$request->ref_option_id){
             $subtotal += AddonOption::whereIn('id', $request->ref_option_id)->sum('price');
