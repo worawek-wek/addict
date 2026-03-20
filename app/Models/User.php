@@ -64,6 +64,10 @@ class User extends Authenticatable
     {
         return $this->hasOne('App\Models\User', 'id', 'ref_user_id');
     }
+    public function history_commission()
+    {
+        return $this->hasOne('App\Models\HistoryCommission', 'ref_staff_id', 'id');
+    }
     // public function getPhotoUrlAttribute()
     // {
     //     if ($this->foto !== null) {

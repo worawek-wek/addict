@@ -49,8 +49,8 @@ class ProductController extends Controller
             $results->where(function ($q) use ($request) {
                 $q->where('name', 'LIKE', "%{$request->search}%")
                     ->orWhere('remark', 'LIKE', "%{$request->search}%")
-                    ->orWhere('price', 'LIKE', "%{$request->search}%")
-                    ->orWhere('cost', 'LIKE', "%{$request->search}%");
+                    ->orWhere('price', 'LIKE', "%{$request->search}%");
+                    // ->orWhere('cost', 'LIKE', "%{$request->search}%");
             });
         }
 
@@ -250,11 +250,13 @@ class ProductController extends Controller
 
             $product = new Product;
             $product->ref_branch_id = $request->ref_branch_id;
+            $product->type_id = $request->producttype;
             $product->name = $request->name;
             $product->price = $request->price;
             $product->price_staff = $request->price_staff;
             $product->cost = @$request->cost ?? 0.00;
             $product->remark = $request->remark;
+            $product->minimum = $request->minimum;
             $product->sort  =  $lastSort + 1;
             $product->save();
 
@@ -419,17 +421,20 @@ class ProductController extends Controller
             $product = Product::find($id);
             $product->ref_branch_id = $request->ref_branch_id;
             $product->name = $request->name;
+            // $product->type_id = $request->producttype;
             $product->price = $request->price;
             $product->price_staff = $request->price_staff;
             $product->cost = @$request->cost ?? 0.00;
             // $product->stock = $request->stock;
             $product->remark = $request->remark;
+            $product->minimum = $request->minimum;
             $product->save();
 
             DB::commit();
             return true;
         } catch (QueryException $err) {
             DB::rollBack();
+            return false;
         }
     }
 

@@ -4,11 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Commission;
 use App\Models\CommissionsHistory;
+use App\Models\HistoryCommission;
 use App\Models\MassageCommission;
+use App\Models\OrderHasProduct;
+use App\Models\SalesCommissionTier;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
+DB::beginTransaction();
 
 class CommissionController extends Controller
 {
@@ -103,8 +109,21 @@ class CommissionController extends Controller
     // แสดงค่าคอมมิชชั่นพนักงานขาย นวด+สินค้า
     public function view_sales(Request $request)
     {
+        $rounds = HistoryCommission::select('round')->distinct()->orderBy('round', 'DESC')->pluck('round');
         $page_url = "admin/commission/view-sales";
-        return view('admin.commission.view_sales', compact('page_url'));
+        return view('admin.commission.view_sales', compact('page_url', 'rounds'));
+    }
+    public function get_history_by_round($round)
+    {
+        // $user = Auth::user();
+        $results = User::whereHas('history_commission', function ($query) use ($round) {
+                                    $query->where('round', $round);
+                                })->orderBy('id');
+
+        $results = $results->get();
+
+        $data['list_data'] = $results;
+        return view('admin.commission.view_sales_history', $data);
     }
     public function view_sales_datatable(Request $request)
     {
@@ -387,6 +406,78 @@ class CommissionController extends Controller
         }
     }
 
+    public function save_commission_history(Request $request)
+    {
+        try {
+
+            $results = User::where('ref_position_id', 1)->orderBy('id');
+
+            if (request('name')) {
+                $results->Where(function ($query) use ($request) {
+                                        $query->where('name','LIKE','%'.request('name').'%')
+                                                ->orWhere('nickname','LIKE','%'.request('name').'%');
+                                    });
+            }
+
+            if (request('start_date')) {
+                $start_date = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+
+                $end_date = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+            }
+
+            $results = $results->get();
+
+            $history = HistoryCommission::orderBy('round', 'desc')->first();
+            
+            $round = 0;
+
+            foreach($results as $row){
+
+                $total_price = OrderHasProduct::whereHas('order', function ($query) use ($row) {
+                                                            $query->where('ref_seller_id', $row->id)
+                                                                    ->whereIn('type', [1, 2]);
+                                                        })
+                                                        ->whereBetween('created_at', [$start_date, $end_date])
+                                                        ->sum('price') ?? 0;
+                $sale_commission = SalesCommissionTier::where('type', 1)->where('min_sales_amount', '<=', $total_price)->where('max_sales_amount', '>=', $total_price)->first(); // ดึงการตั้งค่า คอมมิชชั่น ที่ตรงกับยอดขายรวม
+                $commission_price = $sale_commission->commission_price ?? 0; // เปอร์เซ็นต์ * ยอดขายรวม / 100
+                if($sale_commission && $sale_commission->commission_by == 1){ // ถ้าเป็น เปอร์เซ็นต์
+                    $commission_price = $sale_commission->commission_rate*$total_price/100; // เปอร์เซ็นต์ * ยอดขายรวม / 100
+                    $sale_commission->commission_price = $sale_commission->commission_rate."%"; // เปอร์เซ็นต์ * ยอดขายรวม / 100
+                }
+                // return $commission_price;
+                
+                if ($history) {
+                    $round = $history->round;
+                }
+
+                $product = new HistoryCommission;
+                $product->round = $round+1;
+                $product->type = 1;
+                $product->ref_staff_id = $row->id;
+                $product->commission = @$commission_price ?? 0;
+                $product->sales_received = $total_price;
+                $product->commission_rate = @$sale_commission->commission_price ?? 0.00;
+                $product->min_sales_amount = @$sale_commission->min_sales_amount ?? 0.00;
+                $product->max_sales_amount = @$sale_commission->max_sales_amount ?? 0.00;
+                $product->from_date = $start_date;
+                $product->to_date  =  $end_date;
+                $product->save();
+                
+            }
+
+            DB::commit();
+            return true;
+        } catch (QueryException $err) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'บันทึกไม่สำเร็จ',
+                'error'   => $err->getMessage()
+            ], 500);
+        }
+        //
+    }
     // แสดงฟอร์มแก้ไข
     public function edit($id)
     {

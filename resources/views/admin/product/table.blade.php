@@ -21,11 +21,11 @@
                     ราคา(พนักงาน)
                 </th>
                 <th class="text-center">
-                    ต้นทุน
+                    ขั้นต่ำ
                 </th>
-                <th class="text-center">
+                {{-- <th class="text-center">
                     สาขา
-                </th>
+                </th> --}}
                 <th class="text-center">
                     หมายเหตุ
                 </th>
@@ -41,7 +41,9 @@
                 $s_remain = \App\Models\CardStocks::where('ref_product_id', $row->id)->sum('remain') ?? 0;
                 $r_remain = \App\Models\StockReadyForSale::where('ref_product_id', $row->id)->sum('remain') ?? 0;
             @endphp
-            <tr class="odd">
+            <tr class="odd" @if (($s_remain+$r_remain) <= $row->minimum)
+                style="background-color: #fffce4;"
+            @endif>
                 <td class="text-center" {!! $view !!}>
                     {{ $list_data->firstItem()+$key }}
                 </td>
@@ -61,11 +63,11 @@
                     {{ $row->price_staff }}
                 </td>
                 <td class="text-center" {!! $view !!}>
-                    {{ $row->cost }}
+                    {{ $row->minimum }}
                 </td>
-                <td class="text-center" {!! $view !!}>
+                {{-- <td class="text-center" {!! $view !!}>
                     {{ $row->branch->name }}
-                </td>
+                </td> --}}
                 <td class="text-center" {!! $view !!}>
                     {{ $row->remark }}
                 </td>

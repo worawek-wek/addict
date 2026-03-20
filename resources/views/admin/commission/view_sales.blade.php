@@ -34,7 +34,17 @@
                                                     รายงานค่าคอม (นวด+สินค้า)
                                                 </h4>
                                             </div>
+
                                             <div class="col-sm-6 d-flex justify-content-end gap-2">
+                                                ดูย้อนหลัง
+                                                <select onchange='getHistoryRound(this.value)'
+                                                    name="round" class="form-select ms-2 me-2"
+                                                    style="width:100px">
+                                                    <option value="current">ปัจจุบัน</option>
+                                                    @foreach ($rounds as $rou)
+                                                        <option data-bs-toggle="modal" data-bs-target="#insurance" value="{{ $rou }}">{{ $rou }}</option>
+                                                    @endforeach
+                                                </select>
                                                 <a href="{{ route('sales_commission_tier.index') }}" class="btn btn-main">
                                                     <i class="ti ti-currency-dollar"></i> จัดการค่าคอมมิชชั่น (นวด+สินค้า)
                                                 </a>
@@ -99,6 +109,16 @@
                                                                     </span>
                                                                 </span>
                                                             </button>
+                                                            <button
+                                                                class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
+                                                                type="button"
+                                                                onclick="savePrintPdf()">
+                                                                <span>
+                                                                    <i class="ti ti-file-upload me-0 me-sm-1"></i>
+                                                                    <span class="d-none d-sm-inline-block">พิมพ์+บันทึกรอบ
+                                                                    </span>
+                                                                </span>
+                                                            </button>
                                                             {{-- <div class="btn-group">
                                                                 <button
                                                                     class="btn btn-success buttons-collection  btn-warning waves-effect waves-light"
@@ -134,6 +154,12 @@
             </div>
         </div>
     </div>
+    
+    <div class="modal fade modalHeadDecor" id="insurance" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" id="view">
+
+        </div>
+    </div>
     @include('admin/layout/inc_js')
 </body>
 </html>
@@ -164,6 +190,16 @@
         // alert(page);
     }
     
+    function getHistoryRound(round) {
+        $.ajax({
+            type: "GET",
+            url: "{{ $page_url }}/history/" + round,
+            success: function(data) {
+                $('#insurance').modal('show');
+                $("#view").html(data);
+            }
+        });
+    }
     function printPdf(){
 
         var searchData = {};
@@ -181,6 +217,64 @@
             '/admin/commission/view-sales/pdf?' + queryString,
             '_blank'
         );
+    }
+    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" } });
+    function savePrintPdf(){
+        // return alert(123);
+        var searchData = {};
+
+            // searchData["_token"] = "{{ csrf_token() }}";
+        
+        $('.p_search').each(function() {
+            var inputName = $(this).attr('name'); // ดึงชื่อ attribute 'name' ของ input
+            var inputValue = $(this).val(); // ดึงค่า value ของ input
+
+            searchData[inputName] = inputValue; // เก็บข้อมูลลงในออบเจ็กต์ searchData
+        });
+        console.log(searchData);
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ?',
+            text: 'คุณต้องการ บันทึกรอบคอมมิชชั่น หรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            didOpen: () => {
+                Swal.getConfirmButton().focus();
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/admin/commission/view-sales/save-commisstion-history',
+                    type: 'POST',
+                    data: searchData,
+                    success: function(response) {
+                        if (response == true) {
+                            // $('#insert_user')[0].reset();
+                            Swal.fire('บันทึกรอบคอมมิชชั่น เรียบร้อยแล้ว', '', 'success')
+                                .then((result) => {
+                                    if (result.isConfirmed) {
+                                        let queryString = $.param(searchData);
+                                        window.open(
+                                            '/admin/commission/view-sales/pdf?' + queryString,
+                                            '_blank'
+                                        );
+                                    }
+                                });
+                            // $('#addserviceModal').modal('hide');
+                            loadData(page);
+                        }
+                    },
+                    error: function(error) {
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        console.error('เกิดข้อผิดพลาด:', error);
+                    }
+                });
+            }
+        });
+
+        // แปลง object เป็น query string
+
     }
     
     $('.search_date').datepicker({
