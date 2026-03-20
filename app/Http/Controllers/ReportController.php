@@ -317,12 +317,12 @@ class ReportController extends Controller
         if (request()->filled('branch_id')) {
             $query->where('ref_branch_id', request()->branch_id);
         }
+        
+        // $DailySalesClosure = DailySalesClosure::orderBy("id", "DESC")->first();
 
-        $DailySalesClosure = DailySalesClosure::orderBy("id", "DESC")->first();
-
-        if (@$DailySalesClosure) {
-            $query->where('created_at', ">", $DailySalesClosure->date_time);
-        }
+        // if (@$DailySalesClosure) {
+        //     $query->where('created_at', ">", $DailySalesClosure->date_time);
+        // }
 
         // filter ค้นหา
         if (request()->filled('search')) {
