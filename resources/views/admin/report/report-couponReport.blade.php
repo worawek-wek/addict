@@ -98,6 +98,15 @@
                                                         </label>
                                                     </div>
                                                 </div>
+                                                <div class="d-flex align-items-baseline ms-3 me-3 mt-3">
+                                                    <label class="me-2">User</label>
+                                                    <input type="number" name="user_id" id="user_id_input"
+                                                        class="form-control p_search"
+                                                        placeholder="ID..."
+                                                        style="min-width:120px;"
+                                                        onchange='loadData("{{ $page_url }}-datatable")'
+                                                        onkeydown='if(event.key==="Enter"){ loadData("{{ $page_url }}-datatable"); }'>
+                                                </div>
                                                 <div
                                                     class="d-flex justify-content-start justify-content-md-end align-items-baseline">
                                                     <label class="me-3">ตั้งแต่วันที่:</label>

@@ -49,6 +49,10 @@ class ReportController extends Controller
     public function coupon_report(Request $request)
     {
         $data['page_url'] = "admin/report/coupon-report";
+        $data['employees'] = \App\Models\User::where('ref_branch_id', Auth::user()->ref_branch_id)
+            ->where('ref_position_id', 2)
+            ->orderBy('name')
+            ->get();
         return view('admin.report.report-couponReport', $data);
     }
 
@@ -118,6 +122,13 @@ class ReportController extends Controller
             $query->whereHas('customer', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%");
             });
+        }
+
+        if (request()->filled('user_id')) {
+            $get_user_id = User::where('user_id', request('user_id'))->first();
+            if ($get_user_id) {
+                $query->where('ref_user_id', $get_user_id->id);
+            }
         }
 
         if (request('start_date')) {
@@ -208,6 +219,13 @@ class ReportController extends Controller
             $orderRooms->whereHas('customer', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%");
             });
+        }
+
+        if (request()->filled('user_id')) {
+            $get_user_id = User::where('user_id', request('user_id'))->first();
+            if ($get_user_id) {
+                $orderRooms->where('ref_user_id', $get_user_id->id);
+            }
         }
 
         if (request('start_date')) {
@@ -469,7 +487,26 @@ class ReportController extends Controller
         } else {
             $branches = Branch::where('id', $user->ref_branch_id)->get();
         }
-        return view('admin.report.report-saleMonthly-datatable', compact('orderRooms', 'branches'));
+        $userCommissionMap = \App\Models\UserHasRoomTypeCommission::select('ref_user_id', 'ref_room_type_id', 'ref_course_id', 'price', 'coupon')
+            ->get()
+            ->keyBy(fn($r) => "{$r->ref_user_id}_{$r->ref_room_type_id}_{$r->ref_course_id}");
+
+        $roomTypeCourseMap = \App\Models\RoomTypeHasCourse::select('ref_room_type_id', 'ref_course_id', 'price', 'commission', 'coupon')
+            ->get()
+            ->keyBy(fn($r) => "{$r->ref_room_type_id}_{$r->ref_course_id}");
+
+        $nonCancelled = $orderRooms->getCollection()->where('ref_status_id', '!=', 4);
+        $summary_type_payment_cash     = $nonCancelled->where('payment_method', 'cash')->sum('total_price');
+        $summary_type_payment_credit   = $nonCancelled->where('payment_method', 'credit_card')->sum('total_price');
+        $summary_type_payment_transfer = $nonCancelled->where('payment_method', 'qr_code')->sum('total_price');
+        $summary_type_payment_al       = $nonCancelled->where('payment_method', 'alipay')->sum('total_price');
+
+        return view('admin.report.report-saleMonthly-datatable', compact(
+            'orderRooms', 'branches',
+            'userCommissionMap', 'roomTypeCourseMap',
+            'summary_type_payment_cash', 'summary_type_payment_credit',
+            'summary_type_payment_transfer', 'summary_type_payment_al'
+        ));
     }
 
     private function getOrderRooms($limit)
@@ -479,7 +516,7 @@ class ReportController extends Controller
         $query = Order::withSum('addons', 'price')
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
-            ->with(['branch', 'customer', 'user', 'room', 'status'])
+            ->with(['branch', 'customer', 'user', 'room', 'status', 'room_type'])
             ->where('type', 1)
             ->whereIn('ref_status_id', [2, 3])
             ->orderByRaw("
@@ -494,9 +531,7 @@ class ReportController extends Controller
                             ELSE 8 -- ไม่ระบุ
                         END
                     ")
-            ->orderBy('ref_user_id')
-            ->orderBy('booking_date')
-            ->orderBy('start_time');
+            ->orderBy('created_at', 'ASC');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
