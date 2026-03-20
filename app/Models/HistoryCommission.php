@@ -13,4 +13,9 @@ class HistoryCommission extends Model
     protected $fillable = [
         'type',
     ];
+    
+    public function user()
+    {
+        return $this->hasOne('App\Models\User', 'id', 'ref_staff_id');
+    }
 }
