@@ -65,7 +65,15 @@ class ReportController extends Controller
         } else {
             $branches = Branch::where('id', $user->ref_branch_id)->get();
         }
-        return view('admin.report.report-couponReport-datatable', compact('orderRooms', 'branches'));
+        $userCommissionMap = \App\Models\UserHasRoomTypeCommission::select('ref_user_id', 'ref_room_type_id', 'ref_course_id', 'price', 'coupon')
+            ->get()
+            ->keyBy(fn($r) => "{$r->ref_user_id}_{$r->ref_room_type_id}_{$r->ref_course_id}");
+
+        $roomTypeCourseMap = \App\Models\RoomTypeHasCourse::select('ref_room_type_id', 'ref_course_id', 'price', 'commission', 'coupon')
+            ->get()
+            ->keyBy(fn($r) => "{$r->ref_room_type_id}_{$r->ref_course_id}");
+
+        return view('admin.report.report-couponReport-datatable', compact('orderRooms', 'branches', 'userCommissionMap', 'roomTypeCourseMap'));
     }
 
     private function CRgetOrderRooms($limit)
@@ -75,7 +83,7 @@ class ReportController extends Controller
         $query = Order::withSum('addons', 'price')
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
-            ->with(['branch', 'customer', 'user', 'room', 'status'])
+            ->with(['branch', 'customer', 'user', 'room', 'status', 'seller', 'course'])
             ->where('type', 1)
             ->whereIn('ref_status_id', [2, 3])
             // ->select('orders.*')
@@ -262,9 +270,9 @@ class ReportController extends Controller
         $query = Order::withSum('addons', 'price')
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
-            ->with(['branch', 'customer', 'user', 'room', 'status'])
+            ->with(['branch', 'customer', 'user', 'room', 'status', 'seller', 'course'])
             ->where('type', 1)
-            ->whereIn('ref_status_id', [2, 3]) // ยกเลิก
+            ->whereIn('ref_status_id', [2, 3])
             // ->select('orders.*')
             ->orderByRaw("
                         CASE

@@ -208,9 +208,9 @@
                 @endforeach
                 <tr style="background-color:#e8e8e8; font-weight:bold;">
                     <td colspan="2" style="text-align:right; padding-right:12px;">รวมทั้งสิ้น</td>
-                    <td style="text-align:center;">{{ $summary_data->sum('count') }}</td>
+                    <td style="text-align:center;">{{ $grandCount }}</td>
                     <td style="text-align:right; font-size:12px;">
-                        {{ number_format($summary_data->sum('total_price')) }}</td>
+                        {{ number_format($grandTotal) }}</td>
                 </tr>
             @else
                 <tr>
