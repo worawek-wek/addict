@@ -113,7 +113,7 @@
                     $sellerCode = $firstOrder->seller->user_id ?? '-';
                     $sellerName = $firstOrder->seller->name ?? 'ไม่ระบุ';
                     $groupTotal = $groupOrders->where('ref_status_id', '!=', 4)->sum(function($o) {
-                        return $o->total_price - ($o->addons_sum_price ?? 0) - ($o->drinks_sum_price ?? 0);
+                        return $o->total_price - ($o->addons_sum_price ?? 0) - ($o->products_sum_price ?? 0);
                     });
                     $groupCount = $groupOrders->where('ref_status_id', '!=', 4)->count();
                 @endphp
@@ -137,7 +137,7 @@
                         if ($diff->h > 0) $durStr .= $diff->h . ' ชม. ';
                         if ($diff->i > 0) $durStr .= $diff->i . ' นาที';
                         $durStr = trim($durStr) ?: '-';
-                        $netPrice = $order->total_price - ($order->addons_sum_price ?? 0) - ($order->drinks_sum_price ?? 0);
+                        $netPrice = $order->total_price - ($order->addons_sum_price ?? 0) - ($order->products_sum_price ?? 0);
                     @endphp
                     <tr @if($isCancelled) style="color:#999; text-decoration:line-through;" @endif>
                         <td>{{ $globalIndex }}</td>
@@ -168,7 +168,7 @@
             {{-- Grand Total --}}
             @php
                 $grandTotal = $orderRooms->where('ref_status_id', '!=', 4)->sum(function($o) {
-                    return $o->total_price - ($o->addons_sum_price ?? 0) - ($o->drinks_sum_price ?? 0);
+                    return $o->total_price - ($o->addons_sum_price ?? 0) - ($o->products_sum_price ?? 0);
                 });
                 $grandCount = $orderRooms->where('ref_status_id', '!=', 4)->count();
             @endphp
