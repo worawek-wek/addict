@@ -361,6 +361,7 @@ class ReportController extends Controller
         $query = Order::withSum('addons', 'price')
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
+            ->withSum('drinks', 'price')
             ->with(['branch', 'customer', 'user', 'room', 'status', 'seller', 'course','drinks'])
             ->where('type', 1)
             ->whereIn('ref_status_id', [2, 3]) // ยกเลิก
