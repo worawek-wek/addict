@@ -130,12 +130,12 @@
                                                 </label>
                                             @endforeach
                                         </div>
-                                        <div class="col-sm-6">
+                                        {{-- <div class="col-sm-6">
                                             <label for="" class="form-label">ประเภทสินค้า</label><span class="text-danger">
                                                 *</span>
                                                 <input  type="text" class="form-control"
                                                 placeholder="ประเภทสินค้า" value="{{ $product->producttype->name }}" disabled>
-                                        </div>
+                                        </div> --}}
                                         <div class="col-sm-6">
                                             <label for="" class="form-label">ชื่อสินค้า</label><span
                                                 class="text-danger"> *</span>
@@ -153,6 +153,12 @@
                                                 class="text-danger"> *</span>
                                             <input name="price_staff" type="text" class="form-control"
                                                 placeholder="ราคาขาย" required value="{{ $product->price_staff }}" />
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label for="" class="form-label">Minimum Stock แจ้งเตือนที่ต้องการซื้อ</label><span
+                                                class="text-danger"> *</span>
+                                            <input name="minimum" type="number" class="form-control"
+                                                placeholder="Minimum Stock แจ้งเตือนที่ต้องการซื้อ" required value="{{ $product->minimum }}" />
                                         </div>
                                         {{-- <div class="col-sm-6">
                                             <label for="" class="form-label">ต้นทุน</label><span
