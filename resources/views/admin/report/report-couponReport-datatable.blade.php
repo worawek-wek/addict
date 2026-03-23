@@ -96,7 +96,7 @@
          style="background:#dee2e6; font-size:13px;">
         <span>รวมยอดทั้งหมด</span>
         <span class="ms-3">{{ $grandCount }} รายการ</span>
-        <span class="ms-auto">คอมมิชชั่น {{ number_format($grandCommission) }} บาท</span>
+        <span class="ms-auto">ค่ามือ {{ number_format($grandCommission) }} บาท</span>
     </div>
 
     {{-- Summary Section --}}
