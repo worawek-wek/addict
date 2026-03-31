@@ -73,6 +73,10 @@
                     <i class="fa fa-wine-glass"></i>
                     ขายดื่ม
                 </a>
+                <a href="{{ url('admin/order-rooms') }}" class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
+                    <i class="ti ti-settings"></i>
+                    หลังบ้าน
+                </a>
 
             </div>
             
@@ -111,7 +115,6 @@
                             <div class="timer-box timer m-auto mb-1" data-start="{{ @$room->active_order->start_time }}" style="background-color: {{ $room->is_busy  ? '#6c757d' : '#5e2a5f' }};">00:00</div>
                         <div
                             class="card text-center border-0 shadow-sm {{ $room->is_busy ? 'bg-danger text-white' : 'bg-purple text-white' }}">
-
 
                             <div @if(!@$room->is_busy) onclick="window.location.href='{{ 'pos/'.$room->id }}'" @endif class="card-body py-5 px-0" onclick="view({{ @$room->order->id }}); return false;">
                                 @if (isset($room->active_order))

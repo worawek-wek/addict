@@ -160,7 +160,7 @@
                                     <div class="card">
                                         <div class="card-body">
                                         <div class="col-12 mt-2">
-                                            <h4 class="label-pos ff-playfair p-2">สินค้า</h4>
+                                            <h4 class="label-pos ff-playfair p-2">ดื่ม</h4>
                                         </div>
                                         <div class="row" id="drinkGrid">
                                             {{-- @include('pos.partials.drink-grid', ['drinks' => $drinks]) --}}

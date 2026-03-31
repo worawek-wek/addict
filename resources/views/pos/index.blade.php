@@ -10,7 +10,56 @@
     <title>Dashboard - CRM | Vuexy - Bootstrap Admin Template</title>
 </head>
 <link rel="stylesheet" href="../../assets/vendor/libs/spinkit/spinkit.css" />
+@if (isset($room->active_order))
+<div style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(234, 244, 255, 0.85);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+">
+    <div style="
+        background: #fff;
+        padding: 30px 40px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        max-width: 400px;
+        width: 90%;
+    ">
+        <h4 style="margin-bottom: 10px; color: #d9534f;">
+            ห้องนี้กำลังถูกใช้งาน
+        </h4>
 
+        <p style="margin-bottom: 15px;">
+            ไม่สามารถทำรายการได้ในขณะนี้
+        </p>
+
+        {{-- @if (!empty($room->active_order->staff_name))
+        <p style="margin-bottom: 20px; font-size: 14px; color: #555;">
+            ผู้ดูแล: {{ $room->active_order->staff_name }}
+        </p>
+        @endif --}}
+
+        <a href="/pos/room" 
+           style="
+            display: inline-block;
+            padding: 10px 20px;
+            background: #6c757d;
+            color: #fff;
+            border-radius: 6px;
+            text-decoration: none;
+        ">
+            ย้อนกลับ
+        </a>
+    </div>
+</div>
+@endif
 <div id="loadingOverlay" style="display: none;">
     <div class="col">
         <!-- Chase -->
@@ -805,7 +854,7 @@
                         processData: false, // ✅ ต้องมี
                         success: function(response) {
                             if (response.status == true) {
-                                // $('#insert_product')[0].reset();
+
                                 Swal.fire({
                                     title: 'เพิ่มคำสั่งซื้อเรียบร้อยแล้ว',
                                     icon: 'success',
@@ -813,19 +862,32 @@
                                     timerProgressBar: true,
                                     showConfirmButton: false
                                 }).then(() => {
-                                    // window.location.href = '/pos/room';
-                                    
-                                    const doc = iframe.contentWindow.document;
-                                    doc.open();
-                                    doc.write(response.data);
-                                    doc.close();
-
-                                    // รอโหลดก่อนค่อยพิมพ์
-                                    iframe.onload = function () {
-                                        iframe.contentWindow.focus();
-                                        iframe.contentWindow.print();
-                                    };
-
+                                    // if (paymentStatus == '0') {
+                                    //     location.reload();
+                                    // } else {
+                                        const newWindow = window.open('', '_blank');
+                                        newWindow.document.write(`
+                                            <html>
+                                            <head>
+                                                <title>Print</title>
+                                            </head>
+                                            <body>
+                                                ${response.data}
+                                                <script>
+                                                    window.onload = function () {
+                                                        window.print();
+                                                    };
+                                                    window.onafterprint = function () {
+                                                        window.close();
+                                                    };
+                                                <\/script>
+                                            </body>
+                                            </html>
+                                        `);
+                                        newWindow.document.close();
+                                        window.location.href='/pos/room';
+                                        // location.reload();
+                                    // }
                                 });
                                 // $('#addserviceModal').modal('hide');
                                 // loadData(page);

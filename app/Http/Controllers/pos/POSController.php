@@ -37,6 +37,33 @@ class POSController extends Controller
      */
     public function index(Request $request, $room_id)
     {
+        $room = Room::find($room_id);
+
+        $activeOrder = Order::where('ref_room_id', $room->id)
+            ->where('ref_status_id', 2)
+            ->whereDate('booking_date', today())
+            ->whereTime('start_time', '<=', now())
+            ->whereTime('end_time', '>=', now())
+            ->first();
+
+        $room->is_busy = (bool) $activeOrder;
+
+        if ($activeOrder) {
+            $staffName = null;
+
+            if ($activeOrder->ref_user_id) {
+                $staff = \App\Models\User::find($activeOrder->ref_user_id);
+                $staffName = $staff ? ($staff->nickname ?? $staff->name) : null;
+            }
+
+            $room->active_order = (object) [
+                'start_time' => $activeOrder->start_time,
+                'end_time'   => $activeOrder->end_time,
+                'staff_name' => $staffName,
+            ];
+        }
+        $data['room'] = $room;
+
         // ---------------- Products + Search ----------------
         $q = trim((string) $request->get('q', ''));
 
@@ -691,7 +718,7 @@ class POSController extends Controller
                                     </tr>
                                 </table>
                             </div>
-                            <div style='border-top: 2px dashed #000; margin:10px 0;'></div>
+                            <div style='page-break-before: always;'></div>
                             <div class='invoice'>
                                 <div class='header' align='right'>
                                     <span class='title'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  ใบคูปองพนักงาน </span>
@@ -720,7 +747,7 @@ class POSController extends Controller
                                 <span style='padding-top:10px'>ให้เก็บไว้ตรวจสอบ</span>
 
                             </div>
-
+                            <div style='page-break-before: always;'></div>
                                 <div style='padding: 10px;'>
                                 $qr
                                 </div>
