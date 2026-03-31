@@ -28,21 +28,21 @@
                                 <div class="card mb-3">
                                     <div class="card-header border-bottom border-bottom">
                                         <div class="row g-3 justify-content-between">
-                                            <div class="col-sm-6 mb-2">
+                                            <div class="col-sm-4 mb-2">
                                                 <h4 class="mb-0">
                                                     <i class="tf-icons ti ti-user-dollar text-main ti-md me-2"></i>
                                                     รายงานค่าคอม (นวด+สินค้า)
                                                 </h4>
                                             </div>
 
-                                            <div class="col-sm-6 d-flex justify-content-end gap-2">
-                                                ดูย้อนหลัง
+                                            <div class="col-sm-8 d-flex justify-content-end align-items-sm-center gap-2">
+                                                รอบ:
                                                 <select onchange='getHistoryRound(this.value)'
                                                     name="round" class="form-select ms-2 me-2"
-                                                    style="width:100px">
+                                                    style="width:220px">
                                                     <option value="current">ปัจจุบัน</option>
-                                                    @foreach ($rounds as $rou)
-                                                        <option data-bs-toggle="modal" data-bs-target="#insurance" value="{{ $rou }}">{{ $rou }}</option>
+                                                    @foreach ($rounds as $round)
+                                                        <option value="{{ $round->round }}">{!! date('d/m/Y', strtotime($round->from_date)).' &nbsp;-&nbsp; '.date('d/m/Y', strtotime($round->to_date)) !!}</option>
                                                     @endforeach
                                                 </select>
                                                 <a href="{{ route('sales_commission_tier.index') }}" class="btn btn-main">
@@ -52,20 +52,7 @@
                                         </div>
                                     </div>
                                     <div class="card-body px-0 pt-0">
-                                        <div class="row p-3">
-                                            <div class="col-lg-2">
-                                                <div class="d-flex align-items-center mb-2 mb-md-0">
-                                                    <label class="">Show</label>
-                                                    <select onchange='loadData("{{ $page_url }}/datatable")'
-                                                        name="limit" class="form-select ms-2 me-2 p_search"
-                                                        style="width:100px">
-                                                        <option value="10">10</option>
-                                                        <option value="20">20</option>
-                                                        <option value="50">50</option>
-                                                        <option value="100">100</option>
-                                                    </select>
-                                                </div>
-                                            </div>
+                                        <div class="row g-3 p-3">
                                             <div class="col-lg-2">
                                                 <div class="input-group input-group-merge">
                                                     <span class="input-group-text"><i
@@ -76,7 +63,7 @@
                                                         placeholder="ค้นหาชื่อพนักงาน..." />
                                                 </div>
                                             </div>
-                                            <div class="col-md-8 flex text-end" style="padding-right: unset !important;">
+                                            <div class="col-md-10 flex text-end" style="padding-right: unset !important;">
                                                     <div
                                                         class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
                                                         <label class="me-3">ตั้งแต่วันที่:</label>
@@ -100,7 +87,7 @@
                                                             </div>
                                                         <div class="dt-buttons btn-group flex-wrap d-flex mb-6 mb-sm-0">
                                                             <button
-                                                                class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
+                                                                class="btn btn-primary add-new me-2 ms-sm-0 waves-effect waves-light"
                                                                 type="button"
                                                                 onclick="printPdf()">
                                                                 <span>
@@ -110,12 +97,12 @@
                                                                 </span>
                                                             </button>
                                                             <button
-                                                                class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
+                                                                class="btn btn-success add-new me-2 ms-sm-0 waves-effect waves-light"
                                                                 type="button"
                                                                 onclick="savePrintPdf()">
                                                                 <span>
                                                                     <i class="ti ti-file-upload me-0 me-sm-1"></i>
-                                                                    <span class="d-none d-sm-inline-block">พิมพ์+บันทึกรอบ
+                                                                    <span class="d-none d-sm-inline-block">พิมพ์ + บันทึกรอบ
                                                                     </span>
                                                                 </span>
                                                             </button>
@@ -132,6 +119,19 @@
                                                             </div> --}}
                                                         </div>
                                                     </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-2">
+                                                <div class="d-flex align-items-center mb-2 mb-md-0">
+                                                    <label class="">Show</label>
+                                                    <select onchange='loadData("{{ $page_url }}/datatable")'
+                                                        name="limit" class="form-select ms-2 me-2 p_search"
+                                                        style="width:100px">
+                                                        <option value="10">10</option>
+                                                        <option value="20">20</option>
+                                                        <option value="50">50</option>
+                                                        <option value="100">100</option>
+                                                    </select>
                                                 </div>
                                             </div>
                                         </div>

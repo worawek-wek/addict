@@ -109,7 +109,9 @@ class CommissionController extends Controller
     // แสดงค่าคอมมิชชั่นพนักงานขาย นวด+สินค้า
     public function view_sales(Request $request)
     {
-        $rounds = HistoryCommission::select('round')->distinct()->orderBy('round', 'DESC')->pluck('round');
+        $rounds = HistoryCommission::whereIn('id', function($query) {
+                                                $query->selectRaw('MAX(id)')->from('history_commissions')->groupBy('round');
+                                            })->get();
         $page_url = "admin/commission/view-sales";
         return view('admin.commission.view_sales', compact('page_url', 'rounds'));
     }
