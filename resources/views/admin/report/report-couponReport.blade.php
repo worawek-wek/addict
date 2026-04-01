@@ -98,15 +98,6 @@
                                                         </label>
                                                     </div>
                                                 </div>
-                                                <div class="d-flex align-items-baseline ms-3 me-3 mt-3">
-                                                    <label class="me-2">User</label>
-                                                    <input type="number" name="user_id" id="user_id_input"
-                                                        class="form-control p_search"
-                                                        placeholder="ID..."
-                                                        style="min-width:120px;"
-                                                        onchange='loadData("{{ $page_url }}-datatable")'
-                                                        onkeydown='if(event.key==="Enter"){ loadData("{{ $page_url }}-datatable"); }'>
-                                                </div>
                                                 <div
                                                     class="d-flex justify-content-start justify-content-md-end align-items-baseline">
                                                     <label class="me-3">ตั้งแต่วันที่:</label>
@@ -119,8 +110,9 @@
                                                                 value="{{ now()->hour >= 10 ? now()->format('d/m/Y') : now()->subDay()->format('d/m/Y') }}">
                                                         </div>
                                                         <div class="dataTables_filter mx-n2 me-1">
-                                                            <input name="start_time_filter" id="start_time_filter" type="time"
-                                                                class="form-control p_search" value="10:00">
+                                                            <input name="start_time_filter" id="start_time_filter"
+                                                                type="time" class="form-control p_search"
+                                                                value="10:00">
                                                         </div>
                                                         <label class="me-3">ถึงวันที่:</label>
                                                         <div
@@ -132,8 +124,17 @@
                                                                     value="{{ now()->hour >= 10 ? now()->addDay()->format('d/m/Y') : now()->format('d/m/Y') }}">
                                                             </div>
                                                             <div class="dataTables_filter mx-n2 me-1">
-                                                                <input name="end_time_filter" id="end_time_filter" type="time"
-                                                                    class="form-control p_search" value="04:01">
+                                                                <input name="end_time_filter" id="end_time_filter"
+                                                                    type="time" class="form-control p_search"
+                                                                    value="04:01">
+                                                            </div>
+                                                            <div class="d-flex align-items-baseline ms-1 me-3">
+                                                                <label class="me-2">User</label>
+                                                                <input type="number" name="user_id" id="user_id_input"
+                                                                    class="form-control p_search" placeholder="ID..."
+                                                                    style="min-width:120px;"
+                                                                    onchange='loadData("{{ $page_url }}-datatable")'
+                                                                    onkeydown='if(event.key==="Enter"){ loadData("{{ $page_url }}-datatable"); }'>
                                                             </div>
                                                             <div
                                                                 class="dt-buttons btn-group flex-wrap d-flex mb-6 mb-sm-0">
@@ -160,6 +161,7 @@
                                                                         </span>
                                                                     </button>
                                                                 </div> --}}
+
                                                             </div>
                                                         </div>
                                                     </div>
