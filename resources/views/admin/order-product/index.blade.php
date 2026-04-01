@@ -61,7 +61,9 @@
                                                         class="btn btn-primary buttons-collection  btn-info waves-effect waves-light me-2"
                                                         tabindex="0" aria-controls="DataTables_Table_0" type="button"
                                                         aria-haspopup="dialog" aria-expanded="false"
-                                                        onclick="printSummaryReport()">
+                                                        onclick="printSummaryReport()"
+                                                        id="ButtonSummaryReport"
+                                                        >
                                                         <span><i class="ti ti-receipt"></i>
                                                             พิมพ์รายงานสรุปยอดขายล่าสุด</span>
                                                     </button>
@@ -143,7 +145,6 @@
                 data: searchData,
                 success: function(data) {
                     $("#table-data").html(data);
-
                     // bind pagination click
                     $('#table-data .pagination a').on('click', function(e) {
                         e.preventDefault();

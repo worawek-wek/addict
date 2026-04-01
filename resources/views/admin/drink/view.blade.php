@@ -77,13 +77,13 @@
                                             </li>
                                             <li class="d-flex align-items-center mb-3">
                                                 <i class="ti ti-user text-heading"></i><span
-                                                    class="fw-medium mx-2 me-4 text-heading">ราคาขาย(ลูกค้า):</span>
+                                                    class="fw-medium mx-2 me-4 text-heading">ราคาขาย</span>
                                                 <span>{{ $drink->price }}</span>
                                             </li>
                                             <li class="d-flex align-items-center mb-3">
                                                 <i class="ti ti-user text-heading"></i><span
-                                                    class="fw-medium mx-2 me-4 text-heading">ราคาขาย(พนักงาน):</span>
-                                                <span>{{ $drink->price_staff }}</span>
+                                                    class="fw-medium mx-2 me-4 text-heading">ค่าดื่ม:</span>
+                                                <span>{{ $drink->commission }}</span>
                                             </li>
                                             <li class="d-flex align-items-center mb-3">
                                                 <i class="ti ti-user text-heading"></i><span
@@ -140,10 +140,10 @@
                                                 placeholder="ราคาขาย" required value="{{ $drink->price }}" />
                                         </div>
                                         <div class="col-sm-6">
-                                            <label for="" class="form-label">ราคาขาย(พนักงาน)</label><span
+                                            <label for="" class="form-label">ค่าดื่ม</label><span
                                                 class="text-danger"> *</span>
-                                            <input name="price_staff" type="text" class="form-control"
-                                                placeholder="ราคาขาย" required value="{{ $drink->price_staff }}" />
+                                            <input name="commission" type="text" class="form-control"
+                                                placeholder="ราคาขาย" required value="{{ $drink->commission }}" />
                                         </div>
                                         {{-- <div class="col-sm-6">
                                             <label for="" class="form-label">ต้นทุน</label><span

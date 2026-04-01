@@ -290,6 +290,9 @@ Route::prefix('admin')->group(function () {
             Route::get('report/coupon-report-datatable', 'coupon_report_datatable')->name('report.coupon_report.datatable');
             Route::get('report/coupon-report/pdf', 'coupon_report_pdf')->name('report.coupon-report-pdf');
             Route::get('report/coupon-report', 'coupon_report')->name('report.coupon_report');
+            Route::get('report/drink-com-datatable', 'drink_com_datatable')->name('report.drink_com.datatable');
+            Route::get('report/drink-com/pdf', 'drink_com_pdf')->name('report.drink-com-pdf');
+            Route::get('report/drink-com', 'drink_com')->name('report.drink_com');
             Route::get('report/monthly-sale', 'monthly_sale')->name('report.monthly_sale');
             Route::get('report/monthly-sale/pdf', 'monthly_sale_pdf')->name('report.monthly_sale-pdf');
             Route::get('report/report-sale-monthly', 'monthly_sale_datatable')->name('report-sale-monthly.datatable');

@@ -167,9 +167,9 @@
 
                                                     <div class="card-body text-center">
                                                         <h6 class="card-title text-truncate mb-1" title="{{ $product->name }}">{{ $product->name }}</h6>
-                                                        <p class="fw-bold text-primary product-price mb-1"
+                                                        <p class="fw-bold text-success product-price mb-1"
                                                                         data-price-customer="{{ $product->price }}"
-                                                                        data-price-staff="{{ $product->price_staff }}">THB {{ number_format($product->price, 2) }}</p>
+                                                                        data-price-staff="{{ $product->price_staff }}">THB {{ number_format($product->price_staff, 2) }}</p>
                                                         <div class="small text-muted  mb-2">Stock: {{ $totalRemain }}</div>
 
                                                         @if($inStock)
@@ -232,16 +232,16 @@
 
                                                 <div>
                                                     <input type="radio" class="btn-check sale-type calculate"
-                                                        name="customer_type" id="sale-customer" value="2" checked>
-                                                    <label class="btn btn-outline-primary" for="sale-customer">
+                                                        name="customer_type" id="sale-customer" value="2">
+                                                    <label class="btn btn-outline-secondary" for="sale-customer">
                                                         ลูกค้า
                                                     </label>
                                                 </div>
 
                                                 <div>
                                                     <input type="radio" class="btn-check sale-type calculate"
-                                                        name="customer_type" id="sale-staff" value="1">
-                                                    <label class="btn btn-outline-secondary" for="sale-staff">
+                                                        name="customer_type" id="sale-staff" value="1" checked>
+                                                    <label class="btn btn-outline-primary" for="sale-staff">
                                                         พนักงาน
                                                     </label>
                                                 </div>
@@ -300,7 +300,7 @@
                                                 <!-- เงินสด -->
                                                 <div class="col-md-6">
                                                     <input type="radio" class="btn-check payment-method"
-                                                        name="payment_method" id="pay-cash" value="cash">
+                                                        name="payment_method" id="pay-cash" value="cash" checked>
                                                     <label class="card payment-card text-center p-3" for="pay-cash">
                                                         <i class="bi bi-cash-coin fs-1 text-success"></i>
                                                         <div class="mt-2 fw-bold">เงินสด</div>

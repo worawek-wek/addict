@@ -271,6 +271,220 @@ class ReportController extends Controller
         $pdf->WriteHTML($html);
         $pdf->Output();
     }
+    public function drink_com(Request $request)
+    {
+        $data['page_url'] = "admin/report/drink-com";
+        $data['employees'] = \App\Models\User::where('ref_branch_id', Auth::user()->ref_branch_id)
+            ->where('ref_position_id', 2)
+            ->orderBy('name')
+            ->get();
+        return view('admin.report.report-drink-com', $data);
+    }
+
+    public function drink_com_datatable(Request $request)
+    {
+
+        $limit = $request->limit ?? 10;
+        $orderRooms = $this->DCgetOrderRooms($limit);
+
+        $user = Auth::user();
+
+        if ($user->work_status == 3) {
+            $branches = Branch::orderBy('name')->get();
+        } else {
+            $branches = Branch::where('id', $user->ref_branch_id)->get();
+        }
+        $userCommissionMap = \App\Models\UserHasRoomTypeCommission::select('ref_user_id', 'ref_room_type_id', 'ref_course_id', 'price', 'coupon')
+            ->get()
+            ->keyBy(fn($r) => "{$r->ref_user_id}_{$r->ref_room_type_id}_{$r->ref_course_id}");
+
+        $roomTypeCourseMap = \App\Models\RoomTypeHasCourse::select('ref_room_type_id', 'ref_course_id', 'price', 'commission', 'coupon')
+            ->get()
+            ->keyBy(fn($r) => "{$r->ref_room_type_id}_{$r->ref_course_id}");
+
+        return view('admin.report.report-drink-com-datatable', compact('orderRooms', 'branches', 'userCommissionMap', 'roomTypeCourseMap'));
+    }
+    private function DCgetOrderRooms($limit)
+    {
+        $now = Carbon::now()->format('Y-m-d H:i:s');
+
+        $query = Order::withSum('drinks', 'price')
+                        ->with(['branch', 'customer', 'user', 'room', 'status', 'seller'])
+                        ->where('type', 3)
+                        ->whereIn('ref_status_id', [2, 3])
+                        // ->select('orders.*')
+                        ->orderByRaw("
+                                    CASE
+                                        WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
+                                        WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
+                                        WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
+                                        WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
+                                        WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
+                                        WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
+                                        WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
+                                        ELSE 8 -- ไม่ระบุ
+                                    END
+                                ")
+                        ->orderBy('booking_date')
+                        ->orderBy('start_time');
+
+        // ✅ filter เฉพาะสาขาของ user ที่ login
+        $userBranchId = Auth::user()->ref_branch_id ?? null;
+        if ($userBranchId) {
+            $query->where('ref_branch_id', $userBranchId);
+        }
+
+        // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
+        if (request()->filled('branch_id')) {
+            $query->where('ref_branch_id', request()->branch_id);
+        }
+
+        if (request()->filled('search')) {
+            $search = request()->search;
+            $query->whereHas('customer', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        if (request()->filled('user_id')) {
+            $get_user_id = User::where('user_id', request('user_id'))->first();
+            if ($get_user_id) {
+                $query->where('ref_user_id', $get_user_id->id);
+            }
+        }
+
+        if (request('start_date')) {
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
+                ->startOfDay();
+
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
+                ->endOfDay();
+
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        $orderRooms = $query->paginate($limit);
+
+        // กำหนด badge และ label
+        $nowCarbon = Carbon::now();
+        foreach ($orderRooms as $order) {
+            $startDateTime = Carbon::parse($order->booking_date . ' ' . $order->start_time);
+            $endDateTime   = Carbon::parse($order->booking_date . ' ' . $order->end_time);
+
+            if (!empty($order->payment_method)) {
+                $order->badge_class = 'bg-info';
+                $order->status_label = $order->payment_method;
+            } elseif ($order->ref_status_id == 2) {
+                $order->badge_class = 'bg-success';
+                $order->status_label = 'อยู่ระหว่างใช้บริการ';
+            } elseif ($order->ref_status_id == 1 && $nowCarbon->between($startDateTime, $endDateTime)) {
+                $order->badge_class = 'bg-primary';
+                $order->status_label = 'จอง (ถึงเวลาแล้ว)';
+            } elseif ($order->ref_status_id == 1 && $nowCarbon->lessThan($startDateTime)) {
+                $order->badge_class = 'bg-warning';
+                $order->status_label = 'จอง';
+            } elseif ($order->ref_status_id == 1 && $nowCarbon->greaterThan($endDateTime)) {
+                $order->badge_class = 'bg-danger';
+                $order->status_label = 'จอง (เกินเวลา)';
+            } elseif ($order->ref_status_id == 3) {
+                $order->badge_class = 'bg-secondary';
+                $order->status_label = 'ใช้บริการเสร็จสิ้น';
+            } elseif ($order->ref_status_id == 4) {
+                $order->badge_class = 'bg-danger';
+                $order->status_label = 'ยกเลิก';
+            } else {
+                $order->badge_class = 'bg-dark';
+                $order->status_label = 'ไม่ระบุ';
+            }
+        }
+
+        return $orderRooms;
+    }
+    public function drink_com_pdf(Request $request)
+    {
+        $now = Carbon::now()->format('Y-m-d H:i:s');
+
+        $orderRooms = Order::withSum('addons', 'price')
+            ->withSum('addons', 'coupon')
+            ->withSum('products', 'price')
+            ->with(['branch', 'customer', 'user', 'room', 'status', 'seller', 'course'])
+            ->where('type', 1)
+            ->whereIn('ref_status_id', [2, 3])
+            ->orderByRaw("
+                        CASE
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
+                            WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
+                            WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
+                            WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
+                            WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
+                            ELSE 8 -- ไม่ระบุ
+                        END
+                    ")
+            ->orderBy('booking_date')
+            ->orderBy('start_time');
+
+
+        $userBranchId = Auth::user()->ref_branch_id ?? null;
+        if ($userBranchId) {
+            $orderRooms->where('ref_branch_id', $userBranchId);
+        }
+
+        if (request()->filled('branch_id')) {
+            $orderRooms->where('ref_branch_id', request()->branch_id);
+        }
+
+        if (request()->filled('search')) {
+            $search = request()->search;
+            $orderRooms->whereHas('customer', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        if (request()->filled('user_id')) {
+            $get_user_id = User::where('user_id', request('user_id'))->first();
+            if ($get_user_id) {
+                $orderRooms->where('ref_user_id', $get_user_id->id);
+            }
+        }
+
+        if (request('start_date')) {
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
+                ->startOfDay();
+
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
+                ->endOfDay();
+
+            $orderRooms->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+
+        $data['orderRooms'] = collect($orderRooms->get());
+        $data['summary_total_price'] = $data['orderRooms']->sum('total_price');
+
+        $data['userCommissionMap'] = \App\Models\UserHasRoomTypeCommission::select('ref_user_id', 'ref_room_type_id', 'ref_course_id', 'price', 'coupon')
+            ->get()
+            ->keyBy(fn($r) => "{$r->ref_user_id}_{$r->ref_room_type_id}_{$r->ref_course_id}");
+
+        $data['roomTypeCourseMap'] = \App\Models\RoomTypeHasCourse::select('ref_room_type_id', 'ref_course_id', 'price', 'commission', 'coupon')
+            ->get()
+            ->keyBy(fn($r) => "{$r->ref_room_type_id}_{$r->ref_course_id}");
+
+        $data['report_start_date'] = request('start_date') ?? date('d/m/Y');
+        $data['report_end_date']   = request('end_date')   ?? date('d/m/Y');
+
+        $html = view('admin.report.report-drink-com-pdf', $data)->render();
+
+        $pdf = new \Mpdf\Mpdf([
+            'default_font_size' => 10,
+            'default_font' => 'sarabun'
+        ]);
+        $pdf->autoScriptToLang = true;
+        $pdf->autoLangToFont = true;
+        $pdf->WriteHTML($html);
+        $pdf->Output();
+    }
     public function oversee_employee_datatable(Request $request)
     {
 
