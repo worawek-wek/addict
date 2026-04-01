@@ -384,16 +384,24 @@ class OrderProductController extends Controller
 
             //get items from request
             $items = $request->input('items', []);
+
+            // Restore stock for all existing order items before deleting them
+            foreach ($order->products as $oldItem) {
+                StockReadyForSale::where('ref_product_id', $oldItem->ref_product_id)
+                    ->orderByDesc('id')
+                    ->limit(1)
+                    ->increment('remain', $oldItem->quantity);
+            }
+
             //clear old items
             $order->products()->delete();
-            //
 
             $order->discount        = $discount;
-            $order->payment_method  = $request->input('payment_method') ? $request->input('payment_method') : false;
+            $order->payment_method  = $request->input('payment_method') ?: null;
             $order->total_price     = 0;
             $order->updated_by      = $updated_by;
 
-            //add new items
+            //add new items and decrement stock
             foreach ($items as $item) {
                 $product = Product::find($item['product_id']);
                 if ($product) {
@@ -406,8 +414,13 @@ class OrderProductController extends Controller
                         'quantity'       => $quantity,
                         'price'          => $price,
                         'total_price'    => $totalPrice,
-                        'cost'     => 0.00,
+                        'cost'           => 0.00,
                     ]);
+                    // Decrement stock for the newly added item
+                    StockReadyForSale::where('ref_product_id', $product->id)
+                        ->orderByDesc('id')
+                        ->limit(1)
+                        ->decrement('remain', $quantity);
                     $order->total_price += $totalPrice;
                 } else {
                     throw new \Exception("ไม่พบสินค้า ID: " . $item['product_id']);
@@ -419,12 +432,12 @@ class OrderProductController extends Controller
             $order->total_price = max(0, $order->total_price - $discount);
 
             $payment_status = $request->input('payment_status', null);
-            if ($payment_status == 1 && !empty($payment_method)) {
-                $order->payment_method = $payment_method;
+            if ($payment_status == 1) {
                 $order->payment_status = 1;
+                $order->payment_method = $payment_method ?: null;
             } else {
+                $order->payment_status = 0;
                 $order->payment_method = null;
-                $order->payment_status = 0; // Never null, 0 = unpaid
             }
 
             $order->save();
