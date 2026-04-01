@@ -428,12 +428,6 @@ class ReportController extends Controller
             $query->where('ref_branch_id', request()->branch_id);
         }
 
-        $DailySalesClosure = DailySalesClosure::orderBy("id", "DESC")->first();
-
-        if (@$DailySalesClosure) {
-            $query->where('created_at', ">", $DailySalesClosure->date_time);
-        }
-
         // filter ค้นหา
         if (request()->filled('search')) {
             $search = request()->search;
@@ -441,7 +435,6 @@ class ReportController extends Controller
                 $q->where('name', 'like', "%{$search}%");
             });
         }
-
 
         if (request('start_date')) {
             $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();

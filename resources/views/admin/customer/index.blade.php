@@ -185,10 +185,6 @@
                     @csrf
                     <input type="hidden" id="customer_id" name="customer_id">
                     <div class="modal-body row g-3">
-                        {{-- <div class="col-md-6">
-                            <label class="form-label">ชื่อ</label>
-                            <input type="text" name="name" id="edit_name" class="form-control" required>
-                        </div> --}}
                         <div class="col-md-6">
                             <label class="form-label">ชื่อจริง</label>
                             <input type="text" name="first_name" id="edit_first_name" class="form-control">
@@ -198,23 +194,35 @@
                             <input type="text" name="last_name" id="edit_last_name" class="form-control">
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label">สัญชาติ</label>
+                            <input type="text" name="nationality" id="edit_nationality" class="form-control">
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label">เบอร์โทร</label>
                             <input type="text" name="phone" id="edit_phone" class="form-control">
                         </div>
+                        <div class="col-12"><hr class="my-1"><small class="text-muted">แอปติดต่อ</small></div>
                         <div class="col-md-6">
-                            <label class="form-label">แอปติดต่อ</label>
-                            <select name="contact_app" id="edit_contact_app" class="form-select">
-                                <option value="">-- เลือกแอปติดต่อ --</option>
-                                <option value="line">LINE ID</option>
-                                <option value="whatsapp">WhatsApp</option>
-                                <option value="wechat">WeChat</option>
-                                <option value="email">Email</option>
-                            </select>
+                            <label class="form-label"><i class="fa-brands fa-line text-success me-1"></i> LINE ID</label>
+                            <input type="text" name="contact_line" id="edit_contact_line" class="form-control" placeholder="LINE ID">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">รหัส/ชื่อผู้ใช้ในแอป</label>
-                            <input type="text" name="contact_app_handle" id="edit_contact_app_handle" class="form-control">
+                            <label class="form-label"><i class="fa-brands fa-whatsapp text-success me-1"></i> WhatsApp</label>
+                            <input type="text" name="contact_whatsapp" id="edit_contact_whatsapp" class="form-control" placeholder="WhatsApp Number">
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><i class="fa-brands fa-weixin text-success me-1"></i> WeChat</label>
+                            <input type="text" name="contact_wechat" id="edit_contact_wechat" class="form-control" placeholder="WeChat ID">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><i class="fa-brands fa-telegram text-primary me-1"></i> Telegram</label>
+                            <input type="text" name="contact_telegram" id="edit_contact_telegram" class="form-control" placeholder="Telegram ID">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><i class="fa-regular fa-envelope text-secondary me-1"></i> Email</label>
+                            <input type="email" name="contact_email" id="edit_contact_email" class="form-control" placeholder="Email">
+                        </div>
+                        <div class="col-12"><hr class="my-1"></div>
                         <div class="col-md-6">
                             <label class="form-label">สาขา</label>
                             <select name="ref_branch_id" id="edit_branch" class="form-select">
@@ -293,13 +301,17 @@
                 type: "GET",
                 success: function(data) {
                     $('#customer_id').val(data.id);
-                    $('#edit_name').val(data.name);
                     $('#edit_first_name').val(data.first_name);
                     $('#edit_last_name').val(data.last_name);
+                    $('#edit_nationality').val(data.nationality);
                     $('#edit_phone').val(data.phone);
-                    $('#edit_contact_app').val(data.contact_app);
-                    $('#edit_contact_app_handle').val(data.contact_app_handle);
+                    $('#edit_contact_line').val(data.contact_line);
+                    $('#edit_contact_whatsapp').val(data.contact_whatsapp);
+                    $('#edit_contact_wechat').val(data.contact_wechat);
+                    $('#edit_contact_telegram').val(data.contact_telegram);
+                    $('#edit_contact_email').val(data.contact_email);
                     $('#edit_branch').val(data.ref_branch_id);
+                    $('#editCustomerModal').modal('show');
                 },
                 error: function(err) {
                     Swal.fire('ไม่สามารถโหลดข้อมูลลูกค้าได้', '', 'error');

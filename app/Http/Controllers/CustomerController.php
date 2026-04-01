@@ -217,9 +217,15 @@ class CustomerController extends Controller
             'name',
             'first_name',
             'last_name',
+            'nationality',
             'phone',
             'id_card',
-            'ref_branch_id'
+            'ref_branch_id',
+            'contact_line',
+            'contact_whatsapp',
+            'contact_wechat',
+            'contact_telegram',
+            'contact_email',
         ]));
 
     // DB::commit();

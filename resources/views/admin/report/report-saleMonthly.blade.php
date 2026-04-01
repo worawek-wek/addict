@@ -213,15 +213,12 @@
     }
 
     function printPDF() {
-        let start = document.getElementById('start_date').value;
-        let end = document.getElementById('end_date').value;
-        let startTime = document.getElementById('start_time_filter')?.value ?? '';
-        let endTime = document.getElementById('end_time_filter')?.value ?? '';
-
-        let url =
-            `/admin/report/monthly-sale/pdf?start_date=${encodeURIComponent(start)}&end_date=${encodeURIComponent(end)}&start_time_filter=${encodeURIComponent(startTime)}&end_time_filter=${encodeURIComponent(endTime)}`;
-
-        window.open(url, '_blank');
+        var searchData = {};
+        $('.p_search').each(function() {
+            searchData[$(this).attr('name')] = $(this).val();
+        });
+        let queryString = $.param(searchData);
+        window.open('/admin/report/monthly-sale/pdf?' + queryString, '_blank');
     }
     $('.search_date').datepicker({
         format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
