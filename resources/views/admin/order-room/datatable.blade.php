@@ -33,6 +33,7 @@
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="actionDropdown{{ $order->id }}">
                                 <li><a class="dropdown-item" href="#" onclick="view({{ $order->id }}); return false;">ดู</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="printReceipt({{ $order->id }}); return false;">ปริ้นใบเสร็จ</a></li>
                                 <li><a class="dropdown-item text-danger" href="#" onclick="cancelOrder({{ $order->id }}); return false;">ยกเลิกการจอง</a></li>
                             </ul>
                         </div>

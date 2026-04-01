@@ -150,6 +150,26 @@
             });
         }
 
+        function printReceipt(id){
+            $.ajax({
+                type: 'POST',
+                url: "{{ route('order-rooms.getslip', '') }}/" + id,
+                data: { _token: "{{ csrf_token() }}" },
+                success: function(res) {
+                    if (res.status && res.data) {
+                        var w = window.open('', '_blank');
+                        w.document.write(res.data);
+                        w.document.close();
+                        w.focus();
+                        w.onload = function() { w.print(); };
+                    }
+                },
+                error: function() {
+                    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดสลิปได้', 'error');
+                }
+            });
+        }
+
         function onDateRangeChange() {
             var val = $('select[name="date_range"]').val();
             if (val === 'custom') {

@@ -91,6 +91,7 @@ Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
         Route::get('/get-user', 'get_user')->name('pos-get-user');
         Route::post('/calculate', 'calculate')->name('api.calculate');
         Route::post('/api/calculate-summary', 'calculateSummary')->name('api.calculateSummary');
+
         Route::get('/{room_id}', 'index')->name('index');
     });
 });
@@ -247,6 +248,7 @@ Route::prefix('admin')->group(function () {
 
         Route::prefix('order-rooms')->group(function () {
             Route::delete('/{id}', [OrderRoomController::class, 'destroy'])->name('order-rooms.destroy');
+            Route::post('getslip/{id}', [OrderRoomController::class, 'getslip'])->name('order-rooms.getslip');
             Route::get('/', [OrderRoomController::class, 'index'])->name('order-rooms.index');
             Route::get('/datatable', [OrderRoomController::class, 'datatable'])->name('order-rooms.datatable');
             Route::get('/{id}', [OrderRoomController::class, 'show'])->name('order-rooms.show');

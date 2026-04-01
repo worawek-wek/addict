@@ -322,6 +322,8 @@ class POSController extends Controller
         return redirect()->route('pos.index');
     }
 
+
+
     public function checkout(Request $request)
     {
         // // return 123;

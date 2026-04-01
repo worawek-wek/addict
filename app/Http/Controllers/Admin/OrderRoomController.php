@@ -10,8 +10,11 @@ use App\Models\DailySalesClosure;
 use App\Models\Order;
 use App\Models\RoomTypeHasCourse;
 use App\Models\OrderStatus;
+use App\Models\ProductType;
+use App\Models\RoomType;
 use App\Models\StockReadyForSale;
 use Illuminate\Http\Request;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,16 +24,16 @@ class OrderRoomController extends Controller
     public function index()
     {
         $getchild = Order::join('users', 'orders.ref_user_id', '=', 'users.id')
-        ->where('orders.type', 1)
-        ->select(
-            'orders.ref_user_id',
-            'users.name',
-        )
-        ->groupBy(
-            'orders.ref_user_id',
-            'users.name',
-        )
-        ->get();
+            ->where('orders.type', 1)
+            ->select(
+                'orders.ref_user_id',
+                'users.name',
+            )
+            ->groupBy(
+                'orders.ref_user_id',
+                'users.name',
+            )
+            ->get();
 
         // โหลดหน้าแรกพร้อมข้อมูลเริ่มต้น
         $limit = request()->limit ?? 10;
@@ -69,10 +72,10 @@ class OrderRoomController extends Controller
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::with(['branch', 'customer', 'user', 'room', 'status'])
-                            ->where('type', 1)
-                            ->select('orders.*')
-                            ->orderBy('booking_date')
-                            ->orderBy('start_time');
+            ->where('type', 1)
+            ->select('orders.*')
+            ->orderBy('booking_date')
+            ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
@@ -89,10 +92,10 @@ class OrderRoomController extends Controller
             $query->where('ref_user_id', $childSelect);
         }
 
-        $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
+        $DailySalesClosure = DailySalesClosure::orderBy("id", "DESC")->first();
 
         if (@$DailySalesClosure) {
-            $query->where('created_at', ">" ,$DailySalesClosure->date_time);
+            $query->where('created_at', ">", $DailySalesClosure->date_time);
         }
 
         // filter ค้นหา
@@ -167,7 +170,7 @@ class OrderRoomController extends Controller
 
         $room_course_price = 0;
         $room_course = RoomTypeHasCourse::where('ref_room_type_id', $orderRoom->ref_room_type_id)->where('ref_course_id', $orderRoom->service_laundry_cost)->first();
-        if($room_course){
+        if ($room_course) {
             $room_course_price = $room_course->price;
         }
 
@@ -202,7 +205,7 @@ class OrderRoomController extends Controller
         }
         $statuses = OrderStatus::all();
 
-        return view('admin.order-room.view', compact('orderRoom', 'statuses','room_course_price'));
+        return view('admin.order-room.view', compact('orderRoom', 'statuses', 'room_course_price'));
     }
     public function updateStatus(Request $request, $id)
     {
@@ -218,6 +221,177 @@ class OrderRoomController extends Controller
             'success' => true,
             'message' => 'อัปเดตสถานะเรียบร้อยแล้ว',
             'status'  => $order->status->name
+        ]);
+    }
+
+    public function getslip(Request $request, $id)
+    {
+        $order = Order::with([
+            'branch', 'customer', 'user', 'room', 'room_type', 'course',
+            'seller', 'status', 'addons.option', 'products.product',
+        ])->findOrFail($id);
+
+        $qr = QrCode::size(150)->generate(url("admin/order-rooms/{$order->id}"));
+
+        // Build product list grouped by type (mirrors checkout logic)
+        $grouped_products = [];
+        if ($order->products && $order->products->count()) {
+            foreach ($order->products as $orderProduct) {
+                $product = $orderProduct->product;
+                if (!$product) continue;
+                $price    = $orderProduct->price;
+                $qty      = $orderProduct->quantity;
+                $type     = ProductType::find($product->type_id);
+                $typeName = $type ? $type->name : 'อื่นๆ / ไม่ระบุประเภท';
+                $grouped_products[$typeName][] = '<tr>
+                    <td>' . $product->name . '</td>
+                    <td class="text-center">' . $qty . '</td>
+                    <td class="text-right">' . number_format($price, 2) . '</td>
+                    <td class="text-right">' . number_format($price * $qty, 2) . '</td>
+                </tr>';
+            }
+        }
+        $list_product = '';
+        foreach ($grouped_products as $typeName => $rows) {
+            $list_product .= '<tr class="table-active" style="background-color: #f3f4f6;">
+                <td colspan="4"><strong>' . $typeName . '</strong></td>
+            </tr>';
+            foreach ($rows as $row) {
+                $list_product .= $row;
+            }
+        }
+
+        if (!$order->ref_room_type_id) {
+            // Product-only slip (no room type) — same as checkout non-room path
+            $slip = "<!DOCTYPE html>
+                <html lang='th'>
+                <head>
+                    <meta charset='UTF-8'>
+                    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                    <title>รายละเอียดการจอง</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; font-size: 11px; margin: 0; padding: 0; }
+                        .invoice { width: 69mm; font-size: 11px; padding: 10px; box-sizing: border-box; }
+                        .header { display: flex; justify-content: space-between; align-items: end; font-weight: bold; font-size: 10px; margin-bottom: 5px; }
+                        .title { flex-grow: 1; text-align: center; font-size: 11px; }
+                        .right-align { text-align: right; }
+                        .info-text { margin: 2px 0; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 11px; border-top: 1px dashed #000; border-bottom: 1px dashed #000; }
+                        th, td { padding: 3px 2px; text-align: left; font-size: 11px; }
+                        th { border-bottom: 1px dashed #000; }
+                        .text-right { text-align: right; }
+                        .text-center { text-align: center; }
+                        @media print {
+                            @page { size: 69mm auto; margin: 0; }
+                            body { width: 69mm; margin: 0; }
+                            .invoice { width: 69mm; padding: 5px; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class='invoice'>
+                        <div class='header' align='right'>
+                            <span class='title'>ใบแจ้งหนี้ชั่วคราว</span>
+                            <span class='right-align'>No_: " . $order->order_number . "</span>
+                        </div>
+                        <p class='right-align info-text'><strong>แคชเชียร์:</strong> Addict</p>
+                        <p class='info-text'><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date('Y-m-d', strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>รายการสินค้า</th>
+                                    <th class='text-center'>จำนวน</th>
+                                    <th class='text-right'>@ ราคา</th>
+                                    <th class='text-right'>รวม</th>
+                                </tr>
+                            </thead>
+                            <tbody>" . $list_product . "</tbody>
+                        </table>
+                    </div>
+                </body>
+                </html>";
+        } else {
+            // Room / massage slip with staff coupon and QR — same as checkout room path
+            $slip = "<!DOCTYPE html>
+                        <html lang='th'>
+                        <head>
+                            <meta charset='UTF-8'>
+                            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                            <title>รายละเอียดการจอง</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; font-size: 11px; }
+                                .invoice { width: 69mm; font-size: 11px; padding: 20px; }
+                                .header { display: flex; justify-content: space-between; align-items: end; font-weight: bold; font-size: 10px; }
+                                .title { flex-grow: 1; text-align: center; font-size: 11px; }
+                                .right-align { text-align: right; }
+                                table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 11px; border-top: 1px solid #000; }
+                                th, td { padding: 2px; text-align: left; font-size: 11px; }
+                                th { border-bottom: 1px solid #000; }
+                                td { border-bottom: 1px solid #000; }
+                                @media print {
+                                    @page { size: 69mm auto; margin: 0; }
+                                    body { width: 69mm; margin: 0; }
+                                    .invoice { width: 69mm; }
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class='invoice'>
+                                <div class='header' align='right'>
+                                    <span class='title'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ใบแจ้งหนี้ชั่วคราว </span>
+                                    <span class='right-align'>No_: " . $order->order_number . "</span>
+                                </div>
+                                <p class='right-align'><strong>แคชเชียร์:</strong> Addict</p>
+                                <p><strong>ห้อง:</strong> " . ($order->room->name ?? '') . "</p>
+                                <p><strong>เปิดห้อง:</strong> " . \Carbon\Carbon::parse(date('Y-m-d', strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i') . "</p>
+                                <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date('Y-m-d', strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+                                <table>
+                                    <tr><th>จำนวน</th><th>รายการสินค้า</th><th>@ ราคา</th><th>รวม</th></tr>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>" . ($order->user->nickname ?? '') . " + " . ($order->course->name ?? '') . " " . ($order->room_type->name ?? '') . "</td>
+                                        <td>" . $order->total_price . "</td>
+                                        <td>" . $order->total_price . "</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan='3' style='border-top:unset;padding:10px'> ผู้ดูแล " . ($order->seller->user_id ?? '') . " " . ($order->seller->nickname ?? '') . " </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div style='page-break-before: always;'></div>
+                            <div class='invoice'>
+                                <div class='header' align='right'>
+                                    <span class='title'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ใบคูปองพนักงาน </span>
+                                    <span class='right-align'>No_: " . $order->order_number . "</span>
+                                </div>
+                                <p class='right-align'><strong>แคชเชียร์:</strong> Addict</p>
+                                <p><strong>ห้อง:</strong> " . ($order->room->name ?? '') . "</p>
+                                <p><strong>เปิดห้อง:</strong> " . \Carbon\Carbon::parse(date('Y-m-d', strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i') . "</p>
+                                <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date('Y-m-d', strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+                                <table>
+                                    <tr><th>รหัส</th><th>ชื่อพนักงาน</th><th>ชั่วโมงรวม</th></tr>
+                                    <tr>
+                                        <td style='border:unset;padding-top:5px'>" . ($order->user->user_id ?? '') . "</td>
+                                        <td style='border:unset;padding-top:5px'>" . ($order->user->nickname ?? '') . " + " . ($order->course->name ?? '') . " " . ($order->room_type->name ?? '') . "</td>
+                                        <td style='border:unset;padding-top:5px'>" . (isset($order->course->minute) ? floor($order->course->minute / 60) : '') . "</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan='3' style='border-top:unset;padding:10px'> ผู้ดูแล " . ($order->seller->user_id ?? '') . " " . ($order->seller->nickname ?? '') . " </td>
+                                    </tr>
+                                </table>
+                                <span style='padding-top:10px'>ให้เก็บไว้ตรวจสอบ</span>
+                            </div>
+                            <div style='page-break-before: always;'></div>
+                            <div style='padding: 10px;'>
+                                {$qr}
+                            </div>
+                        </body>
+                    </html>";
+        }
+
+        return response()->json([
+            'status' => true,
+            'data'   => $slip,
         ]);
     }
     public function updatePaymentMethod(Request $request, $id)
@@ -259,9 +433,15 @@ class OrderRoomController extends Controller
         if ($order->user && $order->service_laundry_cost) {
             $duration = null;
             switch ($order->service_laundry_cost) {
-                case 'forty_minutes': $duration = 40; break;
-                case 'sixty_minutes': $duration = 60; break;
-                case 'ninety_minutes': $duration = 90; break;
+                case 'forty_minutes':
+                    $duration = 40;
+                    break;
+                case 'sixty_minutes':
+                    $duration = 60;
+                    break;
+                case 'ninety_minutes':
+                    $duration = 90;
+                    break;
             }
             if ($duration) {
                 $commission = \App\Models\MassageCommission::where('ref_user_id', $order->user->id)
