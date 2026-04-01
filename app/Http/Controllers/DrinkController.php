@@ -249,7 +249,7 @@ class DrinkController extends Controller
             $drink->ref_branch_id = $request->ref_branch_id;
             $drink->name = $request->name;
             $drink->price = $request->price;
-            $drink->price_staff = $request->price_staff;
+            $drink->commission = $request->commission;
             $drink->cost = @$request->cost ?? 0.00;
             $drink->remark = $request->remark;
             $drink->sort  =  $lastSort + 1;
@@ -418,7 +418,7 @@ class DrinkController extends Controller
             $drink->ref_branch_id = $request->ref_branch_id;
             $drink->name = $request->name;
             $drink->price = $request->price;
-            $drink->price_staff = $request->price_staff;
+            $drink->commission = $request->commission;
             $drink->cost = @$request->cost ?? 0.00;
             // $drink->stock = $request->stock;
             $drink->remark = $request->remark;

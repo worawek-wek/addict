@@ -108,6 +108,10 @@
 </table>
 
 <script>
+    if("{{$check}}" == 0){
+        $('#ButtonSummaryReport').prop('disabled', true)
+    }
+
     function confirmOrder(orderId) {
         Swal.fire({
             title: 'เลือกช่องทางการชำระเงิน',

@@ -18,7 +18,7 @@
                     ราคา(ลูกค้า)
                 </th>
                 <th class="text-center">
-                    ราคา(พนักงาน)
+                    ค่ามือ
                 </th>
                 <th class="text-center">
                     ต้นทุน
@@ -58,7 +58,7 @@
                     {{ $row->price }}
                 </td>
                 <td class="text-center" {!! $view !!}>
-                    {{ $row->price_staff }}
+                    {{ $row->commission }}
                 </td>
                 <td class="text-center" {!! $view !!}>
                     {{ $row->cost }}

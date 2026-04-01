@@ -346,6 +346,11 @@
                         <div data-i18n="รายงานค่าคอม<br>(ดื่ม)">รายงานค่าคอม<br>(ดื่ม)</div>
                     </a>
                 </li>
+                <li class="menu-item">
+                    <a href="/admin/report/drink-com" class="menu-link">
+                        <div data-i18n="รายงานค่าดื่มพนักงาน">รายงานค่าดื่มพนักงาน</div>
+                    </a>
+                </li>
                 {{-- <li class="menu-item">
                     <a href="/admin/report/oversee-employee" class="menu-link">
                         <div data-i18n="รายงานผู้ดูแลพนักงาน">รายงานผู้ดูแลพนักงาน</div>
