@@ -38,22 +38,22 @@
             <tbody>
                 @foreach ($groupOrders as $order)
                     @php
-                        $globalIndex++;
+                        // $globalIndex++;
 
-                        $ucKey  = "{$order->ref_user_id}_{$order->ref_room_type_id}_{$order->service_laundry_cost}";
-                        $rtcKey = "{$order->ref_room_type_id}_{$order->service_laundry_cost}";
-                        $uc  = $userCommissionMap->get($ucKey);
-                        $rtc = $roomTypeCourseMap->get($rtcKey);
+                        // $ucKey  = "{$order->ref_user_id}_{$order->ref_room_type_id}_{$order->service_laundry_cost}";
+                        // $rtcKey = "{$order->ref_room_type_id}_{$order->service_laundry_cost}";
+                        // $uc  = $userCommissionMap->get($ucKey);
+                        // $rtc = $roomTypeCourseMap->get($rtcKey);
 
-                        if ($uc && ($uc->price > 0)) {
-                            $commission = $uc->price;
-                        } elseif ($rtc) {
-                            $commission = $rtc->commission;
-                        } else {
-                            $commission = 0;
-                        }
+                        // if ($uc && ($uc->price > 0)) {
+                        //     $commission = $uc->price;
+                        // } elseif ($rtc) {
+                        //     $commission = $rtc->commission;
+                        // } else {
+                        //     $commission = 0;
+                        // }
+                        $commission = 0;
 
-                        $groupCommission += $commission;
                     @endphp
                     <tr>
                         <td>{{ $globalIndex }}</td>
@@ -62,6 +62,10 @@
                         <td>{{ $order->user->name ?? '-' }} + 
                             @foreach ($order->drinks as $drinks)
                                 {{ $drinks->drink->name ?? '-' }}
+                                @php
+                                    $commission += $drinks->drink->commission*$drinks->quantity;
+                                    $groupCommission += $commission;
+                                @endphp
                             @endforeach
                         </td>
                         <td class="text-end">{{ number_format($commission) }}</td>
