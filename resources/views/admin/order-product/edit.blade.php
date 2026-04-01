@@ -76,6 +76,22 @@
     .product-price {
         font-size: .85rem;
     }
+
+    /* disabled payment cards */
+    .payment-card.disabled {
+        opacity: .45;
+        pointer-events: none;
+    }
+
+    .payment-card.disabled:hover {
+        border-color: #eee;
+        transform: none;
+    }
+
+    .btn-check:disabled+.payment-card {
+        border-color: #eee !important;
+        background-color: #fff !important;
+    }
 </style>
 
 <body>
@@ -224,10 +240,35 @@
                                                 min="0" value="{{ $order->discount ?? 0 }}" class="form-control"
                                                 oninput="calculate()">
                                         </div>
+                                        {{-- Payment status: paid / not paid --}}
+                                        <div class="px-4 mt-2 mb-3">
+                                            <label class="form-label fw-bold">สถานะการชำระเงิน</label>
+                                            <div class="row g-3 px-2">
+                                                <div class="col-md-6">
+                                                    <input type="radio" class="btn-check" name="payment_status"
+                                                        id="status-paid" value="1"
+                                                        {{ ($order->payment_status == 1) ? 'checked' : '' }}>
+                                                    <label class="card payment-card text-center p-3" for="status-paid">
+                                                        <i class="bi bi-check-circle-fill fs-1 text-success"></i>
+                                                        <div class="mt-2 fw-bold">ชำระแล้ว</div>
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <input type="radio" class="btn-check" name="payment_status"
+                                                        id="status-pending" value="0"
+                                                        {{ ($order->payment_status != 1) ? 'checked' : '' }}>
+                                                    <label class="card payment-card text-center p-3" for="status-pending">
+                                                        <i class="bi bi-clock-history fs-1 text-warning"></i>
+                                                        <div class="mt-2 fw-bold">ยังไม่ชำระ</div>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div class="row g-3 payment-methods px-4">
 
                                             <div class="col-md-6">
-                                                <input type="radio" class="btn-check" name="payment_method"
+                                                <input type="radio" class="btn-check payment-method" name="payment_method"
                                                     id="pay-cash" value="cash"
                                                     {{ $order->payment_method == 'cash' ? 'checked' : '' }}>
                                                 <label class="card payment-card text-center p-3" for="pay-cash">
@@ -237,7 +278,7 @@
                                             </div>
 
                                             <div class="col-md-6">
-                                                <input type="radio" class="btn-check" name="payment_method"
+                                                <input type="radio" class="btn-check payment-method" name="payment_method"
                                                     id="pay-credit" value="credit_card"
                                                     {{ $order->payment_method == 'credit_card' ? 'checked' : '' }}>
                                                 <label class="card payment-card text-center p-3" for="pay-credit">
@@ -247,7 +288,7 @@
                                             </div>
 
                                             <div class="col-md-6">
-                                                <input type="radio" class="btn-check" name="payment_method"
+                                                <input type="radio" class="btn-check payment-method" name="payment_method"
                                                     id="pay-alipay" value="alipay"
                                                     {{ $order->payment_method == 'alipay' ? 'checked' : '' }}>
                                                 <label class="card payment-card text-center p-3" for="pay-alipay">
@@ -257,7 +298,7 @@
                                             </div>
 
                                             <div class="col-md-6">
-                                                <input type="radio" class="btn-check" name="payment_method"
+                                                <input type="radio" class="btn-check payment-method" name="payment_method"
                                                     id="pay-qr" value="qr_code"
                                                     {{ $order->payment_method == 'qr_code' ? 'checked' : '' }}>
                                                 <label class="card payment-card text-center p-3" for="pay-qr">
@@ -360,34 +401,39 @@
             }
         });
 
+        function updateCustomerTypeUI() {
+            const saleType = document.querySelector('input[name="customer_type"]:checked')?.value || '2';
+
+            // Update ลูกค้า / พนักงาน button highlight
+            document.querySelectorAll('input[name="customer_type"]').forEach(radio => {
+                const label = document.querySelector(`label[for="${radio.id}"]`);
+                if (!label) return;
+                if (radio.checked) {
+                    label.classList.remove('btn-outline-secondary');
+                    label.classList.add('btn-outline-primary');
+                } else {
+                    label.classList.remove('btn-outline-primary');
+                    label.classList.add('btn-outline-secondary');
+                }
+            });
+
+            // Update price shown on each product card
+            document.querySelectorAll('.product-price').forEach(priceEl => {
+                const price = saleType === '1' ?
+                    Number(priceEl.dataset.priceStaff) :
+                    Number(priceEl.dataset.priceCustomer);
+                priceEl.textContent = 'THB ' + price.toLocaleString('th-TH', {
+                    minimumFractionDigits: 2
+                });
+                priceEl.classList.toggle('text-success', saleType === '1');
+                priceEl.classList.toggle('text-primary', saleType !== '1');
+            });
+        }
+
         document.querySelectorAll('.qty-input, input[name="customer_type"]').forEach(el => {
             el.addEventListener('change', function() {
                 if (this.name === 'customer_type') {
-                    const saleType = document.querySelector('input[name="customer_type"]:checked')?.value ||
-                        '2';
-
-                    document.querySelectorAll('input[name="customer_type"]').forEach(radio => {
-                        const label = document.querySelector(`label[for="${radio.id}"]`);
-                        if (!label) return;
-                        if (radio.checked) {
-                            label.classList.remove('btn-outline-secondary');
-                            label.classList.add('btn-outline-primary');
-                        } else {
-                            label.classList.remove('btn-outline-primary');
-                            label.classList.add('btn-outline-secondary');
-                        }
-                    });
-
-                    document.querySelectorAll('.product-price').forEach(priceEl => {
-                        const price = saleType === '1' ?
-                            Number(priceEl.dataset.priceStaff) :
-                            Number(priceEl.dataset.priceCustomer);
-                        priceEl.textContent = 'THB ' + price.toLocaleString('th-TH', {
-                            minimumFractionDigits: 2
-                        });
-                        priceEl.classList.toggle('text-success', saleType === '1');
-                        priceEl.classList.toggle('text-primary', saleType !== '1');
-                    });
+                    updateCustomerTypeUI();
                 }
                 calculate();
             });
@@ -457,10 +503,37 @@
             calculate();
         }
 
-        // ===== Save button =====
+        // ===== Toggle payment method cards based on payment status =====
+        function togglePaymentMethod() {
+            const status = document.querySelector('input[name="payment_status"]:checked')?.value;
+            document.querySelectorAll('.payment-method').forEach(function(radio) {
+                const card = radio.closest('.col-md-6')?.querySelector('.payment-card');
+                if (status == 1) {
+                    radio.disabled = false;
+                    if (card) card.classList.remove('disabled');
+                } else {
+                    radio.disabled = true;
+                    radio.checked = false;
+                    if (card) card.classList.add('disabled');
+                }
+            });
+        }
+
+        document.querySelectorAll('input[name="payment_status"]').forEach(function(el) {
+            el.addEventListener('change', togglePaymentMethod);
+        });
+
+        togglePaymentMethod();
+
+        // ===== Init on page load =====
+        updateCustomerTypeUI();
+        calculate();
         function saveChanges() {
             const saleType = document.querySelector('input[name="customer_type"]:checked')?.value || '2';
-            const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value ?? null;
+            const paymentStatus = document.querySelector('input[name="payment_status"]:checked')?.value ?? '0';
+            const paymentMethod = paymentStatus == 1
+                ? (document.querySelector('input[name="payment_method"]:checked')?.value ?? null)
+                : null;
             const discount = parseFloat(document.getElementById('discount-input')?.value) || 0;
             const items = [];
 
@@ -504,6 +577,7 @@
                         body: JSON.stringify({
                             items,
                             discount,
+                            payment_status: paymentStatus,
                             payment_method: paymentMethod
                         })
                     })
@@ -525,7 +599,6 @@
             });
         }
 
-        calculate();
     </script>
 </body>
 

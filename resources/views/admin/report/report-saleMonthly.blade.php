@@ -101,6 +101,10 @@
                                                                 class="form-control p_search search_date"
                                                                 value="{{ date('d/m/Y') }}">
                                                         </div>
+                                                        <div class="dataTables_filter mx-n2 me-1">
+                                                            <input name="start_time_filter" id="start_time_filter" type="time"
+                                                                class="form-control p_search" value="00:00">
+                                                        </div>
                                                         <label class="me-3">ถึงวันที่:</label>
                                                         <div
                                                             class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
@@ -110,11 +114,13 @@
                                                                     class="form-control p_search search_date"
                                                                     value="{{ date('d/m/Y') }}">
                                                             </div>
-
+                                                            <div class="dataTables_filter mx-n2 me-1">
+                                                                <input name="end_time_filter" id="end_time_filter" type="time"
+                                                                    class="form-control p_search" value="23:59">
+                                                            </div>
                                                             <button
                                                                 class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
                                                                 type="button" onclick="printPDF()">
-
                                                                 <span>
                                                                     <i class="ti ti-printer me-0 me-sm-1"></i>
                                                                     <span class="d-none d-sm-inline-block">พิมพ์
@@ -209,9 +215,11 @@
     function printPDF() {
         let start = document.getElementById('start_date').value;
         let end = document.getElementById('end_date').value;
+        let startTime = document.getElementById('start_time_filter')?.value ?? '';
+        let endTime = document.getElementById('end_time_filter')?.value ?? '';
 
         let url =
-            `/admin/report/monthly-sale/pdf?start_date=${encodeURIComponent(start)}&end_date=${encodeURIComponent(end)}`;
+            `/admin/report/monthly-sale/pdf?start_date=${encodeURIComponent(start)}&end_date=${encodeURIComponent(end)}&start_time_filter=${encodeURIComponent(startTime)}&end_time_filter=${encodeURIComponent(endTime)}`;
 
         window.open(url, '_blank');
     }
@@ -252,6 +260,10 @@
     $('#end_date').on('changeDate', function(e) {
         $('#start_date').datepicker('setEndDate', e.date);
 
+        loadData(page);
+    });
+
+    $('#start_time_filter, #end_time_filter').on('change', function() {
         loadData(page);
     });
     // document.addEventListener('DOMContentLoaded', function() {
