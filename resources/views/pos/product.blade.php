@@ -116,6 +116,7 @@
     <div>
         <div>
             <div class="container-fluid">
+
                     <style>
                         .timer-box {
                             text-align: center;
@@ -135,7 +136,24 @@
                         <input type="hidden" name="type" value="2">
                         <div class="container-fluid">
                             <div class="row">
+ <div class="d-flex align-items-center gap-2 mb-3 ms-3">
 
+
+                <!-- button -->
+                <a href="{{ url('pos/drink') }}" class="btn btn-danger d-flex align-items-center justify-content-center gap-2">
+                    <i class="fa fa-wine-glass"></i>
+                    ขายดื่ม
+                </a>
+                <a href="{{ url('pos/room') }}" class="btn btn-info d-flex align-items-center justify-content-center gap-2">
+                    <i class="fa fa-door-open"></i>
+                    รวมห้อง
+                </a>
+                <a href="{{ url('admin/order-rooms') }}" class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
+                    <i class="ti ti-settings"></i>
+                    หลังบ้าน
+                </a>
+
+            </div>
                                 <div class="col-md-9">
                                     <div class="card">
                                         <div class="card-body">
@@ -342,6 +360,7 @@
                                             </div>
                                         </div>
                                         <div class="px-4 mt-3">
+
                                             <div class="fw-bold mb-2">รายการสินค้า</div>
                                             <div class="small">
                                                 <table class="table table-sm table-bordered">

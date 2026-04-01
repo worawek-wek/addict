@@ -133,8 +133,27 @@
 <body>
 <!-- Layout wrapper -->
 <div class="layout-content-navbar pt-3">
+
     <div class="">
         <div>
+             <div class="d-flex align-items-center gap-2 mb-3 ms-5">
+
+
+                <!-- button -->
+                <a href="{{ url('pos/product') }}" class="btn btn-warning d-flex align-items-center justify-content-center gap-2">
+                    <i class="ti ti-shopping-cart"></i>
+                    ขายสินค้า
+                </a>
+                <a href="{{ url('pos/room') }}" class="btn btn-info d-flex align-items-center justify-content-center gap-2">
+                    <i class="fa fa-door-open"></i>
+                    รวมห้อง
+                </a>
+                <a href="{{ url('admin/order-rooms') }}" class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
+                    <i class="ti ti-settings"></i>
+                    หลังบ้าน
+                </a>
+
+            </div>
             <div class="container-fluid">
                     <style>
                         .timer-box {
@@ -154,9 +173,12 @@
                         @csrf
                         <input type="hidden" name="ref_room_id" value="{{ $room_id }}">
                         <div class="container-fluid">
+
                             <div class="row">
 
+
                                 <div class="col-md-9">
+
                                     <div class="card">
                                         <div class="card-body">
                                         <div class="col-12 mt-2">
@@ -239,6 +261,7 @@
                                     </div>
                                 </div>
                             </div>
+
 
                             <div class="col-md-3">
                                 <div class="card shadow-sm border-0">
@@ -338,7 +361,7 @@
                                                     </div>
 
                                                     <div class="d-flex align-items-center gap-2">
-                                                        
+
                                                         <form action="{{ route('pos.update', $item['id']) }}" method="POST">
                                                             @csrf
                                                             <button type="submit" name="qty" value="{{ $item['qty'] - 1 }}"
@@ -404,7 +427,7 @@
                                             <hr class="my-2">
 
                                             <div id="summary-price"></div>
-                                            
+
                                             <div class="mt-2">
                                                 <div class="fw-bold mb-2">Options</div>
                                                 <div id="summary-option-list"></div>
@@ -681,7 +704,7 @@
     .other-btn.active { background-color: #5e2a5f; color: #fff; }
 </style>
 <script>
-    
+
 
         $('#insert_drink').on('submit', function(event) {
             event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
@@ -779,7 +802,7 @@
                 type: 'GET',
                 data: $(this).serialize(),
                 success: function(response) {
-                    
+
                 },
                 error: function(error) {
 
@@ -1073,7 +1096,7 @@
                 : `<div class="text-muted">- ไม่มี Options -</div>`
         );
     }
-    
+
     function calculate() {
 
         let subtotal = 0;
@@ -1083,7 +1106,7 @@
         const saleType = document.querySelector('input[name="customer_type"]:checked')?.value || '2';
 
         document.querySelectorAll('.qty-input').forEach(input => {
-            
+
             const productId = input.name.match(/\[(.*?)\]/)[1];
             const qty = parseInt(input.value) || 0;
             if (qty <= 0) return;
