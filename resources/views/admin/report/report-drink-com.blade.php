@@ -190,7 +190,7 @@
 </html>
 
 <script>
-    var page = "{{ route('report.coupon_report.datatable') }}";
+    var page = "{{ route('report.drink_com.datatable') }}";
     var searchData = {};
     loadData(page);
 
