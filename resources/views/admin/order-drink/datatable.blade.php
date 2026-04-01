@@ -65,7 +65,7 @@
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="actionDropdown{{ $order->id }}">
                             <li><a class="dropdown-item" href="#" onclick="view({{ $order->id }}); return false;">ดู</a></li>
-                            <li><a class="dropdown-item text-danger" href="#" onclick="cancelOrder({{ $order->id }}); return false;">ยกเลิกคำสั่งซื้อ</a></li>
+                            {{-- <li><a class="dropdown-item text-danger" href="#" onclick="cancelOrder({{ $order->id }}); return false;">ยกเลิกคำสั่งซื้อ</a></li> --}}
                             @if ($order->payment_status == 0)
                                 <li><a class="dropdown-item text-success" href="#" onclick="confirmOrder({{ $order->id }}); return false;">ยืนยันชำระเงิน</a></li>
                                 <li><a class="dropdown-item text-danger" href="#" onclick="cancelOrder({{ $order->id }}); return false;">ยกเลิกคำสั่งซื้อ</a></li>
