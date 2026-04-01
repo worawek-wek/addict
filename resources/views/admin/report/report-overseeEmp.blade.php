@@ -73,88 +73,100 @@
                                     <div class="card-datatable table-responsive">
                                         <div id="DataTables_Table_0_wrapper"
                                             class="dataTables_wrapper dt-bootstrap5 no-footer">
-                                            <div
-                                                class="card-header d-flex border-top rounded-0 flex-wrap py-0 flex-column flex-md-row align-items-start">
-                                                <div class="me-5 ms-n4 pe-5 mb-n6 mb-md-0">
-                                                    <div class="row g-3 justify-content-between">
-                                                        <div class="col-sm-12 mb-2">
-                                                            <h4 class="mb-0">
-                                                                <i class="tf-icons ti ti-user-dollar text-main ti-md me-2"></i>
-                                                                รายงานผู้ดูแลพนักงาน
-                                                            </h4>
-                                                        </div>
+                                            <div class="card-header border-top rounded-0 py-3">
+
+                                                {{-- Title --}}
+                                                <div class="mb-3">
+                                                    <h4 class="mb-0">
+                                                        <i class="tf-icons ti ti-user-dollar text-main ti-md me-2"></i>
+                                                        รายงานผู้ดูแลพนักงาน
+                                                    </h4>
+                                                </div>
+
+                                                {{-- Filter row --}}
+                                                <div class="row g-2 align-items-end">
+
+                                                    {{-- Show rows --}}
+                                                    <div class="col-auto">
+                                                        <label class="form-label mb-1 text-muted small">แสดง</label>
+                                                        <select name="limit" class="form-select form-select-sm p_search"
+                                                            style="min-width:80px;"
+                                                            onchange="loadData(page)">
+                                                            <option value="7">7</option>
+                                                            <option value="10" selected>10</option>
+                                                            <option value="20">20</option>
+                                                            <option value="50">50</option>
+                                                            <option value="100">100</option>
+                                                        </select>
                                                     </div>
 
-                                                    <!-- <label><input type="search" class="form-control"
-                                                                placeholder="Search Product"
-                                                                aria-controls="DataTables_Table_0"></label> -->
-                                                    <div class="dataTables_length mx-n2 ms-2"
-                                                        id="DataTables_Table_0_length">
-                                                        
-                                                        <label>Show
-                                                            <select name="DataTables_Table_0_length"
-                                                                aria-controls="DataTables_Table_0" class="form-select">
-                                                                <option value="7">7</option>
-                                                                <option value="10">10</option>
-                                                                <option value="20">20</option>
-                                                                <option value="50">50</option>
-                                                                <option value="70">70</option>
-                                                                <option value="100">100</option>
-                                                            </select>
-                                                        </label>
+                                                    {{-- Divider --}}
+                                                    <div class="col-auto d-none d-md-block">
+                                                        <div class="vr" style="height:38px; opacity:.15;"></div>
                                                     </div>
-                                                </div>
-                                                <div
-                                                    class="d-flex justify-content-start justify-content-md-end align-items-baseline">
-                                                    <label class="me-3">ตั้งแต่วันที่:</label>
-                                                    <div
-                                                        class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
-                                                        <div id="DataTables_Table_0_filter"
-                                                            class="dataTables_filter mx-n2 me-2">
-                                                            <input name="start_date" id="start_date" type="text" class="form-control p_search search_date" value="{{ date('d/m/Y') }}">
-                                                        </div>
-                                                        <label class="me-3">ถึงวันที่:</label>
-                                                        <div
-                                                            class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
-                                                            <div id="DataTables_Table_0_filter"
-                                                                class="dataTables_filter mx-n2 me-2">
-                                                                <input name="end_date" id="end_date" type="text" class="form-control p_search search_date" value="{{ date('d/m/Y') }}">
-                                                            </div>
-                                                        <div class="dt-buttons btn-group flex-wrap d-flex mb-6 mb-sm-0">
 
-                                                            
-                                                            <button
-                                                                class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
-                                                                type="button"
-                                                                onclick="printPdf()">
-                                                                
-                                                                <span>
-                                                                    <i class="ti ti-file-upload me-0 me-sm-1"></i>
-                                                                    <span class="d-none d-sm-inline-block">พิมพ์
-                                                                    </span>
-                                                                </span>
-                                                            </button>
-                                                            {{-- <div class="btn-group">
-                                                                <button
-                                                                    class="btn btn-success buttons-collection  btn-warning waves-effect waves-light"
-                                                                    tabindex="0" aria-controls="DataTables_Table_0"
-                                                                    type="button" aria-haspopup="dialog"
-                                                                    aria-expanded="false">
-                                                                    <span><i class="ti ti-upload me-1"></i>ดาวน์โหลด
-                                                                        Excel
-                                                                    </span>
-                                                                </button>
-                                                            </div> --}}
-                                                        </div>
+                                                    {{-- ตั้งแต่วันที่ --}}
+                                                    <div class="col-auto">
+                                                        <label class="form-label mb-1 text-muted small">ตั้งแต่วันที่</label>
+                                                        <input name="start_date" id="start_date" type="text"
+                                                            class="form-control form-control-sm p_search search_date"
+                                                            style="min-width:120px;"
+                                                            value="{{ date('d/m/Y') }}">
                                                     </div>
+                                                    <div class="col-auto">
+                                                        <label class="form-label mb-1 text-muted small">เวลาเริ่มต้น</label>
+                                                        <input name="start_time_filter" id="start_time_filter" type="time"
+                                                            class="form-control form-control-sm p_search" value="00:00">
+                                                    </div>
+
+                                                    {{-- ถึงวันที่ --}}
+                                                    <div class="col-auto">
+                                                        <label class="form-label mb-1 text-muted small">ถึงวันที่</label>
+                                                        <input name="end_date" id="end_date" type="text"
+                                                            class="form-control form-control-sm p_search search_date"
+                                                            style="min-width:120px;"
+                                                            value="{{ date('d/m/Y') }}">
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <label class="form-label mb-1 text-muted small">เวลาสิ้นสุด</label>
+                                                        <input name="end_time_filter" id="end_time_filter" type="time"
+                                                            class="form-control form-control-sm p_search" value="23:59">
+                                                    </div>
+
+                                                    {{-- Divider --}}
+                                                    <div class="col-auto d-none d-md-block">
+                                                        <div class="vr" style="height:38px; opacity:.15;"></div>
+                                                    </div>
+
+                                                    {{-- ค้นหา --}}
+                                                    <div class="col-auto">
+                                                        <label class="form-label mb-1 text-muted small">ค้นหา</label>
+                                                        <input name="search" id="search_input" type="search"
+                                                            class="form-control form-control-sm p_search"
+                                                            placeholder="ชื่อลูกค้า..."
+                                                            style="min-width:160px;"
+                                                            oninput="loadData(page)">
+                                                    </div>
+
+                                                    {{-- Print PDF --}}
+                                                    <div class="col-auto ms-md-auto">
+                                                        <label class="form-label mb-1 d-block">&nbsp;</label>
+                                                        <button class="btn btn-primary btn-sm waves-effect waves-light"
+                                                            type="button" onclick="printPdf()">
+                                                            <i class="ti ti-file-upload me-1"></i>พิมพ์ PDF
+                                                        </button>
+                                                    </div>
+
                                                 </div>
-                                            </div>
-                                        </div>
-                                                <div id="table-data"><!-- ตารางจะถูกโหลดตรงนี้ --></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                                                {{-- /Filter row --}}
+
+                                            </div>{{-- /card-header --}}
+                                            <div id="table-data"><!-- ตารางจะถูกโหลดตรงนี้ --></div>
+                                        </div>{{-- /DataTables_Table_0_wrapper --}}
+                                    </div>{{-- /card-datatable --}}
+                                </div>{{-- /card --}}
+                            </div>{{-- /col --}}
+                        </div>{{-- /row --}}
                         <!-- / Content -->
 
                         <!-- Footer -->
@@ -272,6 +284,10 @@
         $('#end_date').on('changeDate', function (e) {
             $('#start_date').datepicker('setEndDate', e.date);
 
+            loadData("{{ $page_url }}-datatable");
+        });
+
+        $('#start_time_filter, #end_time_filter').on('change', function() {
             loadData("{{ $page_url }}-datatable");
         });
     // document.addEventListener('DOMContentLoaded', function() {

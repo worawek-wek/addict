@@ -132,12 +132,16 @@ class ReportController extends Controller
         }
 
         if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
-                ->startOfDay();
-
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
-                ->endOfDay();
-
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+            if (request('start_time_filter')) {
+                [$sh, $sm] = explode(':', request('start_time_filter'));
+                $startDate->setTime((int)$sh, (int)$sm, 0);
+            }
+            if (request('end_time_filter')) {
+                [$eh, $em] = explode(':', request('end_time_filter'));
+                $endDate->setTime((int)$eh, (int)$em, 59);
+            }
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -229,15 +233,18 @@ class ReportController extends Controller
         }
 
         if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
-                ->startOfDay();
-
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
-                ->endOfDay();
-
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+            if (request('start_time_filter')) {
+                [$sh, $sm] = explode(':', request('start_time_filter'));
+                $startDate->setTime((int)$sh, (int)$sm, 0);
+            }
+            if (request('end_time_filter')) {
+                [$eh, $em] = explode(':', request('end_time_filter'));
+                $endDate->setTime((int)$eh, (int)$em, 59);
+            }
             $orderRooms->whereBetween('created_at', [$startDate, $endDate]);
         }
-
 
         $data['orderRooms'] = collect($orderRooms->get());
         $data['summary_total_price'] = $data['orderRooms']->sum('total_price');
@@ -333,12 +340,16 @@ class ReportController extends Controller
         }
 
         if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
-                ->startOfDay();
-
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
-                ->endOfDay();
-
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+            if (request('start_time_filter')) {
+                [$sh, $sm] = explode(':', request('start_time_filter'));
+                $startDate->setTime((int)$sh, (int)$sm, 0);
+            }
+            if (request('end_time_filter')) {
+                [$eh, $em] = explode(':', request('end_time_filter'));
+                $endDate->setTime((int)$eh, (int)$em, 59);
+            }
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -433,16 +444,19 @@ class ReportController extends Controller
 
 
         if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
-                ->startOfDay();
-
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
-                ->endOfDay();
-
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+            if (request('start_time_filter')) {
+                [$sh, $sm] = explode(':', request('start_time_filter'));
+                $startDate->setTime((int)$sh, (int)$sm, 0);
+            }
+            if (request('end_time_filter')) {
+                [$eh, $em] = explode(':', request('end_time_filter'));
+                $endDate->setTime((int)$eh, (int)$em, 59);
+            }
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
         $data['orderRooms'] = $query->get();
-
 
         $data['summary_data'] = $data['orderRooms']
             ->groupBy('ref_seller_id')
@@ -575,6 +589,14 @@ class ReportController extends Controller
         if (request('start_date')) {
             $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
             $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+            if (request('start_time_filter')) {
+                [$sh, $sm] = explode(':', request('start_time_filter'));
+                $startDate->setTime((int)$sh, (int)$sm, 0);
+            }
+            if (request('end_time_filter')) {
+                [$eh, $em] = explode(':', request('end_time_filter'));
+                $endDate->setTime((int)$eh, (int)$em, 59);
+            }
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -685,11 +707,16 @@ class ReportController extends Controller
         }
 
         if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
-                ->startOfDay();
-
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
-                ->endOfDay();
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+            if (request('start_time_filter')) {
+                [$sh, $sm] = explode(':', request('start_time_filter'));
+                $startDate->setTime((int)$sh, (int)$sm, 0);
+            }
+            if (request('end_time_filter')) {
+                [$eh, $em] = explode(':', request('end_time_filter'));
+                $endDate->setTime((int)$eh, (int)$em, 59);
+            }
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 

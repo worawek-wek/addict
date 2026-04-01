@@ -407,10 +407,11 @@ class OrderProductController extends Controller
             // Apply discount
             $order->total_price = max(0, $order->total_price - $discount);
 
-            if ($order->payment_status == null && !empty($payment_method)) {
+            $payment_status = $request->input('payment_status', null);
+            if ($payment_status == 1 && !empty($payment_method)) {
                 $order->payment_method = $payment_method;
                 $order->payment_status = 1;
-            } elseif ($order->payment_status == 1 && empty($payment_method)) {
+            } else {
                 $order->payment_method = null;
                 $order->payment_status = null;
             }
