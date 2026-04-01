@@ -198,7 +198,7 @@
         function printPdf(){
 
             var searchData = {};
-            
+
             $('.p_search').each(function() {
                 var inputName = $(this).attr('name');
                 var inputValue = $(this).val();
@@ -252,7 +252,7 @@
             autoclose: true,      // ปิด datepicker เมื่อเลือกวันที่
             todayHighlight: true  // ไฮไลต์วันที่ปัจจุบัน
         });
-        
+
         // ⭐ สำคัญมาก: set ค่าเริ่มต้นให้ datepicker รู้
         $('#start_date').datepicker('setDate', $('#start_date').val());
         $('#end_date').datepicker('setDate', $('#end_date').val());

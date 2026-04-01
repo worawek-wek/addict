@@ -324,7 +324,7 @@ class ReportController extends Controller
         if (request()->filled('branch_id')) {
             $query->where('ref_branch_id', request()->branch_id);
         }
-        
+
         // $DailySalesClosure = DailySalesClosure::orderBy("id", "DESC")->first();
 
         // if (@$DailySalesClosure) {
