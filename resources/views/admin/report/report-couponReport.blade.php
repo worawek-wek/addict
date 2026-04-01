@@ -116,11 +116,11 @@
                                                             class="dataTables_filter mx-n2 me-2">
                                                             <input name="start_date" id="start_date" type="text"
                                                                 class="form-control p_search search_date"
-                                                                value="{{ date('d/m/Y') }}">
+                                                                value="{{ now()->hour >= 10 ? now()->format('d/m/Y') : now()->subDay()->format('d/m/Y') }}">
                                                         </div>
                                                         <div class="dataTables_filter mx-n2 me-1">
                                                             <input name="start_time_filter" id="start_time_filter" type="time"
-                                                                class="form-control p_search" value="00:00">
+                                                                class="form-control p_search" value="10:00">
                                                         </div>
                                                         <label class="me-3">ถึงวันที่:</label>
                                                         <div
@@ -129,11 +129,11 @@
                                                                 class="dataTables_filter mx-n2 me-2">
                                                                 <input name="end_date" id="end_date" type="text"
                                                                     class="form-control p_search search_date"
-                                                                    value="{{ date('d/m/Y') }}">
+                                                                    value="{{ now()->hour >= 10 ? now()->addDay()->format('d/m/Y') : now()->format('d/m/Y') }}">
                                                             </div>
                                                             <div class="dataTables_filter mx-n2 me-1">
                                                                 <input name="end_time_filter" id="end_time_filter" type="time"
-                                                                    class="form-control p_search" value="23:59">
+                                                                    class="form-control p_search" value="04:01">
                                                             </div>
                                                             <div
                                                                 class="dt-buttons btn-group flex-wrap d-flex mb-6 mb-sm-0">

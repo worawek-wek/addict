@@ -111,12 +111,12 @@
                                                         <input name="start_date" id="start_date" type="text"
                                                             class="form-control form-control-sm p_search search_date"
                                                             style="min-width:120px;"
-                                                            value="{{ date('d/m/Y') }}">
+                                                            value="{{ now()->hour >= 10 ? now()->format('d/m/Y') : now()->subDay()->format('d/m/Y') }}">
                                                     </div>
                                                     <div class="col-auto">
                                                         <label class="form-label mb-1 text-muted small">เวลาเริ่มต้น</label>
                                                         <input name="start_time_filter" id="start_time_filter" type="time"
-                                                            class="form-control form-control-sm p_search" value="00:00">
+                                                            class="form-control form-control-sm p_search" value="10:00">
                                                     </div>
 
                                                     {{-- ถึงวันที่ --}}
@@ -125,12 +125,12 @@
                                                         <input name="end_date" id="end_date" type="text"
                                                             class="form-control form-control-sm p_search search_date"
                                                             style="min-width:120px;"
-                                                            value="{{ date('d/m/Y') }}">
+                                                            value="{{ now()->hour >= 10 ? now()->addDay()->format('d/m/Y') : now()->format('d/m/Y') }}">
                                                     </div>
                                                     <div class="col-auto">
                                                         <label class="form-label mb-1 text-muted small">เวลาสิ้นสุด</label>
                                                         <input name="end_time_filter" id="end_time_filter" type="time"
-                                                            class="form-control form-control-sm p_search" value="23:59">
+                                                            class="form-control form-control-sm p_search" value="04:01">
                                                     </div>
 
                                                     {{-- Divider --}}
