@@ -239,6 +239,7 @@ class OrderProductController extends Controller
 
         $payment_channel = Order::whereNull('ref_daily_sales_closure_id')
             ->where('orders.payment_status', 1)
+            ->where('orders.type', 2)
             ->where('orders.ref_account_id', Auth::id())
             ->groupBy('orders.payment_method')
             ->whereNotNull("orders.payment_method")

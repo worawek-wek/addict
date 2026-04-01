@@ -186,55 +186,72 @@ class OrderDrinkController extends Controller
         $DailySalesClosure = $closures[0] ?? null;
         $DailySalesClosure_before = $closures[1] ?? null;
 
-        if(@$DailySalesClosure_before){
+        if (@$DailySalesClosure_before) {
             $date_before = date('d/m/Y H:i:s', strtotime($DailySalesClosure_before->date_time));
-        }else{
-            $date_before = date('d/m/Y', strtotime($DailySalesClosure->date_time))." 00:00:00";
+        } else {
+            $date_before = date('d/m/Y', strtotime($DailySalesClosure->date_time)) . " 00:00:00";
         }
 
-        $drink_emplaoy = OrderHasDrink::whereHas('order', function ($query) use ($DailySalesClosure) {
-                                    $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
-                                            ->where('customer_type', 1)
-                                            ->where('ref_account_id', Auth::id());
-                                })
-                                ->groupBy('ref_drink_id')
-                                ->select(
-                                    'ref_drink_id',
-                                    DB::raw('SUM(quantity) as total_qty'),
-                                    DB::raw('SUM(price * quantity) as total_price')
-                                );
-        $data['drink_employee'] = $drink_emplaoy->get();
+        $drink_employee = OrderHasDrink::join('drinks', 'order_has_drinks.ref_drink_id', '=', 'drinks.id')
+            ->leftJoin('product_type', 'drinks.type_id', '=', 'product_type.id') // Join เพื่อดึงชื่อประเภท
+            ->whereHas('order', function ($query) use ($DailySalesClosure) {
+                $query->whereNull('ref_daily_sales_closure_id')
+                    // ->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
+                    ->where('customer_type', 1)
+                    ->where('payment_status', 1)
+                    ->where('type', 3)
+                    ->where('ref_account_id', Auth::id());
+            })
+            ->groupBy('drinks.type_id', 'product_type.name')
+            ->select(
+                'drinks.type_id',
+                'product_type.name as type_name',
+                DB::raw('SUM(order_has_drinks.quantity) as total_qty'),
+                DB::raw('SUM(order_has_drinks.price * order_has_drinks.quantity) as total_price'),
+                DB::raw('SUM(order_has_drinks.cost * order_has_drinks.quantity) as total_cost')
+            );
+        $data['drink_employee'] = $drink_employee->get();
 
-        $drink_customer = OrderHasDrink::whereHas('order', function ($query) use ($DailySalesClosure) {
-                                    $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
-                                    ->where('customer_type', 2)
-                                    ->where('ref_account_id', Auth::id());
-                                })
-                                ->groupBy('ref_drink_id')
-                                ->select(
-                                    'ref_drink_id',
-                                    DB::raw('SUM(quantity) as total_qty'),
-                                    DB::raw('SUM(price * quantity) as total_price')
-                                );
+        $drink_customer = OrderHasDrink::join('drinks', 'order_has_drinks.ref_drink_id', '=', 'drinks.id')
+            ->leftJoin('product_type', 'drinks.type_id', '=', 'product_type.id')
+            ->whereHas('order', function ($query) use ($DailySalesClosure) {
+                $query->whereNull('ref_daily_sales_closure_id')
+                    // ->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
+                    ->where('customer_type', 2)
+                    ->where('payment_status', 1)
+                    ->where('type', 3)
+                    ->where('ref_account_id', Auth::id());
+            })
+            ->groupBy('drinks.type_id', 'product_type.name')
+            ->select(
+                'drinks.type_id',
+                'product_type.name as type_name',
+                DB::raw('SUM(order_has_drinks.quantity) as total_qty'),
+                DB::raw('SUM(order_has_drinks.price * order_has_drinks.quantity) as total_price'),
+                DB::raw('SUM(order_has_drinks.cost * order_has_drinks.quantity) as total_cost')
+            );
         $data['drink_customer'] = $drink_customer->get();
 
-        $payment_channel = Order::where('orders.ref_daily_sales_closure_id',  $DailySalesClosure->id)
-                                ->where('orders.ref_account_id', Auth::id())
-                                ->groupBy('orders.payment_method')
-                                ->whereNotNull("orders.payment_method")
-                                ->join(
-                                    'order_has_drinks',
-                                    'orders.id',
-                                    '=',
-                                    'order_has_drinks.ref_order_id'
-                                )
-                                ->select(
-                                    'orders.payment_method',
-                                    DB::raw('SUM(order_has_drinks.price * order_has_drinks.quantity) as total_price')
-                                );
+        $payment_channel = Order::whereNull('ref_daily_sales_closure_id')
+            ->where('orders.payment_status', 1)
+            ->where('orders.type', 3)
+            ->where('orders.ref_account_id', Auth::id())
+            ->groupBy('orders.payment_method')
+            ->whereNotNull("orders.payment_method")
+            ->join(
+                'order_has_drinks',
+                'orders.id',
+                '=',
+                'order_has_drinks.ref_order_id'
+            )
+            ->select(
+                'orders.payment_method',
+                DB::raw('SUM(order_has_drinks.price * order_has_drinks.quantity) as total_price')
+            );
         $data['payment_channel'] = $payment_channel->get();
-            // ->orderBy('booking_date')
-            // ->orderBy('start_time');
+
+        // ->orderBy('booking_date')
+        // ->orderBy('start_time');
 
         // // ✅ filter เฉพาะสาขาของ user ที่ login
         // $userBranchId = Auth::user()->ref_branch_id ?? null;
@@ -250,7 +267,7 @@ class OrderDrinkController extends Controller
         // if (@$DailySalesClosure) {
         //     $query->where('ref_daily_sales_closure_id', $DailySalesClosure->id);
         // }
-            
+
         $data['total_price'] = 0;
         $data['DailySalesClosure_before'] = $DailySalesClosure_before;
         $data['date_before'] = $date_before;
@@ -305,9 +322,10 @@ class OrderDrinkController extends Controller
 
         Order::where('ref_daily_sales_closure_id')
                 ->where('ref_account_id', Auth::id())
-                ->where('type', 2)
+                ->where('type', 3)
                 ->whereNull('ref_daily_sales_closure_id')
-                ->where('payment_status', 1)
+                ->whereIn('payment_status', [1, 3])
+                // ->where('payment_status', 1)
                 ->update(["ref_daily_sales_closure_id" => $dsc_insert->id]);        
 
         return response()->json([
