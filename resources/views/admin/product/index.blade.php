@@ -291,6 +291,12 @@
                                 <input name="price_staff" type="text" class="form-control" placeholder="ราคาขาย"
                                     required />
                             </div>
+                            <div class="col-sm-6">
+                                <label for="" class="form-label">Minimum Stock แจ้งเตือนที่ต้องการซื้อ</label><span
+                                    class="text-danger"> *</span>
+                                <input name="minimum" type="number" class="form-control"
+                                    placeholder="Minimum Stock แจ้งเตือนที่ต้องการซื้อ" required  />
+                            </div>
                             <script>
                                 //// ทำ input เงินเดือน เริ่ม
                                 function formatSalary() {

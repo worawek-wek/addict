@@ -203,7 +203,7 @@ Route::prefix('admin')->group(function () {
             Route::get('commission/view-sales', 'view_sales')->name('commission.view_sales');
             Route::get('commission/view-sales/datatable', 'view_sales_datatable')->name('commission.view_sales_datatable');
             Route::get('commission/view-sales/pdf', 'view_sales_pdf')->name('commission.view-sales-pdf');
-            Route::post('commission/view-sales/save-commisstion-history', 'save_commisstion_history')->name('commission.view-sales-save-commisstion-history');
+            Route::post('commission/view-sales/save-commission-history', 'save_commission_history')->name('commission.view-sales-save-commission-history');
             Route::get('commission/view-sales/history/{round}', 'get_history_by_round')->name('commission.view-sales-history-by-round');
 
             Route::get('commission/drink-view-sales', 'drink_view_sales')->name('commission.drink_view_sales');

@@ -245,7 +245,7 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: '/admin/commission/view-sales/save-commisstion-history',
+                    url: '/admin/commission/view-sales/save-commission-history',
                     type: 'POST',
                     data: searchData,
                     success: function(response) {
