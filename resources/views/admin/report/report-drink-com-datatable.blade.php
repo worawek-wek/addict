@@ -59,7 +59,11 @@
                         <td>{{ $globalIndex }}</td>
                         <td>{{ date('d/m/Y', strtotime($order->created_at)) }}</td>
                         <td>{{ date('H:i', strtotime($order->created_at)) }}</td>
-                        <td>{{ $order->user->name ?? '-' }} + {{ $order->drinks->name ?? '-' }}</td>
+                        <td>{{ $order->user->name ?? '-' }} + 
+                            @foreach ($order->drinks as $drinks)
+                                {{ $drinks->drink->name ?? '-' }}
+                            @endforeach
+                        </td>
                         <td class="text-end">{{ number_format($commission) }}</td>
                         <td>{{ $order->seller->name ?? '-' }}</td>
                     </tr>
@@ -85,7 +89,7 @@
          style="background:#dee2e6; font-size:13px;">
         <span>รวมยอดทั้งหมด</span>
         <span class="ms-3">{{ $grandCount }} รายการ</span>
-        <span class="ms-auto">ค่ามือ {{ number_format($grandCommission) }} บาท</span>
+        <span class="ms-auto">ค่าดื่ม {{ number_format($grandCommission) }} บาท</span>
     </div>
 
     {{-- Summary Section --}}

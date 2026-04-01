@@ -283,7 +283,7 @@ class ReportController extends Controller
 
     public function drink_com_datatable(Request $request)
     {
-
+    
         $limit = $request->limit ?? 10;
         $orderRooms = $this->DCgetOrderRooms($limit);
 
@@ -309,7 +309,7 @@ class ReportController extends Controller
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::withSum('drinks', 'price')
-                        ->with(['branch', 'customer', 'user', 'room', 'status', 'seller'])
+                        ->with(['branch', 'customer', 'user', 'room', 'status', 'seller','drinks'])
                         ->where('type', 3)
                         ->whereIn('ref_status_id', [2, 3])
                         // ->select('orders.*')
