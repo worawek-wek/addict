@@ -78,12 +78,13 @@
                                                     <div class="dataTables_length mx-n2 ms-2"
                                                         id="DataTables_Table_0_length">
                                                         <label>Show
-                                                            <select name="DataTables_Table_0_length"
-                                                                aria-controls="DataTables_Table_0" class="form-select">
+                                                            <select name="limit"
+                                                                aria-controls="DataTables_Table_0" class="form-select p_search"
+                                                                onchange="page='{{ route('report-sale-monthly.datatable') }}'; loadData(page)">
                                                                 <option value="7">7</option>
                                                                 <option value="10">10</option>
                                                                 <option value="20">20</option>
-                                                                <option value="50">50</option>
+                                                                <option value="50" selected>50</option>
                                                                 <option value="70">70</option>
                                                                 <option value="100">100</option>
                                                             </select>

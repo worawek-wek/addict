@@ -28,7 +28,7 @@
     }
 </style>
 <div class="text-center ">
-    <span class="text-center">รายงานยอดขายรวม วันที่ {{ $report_start_date }} - {{ $report_end_date }} , พิมพ์เมื่อ
+    <span class="text-center">รายงานยอดขายรวม วันที่ {{ $report_start_date }} {{ $report_start_time }} - {{ $report_end_date }} {{ $report_end_time }} , พิมพ์เมื่อ
         {{ date('d/m/Y H:i') }}</span>
 </div>
 
@@ -177,6 +177,12 @@
             <td style="text-align:right; padding-right: 20px; font-weight:bold; color:#1a8917;">
                 {{ number_format($grandNetSum ?? 0, 2) }}
                 บาท</td>
+        </tr>
+        <tr style="font-weight:bold; background:#dce8f7;">
+            <td style="text-align:right; padding-right: 20px;">รับจริงสุทธิ</td>
+            <td style="text-align:right; padding-right: 20px;">
+                {{ number_format($summary_type_payment_cash - $grandCommission, 2) }} บาท
+            </td>
         </tr>
     </table>
 </div>

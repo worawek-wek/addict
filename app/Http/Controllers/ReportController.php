@@ -283,7 +283,7 @@ class ReportController extends Controller
 
     public function drink_com_datatable(Request $request)
     {
-    
+
         $limit = $request->limit ?? 10;
         $orderRooms = $this->DCgetOrderRooms($limit);
 
@@ -719,6 +719,8 @@ class ReportController extends Controller
         // Compute summary totals over ALL filtered records (not just current page)
         $allOrders = $this->buildOrderRoomsQuery()->get();
         $totalNetSum = $totalNetCash = $totalNetTransfer = $totalNetCredit = $totalNetAl = 0.0;
+        $grandCommission = 0.0;
+        $totalCashRaw = 0.0;
         foreach ($allOrders as $order) {
             if ($order->ref_status_id == 4) continue;
             $coursePrice    = $order->total_price ?? 0;
@@ -738,8 +740,12 @@ class ReportController extends Controller
                 }
             }
             $rev = $coursePrice - ($usedCoupon + $usedCommission);
+            $grandCommission += $usedCommission;
             $totalNetSum += $rev;
-            if ($order->payment_method === 'cash')        $totalNetCash     += $rev;
+            if ($order->payment_method === 'cash') {
+                $totalCashRaw += $coursePrice;
+                $totalNetCash += $rev;
+            }
             if ($order->payment_method === 'qr_code')     $totalNetTransfer += $rev;
             if ($order->payment_method === 'credit_card') $totalNetCredit   += $rev;
             if ($order->payment_method === 'alipay')      $totalNetAl       += $rev;
@@ -748,7 +754,8 @@ class ReportController extends Controller
         return view('admin.report.report-saleMonthly-datatable', compact(
             'orderRooms', 'branches',
             'userCommissionMap', 'roomTypeCourseMap',
-            'totalNetSum', 'totalNetCash', 'totalNetTransfer', 'totalNetCredit', 'totalNetAl'
+            'totalNetSum', 'totalNetCash', 'totalNetTransfer', 'totalNetCredit', 'totalNetAl',
+            'grandCommission', 'totalCashRaw'
         ));
     }
 
@@ -873,21 +880,7 @@ class ReportController extends Controller
             ->where('type', 1)
             ->whereIn('ref_status_id', [2, 3])
             // ->select('orders.*')
-            ->orderByRaw("
-                        CASE
-                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
-                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
-                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
-                            WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
-                            WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
-                            WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
-                            WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
-                            ELSE 8 -- ไม่ระบุ
-                        END
-                    ")
-            ->orderBy('ref_user_id')
-            ->orderBy('booking_date')
-            ->orderBy('start_time');
+            ->orderBy('created_at', 'ASC');
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
         if ($userBranchId) {
@@ -945,12 +938,43 @@ class ReportController extends Controller
         $data['summary_receive_price_after_discount'] = $data['orderRooms']->sum('total_price');
         $data['report_start_date'] = request('start_date') ?? date('d/m/Y');
         $data['report_end_date']   = request('end_date')   ?? date('d/m/Y');
+        $data['report_start_time'] = request('start_time_filter') ?? '00:00';
+        $data['report_end_time']   = request('end_time_filter')   ?? '23:59';
         $nonCancelledOrders = $data['orderRooms']->where('ref_status_id', '!=', 4);
         $data['summary_type_payment_cash'] = $nonCancelledOrders->where('payment_method', 'cash')->sum('total_price');
         $data['summary_type_payment_credit'] = $nonCancelledOrders->where('payment_method', 'credit_card')->sum('total_price');
         $data['summary_type_payment_transfer'] = $nonCancelledOrders->where('payment_method', 'qr_code')->sum('total_price');
         $data['summary_type_payment_al'] = $nonCancelledOrders->where('payment_method', 'alipay')->sum('total_price');
 
+        // Compute grandCommission, totalNetSum and totalNetCash for PDF summary
+        $pdfGrandCommission = 0.0;
+        $pdfTotalNetSum = 0.0;
+        $pdfTotalNetCash = 0.0;
+        foreach ($nonCancelledOrders as $order) {
+            $coursePrice    = $order->total_price ?? 0;
+            $usedCoupon     = 0;
+            $usedCommission = 0;
+            $ucKey = "{$order->ref_user_id}_{$order->ref_room_type_id}_{$order->service_laundry_cost}";
+            $uc    = $data['userCommissionMap']->get($ucKey);
+            if ($uc && ($uc->price > 0 || $uc->coupon > 0)) {
+                $usedCommission = $uc->price;
+                $usedCoupon     = $uc->coupon;
+            } else {
+                $rtcKey         = "{$order->ref_room_type_id}_{$order->service_laundry_cost}";
+                $rtc            = $data['roomTypeCourseMap']->get($rtcKey);
+                if ($rtc) {
+                    $usedCommission = $rtc->commission;
+                    $usedCoupon     = $rtc->coupon;
+                }
+            }
+            $rev = $coursePrice - ($usedCoupon + $usedCommission);
+            $pdfGrandCommission += $usedCommission;
+            $pdfTotalNetSum     += $rev;
+            if ($order->payment_method === 'cash') $pdfTotalNetCash += $rev;
+        }
+        $data['grandCommission'] = $pdfGrandCommission;
+        $data['totalNetSum']     = $pdfTotalNetSum;
+        $data['totalNetCash']    = $pdfTotalNetCash;
 
         $html = view('admin.report.report-saleMonthly-pdf', $data)->render();
 
