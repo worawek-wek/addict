@@ -136,6 +136,49 @@
                       <label class="form-label">หมายเหตุ</label>
                       <textarea name="remark" class="form-control">{{ $user->remark }}</textarea>
                     </div>
+                    <div class="col-span-12">
+                        <div class="col-sm-6 mt-3">
+                            <label for="" class="form-label">username <span class="text-warning">(กรอก Email พนักงาน)</span></label><span class="text-danger"> *</span>
+                            <input name="email" value="{{ $user->email }}" type="text" class="form-control" placeholder="ชื่อผู้ใช้" required />
+                        </div>
+                        <div class="col-sm-6 mt-3">
+                            <label for="update-profile-form-2" class="form-label">รหัสผ่าน <span class="text-warning">(กรณีเปลี่ยนรหัสผ่าน)</span></label>
+                            <input name="password" id="password2" type="password" class="form-control" placeholder="รหัสผ่าน">
+                        </div>
+                        <div class="col-sm-6 mt-3">
+                            <label for="update-profile-form-3" class="form-label">ยืนยัน รหัสผ่าน</label>
+                            <input id="confirm_password2" type="password" class="form-control" placeholder="ยืนยัน รหัสผ่าน">
+                        </div>
+                    </div>
+                    <script>
+                        //// ทำ input เงินเดือน เริ่ม
+                        function formatSalary2() {
+                            const input = document.getElementById('salary2');
+                            let value = input.value.replace(/,/g, ''); // ลบเครื่องหมายจุลภาค
+                            if (!isNaN(value) && value !== '') {
+                                input.value = Number(value).toLocaleString(); // แปลงเป็นรูปแบบ number_format
+                            } else {
+                                input.value = ''; // ถ้าไม่ใช่ตัวเลขให้ลบค่าที่ป้อน
+                            }
+                        }
+                        //// ทำ input เงินเดือน จบ
+
+                        //// ทำ เช็ค Password เริ่ม
+                        var password2 = document.getElementById("password2"), confirm_password2 = document.getElementById("confirm_password2");
+
+                        function validatePassword2(){
+                            if(password2.value != confirm_password2.value) {
+                                confirm_password2.setCustomValidity("โปรดกรอกรหัสผ่านให้ตรงกัน");
+                            } else {
+                                confirm_password2.setCustomValidity('');
+                            }
+                        }
+
+                        password2.onchange = validatePassword2;
+                        confirm_password2.onkeyup = validatePassword2;
+                        //// ทำ เช็ค Password จบ
+
+                    </script> 
                   </div>
 
                   <div class="modal-footer rounded-0 justify-content-center">

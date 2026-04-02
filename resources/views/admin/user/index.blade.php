@@ -157,7 +157,7 @@
 
 
 <div class="modal fade modalHeadDecor" id="addserviceModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content rounded-0">
             <div class="modal-header rounded-0">
                 <h5 class="modal-title">เพิ่มพนักงาน</h5>
@@ -180,22 +180,22 @@
                         </div>
 
                         <div class="col-sm-3">
-                            <label class="form-label">รหัสพนักงาน *</label>
+                            <label class="form-label">รหัสพนักงาน </label><span class="text-danger"> *</span>
                             <input name="user_id" type="text" class="form-control" id="user_id" required />
                         </div>
                         
                         <div class="col-sm-3">
-                            <label class="form-label">บัตรพนักงาน *</label>
+                            <label class="form-label">บัตรพนักงาน </label><span class="text-danger"> *</span>
                             <input name="user_code" type="text" class="form-control" id="user_code" required />
                         </div>
 
                         <div class="col-sm-6">
-                            <label class="form-label">ชื่อพนักงาน *</label>
+                            <label class="form-label">ชื่อพนักงาน </label><span class="text-danger"> *</span>
                             <input name="name" type="text" class="form-control" required />
                         </div>
 
                         <div class="col-sm-6">
-                            <label class="form-label">ชื่อเล่น *</label>
+                            <label class="form-label">ชื่อเล่น </label><span class="text-danger"> *</span>
                             <input name="nickname" type="text" class="form-control" required />
                         </div>
 
@@ -210,10 +210,10 @@
                         </div>
 
                         {{-- เพิ่มช่องสำหรับกรอกเงินเดือนตรงนี้ --}}
-                        <div class="col-sm-6" id="salary-field" style="display: none;">
-                            <label class="form-label">ราคานวด *</label>
+                        {{-- <div class="col-sm-6" id="salary-field" style="display: none;">
+                            <label class="form-label">ราคานวด </label><span class="text-danger"> *</span>
                             <input name="salary" type="number" class="form-control" />
-                        </div>
+                        </div> --}}
 
                         <div class="col-sm-10 mt-3">
                             <label>รูปภาพ</label>
@@ -227,6 +227,49 @@
                             <label class="form-label">หมายเหตุ</label>
                             <textarea name="remark" class="form-control"></textarea>
                         </div>
+                        <div class="col-span-12">
+                            <div class="col-sm-6 mt-3">
+                                <label for="email" class="form-label">username <span class="text-warning">(กรอก Email พนักงาน)</span></label><span class="text-danger"> *</span>
+                                <input name="email" type="text" class="form-control" placeholder="ชื่อผู้ใช้" id="email" required />
+                            </div>
+                            <div class="col-sm-6 mt-3">
+                                <label for="update-profile-form-2" class="form-label">รหัสผ่าน</label><span class="text-danger"> *</span>
+                                <input name="password" id="password" type="password" class="form-control" placeholder="รหัสผ่าน">
+                            </div>
+                            <div class="col-sm-6 mt-3">
+                                <label for="update-profile-form-3" class="form-label">ยืนยัน รหัสผ่าน</label><span class="text-danger"> *</span>
+                                <input id="confirm_password" type="password" class="form-control" placeholder="ยืนยัน รหัสผ่าน">
+                            </div>
+                        </div>
+                        <script>
+                            //// ทำ input เงินเดือน เริ่ม
+                            function formatSalary() {
+                                const input = document.getElementById('salary');
+                                let value = input.value.replace(/,/g, ''); // ลบเครื่องหมายจุลภาค
+                                if (!isNaN(value) && value !== '') {
+                                    input.value = Number(value).toLocaleString(); // แปลงเป็นรูปแบบ number_format
+                                } else {
+                                    input.value = ''; // ถ้าไม่ใช่ตัวเลขให้ลบค่าที่ป้อน
+                                }
+                            }
+                            //// ทำ input เงินเดือน จบ
+
+                            //// ทำ เช็ค Password เริ่ม
+                            var password = document.getElementById("password"), confirm_password = document.getElementById("confirm_password");
+
+                            function validatePassword(){
+                                if(password.value != confirm_password.value) {
+                                    confirm_password.setCustomValidity("โปรดกรอกรหัสผ่านให้ตรงกัน");
+                                } else {
+                                    confirm_password.setCustomValidity('');
+                                }
+                            }
+
+                            password.onchange = validatePassword;
+                            confirm_password.onkeyup = validatePassword;
+                            //// ทำ เช็ค Password จบ
+
+                        </script> 
                     </div>
                 </div>
                 <div class="modal-footer rounded-0 justify-content-center">

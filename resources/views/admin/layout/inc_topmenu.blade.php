@@ -55,7 +55,7 @@
                         </span>
                       </a>
                     </li>
-                    <li>
+                    {{-- <li>
                       <a class="dropdown-item" href="pages-account-settings-account.html">
                         <i class="ti ti-settings me-2 ti-sm"></i>
                         <span class="align-middle">Settings</span>
@@ -71,7 +71,7 @@
                           >
                         </span>
                       </a>
-                    </li>
+                    </li> --}}
                     <li>
                       <a class="dropdown-item" href="/admin/logout">
                         <i class="ti ti-logout me-2 ti-sm"></i>
