@@ -114,7 +114,7 @@
                 <span>{{ date('d/m/Y H:i:s') }}</span>
             </div>
             <div class="info-line">
-                <span>{{ $date_before.' - '.date('d/m/Y H:i:s') }}</span>
+                <span>{{ date('d/m/Y H:i:s') }}</span>
             </div>
         </div>
 
