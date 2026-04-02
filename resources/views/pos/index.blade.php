@@ -323,7 +323,7 @@
                                             {{-- @include('pos.partials.product-grid', ['products' => $products]) --}}
                                             @forelse($products as $product)
                                                 @php
-                                                    $totalRemain = \App\Models\StockReadyForSale::where('ref_product_id', $product->id)->sum('qty') ?? 0;
+                                                    $totalRemain = \App\Models\StockReadyForSale::where('ref_product_id', $product->id)->sum('remain') ?? 0;
                                                     $inStock = $totalRemain > 0;
                                                 @endphp
 
