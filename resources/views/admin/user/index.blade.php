@@ -229,15 +229,15 @@
                         </div>
                         <div class="col-span-12">
                             <div class="col-sm-6 mt-3">
-                                <label for="email" class="form-label">username <span class="text-warning">(กรอก Email พนักงาน)</span></label><span class="text-danger"> *</span>
-                                <input name="email" type="text" class="form-control" placeholder="ชื่อผู้ใช้" id="email" required />
+                                <label for="email" class="form-label">username <span class="text-warning">(กรอก Email พนักงาน)</span></label>
+                                <input name="email" type="text" class="form-control" placeholder="ชื่อผู้ใช้" id="email" />
                             </div>
                             <div class="col-sm-6 mt-3">
-                                <label for="update-profile-form-2" class="form-label">รหัสผ่าน</label><span class="text-danger"> *</span>
+                                <label for="update-profile-form-2" class="form-label">รหัสผ่าน</label>
                                 <input name="password" id="password" type="password" class="form-control" placeholder="รหัสผ่าน">
                             </div>
                             <div class="col-sm-6 mt-3">
-                                <label for="update-profile-form-3" class="form-label">ยืนยัน รหัสผ่าน</label><span class="text-danger"> *</span>
+                                <label for="update-profile-form-3" class="form-label">ยืนยัน รหัสผ่าน</label>
                                 <input id="confirm_password" type="password" class="form-control" placeholder="ยืนยัน รหัสผ่าน">
                             </div>
                         </div>

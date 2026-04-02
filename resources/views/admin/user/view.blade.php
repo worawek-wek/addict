@@ -138,8 +138,8 @@
                     </div>
                     <div class="col-span-12">
                         <div class="col-sm-6 mt-3">
-                            <label for="" class="form-label">username <span class="text-warning">(กรอก Email พนักงาน)</span></label><span class="text-danger"> *</span>
-                            <input name="email" value="{{ $user->email }}" type="text" class="form-control" placeholder="ชื่อผู้ใช้" required />
+                            <label for="" class="form-label">username <span class="text-warning">(กรอก Email พนักงาน)</span></label>
+                            <input name="email" value="{{ $user->email }}" type="text" class="form-control" placeholder="ชื่อผู้ใช้" />
                         </div>
                         <div class="col-sm-6 mt-3">
                             <label for="update-profile-form-2" class="form-label">รหัสผ่าน <span class="text-warning">(กรณีเปลี่ยนรหัสผ่าน)</span></label>
