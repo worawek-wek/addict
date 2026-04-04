@@ -28,7 +28,8 @@
     }
 </style>
 <div class="text-center ">
-    <span class="text-center">รายงานยอดขายรวม วันที่ {{ $report_start_date }} {{ $report_start_time }} - {{ $report_end_date }} {{ $report_end_time }} , พิมพ์เมื่อ
+    <span class="text-center">รายงานยอดขายรวม วันที่ {{ $report_start_date }} {{ $report_start_time }} -
+        {{ $report_end_date }} {{ $report_end_time }} , พิมพ์เมื่อ
         {{ date('d/m/Y H:i') }}</span>
 </div>
 
@@ -49,7 +50,11 @@
             <th>สถานะ</th>
         </tr>
     </thead>
+    {{-- @php
+        dd($orderRooms);
+    @endphp --}}
     <tbody>
+
         @if ($orderRooms->isEmpty())
             <tr>
                 <td colspan="12" class="text-center">ไม่มีข้อมูล</td>
@@ -65,70 +70,70 @@
             @endphp
 
             @foreach ($orderRooms as $order)
-                    @php
-                        $globalIndex++;
+                @php
+                    $globalIndex++;
 
-                        $actualRevenue = 0;
-                        $usedCoupon = 0;
-                        $usedCommission = 0;
-                        $isCancelled = $order->ref_status_id == 4;
+                    $actualRevenue = 0;
+                    $usedCoupon = 0;
+                    $usedCommission = 0;
+                    $isCancelled = $order->ref_status_id == 4;
 
-                        $coursePrice = $order->total_price ?? 0;
-                        if ($isCancelled) {
-                            $coursePrice = -$coursePrice;
+                    $coursePrice = $order->total_price ?? 0;
+                    if ($isCancelled) {
+                        $coursePrice = -$coursePrice;
+                    }
+
+                    $rtcKey = "{$order->ref_room_type_id}_{$order->service_laundry_cost}";
+                    $roomTypeCourse = $roomTypeCourseMap->get($rtcKey);
+
+                    if (!$isCancelled) {
+                        $ucKey = "{$order->ref_user_id}_{$order->ref_room_type_id}_{$order->service_laundry_cost}";
+                        $userCommission = $userCommissionMap->get($ucKey);
+
+                        if ($userCommission && ($userCommission->price > 0 || $userCommission->coupon > 0)) {
+                            $usedCommission = $userCommission->price;
+                            $usedCoupon = $userCommission->coupon;
+                        } elseif ($roomTypeCourse) {
+                            $usedCommission = $roomTypeCourse->commission;
+                            $usedCoupon = $roomTypeCourse->coupon;
                         }
 
-                        $rtcKey = "{$order->ref_room_type_id}_{$order->service_laundry_cost}";
-                        $roomTypeCourse = $roomTypeCourseMap->get($rtcKey);
+                        $actualRevenue = $coursePrice - ($usedCoupon + $usedCommission);
+                        $grandNetSum += $actualRevenue;
+                    }
 
-                        if (!$isCancelled) {
-                            $ucKey = "{$order->ref_user_id}_{$order->ref_room_type_id}_{$order->service_laundry_cost}";
-                            $userCommission = $userCommissionMap->get($ucKey);
-
-                            if ($userCommission && ($userCommission->price > 0 || $userCommission->coupon > 0)) {
-                                $usedCommission = $userCommission->price;
-                                $usedCoupon = $userCommission->coupon;
-                            } elseif ($roomTypeCourse) {
-                                $usedCommission = $roomTypeCourse->commission;
-                                $usedCoupon = $roomTypeCourse->coupon;
-                            }
-
-                            $actualRevenue = $coursePrice - ($usedCoupon + $usedCommission);
-                            $grandNetSum += $actualRevenue;
-                        }
-
-                        $grandCouponSum      += $usedCoupon;
-                        $grandCoursePriceSum += $isCancelled ? 0 : $coursePrice;
-                        $grandDiscountSum    += $isCancelled ? 0 : ($order->discount ?? 0);
-                        $grandDrinkSum       += $isCancelled ? 0 : ($order->products_sum_price ?? 0);
-                    @endphp
-                    <tr>
-                        <td>{{ $globalIndex }}</td>
-                        <td>{{ $order->room_type->name ?? '-' }}</td>
-                        <td>{{ date('d/m/Y', strtotime($order->created_at)) }}</td>
-                        <td>{{ date('H:i', strtotime($order->created_at)) }}</td>
-                        <td>
-                            @php
-                                $start = \Carbon\Carbon::parse($order->start_time);
-                                $end = \Carbon\Carbon::parse($order->end_time);
-                                $diff = $start->diff($end);
-                            @endphp
-                            @if ($diff->h > 0)
-                                {{ $diff->h }} ชม.
-                            @endif
-                            @if ($diff->i > 0)
-                                {{ $diff->i }} นาที
-                            @endif
-                        </td>
-                        <td>{{ $order->payment_method }}</td>
-                        <td>{{ number_format($coursePrice) }}</td>
-                        <td>{{ $isCancelled ? '-' : number_format($order->discount ?? 0) }}</td>
-                        <td>{{ $isCancelled ? '-' : number_format($order->products_sum_price ?? 0) }}</td>
-                        <td>{{ $isCancelled ? '-' : number_format($usedCoupon) }}</td>
-                        <td>{{ $isCancelled ? '-' : number_format($actualRevenue) }}</td>
-                        <td>{{ $order->status->name }}</td>
-                    </tr>
-                @endforeach
+                    $grandCouponSum += $usedCoupon;
+                    $grandCoursePriceSum += $isCancelled ? 0 : $coursePrice;
+                    $grandDiscountSum += $isCancelled ? 0 : $order->discount ?? 0;
+                    $grandDrinkSum += $isCancelled ? 0 : $order->products_sum_price ?? 0;
+                @endphp
+                <tr>
+                    <td>{{ $globalIndex }}</td>
+                    <td>{{  $order->user->name }}:{{ $order->room_type->name ?? '-' }}</td>
+                    <td>{{ date('d/m/Y', strtotime($order->created_at)) }}</td>
+                    <td>{{ date('H:i', strtotime($order->created_at)) }}</td>
+                    <td>
+                        @php
+                            $start = \Carbon\Carbon::parse($order->start_time);
+                            $end = \Carbon\Carbon::parse($order->end_time);
+                            $diff = $start->diff($end);
+                        @endphp
+                        @if ($diff->h > 0)
+                            {{ $diff->h }} ชม.
+                        @endif
+                        @if ($diff->i > 0)
+                            {{ $diff->i }} นาที
+                        @endif
+                    </td>
+                    <td>{{ $order->payment_method }}</td>
+                    <td>{{ number_format($coursePrice) }}</td>
+                    <td>{{ $isCancelled ? '-' : number_format($order->discount ?? 0) }}</td>
+                    <td>{{ $isCancelled ? '-' : number_format($order->products_sum_price ?? 0) }}</td>
+                    <td>{{ $isCancelled ? '-' : number_format($usedCoupon) }}</td>
+                    <td>{{ $isCancelled ? '-' : number_format($actualRevenue) }}</td>
+                    <td>{{ $order->status->name }}</td>
+                </tr>
+            @endforeach
 
             {{-- Grand Total --}}
             <tr style="font-weight: bold; background: #e0e0e0;">
