@@ -325,6 +325,8 @@ class POSController extends Controller
 
     public function checkout(Request $request)
     {
+
+        $payment_met = $request->input('payment_method');
         // // return 123;
         // return $request;
         // $roomId  = $request->input('room_id');
@@ -701,6 +703,7 @@ class POSController extends Controller
                                 <p><strong>ห้อง:</strong> " . $order->room->name . "</p>
                                 <p><strong>เปิดห้อง:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i') . "</p>
                                 <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+                                <p></p><strong>วิธีชำระเงิน:</strong> $payment_met</p>
 
                                 <table>
                                     <tr>
@@ -730,6 +733,8 @@ class POSController extends Controller
                                 <p><strong>ห้อง:</strong> " . $order->room->name . "</p>
                                 <p><strong>เปิดห้อง:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i') . "</p>
                                 <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+                                <p></p><strong>วิธีชำระเงิน:</strong> $payment_met</p>
+
 
                                 <table>
                                     <tr>
@@ -756,15 +761,65 @@ class POSController extends Controller
                         </body>
                     </html>
                     ";
+        if ($request->has('qty') && is_array($request->input('qty')) && count($request->input('qty')) > 0) {
+            $pr = Product::whereIn('id', array_keys($request->input('qty')))->get()->groupBy(function ($product) {
+                $type = ProductType::find($product->type_id);
+                return $type ? $type->name : 'อื่นๆ / ไม่ระบุประเภท';
+            });
+            $productList = function () use ($pr, $request) {
+                $prList = "";
+                foreach ($pr as $typeName => $products) {
+                    foreach ($products as $product) {
+                        $qty = $request->input('qty')[$product->id] ?? 0;
+                        if ($qty > 0) {
+                            $price = $request->input('customer_type') == 1 ? $product->price_staff : $product->price;
+                            $prList .= "<tr>
+                            <td>{$product->name}</td>
+                            <td class='text-center'>{$qty}</td>
+                            <td class='text-right'>" . number_format($price, 2) . "</td>
+                            <td class='text-right'>" . number_format($price * $qty, 2) . "</td>
+                        </tr>";
+                        }
+                    }
+                    return $prList;
+                };
+            };
+            $slip .= "<div style='page-break-before: always;'></div>
+                <div class='invoice'>
+                    <div class='header' align='right'>
+                        <span class='title'>รายการสินค้า</span>
+                        <span class='right-align'>No_: " . $order->order_number . "</span>
+
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>รายการสินค้า</th>
+                                <th class='text-center'>จำนวน</th>
+                                <th class='text-right'>@ ราคา</th>
+                                <th class='text-right'>รวม</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            " . $productList() . "
+                        </tbody>
+                    </table>
+                    <div style='padding-top:10px;'>
+                    <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+                    <strong></strong>วิธีชำระเงิน:</strong> $payment_met<br>
+
+                    </div>
+                </div>";
+        }
+
+
         return response()->json([
             'status' => true,
             'data' => $slip
         ]);
-        // Session::forget('cart');
-
-        // <div style='page-break-before: always;'></div>
         return 1;
     }
+
 
     public function drink_checkout(Request $request)
     {
@@ -911,6 +966,8 @@ class POSController extends Controller
                         </body>
                     </html>
                     ";
+            if ($request->quantity && count($request->quantity) > 0) {
+            }
             return response()->json([
                 'status' => true,
                 'data' => $slip

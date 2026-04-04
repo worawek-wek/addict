@@ -80,9 +80,7 @@
                                 <li><a class="dropdown-item text-primary" href="#"
                                         onclick="printReceipt({{ $order->id }}); return false;">ปริ้นใบเสร็จ</a>
                                 </li>
-                                <li><a class="dropdown-item text-danger" href="#"
-                                        onclick="cancelOrder({{ $order->id }}); return false;">ยกเลิกคำสั่งซื้อ</a>
-                                </li>
+                                
                             @endif
                             @if ($order->payment_status == 0)
                                 <li><a class="dropdown-item text-success" href="#"

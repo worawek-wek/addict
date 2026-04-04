@@ -75,7 +75,7 @@ class OrderRoomController extends Controller
             ->where('type', 1)
             ->select('orders.*')
             ->orderBy('booking_date')
-            ->orderBy('start_time');
+            ->orderBy('created_at', 'DESC');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
@@ -227,9 +227,18 @@ class OrderRoomController extends Controller
     public function getslip(Request $request, $id)
     {
         $order = Order::with([
-            'branch', 'customer', 'user', 'room', 'room_type', 'course',
-            'seller', 'status', 'addons.option', 'products.product',
+            'branch',
+            'customer',
+            'user',
+            'room',
+            'room_type',
+            'course',
+            'seller',
+            'status',
+            'addons.option',
+            'products.product',
         ])->findOrFail($id);
+        $payment_method = $order->payment_method ?? 'ยังไม่ระบุวิธีชำระเงิน';
 
         $qr = QrCode::size(150)->generate(url("admin/order-rooms/{$order->id}"));
 
@@ -260,7 +269,6 @@ class OrderRoomController extends Controller
                 $list_product .= $row;
             }
         }
-
         if (!$order->ref_room_type_id) {
             // Product-only slip (no room type) — same as checkout non-room path
             $slip = "<!DOCTYPE html>
@@ -296,6 +304,8 @@ class OrderRoomController extends Controller
                         </div>
                         <p class='right-align info-text'><strong>แคชเชียร์:</strong> Addict</p>
                         <p class='info-text'><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date('Y-m-d', strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+                    <strong></strong>วิธีชำระเงิน:</strong> $payment_method<br>
+
                         <table>
                             <thead>
                                 <tr>
@@ -345,6 +355,8 @@ class OrderRoomController extends Controller
                                 <p><strong>ห้อง:</strong> " . ($order->room->name ?? '') . "</p>
                                 <p><strong>เปิดห้อง:</strong> " . \Carbon\Carbon::parse(date('Y-m-d', strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i') . "</p>
                                 <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date('Y-m-d', strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+                    <strong></strong>วิธีชำระเงิน:</strong> $payment_method<br>
+
                                 <table>
                                     <tr><th>จำนวน</th><th>รายการสินค้า</th><th>@ ราคา</th><th>รวม</th></tr>
                                     <tr>
@@ -368,6 +380,7 @@ class OrderRoomController extends Controller
                                 <p><strong>ห้อง:</strong> " . ($order->room->name ?? '') . "</p>
                                 <p><strong>เปิดห้อง:</strong> " . \Carbon\Carbon::parse(date('Y-m-d', strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i') . "</p>
                                 <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date('Y-m-d', strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+                                <p><strong>วิธีชำระเงิน:</strong> $payment_method</p>
                                 <table>
                                     <tr><th>รหัส</th><th>ชื่อพนักงาน</th><th>ชั่วโมงรวม</th></tr>
                                     <tr>
@@ -388,6 +401,51 @@ class OrderRoomController extends Controller
                         </body>
                     </html>";
         }
+        if ($order->products && $order->products->count() > 0) {
+            $productList = function () use ($order) {
+                $list = '';
+                foreach ($order->products as $orderProduct) {
+                    $product = $orderProduct->product;
+                    if (!$product) continue;
+                    $price    = $orderProduct->price;
+                    $qty      = $orderProduct->quantity;
+                    $list .= '<tr>
+                        <td>' . $product->name . '</td>
+                        <td class="text-center">' . $qty . '</td>
+                        <td class="text-right">' . number_format($price, 2) . '</td>
+                        <td class="text-right">' . number_format($price * $qty, 2) . '</td>
+                    </tr>';
+                }
+                return $list;
+            };
+            $slip .= "<div style='page-break-before: always;'></div>
+                <div class='invoice'>
+                    <div class='header' align='right'>
+                        <span class='title'>รายการสินค้า</span>
+                        <span class='right-align'>No_: " . $order->order_number . "</span>
+
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>รายการสินค้า</th>
+                                <th class='text-center'>จำนวน</th>
+                                <th class='text-right'>@ ราคา</th>
+                                <th class='text-right'>รวม</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            " . $productList() . "
+                        </tbody>
+                    </table>
+                    <div style='padding-top:10px;'>
+                    <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+                    <strong></strong>วิธีชำระเงิน:</strong> $payment_method<br>
+
+                    </div>
+                </div>";
+        }
+
 
         return response()->json([
             'status' => true,
