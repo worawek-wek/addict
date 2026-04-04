@@ -187,21 +187,19 @@ class OrderProductController extends Controller
     }
     public function pdf()
     {
-        $closures = DailySalesClosure::orderBy("id", "DESC")->where('ref_account_id', Auth::id())->take(2)->get();
-        $DailySalesClosure = $closures[0] ?? null;
-        $DailySalesClosure_before = $closures[1] ?? null;
+        // $closures = DailySalesClosure::orderBy("id", "DESC")->where('ref_account_id', Auth::id())->take(1)->get();
+        // $DailySalesClosure = $closures[0] ?? null;
+        // $DailySalesClosure_before = $closures[1] ?? null;
 
-        if ($DailySalesClosure_before && !empty($DailySalesClosure_before->date_time)) {
-            $date_before = date('d/m/Y H:i:s', strtotime($DailySalesClosure_before->date_time));
-        } elseif ($DailySalesClosure && !empty($DailySalesClosure->date_time)) {
-            $date_before = date('d/m/Y', strtotime($DailySalesClosure->date_time)) . " 00:00:00";
-        } else {
-            $date_before = '';
-        }
+        // if (@$DailySalesClosure_before) {
+        //     $date_before = date('d/m/Y H:i:s', strtotime($DailySalesClosure_before->date_time));
+        // } else {
+        //     $date_before = date('d/m/Y', strtotime($DailySalesClosure->date_time)) . " 00:00:00";
+        // }
 
         $product_employee = OrderHasProduct::join('products', 'order_has_products.ref_product_id', '=', 'products.id')
             ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id') // Join เพื่อดึงชื่อประเภท
-            ->whereHas('order', function ($query) use ($DailySalesClosure) {
+            ->whereHas('order', function ($query) {
                 $query->whereNull('ref_daily_sales_closure_id')
                     // ->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
                     ->where('customer_type', 1)
@@ -221,7 +219,7 @@ class OrderProductController extends Controller
 
         $product_customer = OrderHasProduct::join('products', 'order_has_products.ref_product_id', '=', 'products.id')
             ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id')
-            ->whereHas('order', function ($query) use ($DailySalesClosure) {
+            ->whereHas('order', function ($query) {
                 $query->whereNull('ref_daily_sales_closure_id')
                     // ->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
                     ->where('customer_type', 2)
@@ -276,8 +274,8 @@ class OrderProductController extends Controller
         // }
 
         $data['total_price'] = 0;
-        $data['DailySalesClosure_before'] = $DailySalesClosure_before;
-        $data['date_before'] = $date_before;
+        // $data['DailySalesClosure_before'] = $DailySalesClosure_before;
+        // $data['date_before'] = $date_before;
 
         return view('admin.order-product.pdf', $data);
     }
