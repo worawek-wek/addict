@@ -98,16 +98,16 @@
     <div class="d-flex align-items-center px-3 py-2 mt-3 rounded fw-bold"
         style="background:#dee2e6; font-size:13px; gap:16px;">
         <span>รวมหน้านี้</span>
-        <span>ค่านวด: {{ number_format($grandCoursePriceSum) }}</span>
-        <span>คูปอง: {{ number_format($grandCouponSum) }}</span>
-        <span class="ms-auto text-success">รับจริงหน้านี้: {{ number_format($grandNetSum) }} บาท</span>
+        <span>ค่านวด: {{ number_format($grandCoursePriceSum) ?? '-' }}</span>
+        <span>คูปอง: {{ number_format($grandCouponSum) ?? '-' }}</span>
+        <span class="ms-auto text-success">รับจริงหน้านี้: {{ number_format($grandNetSum) ?? '-' }} บาท</span>
     </div>
 
     {{-- All-data Total bar --}}
     <div class="d-flex align-items-center px-3 py-2 mt-1 rounded fw-bold"
         style="background:#c3e6cb; font-size:13px; gap:16px;">
         <span>รวมทั้งหมด (ตามช่วงวันที่)</span>
-        <span class="ms-auto text-dark">รับจริงทั้งหมด: {{ number_format($totalNetSum) }} บาท</span>
+        <span class="ms-auto text-dark">รับจริงทั้งหมด: {{ number_format($totalNetSum) ?? '-' }} บาท</span>
     </div>
 
     {{-- Summary Boxes (totals over ALL filtered records, not just this page) --}}
@@ -119,28 +119,28 @@
                     <table class="table table-bordered mb-0">
                         <tr>
                             <td>ยอดรับจริงร้าน</td>
-                            <td class="text-end">{{ number_format($totalNetSum, 2) }} บาท</td>
+                            <td class="text-end">{{ number_format($totalNetSum, 2) ?? '-' }} บาท</td>
                         </tr>
                         <tr>
                             <td>QR Code</td>
-                            <td class="text-end">{{ number_format($totalNetTransfer, 2) }} บาท</td>
+                            <td class="text-end">{{ number_format($totalNetTransfer, 2) ?? '-' }} บาท</td>
                         </tr>
                         <tr>
                             <td>บัตรเครดิต</td>
-                            <td class="text-end">{{ number_format($totalNetCredit, 2) }} บาท</td>
+                            <td class="text-end">{{ number_format($totalNetCredit, 2) ?? '-' }} บาท</td>
                         </tr>
                         <tr>
                             <td>Alipay</td>
-                            <td class="text-end">{{ number_format($totalNetAl, 2) }} บาท</td>
+                            <td class="text-end">{{ number_format($totalNetAl, 2) ?? '-' }} บาท</td>
                         </tr>
                         <tr class="fw-bold">
                             <td>คงเหลือเงินสดรับจริง</td>
-                            <td class="text-end">{{ number_format($totalNetCash, 2) }} บาท</td>
+                            <td class="text-end">{{ number_format($totalNetCash, 2) ?? '-' }} บาท</td>
                         </tr>
 
                         <tr class="fw-bold table-primary">
                             <td>รับจริงสุทธิ</td>
-                            <td class="text-end">{{ number_format($totalCashRaw - $grandCommission, 2) }} บาท</td>
+                            <td class="text-end">{{ !empty($totalCashRaw) && !empty($grandCommission) ? number_format($totalCashRaw - $grandCommission, 2) : '-' }} บาท</td>
                         </tr>
                     </table>
                 </div>

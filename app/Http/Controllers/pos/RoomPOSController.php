@@ -12,6 +12,8 @@ class RoomPOSController extends Controller
 {
     public function index()
     {
+    
+
         $user = auth()->user();
         $rooms = Room::orderBy('room_group_id')->orderByRaw('CAST(name AS UNSIGNED)')
             ->when($user && $user->ref_position_id != 0, function($q) use ($user) {

@@ -69,11 +69,11 @@ class POSController extends Controller
 
         $branchId = Auth::user()->ref_branch_id ?? null;
         $data['products'] = Product::with('latestStock')
-                                    ->when($q !== '', fn($b) => $b->where('name', 'like', "%{$q}%"))
-                                    ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
-                                    ->where('ref_status_id', 1)
-                                    ->orderBy('name')
-                                    ->get();
+            ->when($q !== '', fn($b) => $b->where('name', 'like', "%{$q}%"))
+            ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
+            ->where('ref_status_id', 1)
+            ->orderBy('name')
+            ->get();
 
         if ($request->ajax() || $request->boolean('ajax')) {
             return view('pos.partials.product-grid', $data)->render();
@@ -113,15 +113,15 @@ class POSController extends Controller
     }
     public function product($product_id = null)
     {
-        if(@$product_id){
+        if (@$product_id) {
             $data['product_id'] = $product_id;
         }
         $branchId = Auth::user()->ref_branch_id ?? null;
         $data['products'] = Product::with('latestStock', 'producttype')
-                                    ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
-                                    ->where('ref_status_id', 1)
-                                    ->orderBy('name')
-                                    ->get();
+            ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
+            ->where('ref_status_id', 1)
+            ->orderBy('name')
+            ->get();
 
         // ---------------- Cart Totals ----------------
         $data['branches'] = Branch::all();
@@ -161,11 +161,11 @@ class POSController extends Controller
 
         $branchId = Auth::user()->ref_branch_id ?? null;
         $data['drinks'] = Drink::with('latestStock')
-                                    ->when($q !== '', fn($b) => $b->where('name', 'like', "%{$q}%"))
-                                    ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
-                                    ->where('ref_status_id', 1)
-                                    ->orderBy('name')
-                                    ->get();
+            ->when($q !== '', fn($b) => $b->where('name', 'like', "%{$q}%"))
+            ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
+            ->where('ref_status_id', 1)
+            ->orderBy('name')
+            ->get();
 
         if ($request->ajax() || $request->boolean('ajax')) {
             return view('pos.partials.drink-grid', $data)->render();
@@ -207,22 +207,22 @@ class POSController extends Controller
 
     public function get_user(Request $request)
     {
-        try{
-            $find = User::where('user_code',$request->user_code)->orWhere('user_id',$request->user_code)->first();
+        try {
+            $find = User::where('user_code', $request->user_code)->orWhere('user_id', $request->user_code)->first();
             // if(@$request->ref_position_id){
-                // $find = $find->where('ref_position_id', $request->ref_position_id)->first();
-                if(!$find){
-                    return [
-                            "id" => null,
-                            "name" => "ไม่พบพนักงาน"
-                            ];;
-                }
+            // $find = $find->where('ref_position_id', $request->ref_position_id)->first();
+            if (!$find) {
                 return [
-                        "id" => $find->id,
-                        "name" => "$find->nickname"
-                        ];
+                    "id" => null,
+                    "name" => "ไม่พบพนักงาน"
+                ];;
+            }
+            return [
+                "id" => $find->id,
+                "name" => "$find->nickname"
+            ];
             // }
-            if(!$find){
+            if (!$find) {
                 return "เข้างานผิดพลาด ไม่พบพนักงาน";
             }
             $user = User::find($find->id);
@@ -233,10 +233,9 @@ class POSController extends Controller
             DB::commit();
 
             return [
-                    "id" => $user->id,
-                    "name" => "$user->name"
-                    ];
-
+                "id" => $user->id,
+                "name" => "$user->name"
+            ];
         } catch (QueryException $err) {
             DB::rollBack();
         }
@@ -361,7 +360,7 @@ class POSController extends Controller
         //         default => null,
         //     };
         // return $request->input('ref_course_id');
-        if(@$request->input('ref_course_id')){
+        if (@$request->input('ref_course_id')) {
             $course = Course::find($request->input('ref_course_id'));
             $duration = (int) filter_var($course->name, FILTER_SANITIZE_NUMBER_INT);
         }
@@ -371,107 +370,107 @@ class POSController extends Controller
         //         $addon_ids = is_array($request->input('addon_id')) ? $request->input('addon_id') : [$request->input('addon_id')];
         //     }
         // return $request->input('type');
-            $mama_id = $request->input('mama_id');
-            $order = Order::create([
-                'type'      => $request->input('type') ?? 1,
-                'ref_branch_id'      => Auth::user()->ref_branch_id,
-                'order_number'    => Auth::user()->ref_branch_id . strtoupper(uniqid()),
-                'ref_customer_id'   => $request->input('customer_id') ?: null,
-                'ref_account_id'    => Auth::id(),
-                'ref_user_id'    => $request->input('staff_id') ?? null,
-                'customer_type'     => $request->input('customer_type') ?? 2,
-                'ref_seller_id'     => $request->input('reception_id'),
-                'ref_room_id'     => $request->input('ref_room_id') ?? null,
-                'ref_room_type_id'     => $request->input('ref_room_type_id') ?? null,
-                'service_laundry_cost'     => $request->input('ref_course_id') ?? null,
-                'ref_status_id'      => 2,
-                'booking_date'     => Carbon::today(),
-                'start_time'      => Carbon::now()->format('H:i:s'),
-                'end_time'        => @$duration ? Carbon::now()->addMinutes($duration)->format('H:i:s'): null,
-                // 'total_price' => 3000,
-                'discount' => preg_replace('/[^0-9.]/', '', $request->input('discount') ?? 0.00),
-                'total_price' => preg_replace('/[^0-9.]/', '', $request->input('total_price')),
-                'payment_method' => $request->input('payment_method') ?? null,
-                'payment_status' => $request->input('payment_status') ?? 1,
-            ]);
-            // เพิ่ม addon option ใน order_has_addon_options
-            if ($request->filled('ref_option_id')) {
-                foreach ($request->ref_option_id as $addon_id) {
-                    $addon = AddonOption::find($addon_id);
-                    if ($addon) {
-                        OrderHasAddonOption::create([
-                            'ref_order_id'  => $order->id,
-                            'ref_option_id' => $addon->id,
-                            'price'         => $addon->price,
-                        ]);
-                    }
+        $mama_id = $request->input('mama_id');
+        $order = Order::create([
+            'type'      => $request->input('type') ?? 1,
+            'ref_branch_id'      => Auth::user()->ref_branch_id,
+            'order_number'    => Auth::user()->ref_branch_id . strtoupper(uniqid()),
+            'ref_customer_id'   => $request->input('customer_id') ?: null,
+            'ref_account_id'    => Auth::id(),
+            'ref_user_id'    => $request->input('staff_id') ?? null,
+            'customer_type'     => $request->input('customer_type') ?? 2,
+            'ref_seller_id'     => $request->input('reception_id'),
+            'ref_room_id'     => $request->input('ref_room_id') ?? null,
+            'ref_room_type_id'     => $request->input('ref_room_type_id') ?? null,
+            'service_laundry_cost'     => $request->input('ref_course_id') ?? null,
+            'ref_status_id'      => 2,
+            'booking_date'     => Carbon::today(),
+            'start_time'      => Carbon::now()->format('H:i:s'),
+            'end_time'        => @$duration ? Carbon::now()->addMinutes($duration)->format('H:i:s') : null,
+            // 'total_price' => 3000,
+            'discount' => preg_replace('/[^0-9.]/', '', $request->input('discount') ?? 0.00),
+            'total_price' => preg_replace('/[^0-9.]/', '', $request->input('total_price')),
+            'payment_method' => $request->input('payment_method') ?? null,
+            'payment_status' => $request->input('payment_status') ?? 1,
+        ]);
+        // เพิ่ม addon option ใน order_has_addon_options
+        if ($request->filled('ref_option_id')) {
+            foreach ($request->ref_option_id as $addon_id) {
+                $addon = AddonOption::find($addon_id);
+                if ($addon) {
+                    OrderHasAddonOption::create([
+                        'ref_order_id'  => $order->id,
+                        'ref_option_id' => $addon->id,
+                        'price'         => $addon->price,
+                    ]);
                 }
             }
+        }
 
-            // // --- คำนวณค่าคอมมิชชั่นและค่าเชียร์ ---
-            // $commission_value = 0;
-            // $commission_options_value = 0;
-            // $price_options_sales = 0;
-            // // Massage commission (service_duration)
-            // if ($order->ref_user_id && $serviceCostName) {
-            //     $duration = null;
-            //     switch ($serviceCostName) {
-            //         case 'forty_minutes': $duration = 40; break;
-            //         case 'sixty_minutes': $duration = 60; break;
-            //         case 'ninety_minutes': $duration = 90; break;
-            //     }
-            //     if ($duration) {
-            //         $commission = \App\Models\MassageCommission::where('ref_user_id', $order->ref_user_id)
-            //             ->where('service_duration', $duration)
-            //             ->where('ref_branch_id', $order->ref_branch_id)
-            //             ->first();
-            //         if (!$commission) {
-            //             $commission = \App\Models\MassageCommission::whereNull('ref_user_id')
-            //                 ->where('service_duration', $duration)
-            //                 ->where('ref_branch_id', $order->ref_branch_id)
-            //                 ->first();
-            //         }
-            //         if ($commission) {
-            //             if ($commission->commission_amount) {
-            //                 $commission_value += $commission->commission_amount;
-            //             } elseif ($commission->commission_percent) {
-            //                 $room_price = 0;
-            //                 $room = Room::find($roomId);
-            //                 if ($room) {
-            //                     if ($duration == 40) $room_price = $room->forty_minutes;
-            //                     if ($duration == 60) $room_price = $room->sixty_minutes;
-            //                     if ($duration == 90) $room_price = $room->ninety_minutes;
-            //                 }
-            //                 $staff_salary = User::find($order->ref_user_id)->salary ?? 0;
-            //                 $commission_base = $room_price + $staff_salary;
-            //                 $commission_value += ($commission->commission_percent / 100) * $commission_base;
-            //             }
-            //         }
-            //     }
-            // }
-            // // Massage commission (addon options)
-            // if ($order->ref_user_id && !empty($addon_ids)) {
-            //     foreach ($addon_ids as $addon_id) {
-            //         $commission = \App\Models\MassageCommission::where('ref_user_id', $order->ref_user_id)
-            //             ->where('addon_options_id', $addon_id)
-            //             ->where('ref_branch_id', $order->ref_branch_id)
-            //             ->first();
-            //         if (!$commission) {
-            //             $commission = \App\Models\MassageCommission::whereNull('ref_user_id')
-            //                 ->where('addon_options_id', $addon_id)
-            //                 ->where('ref_branch_id', $order->ref_branch_id)
-            //                 ->first();
-            //         }
-            //         $addon = AddonOption::find($addon_id);
-            //         if ($commission && $addon) {
-            //             if ($commission->commission_amount) {
-            //                 $commission_options_value += $commission->commission_amount;
-            //             } elseif ($commission->commission_percent) {
-            //                 $commission_options_value += ($commission->commission_percent / 100) * $addon->price;
-            //             }
-            //         }
-            //     }
-            // }
+        // // --- คำนวณค่าคอมมิชชั่นและค่าเชียร์ ---
+        // $commission_value = 0;
+        // $commission_options_value = 0;
+        // $price_options_sales = 0;
+        // // Massage commission (service_duration)
+        // if ($order->ref_user_id && $serviceCostName) {
+        //     $duration = null;
+        //     switch ($serviceCostName) {
+        //         case 'forty_minutes': $duration = 40; break;
+        //         case 'sixty_minutes': $duration = 60; break;
+        //         case 'ninety_minutes': $duration = 90; break;
+        //     }
+        //     if ($duration) {
+        //         $commission = \App\Models\MassageCommission::where('ref_user_id', $order->ref_user_id)
+        //             ->where('service_duration', $duration)
+        //             ->where('ref_branch_id', $order->ref_branch_id)
+        //             ->first();
+        //         if (!$commission) {
+        //             $commission = \App\Models\MassageCommission::whereNull('ref_user_id')
+        //                 ->where('service_duration', $duration)
+        //                 ->where('ref_branch_id', $order->ref_branch_id)
+        //                 ->first();
+        //         }
+        //         if ($commission) {
+        //             if ($commission->commission_amount) {
+        //                 $commission_value += $commission->commission_amount;
+        //             } elseif ($commission->commission_percent) {
+        //                 $room_price = 0;
+        //                 $room = Room::find($roomId);
+        //                 if ($room) {
+        //                     if ($duration == 40) $room_price = $room->forty_minutes;
+        //                     if ($duration == 60) $room_price = $room->sixty_minutes;
+        //                     if ($duration == 90) $room_price = $room->ninety_minutes;
+        //                 }
+        //                 $staff_salary = User::find($order->ref_user_id)->salary ?? 0;
+        //                 $commission_base = $room_price + $staff_salary;
+        //                 $commission_value += ($commission->commission_percent / 100) * $commission_base;
+        //             }
+        //         }
+        //     }
+        // }
+        // // Massage commission (addon options)
+        // if ($order->ref_user_id && !empty($addon_ids)) {
+        //     foreach ($addon_ids as $addon_id) {
+        //         $commission = \App\Models\MassageCommission::where('ref_user_id', $order->ref_user_id)
+        //             ->where('addon_options_id', $addon_id)
+        //             ->where('ref_branch_id', $order->ref_branch_id)
+        //             ->first();
+        //         if (!$commission) {
+        //             $commission = \App\Models\MassageCommission::whereNull('ref_user_id')
+        //                 ->where('addon_options_id', $addon_id)
+        //                 ->where('ref_branch_id', $order->ref_branch_id)
+        //                 ->first();
+        //         }
+        //         $addon = AddonOption::find($addon_id);
+        //         if ($commission && $addon) {
+        //             if ($commission->commission_amount) {
+        //                 $commission_options_value += $commission->commission_amount;
+        //             } elseif ($commission->commission_percent) {
+        //                 $commission_options_value += ($commission->commission_percent / 100) * $addon->price;
+        //             }
+        //         }
+        //     }
+        // }
         //     // CheerCharge for sales
         //     if ($order->ref_seller_id && !empty($addon_ids)) {
         //         foreach ($addon_ids as $addon_id) {
@@ -510,55 +509,56 @@ class POSController extends Controller
 
         $customerType = $request->input('customer_type', 2);
         $grouped_products = [];
-
-        foreach ($request->qty as $id => $q) {
-            if($q == 0){
-                continue;
-            }
-
-            $product = Product::find($id);
-            if(!$product) continue;
-
-            $price = $customerType == 1 ? $product->price_staff : $product->price;
-
-            $stock = StockReadyForSale::where('ref_product_id', $id)
-                ->where('remain', '!=', 0)
-                ->first();
-
-            $product_cost = 0;
-            if ($stock) {
-                $main_stock = CardStocks::find($stock->ref_lot_id);
-                if ($main_stock && $main_stock->quantity > 0) {
-                    $product_cost = $main_stock->cost_price / $main_stock->quantity;
+        if (!empty($request->qty)) {
+            foreach ($request->qty as $id => $q) {
+                if ($q == 0 || $q == null) {
+                    continue;
                 }
 
-                $newRemain = max(0, $stock->remain - $q);
-                $stock->remain = $newRemain;
-                $stock->save();
-            }
+                $product = Product::find($id);
+                if (!$product) continue;
 
-            $order->products()->create([
-                'ref_product_id' => $id,
-                'price'          => $price,
-                'quantity'       => $q,
-                'cost'           => $product_cost,
-            ]);
+                $price = $customerType == 1 ? $product->price_staff : $product->price;
 
-            $type = \App\Models\ProductType::find($product->type_id);
-            $typeName = $type ? $type->name : 'อื่นๆ / ไม่ระบุประเภท';
+                $stock = StockReadyForSale::where('ref_product_id', $id)
+                    ->where('remain', '!=', 0)
+                    ->first();
 
-            $grouped_products[$typeName][] = '<tr>
-                <td>'.$product->name.'</td>
-                <td class="text-center">'.$q.'</td>
-                <td class="text-right">'.number_format($price, 2).'</td>
-                <td class="text-right">'.number_format($price * $q, 2).'</td>
+                $product_cost = 0;
+                if ($stock) {
+                    $main_stock = CardStocks::find($stock->ref_lot_id);
+                    if ($main_stock && $main_stock->quantity > 0) {
+                        $product_cost = $main_stock->cost_price / $main_stock->quantity;
+                    }
+
+                    $newRemain = max(0, $stock->remain - $q);
+                    $stock->remain = $newRemain;
+                    $stock->save();
+                }
+
+                $order->products()->create([
+                    'ref_product_id' => $id,
+                    'price'          => $price,
+                    'quantity'       => $q,
+                    'cost'           => $product_cost,
+                ]);
+
+                $type = \App\Models\ProductType::find($product->type_id);
+                $typeName = $type ? $type->name : 'อื่นๆ / ไม่ระบุประเภท';
+
+                $grouped_products[$typeName][] = '<tr>
+                <td>' . $product->name . '</td>
+                <td class="text-center">' . $q . '</td>
+                <td class="text-right">' . number_format($price, 2) . '</td>
+                <td class="text-right">' . number_format($price * $q, 2) . '</td>
             </tr>';
+            }
         }
 
         $list_product = "";
         foreach ($grouped_products as $typeName => $rows) {
             $list_product .= '<tr class="table-active" style="background-color: #f3f4f6;">
-                <td colspan="4"><strong>'.$typeName.'</strong></td>
+                <td colspan="4"><strong>' . $typeName . '</strong></td>
             </tr>';
 
             foreach ($rows as $row) {
@@ -575,11 +575,11 @@ class POSController extends Controller
         // $order->total_price = $total_price;
         $order->updated_at  = now();
         $order->save();
-        if(!$request->input('ref_room_type_id')){
-        // $room_type = RoomType::find(1);
-        // $room_type_name = $room_type->name;
-        // dd(\Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i'));
-        $qr = QrCode::size(150)->generate(url("admin/order-rooms/$order->id"));
+        if (!$request->input('ref_room_type_id')) {
+            // $room_type = RoomType::find(1);
+            // $room_type_name = $room_type->name;
+            // dd(\Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i'));
+            $qr = QrCode::size(150)->generate(url("admin/order-rooms/$order->id"));
 
             $slip = "<!DOCTYPE html>
                 <html lang='th'>
@@ -646,9 +646,9 @@ class POSController extends Controller
                 </body>
                 </html>";
             return response()->json([
-                                        'status' => true,
-                                        'data' => $slip
-                                    ]);
+                'status' => true,
+                'data' => $slip
+            ]);
             return 1;
         }
         $room_type = RoomType::find($request->input('ref_room_type_id'));
@@ -656,7 +656,7 @@ class POSController extends Controller
         // dd(\Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i'));
         $qr = QrCode::size(150)->generate(url("admin/order-rooms/$order->id"));
 
-            $slip = "<!DOCTYPE html>
+        $slip = "<!DOCTYPE html>
                         <html lang='th'>
                         <head>
                             <meta charset='UTF-8'>
@@ -698,7 +698,7 @@ class POSController extends Controller
                                     <span class='right-align'>No_: $order->order_number</span>
                                 </div>
                                 <p class='right-align'><strong>แคชเชียร์:</strong> Addict</p>
-                                <p><strong>ห้อง:</strong> ".$order->room->name."</p>
+                                <p><strong>ห้อง:</strong> " . $order->room->name . "</p>
                                 <p><strong>เปิดห้อง:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i') . "</p>
                                 <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
 
@@ -711,12 +711,12 @@ class POSController extends Controller
                                     </tr>
                                     <tr>
                                         <td>1</td>
-                                        <td>".$order->user->nickname." + ".$order->course->name." ".$order->room_type->name ."</td>
+                                        <td>" . $order->user->nickname . " + " . $order->course->name . " " . $order->room_type->name . "</td>
                                         <td>$order->total_price</td>
                                         <td>$order->total_price</td>
                                     </tr>
                                     <tr>
-                                        <td colspan='3' style='border-top:unset;padding:10px'> ผู้ดูแล ".$order->seller->user_id." ".$order->seller->nickname." </td>
+                                        <td colspan='3' style='border-top:unset;padding:10px'> ผู้ดูแล " . $order->seller->user_id . " " . $order->seller->nickname . " </td>
                                     </tr>
                                 </table>
                             </div>
@@ -727,7 +727,7 @@ class POSController extends Controller
                                     <span class='right-align'>No_: $order->order_number</span>
                                 </div>
                                 <p class='right-align'><strong>แคชเชียร์:</strong> Addict</p>
-                                <p><strong>ห้อง:</strong> ".$order->room->name."</p>
+                                <p><strong>ห้อง:</strong> " . $order->room->name . "</p>
                                 <p><strong>เปิดห้อง:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i') . "</p>
                                 <p><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
 
@@ -738,12 +738,12 @@ class POSController extends Controller
                                         <th>ชั่วโมงรวม</th>
                                     </tr>
                                     <tr>
-                                        <td style='border:unset;padding-top:5px'>". $order->user->user_id ."</td>
-                                        <td style='border:unset;padding-top:5px'>".$order->user->nickname." + ".$order->course->name." ".$order->room_type->name ."</td>
-                                        <td style='border:unset;padding-top:5px'>".floor($order->course->minute / 60)."</td>
+                                        <td style='border:unset;padding-top:5px'>" . $order->user->user_id . "</td>
+                                        <td style='border:unset;padding-top:5px'>" . $order->user->nickname . " + " . $order->course->name . " " . $order->room_type->name . "</td>
+                                        <td style='border:unset;padding-top:5px'>" . floor($order->course->minute / 60) . "</td>
                                     </tr>
                                     <tr>
-                                        <td colspan='3' style='border-top:unset;padding:10px'> ผู้ดูแล ".$order->seller->user_id." ".$order->seller->nickname." </td>
+                                        <td colspan='3' style='border-top:unset;padding:10px'> ผู้ดูแล " . $order->seller->user_id . " " . $order->seller->nickname . " </td>
                                     </tr>
                                 </table>
                                 <span style='padding-top:10px'>ให้เก็บไว้ตรวจสอบ</span>
@@ -756,46 +756,46 @@ class POSController extends Controller
                         </body>
                     </html>
                     ";
-            return response()->json([
-                                        'status' => true,
-                                        'data' => $slip
-                                    ]);
+        return response()->json([
+            'status' => true,
+            'data' => $slip
+        ]);
         // Session::forget('cart');
 
-                            // <div style='page-break-before: always;'></div>
+        // <div style='page-break-before: always;'></div>
         return 1;
     }
 
     public function drink_checkout(Request $request)
     {
-            $mama_id = $request->input('mama_id');
-            $order = Order::create([
-                'type'      => 3,
-                'ref_branch_id'      => Auth::user()->ref_branch_id,
-                'order_number'    => Auth::user()->ref_branch_id . strtoupper(uniqid()),
-                'ref_customer_id'   => $request->input('customer_id') ?: null,
-                'ref_account_id'    => Auth::id(),
-                'ref_user_id'    => $request->input('staff_id') ?? null,
-                'customer_type'     => $request->input('customer_type') ?? 2,
-                'ref_seller_id'     => $request->input('reception_id'),
-                'ref_room_id'     => $request->input('ref_room_id') ?? null,
-                'ref_room_type_id'     => $request->input('ref_room_type_id') ?? null,
-                'service_laundry_cost'     => $request->input('ref_course_id') ?? null,
-                'ref_status_id'      => 2,
-                'booking_date'     => Carbon::today(),
-                'start_time'      => Carbon::now()->format('H:i:s'),
-                'end_time'        => @$duration ? Carbon::now()->addMinutes($duration)->format('H:i:s'): null,
-                // 'total_price' => 3000,
-                'discount' => preg_replace('/[^0-9.]/', '', $request->input('discount') ?? 0.00),
-                'total_price' => preg_replace('/[^0-9.]/', '', $request->input('total_price')),
-                'payment_method' => $request->input('payment_method') ?? null,
-                'payment_status' => $request->input('payment_status') ?? 1,
-            ]);
+        $mama_id = $request->input('mama_id');
+        $order = Order::create([
+            'type'      => 3,
+            'ref_branch_id'      => Auth::user()->ref_branch_id,
+            'order_number'    => Auth::user()->ref_branch_id . strtoupper(uniqid()),
+            'ref_customer_id'   => $request->input('customer_id') ?: null,
+            'ref_account_id'    => Auth::id(),
+            'ref_user_id'    => $request->input('staff_id') ?? null,
+            'customer_type'     => $request->input('customer_type') ?? 2,
+            'ref_seller_id'     => $request->input('reception_id'),
+            'ref_room_id'     => $request->input('ref_room_id') ?? null,
+            'ref_room_type_id'     => $request->input('ref_room_type_id') ?? null,
+            'service_laundry_cost'     => $request->input('ref_course_id') ?? null,
+            'ref_status_id'      => 2,
+            'booking_date'     => Carbon::today(),
+            'start_time'      => Carbon::now()->format('H:i:s'),
+            'end_time'        => @$duration ? Carbon::now()->addMinutes($duration)->format('H:i:s') : null,
+            // 'total_price' => 3000,
+            'discount' => preg_replace('/[^0-9.]/', '', $request->input('discount') ?? 0.00),
+            'total_price' => preg_replace('/[^0-9.]/', '', $request->input('total_price')),
+            'payment_method' => $request->input('payment_method') ?? null,
+            'payment_status' => $request->input('payment_status') ?? 1,
+        ]);
 
         // --- โค้ดส่วนที่เหลือของคุณ (ทำงานกับตัวแปร $order ที่ได้มา) ---
         $list_drink = "";
         foreach ($request->qty as $id => $q) {
-            if($q == 0){
+            if ($q == 0) {
                 continue;
             }
             $customerType = $request->input('customer_type', 2); // default = 2
@@ -818,7 +818,7 @@ class POSController extends Controller
                 ->first();
 
             $main_stock = DrinkCardStocks::find($stock->ref_lot_id);
-            $product_cost = $main_stock->cost_price/$main_stock->quantity;
+            $product_cost = $main_stock->cost_price / $main_stock->quantity;
 
             if ($stock) {
                 $newRemain = max(0, $stock->remain - $q);
@@ -834,20 +834,20 @@ class POSController extends Controller
             ]);
 
             $list_drink .= '<tr>
-                                <td>'.$drink->name.'</td>
-                                <td style="text-align: center;">'.$q.'</td>
-                                <td style="text-align: right;">'.$price.'</td>
-                                <td style="text-align: right;">'.$price*$q.'</td>
+                                <td>' . $drink->name . '</td>
+                                <td style="text-align: center;">' . $q . '</td>
+                                <td style="text-align: right;">' . $price . '</td>
+                                <td style="text-align: right;">' . $price * $q . '</td>
                             </tr>';
         }
 
         $order->updated_at  = now();
         $order->save();
-        if(!$request->input('ref_room_type_id')){
-        // $room_type = RoomType::find(1);
-        // $room_type_name = $room_type->name;
-        // dd(\Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i'));
-        $qr = QrCode::size(150)->generate(url("admin/order-rooms/$order->id"));
+        if (!$request->input('ref_room_type_id')) {
+            // $room_type = RoomType::find(1);
+            // $room_type_name = $room_type->name;
+            // dd(\Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i'));
+            $qr = QrCode::size(150)->generate(url("admin/order-rooms/$order->id"));
 
             $slip = "<!DOCTYPE html>
                         <html lang='th'>
@@ -899,7 +899,7 @@ class POSController extends Controller
                                         <th style='text-align: center;'>จำนวน</th>
                                         <th style='text-align: right;'>@ ราคา</th>
                                         <th style='text-align: right;'>รวม</th>
-                                    </tr>".$list_drink."
+                                    </tr>" . $list_drink . "
                                     <tr>
                                         <td>ส่วนลด</td>
                                         <td></td>
@@ -912,9 +912,9 @@ class POSController extends Controller
                     </html>
                     ";
             return response()->json([
-                                        'status' => true,
-                                        'data' => $slip
-                                    ]);
+                'status' => true,
+                'data' => $slip
+            ]);
             return 1;
         }
     }
@@ -1006,20 +1006,20 @@ class POSController extends Controller
         $room_course = @$rthc->price ?? 0;
         $subtotal = @$room_course ?? 0;
 
-        if(@$request->ref_option_id){
+        if (@$request->ref_option_id) {
             $subtotal += AddonOption::whereIn('id', $request->ref_option_id)->sum('price');
         }
         // return $request;
-        foreach($request->qty ?? [] as $key => $qty){
-        // return $qty;
-            if($qty > 0){
-                $subtotal += Product::find($key)->price*$qty;
+        foreach ($request->qty ?? [] as $key => $qty) {
+            // return $qty;
+            if ($qty > 0) {
+                $subtotal += Product::find($key)->price * $qty;
             }
         }
         // if(@$request->discount > 0){
         $discount = $request->discount ?? 0;
         // $tax      = $subtotal * 0.07;
-        $total = $subtotal-$discount;
+        $total = $subtotal - $discount;
         // $subtotal -= $discount;
         // }
 

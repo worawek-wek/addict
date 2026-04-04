@@ -187,14 +187,16 @@ class OrderProductController extends Controller
     }
     public function pdf()
     {
-        $closures = DailySalesClosure::orderBy("id", "DESC")->where('ref_account_id', Auth::id())->take(1)->get();
+        $closures = DailySalesClosure::orderBy("id", "DESC")->where('ref_account_id', Auth::id())->take(2)->get();
         $DailySalesClosure = $closures[0] ?? null;
         $DailySalesClosure_before = $closures[1] ?? null;
 
-        if (@$DailySalesClosure_before) {
+        if ($DailySalesClosure_before && !empty($DailySalesClosure_before->date_time)) {
             $date_before = date('d/m/Y H:i:s', strtotime($DailySalesClosure_before->date_time));
-        } else {
+        } elseif ($DailySalesClosure && !empty($DailySalesClosure->date_time)) {
             $date_before = date('d/m/Y', strtotime($DailySalesClosure->date_time)) . " 00:00:00";
+        } else {
+            $date_before = '';
         }
 
         $product_employee = OrderHasProduct::join('products', 'order_has_products.ref_product_id', '=', 'products.id')

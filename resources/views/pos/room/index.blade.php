@@ -79,12 +79,12 @@
                 </a>
 
             </div>
-            
+
                                                 {{-- <div class="input-group input-group-merge">
                                                     <span class="input-group-text" id="basic-addon-search31">
                                                         <i class="ti ti-search"></i>
                                                     </span>
-                                                    <input 
+                                                    <input
                                                            name="search" type="text" class="form-control p_search"
                                                            placeholder="ค้นหาคีเวิร์ดที่ต้องการ"
                                                            aria-label="ค้นหาคีเวิร์ดที่ต้องการ"
@@ -112,7 +112,7 @@
                         <div class="w-100"></div>
                     @endif
                     <div class="col-sm-1 room-card" data-name="{{ $room->name }}">
-                            <div class="timer-box timer m-auto mb-1" data-start="{{ @$room->active_order->start_time }}" style="background-color: {{ $room->is_busy  ? '#6c757d' : '#5e2a5f' }};">00:00</div>
+                            <div class="timer-box timer m-auto mb-1" data-start="{{ @$room->active_order->start_time }}" data-end="{{ @$room->active_order->end_time }}" style="background-color: {{ $room->is_busy  ? '#6c757d' : '#5e2a5f' }};">00:00</div>
                         <div
                             class="card text-center border-0 shadow-sm {{ $room->is_busy ? 'bg-danger text-white' : 'bg-purple text-white' }}">
 
@@ -138,7 +138,7 @@
                             <div class="card-footer fw-bold {{ $room->is_busy ? 'bg-danger text-white' : 'bg-light text-dark' }} py-2" >
                                 {{ $room->name }}
                                 {{-- @if (isset($room->active_order))
-                                    
+
                                 @endif --}}
                             </div>
 
@@ -246,9 +246,18 @@
             return String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
         }
 
+        function parseEndTime(endTimeStr) {
+            const now = new Date();
+            const [h, m] = endTimeStr.split(':').map(Number);
+            return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
+        }
+
         function updateAllTimers() {
+            let needsReload = false;
+
             document.querySelectorAll('.timer').forEach(timer => {
                 const startTimeStr = timer.dataset.start;
+                const endTimeStr   = timer.dataset.end;
                 if (!startTimeStr) return;
 
                 const startDate = parseStartTime(startTimeStr);
@@ -256,7 +265,19 @@
                 const diffSeconds = Math.floor((now - startDate) / 1000);
 
                 timer.innerText = formatTime(diffSeconds);
+
+                // ถ้าถึง end_time แล้ว → reload หน้า
+                if (endTimeStr) {
+                    const endDate = parseEndTime(endTimeStr);
+                    if (now >= endDate) {
+                        needsReload = true;
+                    }
+                }
             });
+
+            if (needsReload) {
+                location.reload();
+            }
         }
 
         // เริ่มทันที
