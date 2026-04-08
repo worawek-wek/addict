@@ -35,7 +35,7 @@
                                             </div>
                                             
                                             <div class="col-sm-8 d-flex justify-content-end align-items-sm-center gap-2">
-                                                รอบ:
+                                                ประวัติปิดการขาย:
                                                 <select onchange='getHistoryRound(this.value)'
                                                     name="round" class="form-select ms-2 me-2"
                                                     style="width:220px">
@@ -73,7 +73,7 @@
                                                         class="btn btn-primary buttons-collection  btn-info waves-effect waves-light me-2"
                                                         tabindex="0" aria-controls="DataTables_Table_0" type="button"
                                                         aria-haspopup="dialog" aria-expanded="false"
-                                                        onclick="printSummaryReport()"
+                                                        onclick="printSummaryReport('/admin/order-products/pdf')"
                                                         id="ButtonSummaryReport"
                                                         >
                                                         <span><i class="ti ti-receipt"></i>
@@ -182,12 +182,12 @@
             });
         }
 
-        function printSummaryReport() {
-
+        function printSummaryReport(url) {
+            
             const iframe = document.getElementById('print-iframe');
 
             $.ajax({
-                url: '/admin/order-products/pdf',
+                url: url,
                 type: 'GET',
                 success: function(html) {
                     const doc = iframe.contentWindow.document;

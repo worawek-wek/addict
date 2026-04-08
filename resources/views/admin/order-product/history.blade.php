@@ -69,7 +69,7 @@
         <button
             class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
             type="button"
-            onclick="printPdf()">
+            onclick="printSummaryReport('/admin/order-products/history/pdf/{{ $ref_daily_sales_closure_id }}')">
             <span>
                 <i class="ti ti-file-upload me-0 me-sm-1"></i>
                 <span class="d-none d-sm-inline-block">พิมพ์

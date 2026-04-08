@@ -259,6 +259,7 @@ Route::prefix('admin')->group(function () {
         Route::prefix('order-products')->group(function () {
             Route::get('/', [OrderProductController::class, 'index'])->name('order-products.index');
             Route::get('/datatable', [OrderProductController::class, 'datatable'])->name('order-products.datatable');
+            Route::get('history/pdf/{ref_daily_sales_closure_id}', [OrderProductController::class, 'pdf'])->name('order-products.history-pdf');
             Route::get('/pdf', [OrderProductController::class, 'pdf'])->name('order-products.pdf');
             Route::get('/{id}/slip', [OrderProductController::class, 'printSlip'])->name('order-products.slip');
             Route::post('/closures', [OrderProductController::class, 'closures'])->name('order-products.closures');
@@ -269,7 +270,7 @@ Route::prefix('admin')->group(function () {
             Route::post('/edit/{id}/update', [OrderProductController::class, 'updateProducts'])->name('order-products.update-products');
             Route::delete('/edit/{id}/product/{productId}', [OrderProductController::class, 'removeProduct'])->name('order-products.remove-product');
             Route::post('/{id}/update-payment-method', [OrderProductController::class, 'updatePaymentMethod'])->name('order-products.update-payment-method');
-            Route::get('/history/{round}', [OrderProductController::class, 'get_history_by_round'])->name('order-products.history-by-round');
+            Route::get('/history/{ref_daily_sales_closure_id}', [OrderProductController::class, 'get_history_by_round'])->name('order-products.history-by-round');
         });
 
         Route::prefix('order-drinks')->group(function () {

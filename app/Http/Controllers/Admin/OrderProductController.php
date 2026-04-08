@@ -34,17 +34,17 @@ class OrderProductController extends Controller
             $branches = Branch::where('id', $user->ref_branch_id)->get();
         }
         
-        $rounds = DailySalesClosure::where('ref_account_id', Auth::id())->get();
+        $rounds = DailySalesClosure::orderBy('id', 'DESC')->where('ref_account_id', Auth::id())->get();
 
         return view('admin.order-product.index', compact('orderProducts', 'branches', 'rounds'));
     }
 
-    public function get_history_by_round($round)
+    public function get_history_by_round($ref_daily_sales_closure_id)
     {
-        // return 123;
         // $user = Auth::user();
-        $results = Order::where('ref_daily_sales_closure_id', $round)->where('type', 2)->get();
+        $results = Order::where('ref_daily_sales_closure_id', $ref_daily_sales_closure_id)->where('type', 2)->get();
 
+        $data['ref_daily_sales_closure_id'] = $ref_daily_sales_closure_id;
         $data['list_data'] = $results;
         return view('admin.order-product.history', $data);
     }
@@ -198,7 +198,7 @@ class OrderProductController extends Controller
             'status'  => $order->status->name
         ]);
     }
-    public function pdf()
+    public function pdf($daily_sales_closure_id = null)
     {
         // $closures = DailySalesClosure::orderBy("id", "DESC")->where('ref_account_id', Auth::id())->take(1)->get();
         // $DailySalesClosure = $closures[0] ?? null;
@@ -212,8 +212,8 @@ class OrderProductController extends Controller
 
         $product_employee = OrderHasProduct::join('products', 'order_has_products.ref_product_id', '=', 'products.id')
             ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id') // Join เพื่อดึงชื่อประเภท
-            ->whereHas('order', function ($query) {
-                $query->whereNull('ref_daily_sales_closure_id')
+            ->whereHas('order', function ($query) use ($daily_sales_closure_id) {
+                $query->where('ref_daily_sales_closure_id', $daily_sales_closure_id)
                     // ->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
                     ->where('customer_type', 1)
                     ->where('payment_status', 1)
@@ -232,8 +232,8 @@ class OrderProductController extends Controller
 
         $product_customer = OrderHasProduct::join('products', 'order_has_products.ref_product_id', '=', 'products.id')
             ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id')
-            ->whereHas('order', function ($query) {
-                $query->whereNull('ref_daily_sales_closure_id')
+            ->whereHas('order', function ($query) use ($daily_sales_closure_id) {
+                $query->where('ref_daily_sales_closure_id', $daily_sales_closure_id)
                     // ->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
                     ->where('customer_type', 2)
                     ->where('payment_status', 1)
@@ -250,7 +250,7 @@ class OrderProductController extends Controller
             );
         $data['product_customer'] = $product_customer->get();
 
-        $payment_channel = Order::whereNull('ref_daily_sales_closure_id')
+        $payment_channel = Order::where('ref_daily_sales_closure_id', $daily_sales_closure_id)
             ->where('orders.payment_status', 1)
             ->where('orders.type', 2)
             ->where('orders.ref_account_id', Auth::id())
