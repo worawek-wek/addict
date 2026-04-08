@@ -33,7 +33,20 @@ class OrderProductController extends Controller
             // เห็นเฉพาะสาขาตัวเอง
             $branches = Branch::where('id', $user->ref_branch_id)->get();
         }
-        return view('admin.order-product.index', compact('orderProducts', 'branches'));
+        
+        $rounds = DailySalesClosure::where('ref_account_id', Auth::id())->get();
+
+        return view('admin.order-product.index', compact('orderProducts', 'branches', 'rounds'));
+    }
+
+    public function get_history_by_round($round)
+    {
+        // return 123;
+        // $user = Auth::user();
+        $results = Order::where('ref_daily_sales_closure_id', $round)->where('type', 2)->get();
+
+        $data['list_data'] = $results;
+        return view('admin.order-product.history', $data);
     }
 
     public function datatable(Request $request)

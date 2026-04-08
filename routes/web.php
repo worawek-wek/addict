@@ -269,6 +269,7 @@ Route::prefix('admin')->group(function () {
             Route::post('/edit/{id}/update', [OrderProductController::class, 'updateProducts'])->name('order-products.update-products');
             Route::delete('/edit/{id}/product/{productId}', [OrderProductController::class, 'removeProduct'])->name('order-products.remove-product');
             Route::post('/{id}/update-payment-method', [OrderProductController::class, 'updatePaymentMethod'])->name('order-products.update-payment-method');
+            Route::get('/history/{round}', [OrderProductController::class, 'get_history_by_round'])->name('order-products.history-by-round');
         });
 
         Route::prefix('order-drinks')->group(function () {

@@ -27,11 +27,23 @@
                                 <div class="card mb-3">
                                     <div class="card-header border-bottom">
                                         <div class="row g-3 justify-content-between">
-                                            <div class="col-sm-12">
+                                            <div class="col-sm-4">
                                                 <h4 class="mb-0">
                                                     <i class="tf-icons ti ti-bed text-main ti-md me-2"></i>
                                                     การขายสินค้า (Order Products)
                                                 </h4>
+                                            </div>
+                                            
+                                            <div class="col-sm-8 d-flex justify-content-end align-items-sm-center gap-2">
+                                                รอบ:
+                                                <select onchange='getHistoryRound(this.value)'
+                                                    name="round" class="form-select ms-2 me-2"
+                                                    style="width:220px">
+                                                    <option value="current">ปัจจุบัน</option>
+                                                    @foreach ($rounds as $round)
+                                                        <option value="{{ $round->id }}">{{ date('d/m/Y H:i น.', strtotime($round->date_time)) }}</option>
+                                                    @endforeach
+                                                </select>
                                             </div>
                                             <div class="row g-3">
                                                 <div class="col-sm-3 mb-2">
@@ -117,6 +129,11 @@
     <div class="modal fade" id="viewOrderRoomModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document" id="view"></div>
     </div>
+    <div class="modal fade modalHeadDecor" id="insurance" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" id="view2">
+
+        </div>
+    </div>
     <iframe id="print-iframe" style="display: none;"></iframe>
 
     @include('admin/layout/inc_js')
@@ -154,6 +171,16 @@
             });
         }
 
+        function getHistoryRound(round) {
+            $.ajax({
+                type: "GET",
+                url: "/admin/order-products/history/" + round,
+                success: function(data) {
+                    $('#insurance').modal('show');
+                    $("#view2").html(data);
+                }
+            });
+        }
 
         function printSummaryReport() {
 

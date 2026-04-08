@@ -45,7 +45,7 @@
             <th class="text-center">สาขา</th>
             <th class="text-center">พนักงานขาย</th>
             <th class="text-center">ยอดรวมสุทธิ</th>
-            <th class="text-center">ช่องทางชำระเงิน</th>
+            <th class="text-center">สถานะ</th>
             <th class="text-center">จัดการ</th>
         </tr>
     </thead>
