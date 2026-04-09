@@ -70,7 +70,7 @@
 
                                                     <button
                                                         style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
-                                                        class="btn btn-primary buttons-collection  btn-info waves-effect waves-light me-2"
+                                                        class="btn btn-primary buttons-collection  btn-info waves-effect waves-light me-2 ButtonSummaryReport"
                                                         tabindex="0" aria-controls="DataTables_Table_0" type="button"
                                                         aria-haspopup="dialog" aria-expanded="false"
                                                         onclick="printSummaryReport('/admin/order-products/pdf')"
@@ -81,7 +81,7 @@
                                                     </button>
                                                     <button
                                                         style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
-                                                        class="btn btn-warning buttons-collection  btn-info waves-effect waves-light"
+                                                        class="btn btn-warning buttons-collection  btn-info waves-effect waves-light ButtonSummaryReport"
                                                         tabindex="0" aria-controls="DataTables_Table_0" type="button"
                                                         aria-haspopup="dialog" aria-expanded="false"
                                                         onclick="closures()">
@@ -162,6 +162,7 @@
                 data: searchData,
                 success: function(data) {
                     $("#table-data").html(data);
+                    runAfterLoad();
                     // bind pagination click
                     $('#table-data .pagination a').on('click', function(e) {
                         e.preventDefault();
@@ -178,6 +179,7 @@
                 success: function(data) {
                     $('#insurance').modal('show');
                     $("#view2").html(data);
+                    document.querySelector('select[name="round"]').value = 'current';
                 }
             });
         }

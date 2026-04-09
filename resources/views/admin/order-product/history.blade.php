@@ -24,7 +24,7 @@
 <div class="modal-content rounded-0">
     <div class="modal-header rounded-0">
         <span class="modal-title">
-            <span class="h5" style="color: white;">&nbsp;รายละเอียด คอมมิชชั่น รอบ วันที่ &nbsp;{{-- date('d/m/Y H:i', strtotime($list_data[0]->date_time)) --}} &nbsp;</span>
+            <span class="h5" style="color: white;">&nbsp;ประวัติปิดการขาย วันที่ &nbsp;{{ date('d/m/Y H:i น.', strtotime($DailySalesClosure->date_time)) }} &nbsp;</span>
         </span>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
@@ -72,7 +72,7 @@
             onclick="printSummaryReport('/admin/order-products/history/pdf/{{ $ref_daily_sales_closure_id }}')">
             <span>
                 <i class="ti ti-file-upload me-0 me-sm-1"></i>
-                <span class="d-none d-sm-inline-block">พิมพ์
+                <span class="d-none d-sm-inline-block">พิมพ์รายงานสรุปยอดขาย
                 </span>
             </span>
         </button>

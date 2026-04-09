@@ -42,8 +42,10 @@ class OrderProductController extends Controller
     public function get_history_by_round($ref_daily_sales_closure_id)
     {
         // $user = Auth::user();
-        $results = Order::where('ref_daily_sales_closure_id', $ref_daily_sales_closure_id)->where('type', 2)->get();
+        $DailySalesClosure = DailySalesClosure::find($ref_daily_sales_closure_id);
+        $results = Order::orderBy('id', "DESC")->where('ref_daily_sales_closure_id', $ref_daily_sales_closure_id)->where('type', 2)->get();
 
+        $data['DailySalesClosure'] = $DailySalesClosure;
         $data['ref_daily_sales_closure_id'] = $ref_daily_sales_closure_id;
         $data['list_data'] = $results;
         return view('admin.order-product.history', $data);

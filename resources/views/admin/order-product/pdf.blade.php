@@ -113,9 +113,9 @@
                 <span>วันที่พิมพ์</span>
                 <span>{{ date('d/m/Y H:i:s') }}</span>
             </div>
-            <div class="info-line">
+            {{-- <div class="info-line">
                 <span>{{ date('d/m/Y H:i:s') }}</span>
-            </div>
+            </div> --}}
         </div>
 
         @php

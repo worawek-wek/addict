@@ -109,8 +109,12 @@
 </table>
 
 <script>
-    if("{{$check}}" == 0){
-        $('#ButtonSummaryReport').prop('disabled', true)
+    function runAfterLoad() {
+        if("{{$check}}" == 0){
+            $('.ButtonSummaryReport').prop('disabled', true)
+        }else{
+            $('.ButtonSummaryReport').prop('disabled', false)
+        }
     }
 
     function confirmOrder(orderId) {
