@@ -61,6 +61,10 @@ class ReportController extends Controller
 
         $limit = $request->limit ?? 10;
         $orderRooms = $this->CRgetOrderRooms($limit);
+        $orderRooms->setCollection(
+            $orderRooms->getCollection()->sortBy('created_at')->values()
+        );
+
 
         $user = Auth::user();
 
@@ -309,11 +313,11 @@ class ReportController extends Controller
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::withSum('drinks', 'price')
-                        ->with(['branch', 'customer', 'user', 'room', 'status', 'seller','drinks'])
-                        ->where('type', 3)
-                        ->whereIn('ref_status_id', [2, 3])
-                        // ->select('orders.*')
-                        ->orderByRaw("
+            ->with(['branch', 'customer', 'user', 'room', 'status', 'seller', 'drinks'])
+            ->where('type', 3)
+            ->whereIn('ref_status_id', [2, 3])
+            // ->select('orders.*')
+            ->orderByRaw("
                                     CASE
                                         WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
                                         WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
@@ -325,8 +329,8 @@ class ReportController extends Controller
                                         ELSE 8 -- ไม่ระบุ
                                     END
                                 ")
-                        ->orderBy('booking_date')
-                        ->orderBy('start_time');
+            ->orderBy('booking_date')
+            ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
@@ -671,7 +675,7 @@ class ReportController extends Controller
                 return [
                     'user_id'             => $orders->first()->seller->user_code ?? 'ไม่ระบุ',
                     'name'                => optional($orders->first()->seller)->name ?? 'ไม่ระบุ',
-                    'total_price'         => $orders->where('ref_status_id', '!=', 4)->sum(function($o) {
+                    'total_price'         => $orders->where('ref_status_id', '!=', 4)->sum(function ($o) {
                         return $o->total_price - ($o->addons_sum_price ?? 0) - ($o->products_sum_price ?? 0);
                     }),
                     'count'               => $orders->where('ref_status_id', '!=', 4)->count(),
@@ -752,10 +756,17 @@ class ReportController extends Controller
         }
 
         return view('admin.report.report-saleMonthly-datatable', compact(
-            'orderRooms', 'branches',
-            'userCommissionMap', 'roomTypeCourseMap',
-            'totalNetSum', 'totalNetCash', 'totalNetTransfer', 'totalNetCredit', 'totalNetAl',
-            'grandCommission', 'totalCashRaw'
+            'orderRooms',
+            'branches',
+            'userCommissionMap',
+            'roomTypeCourseMap',
+            'totalNetSum',
+            'totalNetCash',
+            'totalNetTransfer',
+            'totalNetCredit',
+            'totalNetAl',
+            'grandCommission',
+            'totalCashRaw'
         ));
     }
 
@@ -869,18 +880,30 @@ class ReportController extends Controller
     }
     public function monthly_sale_pdf(Request $request)
     {
-        $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::withSum('addons', 'price')
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
-            ->with(['branch', 'customer', 'user', 'room', 'status', 'room_type'])
+            ->with([
+                'branch',
+                'customer',
+                'user',
+                'room',
+                'status',
+                'room_type',
+                'course',
+                'seller'
+            ])
             ->where('type', 1)
             ->whereIn('ref_status_id', [2, 3])
             // ->select('orders.*')
             ->orderBy('created_at', 'ASC');
+
+
+
+
         // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
         if ($userBranchId) {

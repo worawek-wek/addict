@@ -106,10 +106,14 @@
                     $grandCoursePriceSum += $isCancelled ? 0 : $coursePrice;
                     $grandDiscountSum += $isCancelled ? 0 : $order->discount ?? 0;
                     $grandDrinkSum += $isCancelled ? 0 : $order->products_sum_price ?? 0;
+                    $summary_non_cash =
+                        ($summary_type_payment_transfer ?? 0) +
+                        ($summary_type_payment_credit ?? 0) +
+                        ($summary_type_payment_al ?? 0);
                 @endphp
                 <tr>
                     <td>{{ $globalIndex }}</td>
-                    <td>{{  $order->user->name }}:{{ $order->room_type->name ?? '-' }}</td>
+                    <td>{{ $order->user->name ?? '-' }}:{{ $order->room_type->name ?? '-' }}</td>
                     <td>{{ date('d/m/Y', strtotime($order->created_at)) }}</td>
                     <td>{{ date('H:i', strtotime($order->created_at)) }}</td>
                     <td>
@@ -178,15 +182,36 @@
             </td>
         </tr>
         <tr>
-            <td style="text-align:right; padding-right: 20px;">ยอดรับจริงร้าน</td>
+            <td style="font-weight:bold; background:#b8b8b8;">Total</td>
             <td style="text-align:right; padding-right: 20px; font-weight:bold; color:#1a8917;">
-                {{ number_format($grandNetSum ?? 0, 2) }}
+                {{ number_format(($summary_type_payment_cash ?? 0) + ($summary_type_payment_transfer ?? 0) + ($summary_type_payment_credit ?? 0) + ($summary_type_payment_al ?? 0), 2) }}
                 บาท</td>
         </tr>
-        <tr style="font-weight:bold; background:#dce8f7;">
-            <td style="text-align:right; padding-right: 20px;">รับจริงสุทธิ</td>
+
+    </table>
+    <hr style="bold ">
+    <table style="width: 60%; margin: 10px auto 0 auto; border: 2px solid #333; font-size: 12px;">
+        <tr style="background: #f7f7f7; font-weight: bold;">
+            <td colspan="2" style="text-align:center; border-bottom:2px solid #333;">สรุป</td>
+        </tr>
+        <tr style="font-weight:bold; background:#ebebeb;">
+            <td style="text-align:right; padding-right: 20px;">รับจริงร้าน</td>
             <td style="text-align:right; padding-right: 20px;">
-                {{ number_format($summary_type_payment_cash - $grandCommission, 2) }} บาท
+                {{ number_format($grandNetSum ?? 0, 2) }}
+                บาท
+            </td>
+        </tr>
+        <tr style="font-weight:bold; background:#ebebeb;">
+            <td style="text-align:right; padding-right: 20px;">QR Code , Credit Card , AliPay</td>
+            <td style="text-align:right; padding-right: 20px;">
+                {{ number_format($summary_non_cash ?? 0, 2) }}
+                บาท
+            </td>
+        </tr>
+        <tr style="font-weight:bold; background:#ebebeb;">
+            <td style="text-align:right; padding-right: 20px;">รับเงินสุทธิ</td>
+            <td style="text-align:right; padding-right: 20px;">
+                {{ number_format(($grandNetSum ?? 0) - ($summary_non_cash ?? 0), 2) }} บาท
             </td>
         </tr>
     </table>

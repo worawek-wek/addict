@@ -78,7 +78,7 @@
                 @endphp
                 <tr @if ($isCancelled) class="text-muted" style="text-decoration:line-through;" @endif>
                     <td>{{ $globalIndex }}</td>
-                    <td>{{ $order->room_type->name ?? '-' }}</td>
+                    <td>{{ $order->room_type->name ?? '-' }}:<br><b>{{ $order->user->name ?? '-' }}</b></td>
                     <td>{{ date('d/m/Y', strtotime($order->created_at)) }}</td>
                     <td>{{ date('H:i', strtotime($order->created_at)) }}</td>
                     <td>{{ $durStr }}</td>
@@ -140,7 +140,9 @@
 
                         <tr class="fw-bold table-primary">
                             <td>รับจริงสุทธิ</td>
-                            <td class="text-end">{{ !empty($totalCashRaw) && !empty($grandCommission) ? number_format($totalCashRaw - $grandCommission, 2) : '-' }} บาท</td>
+                            <td class="text-end">
+                                {{ !empty($totalCashRaw) && !empty($grandCommission) ? number_format($totalCashRaw - $grandCommission, 2) : '-' }}
+                                บาท</td>
                         </tr>
                     </table>
                 </div>
