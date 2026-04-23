@@ -38,12 +38,14 @@
                 {{ $row->firstOrderOfDay->stock_before_quantity ?? 0 }}
             </td>
             <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                {{ $row->order_has_products_sum_quantity }}
+                {{ 0-$row->order_has_products_sum_quantity ?? 0 }}
             </td>
             <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                 {{-- {{ $row->position->position_name }} --}}
+                 0
             </td>
             <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+                 0
                 {{-- {{ $row->branch->name }} --}}
             </td>
             <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">

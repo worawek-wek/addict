@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AddonOption;
 use App\Models\StockReadyForSale;
 use App\Models\CardStocks;
+use App\Models\HistoryStock;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderHasAddonOption;
@@ -545,7 +546,15 @@ class POSController extends Controller
                 $new_product = Product::find($id);
                 $new_main_stock_remain = $new_product->total_remain ?? 0;
                 $new_ready_for_sale_remain = $new_product->ready_for_sale_total_remain ?? 0;
-
+                
+                $history_stock = new HistoryStock;
+                $history_stock->ref_product_id = $id;
+                $history_stock->quantity = $q;
+                $history_stock->stock_before_quantity = $main_stock_remain + $ready_for_sale_remain;
+                $history_stock->stock_after_quantity = $new_main_stock_remain + $new_ready_for_sale_remain;
+                $history_stock->quantity_type = 0;
+                $history_stock->save();
+                
                 $order->products()->create([
                     'ref_product_id' => $id,
                     'price'          => $price,

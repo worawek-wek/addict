@@ -26,6 +26,10 @@ class Product extends Model
     }
     public function order_has_products()
     {
+        return $this->hasMany(HistoryStock::class, 'ref_product_id', 'id');
+    }
+    public function history_stocks()
+    {
         return $this->hasMany(OrderHasProduct::class, 'ref_product_id', 'id');
     }
     public function getQuantitySumAttribute() // เวลา เรียกใช้ ->quantity_sum
@@ -34,11 +38,11 @@ class Product extends Model
     }
     public function firstOrderOfDay()
     {
-        return $this->hasOne(OrderHasProduct::class, 'ref_product_id', 'id')->ofMany('created_at', 'min');
+        return $this->hasOne(HistoryStock::class, 'ref_product_id', 'id');
     }
     public function lastOrderOfDay()
     {
-        return $this->hasOne(OrderHasProduct::class, 'ref_product_id', 'id')->ofMany('created_at', 'max');
+        return $this->hasOne(HistoryStock::class, 'ref_product_id', 'id');
     }
       // ✅ ความสัมพันธ์กับ stock
     public function cardStocks()

@@ -106,21 +106,31 @@ class ReportController extends Controller
         // }
 
         if (request('start_date')) {
+            
             $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
             $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+            if (request('start_time_filter')) {
+                [$sh, $sm] = explode(':', request('start_time_filter'));
+                $startDate->setTime((int)$sh, (int)$sm, 0);
+            }
+            if (request('end_time_filter')) {
+                [$eh, $em] = explode(':', request('end_time_filter'));
+                $endDate->setTime((int)$eh, (int)$em, 59);
+            }
+            // return $endDate;
             $query->withSum([
                                 'order_has_products' => function ($q) use ($startDate, $endDate) {
                                     $q->whereBetween('created_at', [$startDate, $endDate]);
                                 }
                             ], 'quantity')
                     ->with([
-                                'firstOrderOfDay' => function ($q) use ($startDate) {
-                                    $q->whereDate('created_at', $startDate);
+                                'firstOrderOfDay' => function ($q) use ($startDate, $endDate) {
+                                    $q->whereBetween('created_at', [$startDate, $endDate]);
                                 },
-                                'lastOrderOfDay' => function ($q) use ($endDate) {
-                                    $q->whereDate('created_at', $endDate);
+                                'lastOrderOfDay' => function ($q) use ($startDate, $endDate) {
+                                    $q->whereBetween('created_at', [$startDate, $endDate]);
                                 }
-                    ]);
+                            ]);
             // $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
