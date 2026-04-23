@@ -518,6 +518,10 @@ class POSController extends Controller
                 }
 
                 $product = Product::find($id);
+                $main_stock_remain = $product->total_remain ?? 0;
+                $ready_for_sale_remain = $product->ready_for_sale_total_remain ?? 0;
+                // StockReadyForSale::where('ref_product_id', $row->id)->sum('remain')
+                // return $main_stock_remain + $ready_for_sale_remain;
                 if (!$product) continue;
 
                 $price = $customerType == 1 ? $product->price_staff : $product->price;
@@ -538,11 +542,17 @@ class POSController extends Controller
                     $stock->save();
                 }
 
+                $new_product = Product::find($id);
+                $new_main_stock_remain = $new_product->total_remain ?? 0;
+                $new_ready_for_sale_remain = $new_product->ready_for_sale_total_remain ?? 0;
+
                 $order->products()->create([
                     'ref_product_id' => $id,
                     'price'          => $price,
                     'quantity'       => $q,
                     'cost'           => $product_cost,
+                    'stock_before_quantity' => $main_stock_remain + $ready_for_sale_remain,
+                    'stock_after_quantity' => $new_main_stock_remain + $new_ready_for_sale_remain,
                 ]);
 
                 $type = \App\Models\ProductType::find($product->type_id);

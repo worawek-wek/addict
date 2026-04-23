@@ -227,12 +227,23 @@
             </a>
         </li>
         <li class="menu-item">
+            <a href="/admin/card_stock_report" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-receipt-tax"></i>
+                <div data-i18n="สต็อกการ์ด(สินค้า)">สต็อกการ์ด(สินค้า)</div>
+            </a>
+        </li>
+        <li class="menu-item">
             <a href="/admin/drink" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-receipt-tax"></i>
                 <div data-i18n="ดื่ม">ดื่ม</div>
             </a>
         </li>
-
+        <li class="menu-item">
+            <a href="/admin/drink_card_stock_report" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-receipt-tax"></i>
+                <div data-i18n="สต็อกการ์ด(ดื่ม)">สต็อกการ์ด(ดื่ม)</div>
+            </a>
+        </li>
         <li class="menu-item">
             <a href="/admin/room-groups" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-receipt-tax"></i>
@@ -317,7 +328,7 @@
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="/admin/card_stock_report" class="menu-link">
+                    <a href="/admin/report/stock-history" class="menu-link">
                         <div data-i18n="รายงานสต็อกการ์ด(สินค้า)">รายงานสต็อกการ์ด(สินค้า)</div>
                     </a>
                 </li>

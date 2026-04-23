@@ -14,6 +14,8 @@ class OrderHasProduct extends Model
         'price',
         'quantity',
         'cost',
+        'stock_before_quantity',
+        'stock_after_quantity',
     ];
     public $timestamps = true;
     protected $primaryKey = 'id';

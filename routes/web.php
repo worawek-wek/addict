@@ -291,6 +291,11 @@ Route::prefix('admin')->group(function () {
             Route::get('report/move-out', 'move_out')->name('report.move_out');
             Route::get('report/bad-debt', 'badDebt')->name('report.bad_debt');
             Route::get('report/monthly-booking', 'monthly_booking')->name('report.monthly_booking');
+
+            Route::get('report/stock-history-datatable', 'stock_history_datatable')->name('report.stock_history.datatable');
+            Route::get('report/stock-history/pdf', 'stock_history_pdf')->name('report.stock-history-pdf');
+            Route::get('report/stock-history', 'stock_history')->name('report.stock_history');
+
             Route::get('report/coupon-report-datatable', 'coupon_report_datatable')->name('report.coupon_report.datatable');
             Route::get('report/coupon-report/pdf', 'coupon_report_pdf')->name('report.coupon-report-pdf');
             Route::get('report/coupon-report', 'coupon_report')->name('report.coupon_report');

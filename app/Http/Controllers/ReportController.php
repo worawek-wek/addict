@@ -9,6 +9,8 @@ use App\Models\Branch;
 use App\Models\DailySalesClosure;
 use App\Models\Order;
 use App\Models\OrderStatus;
+use App\Models\Product;
+use App\Models\OrderHasProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -44,6 +46,178 @@ class ReportController extends Controller
     public function monthly_booking(Request $request)
     {
         return view('report/report-monthlyBooking');
+    }
+
+    public function stock_history(Request $request)
+    {
+        // return OrderHasProduct::get();
+        $data['page_url'] = "admin/report/stock-history";
+        // $data['employees'] = \App\Models\User::where('ref_branch_id', Auth::user()->ref_branch_id)
+        //                                     ->where('ref_position_id', 2)
+        //                                     ->orderBy('name')
+        //                                     ->get();
+        return view('admin.report.report-stock-history', $data);
+    }
+
+    public function stock_history_datatable(Request $request)
+    {
+
+        $limit = $request->limit ?? 10;
+        $stock_history = $this->getStockProductDatatable($limit);
+
+        return view('admin.report.report-stock-history-datatable', compact('stock_history'));
+    }
+
+    private function getStockProductDatatable($limit)
+    {
+        $now = Carbon::now()->format('Y-m-d H:i:s');
+
+        $query = Product::orderBy('id');
+                        // ->whereIn('ref_status_id', [2, 3])
+                        // ->orderBy('booking_date')
+                        // ->orderBy('start_time');
+
+        // ✅ filter เฉพาะสาขาของ user ที่ login
+        $userBranchId = Auth::user()->ref_branch_id ?? null;
+        if ($userBranchId) {
+            $query->where('ref_branch_id', $userBranchId);
+            // $query->whereHas('order', function ($q) use ($userBranchId) {
+            //             $q->where('ref_branch_id', $userBranchId);
+            //         });
+        }
+
+        // // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
+        // if (request()->filled('branch_id')) {
+        //     $query->where('ref_branch_id', request()->branch_id);
+        // }
+
+        // if (request()->filled('search')) {
+        //     $search = request()->search;
+        //     $query->whereHas('customer', function ($q) use ($search) {
+        //         $q->where('name', 'like', "%{$search}%");
+        //     });
+        // }
+
+        // if (request()->filled('user_id')) {
+        //     $get_user_id = User::where('user_id', request('user_id'))->first();
+        //     if ($get_user_id) {
+        //         $query->where('ref_user_id', $get_user_id->id);
+        //     }
+        // }
+
+        if (request('start_date')) {
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+            $query->withSum([
+                                'order_has_products' => function ($q) use ($startDate, $endDate) {
+                                    $q->whereBetween('created_at', [$startDate, $endDate]);
+                                }
+                            ], 'quantity')
+                    ->with([
+                                'firstOrderOfDay' => function ($q) use ($startDate) {
+                                    $q->whereDate('created_at', $startDate);
+                                },
+                                'lastOrderOfDay' => function ($q) use ($endDate) {
+                                    $q->whereDate('created_at', $endDate);
+                                }
+                    ]);
+            // $query->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        $orderRooms = $query->paginate($limit);
+
+        // กำหนด badge และ label
+
+        return $orderRooms;
+    }
+
+    public function stock_history_pdf(Request $request)
+    {
+        $now = Carbon::now()->format('Y-m-d H:i:s');
+
+        $orderRooms = Order::withSum('addons', 'price')
+            ->withSum('addons', 'coupon')
+            ->withSum('products', 'price')
+            ->with(['branch', 'customer', 'user', 'room', 'status', 'seller', 'course'])
+            ->where('type', 1)
+            ->whereIn('ref_status_id', [2, 3])
+            ->orderByRaw("
+                        CASE
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
+                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
+                            WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
+                            WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
+                            WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
+                            WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
+                            ELSE 8 -- ไม่ระบุ
+                        END
+                    ")
+            ->orderBy('booking_date')
+            ->orderBy('start_time');
+
+
+        $userBranchId = Auth::user()->ref_branch_id ?? null;
+        if ($userBranchId) {
+            $orderRooms->where('ref_branch_id', $userBranchId);
+        }
+
+        if (request()->filled('branch_id')) {
+            $orderRooms->where('ref_branch_id', request()->branch_id);
+        }
+
+        if (request()->filled('search')) {
+            $search = request()->search;
+            $orderRooms->whereHas('customer', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        if (request()->filled('user_id')) {
+            $get_user_id = User::where('user_id', request('user_id'))->first();
+            if ($get_user_id) {
+                $orderRooms->where('ref_user_id', $get_user_id->id);
+            }
+        }
+
+        if (request('start_date')) {
+            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+            if (request('start_time_filter')) {
+                [$sh, $sm] = explode(':', request('start_time_filter'));
+                $startDate->setTime((int)$sh, (int)$sm, 0);
+            }
+            if (request('end_time_filter')) {
+                [$eh, $em] = explode(':', request('end_time_filter'));
+                $endDate->setTime((int)$eh, (int)$em, 59);
+            }
+            $orderRooms->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        $data['orderRooms'] = collect($orderRooms->get());
+        $data['summary_total_price'] = $data['orderRooms']->sum('total_price');
+
+        $data['userCommissionMap'] = \App\Models\UserHasRoomTypeCommission::select('ref_user_id', 'ref_room_type_id', 'ref_course_id', 'price', 'coupon')
+            ->get()
+            ->keyBy(fn($r) => "{$r->ref_user_id}_{$r->ref_room_type_id}_{$r->ref_course_id}");
+
+        $data['roomTypeCourseMap'] = \App\Models\RoomTypeHasCourse::select('ref_room_type_id', 'ref_course_id', 'price', 'commission', 'coupon')
+            ->get()
+            ->keyBy(fn($r) => "{$r->ref_room_type_id}_{$r->ref_course_id}");
+
+        $data['report_start_date'] = request('start_date') ?? date('d/m/Y');
+        $data['report_end_date']   = request('end_date')   ?? date('d/m/Y');
+
+        $html = view('admin.report.report-stock-history-pdf', $data)->render();
+
+        $pdf = new \Mpdf\Mpdf([
+            'default_font_size' => 10,
+            'default_font' => 'sarabun'
+        ]);
+        $pdf->autoScriptToLang = true;
+        $pdf->autoLangToFont = true;
+        $pdf->WriteHTML($html);
+        $pdf->Output();
     }
 
     public function coupon_report(Request $request)

@@ -24,6 +24,22 @@ class Product extends Model
     {
         return $this->hasOne('App\Models\OrderHasProduct', 'ref_product_id', 'id');
     }
+    public function order_has_products()
+    {
+        return $this->hasMany(OrderHasProduct::class, 'ref_product_id', 'id');
+    }
+    public function getQuantitySumAttribute() // เวลา เรียกใช้ ->quantity_sum
+    {
+        return $this->order_has_products()->sum('quantity');
+    }
+    public function firstOrderOfDay()
+    {
+        return $this->hasOne(OrderHasProduct::class, 'ref_product_id', 'id')->ofMany('created_at', 'min');
+    }
+    public function lastOrderOfDay()
+    {
+        return $this->hasOne(OrderHasProduct::class, 'ref_product_id', 'id')->ofMany('created_at', 'max');
+    }
       // ✅ ความสัมพันธ์กับ stock
     public function cardStocks()
     {
@@ -40,6 +56,24 @@ class Product extends Model
     public function getTotalRemainAttribute()
     {
         return $this->cardStocks()->sum('remain');
+    }
+
+    // ✅ ความสัมพันธ์กับ stock
+    public function stockReadyForSales()
+    {
+        return $this->hasMany(StockReadyForSale::class, 'ref_product_id', 'id');
+    }
+
+    // ✅ ถ้าอยากได้ stock ล่าสุด (เช่นดูจาก updated_at ล่าสุด)
+    public function latestStockReadyForSale()
+    {
+        return $this->hasOne(StockReadyForSale::class, 'ref_product_id', 'id')->latestOfMany();
+    }
+
+    // ✅ หรือถ้าอยากได้ stock รวมคงเหลือ
+    public function getReadyForSaleTotalRemainAttribute()
+    {
+        return $this->stockReadyForSales()->sum('remain');
     }
 
     public function producttype()
