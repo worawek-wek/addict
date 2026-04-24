@@ -332,11 +332,11 @@
                         <div data-i18n="รายงานสต็อกการ์ด(สินค้า)">รายงานสต็อกการ์ด(สินค้า)</div>
                     </a>
                 </li>
-                <li class="menu-item">
+                {{-- <li class="menu-item">
                     <a href="/admin/drink_card_stock_report" class="menu-link">
                         <div data-i18n="รายงานสต็อกการ์ด(ดื่ม)">รายงานสต็อกการ์ด(ดื่ม)</div>
                     </a>
-                </li>
+                </li> --}}
                 <li class="menu-item">
                     <a href="/admin/report/coupon-report" class="menu-link">
                         <div data-i18n="รายงานคูปองพนักงาน">รายงานคูปองพนักงาน</div>
