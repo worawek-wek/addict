@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\StockReadyForSale;
 use App\Models\CardStocks;
+use App\Models\HistoryStock;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
@@ -300,22 +301,47 @@ class ProductController extends Controller
     }
     public function card_stock_report_store(Request $request)
     {
-        $card_stocks = CardStocks::where('ref_product_id', $request->ref_product_id)->latest()->first();
-        if (!$card_stocks) {
-            $remain = 0;
-        } else {
-            $remain = $card_stocks->remain;
-        }
+        // $card_stocks = CardStocks::where('ref_product_id', $request->ref_product_id)->latest()->first();
+        // if (!$card_stocks) {
+        //     $remain = 0;
+        // } else {
+        //     $remain = $card_stocks->remain;
+        // }
         try {
+
+        // ดึง สินค้า ก่อน เพิ่มสต็อก {
+            $product = Product::find($request->ref_product_id); // ดึง สินค้า ก่อน เพิ่มสต็อก
+            $main_stock_remain = $product->total_remain ?? 0;
+            $ready_for_sale_remain = $product->ready_for_sale_total_remain ?? 0;
+        // ดึง สินค้า ก่อน เพิ่มสต็อก }
+
+        // เพิ่มสต็อก {
             $card_stocks = new CardStocks;
             $card_stocks->ref_product_id = $request->ref_product_id;
             $card_stocks->type = 1;
             $card_stocks->label = $request->label;
             $card_stocks->quantity = $request->quantity;
-            $card_stocks->remain = $remain + $request->quantity;
+            $card_stocks->remain = $request->quantity;
             $card_stocks->remark = $request->remark;
             $card_stocks->cost_price = $request->cost_price;
             $card_stocks->save();
+        // เพิ่มสต็อก }
+
+        // ดึง สินค้า หลัง เพิ่มสต็อก {
+            $new_product = Product::find($request->ref_product_id);
+            $new_main_stock_remain = $new_product->total_remain ?? 0;
+            $new_ready_for_sale_remain = $new_product->ready_for_sale_total_remain ?? 0;
+        // ดึง สินค้า หลัง เพิ่มสต็อก }
+            
+        // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> ตัดสต็อก {
+            $history_stock = new HistoryStock;
+            $history_stock->ref_product_id = $request->ref_product_id; // id สินค้า
+            $history_stock->quantity = $request->quantity; // จำนวนที่เคลื่อนไหว
+            $history_stock->stock_before_quantity = $main_stock_remain + $ready_for_sale_remain; // จำนวน ก่อน ตัดสต็อก
+            $history_stock->stock_after_quantity = $new_main_stock_remain + $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+            $history_stock->quantity_type = 1; // 0 = ลด , 1 = เพิ่ม
+            $history_stock->save();
+        // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> ตัดสต็อก }
 
             DB::commit();
             return true;

@@ -64,14 +64,11 @@ class ReportController extends Controller
 
         $limit = $request->limit ?? 10;
         $stock_history = $this->getStockProductDatatable($limit);
-
         return view('admin.report.report-stock-history-datatable', compact('stock_history'));
     }
 
     private function getStockProductDatatable($limit)
     {
-        $now = Carbon::now()->format('Y-m-d H:i:s');
-
         $query = Product::orderBy('id');
                         // ->whereIn('ref_status_id', [2, 3])
                         // ->orderBy('booking_date')
@@ -85,25 +82,6 @@ class ReportController extends Controller
             //             $q->where('ref_branch_id', $userBranchId);
             //         });
         }
-
-        // // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
-        // if (request()->filled('branch_id')) {
-        //     $query->where('ref_branch_id', request()->branch_id);
-        // }
-
-        // if (request()->filled('search')) {
-        //     $search = request()->search;
-        //     $query->whereHas('customer', function ($q) use ($search) {
-        //         $q->where('name', 'like', "%{$search}%");
-        //     });
-        // }
-
-        // if (request()->filled('user_id')) {
-        //     $get_user_id = User::where('user_id', request('user_id'))->first();
-        //     if ($get_user_id) {
-        //         $query->where('ref_user_id', $get_user_id->id);
-        //     }
-        // }
 
         if (request('start_date')) {
             
@@ -119,10 +97,16 @@ class ReportController extends Controller
             }
             // return $endDate;
             $query->withSum([
-                                'order_has_products' => function ($q) use ($startDate, $endDate) {
-                                    $q->whereBetween('created_at', [$startDate, $endDate]);
-                                }
-                            ], 'quantity')
+                        'historyStocksDecrease as quantity_decrease' => function ($q) use ($startDate, $endDate) {
+                            $q->whereBetween('created_at', [$startDate, $endDate]);
+                        }
+                    ], 'quantity') // quantity_decrease จำนวนลดรวม
+
+                    ->withSum([
+                        'historyStocksIncrease as quantity_increase' => function ($q) use ($startDate, $endDate) {
+                            $q->whereBetween('created_at', [$startDate, $endDate]);
+                        }
+                    ], 'quantity') // quantity_increase จำนวนเพิ่มรวม
                     ->with([
                                 'firstOrderOfDay' => function ($q) use ($startDate, $endDate) {
                                     $q->whereBetween('created_at', [$startDate, $endDate]);
@@ -135,7 +119,6 @@ class ReportController extends Controller
         }
 
         $orderRooms = $query->paginate($limit);
-
         // กำหนด badge และ label
 
         return $orderRooms;
@@ -143,54 +126,22 @@ class ReportController extends Controller
 
     public function stock_history_pdf(Request $request)
     {
-        $now = Carbon::now()->format('Y-m-d H:i:s');
+        $query = Product::orderBy('id');
+                        // ->whereIn('ref_status_id', [2, 3])
+                        // ->orderBy('booking_date')
+                        // ->orderBy('start_time');
 
-        $orderRooms = Order::withSum('addons', 'price')
-            ->withSum('addons', 'coupon')
-            ->withSum('products', 'price')
-            ->with(['branch', 'customer', 'user', 'room', 'status', 'seller', 'course'])
-            ->where('type', 1)
-            ->whereIn('ref_status_id', [2, 3])
-            ->orderByRaw("
-                        CASE
-                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
-                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) > '{$now}' THEN 2 -- จอง
-                            WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', end_time) < '{$now}' THEN 3 -- จอง (เกินเวลา)
-                            WHEN ref_status_id = 2 THEN 4 -- อยู่ระหว่างใช้บริการ
-                            WHEN ref_status_id = 3 THEN 5 -- ใช้บริการเสร็จสิ้น
-                            WHEN payment_method IS NOT NULL AND payment_method != '' THEN 6 -- payment_method มีข้อมูลอยู่ก่อนสถานะยกเลิก
-                            WHEN ref_status_id = 4 THEN 7 -- ยกเลิก
-                            ELSE 8 -- ไม่ระบุ
-                        END
-                    ")
-            ->orderBy('booking_date')
-            ->orderBy('start_time');
-
-
+        // ✅ filter เฉพาะสาขาของ user ที่ login
         $userBranchId = Auth::user()->ref_branch_id ?? null;
         if ($userBranchId) {
-            $orderRooms->where('ref_branch_id', $userBranchId);
-        }
-
-        if (request()->filled('branch_id')) {
-            $orderRooms->where('ref_branch_id', request()->branch_id);
-        }
-
-        if (request()->filled('search')) {
-            $search = request()->search;
-            $orderRooms->whereHas('customer', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
-            });
-        }
-
-        if (request()->filled('user_id')) {
-            $get_user_id = User::where('user_id', request('user_id'))->first();
-            if ($get_user_id) {
-                $orderRooms->where('ref_user_id', $get_user_id->id);
-            }
+            $query->where('ref_branch_id', $userBranchId);
+            // $query->whereHas('order', function ($q) use ($userBranchId) {
+            //             $q->where('ref_branch_id', $userBranchId);
+            //         });
         }
 
         if (request('start_date')) {
+            
             $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
             $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
             if (request('start_time_filter')) {
@@ -201,22 +152,31 @@ class ReportController extends Controller
                 [$eh, $em] = explode(':', request('end_time_filter'));
                 $endDate->setTime((int)$eh, (int)$em, 59);
             }
-            $orderRooms->whereBetween('created_at', [$startDate, $endDate]);
+            // return $endDate;
+            $query->withSum([
+                        'historyStocksDecrease as quantity_decrease' => function ($q) use ($startDate, $endDate) {
+                            $q->whereBetween('created_at', [$startDate, $endDate]);
+                        }
+                    ], 'quantity') // quantity_decrease จำนวนลดรวม
+
+                    ->withSum([
+                        'historyStocksIncrease as quantity_increase' => function ($q) use ($startDate, $endDate) {
+                            $q->whereBetween('created_at', [$startDate, $endDate]);
+                        }
+                    ], 'quantity') // quantity_increase จำนวนเพิ่มรวม
+                    ->with([
+                                'firstOrderOfDay' => function ($q) use ($startDate, $endDate) {
+                                    $q->whereBetween('created_at', [$startDate, $endDate]);
+                                },
+                                'lastOrderOfDay' => function ($q) use ($startDate, $endDate) {
+                                    $q->whereBetween('created_at', [$startDate, $endDate]);
+                                }
+                            ]);
+            // $query->whereBetween('created_at', [$startDate, $endDate]);
         }
-
-        $data['orderRooms'] = collect($orderRooms->get());
-        $data['summary_total_price'] = $data['orderRooms']->sum('total_price');
-
-        $data['userCommissionMap'] = \App\Models\UserHasRoomTypeCommission::select('ref_user_id', 'ref_room_type_id', 'ref_course_id', 'price', 'coupon')
-            ->get()
-            ->keyBy(fn($r) => "{$r->ref_user_id}_{$r->ref_room_type_id}_{$r->ref_course_id}");
-
-        $data['roomTypeCourseMap'] = \App\Models\RoomTypeHasCourse::select('ref_room_type_id', 'ref_course_id', 'price', 'commission', 'coupon')
-            ->get()
-            ->keyBy(fn($r) => "{$r->ref_room_type_id}_{$r->ref_course_id}");
-
-        $data['report_start_date'] = request('start_date') ?? date('d/m/Y');
-        $data['report_end_date']   = request('end_date')   ?? date('d/m/Y');
+        $data['stock_history'] = $query->get();
+        $data['startDate'] = $startDate;
+        $data['endDate'] = $endDate;
 
         $html = view('admin.report.report-stock-history-pdf', $data)->render();
 

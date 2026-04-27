@@ -17,9 +17,9 @@
                 <th class="text-center">
                     รับเข้า
                 </th>
-                <th class="text-center">
+                {{-- <th class="text-center">
                     จ่ายออก
-                </th>
+                </th> --}}
                 <th class="text-center">
                     คงเหลือ
                 </th>
@@ -55,9 +55,9 @@
                 <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->type == 1 ?$row->quantity:''; }}
                 </td>
-                <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+                {{-- <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->type == 2 ?$row->quantity:''; }}
-                </td>
+                </td> --}}
                 <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->remain }}
                 </td>

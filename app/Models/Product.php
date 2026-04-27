@@ -26,11 +26,19 @@ class Product extends Model
     }
     public function order_has_products()
     {
-        return $this->hasMany(HistoryStock::class, 'ref_product_id', 'id');
+        return $this->hasMany(OrderHasProduct::class, 'ref_product_id', 'id');
     }
     public function history_stocks()
     {
-        return $this->hasMany(OrderHasProduct::class, 'ref_product_id', 'id');
+        return $this->hasMany(HistoryStock::class, 'ref_product_id', 'id');
+    }
+    public function historyStocksDecrease() // ดึงแค่ จำนวนที่ลด เช่น ตัดสต็อก
+    {
+        return $this->hasMany(HistoryStock::class, 'ref_product_id', 'id')->where('quantity_type', 0);
+    }
+    public function historyStocksIncrease() // ดึงแค่ จำนวนที่เพิ่ม เช่น เพิ่มสต็อก
+    {
+        return $this->hasMany(HistoryStock::class, 'ref_product_id', 'id')->where('quantity_type', 1);
     }
     public function getQuantitySumAttribute() // เวลา เรียกใช้ ->quantity_sum
     {

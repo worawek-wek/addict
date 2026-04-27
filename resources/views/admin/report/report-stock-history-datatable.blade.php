@@ -15,11 +15,11 @@
                 ยอดขาย
             </th>
             <th class="text-center">
-                เพิ่ม
+                นำเข้า
             </th>
-            <th class="text-center">
+            {{-- <th class="text-center">
                 ลด
-            </th>
+            </th> --}}
             <th class="text-center">
                 จำนวนสิ้นสุด
             </th>
@@ -38,16 +38,14 @@
                 {{ $row->firstOrderOfDay->stock_before_quantity ?? 0 }}
             </td>
             <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                {{ 0-$row->order_has_products_sum_quantity ?? 0 }}
+                {{ 0-$row->quantity_decrease ?? 0 }}
             </td>
             <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                {{-- {{ $row->position->position_name }} --}}
-                 0
+                {{ $row->quantity_increase ?? 0 }}
             </td>
-            <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+            {{-- <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                  0
-                {{-- {{ $row->branch->name }} --}}
-            </td>
+            </td> --}}
             <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                 {{ $row->lastOrderOfDay->stock_after_quantity ?? 0 }}
             </td>         

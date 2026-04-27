@@ -219,7 +219,7 @@
         let queryString = $.param(searchData);
 
         window.open(
-            '/admin/report/report-stock-history/pdf?' + queryString,
+            '/admin/report/stock-history/pdf?' + queryString,
             '_blank'
         );
     }
