@@ -46,11 +46,11 @@ class Product extends Model
     }
     public function firstOrderOfDay()
     {
-        return $this->hasOne(HistoryStock::class, 'ref_product_id', 'id');
+        return $this->hasOne(HistoryStock::class, 'ref_product_id', 'id')->ofMany('created_at', 'min');
     }
     public function lastOrderOfDay()
     {
-        return $this->hasOne(HistoryStock::class, 'ref_product_id', 'id');
+        return $this->hasOne(HistoryStock::class, 'ref_product_id', 'id')->ofMany('created_at', 'max');
     }
       // ✅ ความสัมพันธ์กับ stock
     public function cardStocks()
