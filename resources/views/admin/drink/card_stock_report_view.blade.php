@@ -25,7 +25,7 @@
                 </div>
                 <div class="col-sm-6">
                     <label for="" class="form-label">จำนวนรับเข้า</label><span class="text-danger"> *</span>
-                    <input name="quantity" type="text" class="form-control" placeholder="จำนวนรับเข้า" value="{{ $stock->quantity }}" required />
+                    <input name="quantity" type="text" class="form-control" placeholder="จำนวนรับเข้า" value="{{ $stock->quantity }}" required disabled />
                 </div>
                 <div class="col-sm-12">
                     <label for="" class="form-label">หมายเหตุ</label>
