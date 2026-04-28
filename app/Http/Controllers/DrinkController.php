@@ -322,13 +322,14 @@ class DrinkController extends Controller
     }
     public function card_stock_report_update(Request $request, $id)
     {
-        $card_stocks = DrinkCardStocks::find($id);
-        // if ($card_stocks->quantity > $request->quantity) {
-        //     $card_stocks->remain = $card_stocks->remain - abs($card_stocks->quantity - $request->quantity);
-        // } else {
-        //     $card_stocks->remain = $card_stocks->remain + abs($card_stocks->quantity - $request->quantity);
-        // }
         try {
+            
+            $card_stocks = DrinkCardStocks::find($id);
+            // if ($card_stocks->quantity > $request->quantity) {
+            //     $card_stocks->remain = $card_stocks->remain - abs($card_stocks->quantity - $request->quantity);
+            // } else {
+            //     $card_stocks->remain = $card_stocks->remain + abs($card_stocks->quantity - $request->quantity);
+            // }
             
             $card_stocks->ref_drink_id = $request->ref_drink_id;
             $card_stocks->type = 1;

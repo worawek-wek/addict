@@ -350,6 +350,7 @@ Route::prefix('admin')->group(function () {
             Route::get('card_stock_report/datatable', 'card_stock_report_datatable')->name('card_stock_report.datatable');
             Route::get('card_stock_report/pdf', 'card_stock_report_pdf')->name('card_stock_report.pdf');
             Route::post('card_stock_report', 'card_stock_report_store')->name('card_stock_report.insert');
+            Route::post('card_stock_report/export_stock_store', 'export_stock_store')->name('export_stock_store');
             Route::post('card_stock_report/{stock_id}', 'card_stock_report_update')->name('card_stock_report.update');
             Route::get('card_stock_report/{id}', 'card_stock_report_edit')->name('card_stock_report_edit');
             Route::post('product', 'store')->name('product.insert');

@@ -553,7 +553,7 @@ class POSController extends Controller
                 $history_stock->quantity = $q; // จำนวนที่เคลื่อนไหว
                 $history_stock->stock_before_quantity = $main_stock_remain + $ready_for_sale_remain; // จำนวน ก่อน ตัดสต็อก
                 $history_stock->stock_after_quantity = $new_main_stock_remain + $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
-                $history_stock->quantity_type = 0; // 0 = ลด , 1 = เพิ่ม
+                $history_stock->quantity_type = 0; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
                 $history_stock->save();
 // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> ตัดสต็อก }
                 

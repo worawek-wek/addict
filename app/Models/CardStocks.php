@@ -18,6 +18,14 @@ class CardStocks extends Model
     
     public function product()
     {
-        return $this->hasOne('App\Models\Product', 'ref_product_id', 'id');
+        return $this->hasOne('App\Models\Product', 'id', 'ref_product_id');
+    }
+    public function stock_ready_for_sales()
+    {
+        return $this->hasMany('App\Models\StockReadyForSale', 'ref_lot_id', 'id');
+    }
+    public function export_stocks()
+    {
+        return $this->hasMany('App\Models\ExportStock', 'ref_lot_id', 'id');
     }
 }

@@ -9,7 +9,7 @@
             <div class="row g-3 p-4">
                 <div class="col-sm-6">
                     <label for="" class="form-label">นำเข้า</label>
-                    <select name="ref_drink_id" id="select2Position1" class="form-select" data-allow-clear="true">
+                    <select name="ref_drink_id" id="select2Position1" class="form-select" data-allow-clear="true" disabled >
                         @foreach ($drink as $pro)
                             <option value="{{$pro->id}}" @if($pro->id == $stock->ref_drink_id) selected @endif>{{ $pro->name }}</option>
                         @endforeach

@@ -1,6 +1,6 @@
 <div class="modal-content rounded-0">
     <div class="modal-header rounded-0">
-        <h5 class="modal-title" id="exampleModalLabel1">&nbsp;นำเข้าสินค้า</h5>
+        <h5 class="modal-title" id="exampleModalLabel1">&nbsp;แก้ไข นำเข้าสินค้า</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
     <form id="update_stock" enctype="multipart/form-data">
@@ -9,7 +9,7 @@
             <div class="row g-3 p-4">
                 <div class="col-sm-6">
                     <label for="" class="form-label">สินค้า</label>
-                    <select name="ref_product_id" id="select2Position1" class="form-select" data-allow-clear="true">
+                    <select name="ref_product_id" id="select2Position1" class="form-select" data-allow-clear="true" disabled >
                         @foreach ($product as $pro)
                             <option value="{{$pro->id}}" @if($pro->id == $stock->ref_product_id) selected @endif>{{ $pro->name }}</option>
                         @endforeach
@@ -31,14 +31,44 @@
                     <label for="" class="form-label">หมายเหตุ</label>
                     <textarea name="remark" class="form-control"> {{ $stock->remark }}</textarea>
                 </div>
-            </div>
-        </div>
-        <div class="modal-footer rounded-0 justify-content-center">
-            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">ปิด</button>
-            <button type="submit" class="btn btn-main">บันทึก</button>
-        </div>
-    </form>
-</div>
+                <div class="col-sm-12">
+                    <h5 class="form-h5">การนำสินค้าออก</h5>
+                    <ul class="list-group">
+                        @forelse ($stock->export_stocks as $export_stocks)
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>{{ $export_stocks->quantity }} ชิ้น</span>
+                                <span>{{ $export_stocks->remark }}</span>
+                            </li>
+                        @empty
+                            <li class="list-group-item d-flex justify-content-between">
+                                ไม่พบการนำสินค้าออก
+                            </li>
+                        @endforelse
+                    </ul>
+                </div>
+                <div class="col-sm-12">
+                    <h5 class="form-h5">การเบิกสินค้า</h5>
+                    <ul class="list-group">
+                        @forelse ($stock->stock_ready_for_sales as $stock_ready_for_sales)
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>{{ $stock_ready_for_sales->qty }} ชิ้น</span>
+                                <span>{{ $stock_ready_for_sales->remark }}</span>
+                            </li>
+                        @empty
+                            <li class="list-group-item d-flex justify-content-between">
+                                ไม่พบการเบิกสินค้า
+                            </li>
+                        @endforelse
+                    </ul>
+                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer rounded-0 justify-content-center">
+                            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">ปิด</button>
+                            <button type="submit" class="btn btn-main">บันทึก</button>
+                        </div>
+                    </form>
+                </div>
 <script>
         $('#update_stock').on('submit', function(event) {
             event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ

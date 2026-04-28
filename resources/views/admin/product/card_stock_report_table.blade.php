@@ -21,6 +21,12 @@
                     จ่ายออก
                 </th> --}}
                 <th class="text-center">
+                    เบิกสินค้า
+                </th>
+                <th class="text-center">
+                    นำสินค้าออก
+                </th>
+                <th class="text-center">
                     คงเหลือ
                 </th>
                 <th class="text-center">
@@ -57,8 +63,14 @@
                 </td>
                 {{-- <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->type == 2 ?$row->quantity:''; }}
-                </td> --}}
-                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+                </td> --}} 
+                <td class="text-center text-danger" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+                    {{ $row->stock_ready_for_sales()->sum('qty') }}
+                </td>
+                <td class="text-center text-danger" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+                    {{ $row->export_stocks()->sum('quantity') }}
+                </td>
+                <td class="text-center text-warning" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->remain }}
                 </td>
                 <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">

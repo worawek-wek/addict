@@ -6,6 +6,9 @@
 <head>
     <link rel="stylesheet" href="assets/vendor/libs/bootstrap-datepicker/bootstrap-datepicker.css" />
     <script src="assets/vendor/libs/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
 
     @include('admin/layout/inc_header')
     <title>Dashboard - CRM | Vuexy - Bootstrap Admin Template</title>
@@ -72,7 +75,7 @@
                                             <div class="col-sm-12">
                                                 <h4 class="mb-0">
                                                     <i class="tf-icons ti ti-copy text-main ti-md me-2"></i>
-                                                    สินค้า
+                                                    สต็อกการ์ด(ดื่ม)
                                                 </h4>
                                             </div>
                                             <div class="col-sm-12">
@@ -99,7 +102,7 @@
                                             <div class="tab-pane fade show active" id="navs-pills-top-home"
                                                 role="tabpanel">
                                                 <div class="row p-3">
-                                                    <div class="col-lg-6">
+                                                    <div class="col-lg-5">
                                                         <div class="d-flex align-items-center mb-2 mb-md-0">
                                                             <label class="">Show</label>
                                                             <select onchange='loadData("{{$page_url}}/datatable")' name="limit" class="form-select ms-2 me-2 p_search" style="width:100px">
@@ -114,7 +117,7 @@
                                                         <label for="booking_date" class="mb-0">วันที่นำเข้า</label>
                                                         <input type="text" onchange='loadData("{{$page_url}}/datatable")' name="created_at" class="form-control datepicker p_search" placeholder="วัน/เดือน/ปี" style="max-width:200px;" required/>
                                                     </div>
-                                                    <div class="col-md-3 flex text-end" style="padding-right: unset !important;">
+                                                    <div class="col-md-4 flex text-end" style="padding-right: unset !important;">
                                                         {{-- <button
                                                                 style="padding-right: 14px;padding-left: 14px;"
                                                                 class="btn btn-success buttons-collection btn-warning waves-effect waves-light me-2"
@@ -129,7 +132,7 @@
                                                         <button
                                                             class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
                                                             type="button"
-                                                            onclick="printPdf()">
+                                                            onclick="printPdf()" >
                                                             
                                                             <span>
                                                                 <i class="ti ti-file-upload me-0 me-sm-1"></i>
@@ -144,6 +147,14 @@
                                                                 type="button" aria-haspopup="dialog"
                                                                 aria-expanded="false" data-bs-toggle="modal" data-bs-target="#addserviceModal">
                                                             <span><i class="ti ti-plus"></i> นำเข้าสินค้า</span>
+                                                        </button>
+                                                        <button
+                                                                style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
+                                                                class="btn btn-warning buttons-collection  btn-info waves-effect waves-light"
+                                                                tabindex="0" aria-controls="DataTables_Table_0"
+                                                                type="button" aria-haspopup="dialog"
+                                                                aria-expanded="false" data-bs-toggle="modal" data-bs-target="#exportStockModal">
+                                                            <span><i class="ti ti-minus"></i> นำสินค้าออก</span>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -233,6 +244,51 @@
             </div>
         </div>
     </div>
+    <div class="modal fade modalHeadDecor" id="exportStockModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content rounded-0">
+                <div class="modal-header rounded-0">
+                    <h5 class="modal-title" id="exampleModalLabel1">&nbsp;นำสินค้าออก</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="export_stock" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="row g-3 p-4">
+
+                            <div class="col-sm-6">
+                                <label>เลือกสินค้า</label>
+                                <select name="ref_product_id" id="select2Product" class="">
+                                    <option selected disabled hidden value="">เลือกสินค้า</option>
+                                    @foreach ($product as $pos)
+                                        <option value="{{ $pos->id }}">{{ $pos->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-sm-4">
+                                <label>เลือก Lot</label>
+                                <select name="ref_lot_id" id="select2Stock" >
+                                </select>
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="" class="form-label">จำนวนที่นำออก</label><span class="text-danger"> *</span>
+                                <input name="qty" type="number" class="form-control" id="stock_qty" placeholder="จำนวนที่เบิก" required />
+                            </div>
+                            <div class="col-sm-12">
+                                <label for="" class="form-label">หมายเหตุ</label>
+                                <textarea name="remark" class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer rounded-0 justify-content-center">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">ปิด</button>
+                        <button type="submit" class="btn btn-main">บันทึก</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <div class="modal fade modalHeadDecor" id="insurance" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document" id="view">
 
@@ -244,7 +300,86 @@
     <!-- / Layout wrapper -->
     @include('admin/layout/inc_js')
     <script>
-        
+        let select2Product = null;
+        let select2Stock = null;
+
+        select2Product = new TomSelect("#select2Product", {
+                        create: false,
+                        maxItems: 1,
+                        allowEmptyOption: true,
+                        sortField: { field: "text", direction: "asc" }
+                    });
+
+        select2Stock = new TomSelect("#select2Stock", {
+                        create: false,
+                        maxItems: 1,
+                        allowEmptyOption: true,
+                        sortField: { field: "text", direction: "asc" }
+                    });
+
+    $('#select2Product').on('change', function () {
+            const product_id = $(this).val();
+            if (product_id) {
+
+                document.getElementById('loadingOverlay').style.display = 'flex';
+
+            if (select2Stock) {
+                select2Stock.destroy();
+            }
+            $('#select2Stock').html('<option selected disabled hidden value="">เลือก Lot</option>');
+
+                $.ajax({
+                    url: 'admin/card_stock_report/get-stock/' + product_id,
+                    type: 'GET',
+                    success: function (data) {
+                        data.forEach(function (stock) {
+                            $('#select2Stock').append(
+                                `<option value="${stock.id}">${stock.label}</option>`
+                            );
+                        });
+
+                        select2Stock = new TomSelect("#select2Stock", {
+                            create: false,
+                            maxItems: 1,
+                            allowEmptyOption: true,
+                            sortField: { field: "text", direction: "asc" }
+                        });
+                        document.getElementById('loadingOverlay').style.display = 'none';
+                    },
+                    error: function(error) {
+                        document.getElementById('loadingOverlay').style.display = 'none';
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        console.error('เกิดข้อผิดพลาด:', error);
+                    }
+                });
+            }
+        });
+
+        $('#select2Stock').on('change', function () {
+            var stock_id = $(this).val();
+
+            if (stock_id) {
+
+                document.getElementById('loadingOverlay').style.display = 'flex';
+
+                $.ajax({
+                    url: 'admin/card_stock_report/get-stock-by-id/' + stock_id,
+                    type: 'GET',
+                    success: function (data) {
+
+                        $('#stock_qty').val(data.remain).attr('max', data.remain);;
+
+                        document.getElementById('loadingOverlay').style.display = 'none';
+                    },
+                    error: function(error) {
+                        document.getElementById('loadingOverlay').style.display = 'none';
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        console.error('เกิดข้อผิดพลาด:', error);
+                    }
+                });
+            }
+        });
+
         function printPdf(){
 
             var searchData = {};
@@ -345,7 +480,54 @@
             });
         });
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+        $('#export_stock').on('submit', function(event) {
+            event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
 
+            if (!this.checkValidity()) {
+                this.reportValidity();
+                return console.log('ฟอร์มไม่ถูกต้อง');
+            }
+
+            var formData = new FormData(this);
+
+            Swal.fire({
+                title: 'ยืนยันการดำเนินการ?',
+                text: 'คุณต้องการนำสินค้าออกหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                didOpen: () => {
+                    Swal.getConfirmButton().focus();
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/admin/card_stock_report/export_stock_store',
+                        type: 'POST',
+                        data: formData,
+                        contentType: false, // ✅ ต้องมี
+                        processData: false, // ✅ ต้องมี
+                        success: function(response) {
+                            if (response == true) {
+                                $('#export_stock')[0].reset();
+                                Swal.fire('นำสินค้าออกเรียบร้อยแล้ว', '', 'success')
+                                    .then(() => {
+                                        location.reload();
+                                    });
+                                // $('#withdrawModal').modal('hide');
+                                loadData(page);
+                            }
+                        },
+                        error: function(error) {
+                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                            console.error('เกิดข้อผิดพลาด:', error);
+                        }
+                    });
+                }
+            });
+        });
 
         // window.onload = function() {
         //     $('#addserviceModal').modal('show');

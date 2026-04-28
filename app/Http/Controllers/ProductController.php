@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\StockReadyForSale;
+use App\Models\ExportStock;
 use App\Models\CardStocks;
 use App\Models\HistoryStock;
 use Illuminate\Support\Facades\Auth;
@@ -339,7 +340,54 @@ class ProductController extends Controller
             $history_stock->quantity = $request->quantity; // จำนวนที่เคลื่อนไหว
             $history_stock->stock_before_quantity = $main_stock_remain + $ready_for_sale_remain; // จำนวน ก่อน ตัดสต็อก
             $history_stock->stock_after_quantity = $new_main_stock_remain + $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
-            $history_stock->quantity_type = 1; // 0 = ลด , 1 = เพิ่ม
+            $history_stock->quantity_type = 1; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
+            $history_stock->save();
+        // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> ตัดสต็อก }
+
+            DB::commit();
+            return true;
+        } catch (QueryException $err) {
+            DB::rollBack();
+        }
+        //
+    }
+    public function export_stock_store(Request $request)
+    {
+        try {
+        // ดึง สินค้า ก่อน ลดสต็อก {
+            $product = Product::find($request->ref_product_id); // ดึง สินค้า ก่อน ลดสต็อก
+            $main_stock_remain = $product->total_remain ?? 0;
+            $ready_for_sale_remain = $product->ready_for_sale_total_remain ?? 0;
+        // ดึง สินค้า ก่อน ลดสต็อก }
+
+        // เพิ่มนำออกสินค้า {
+            $export_stocks = new ExportStock;
+            $export_stocks->ref_product_id = $request->ref_product_id;
+            $export_stocks->ref_lot_id = $request->ref_lot_id;
+            $export_stocks->quantity = $request->qty;
+            $export_stocks->remark = $request->remark;
+            $export_stocks->save();
+        // เพิ่มนำออกสินค้า }
+// return 123;
+
+        // เพิ่มสต็อก {
+            $card_stocks = CardStocks::find($request->ref_lot_id);
+            $card_stocks->remain = $card_stocks->remain - $request->qty;
+            $card_stocks->save();
+        // เพิ่มสต็อก }
+        // ดึง สินค้า หลัง ลดสต็อก {
+            $new_product = Product::find($request->ref_product_id);
+            $new_main_stock_remain = $new_product->total_remain ?? 0;
+            $new_ready_for_sale_remain = $new_product->ready_for_sale_total_remain ?? 0;
+        // ดึง สินค้า หลัง ลดสต็อก }
+            
+        // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> ตัดสต็อก {
+            $history_stock = new HistoryStock;
+            $history_stock->ref_product_id = $request->ref_product_id; // id สินค้า
+            $history_stock->quantity = $request->qty; // จำนวนที่เคลื่อนไหว
+            $history_stock->stock_before_quantity = $main_stock_remain + $ready_for_sale_remain; // จำนวน ก่อน ตัดสต็อก
+            $history_stock->stock_after_quantity = $new_main_stock_remain + $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+            $history_stock->quantity_type = 2; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
             $history_stock->save();
         // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> ตัดสต็อก }
 
@@ -352,15 +400,16 @@ class ProductController extends Controller
     }
     public function card_stock_report_update(Request $request, $id)
     {
-        $card_stocks = CardStocks::find($id);
-        // if ($card_stocks->quantity > $request->quantity) {
-        //     $card_stocks->remain = $card_stocks->remain - abs($card_stocks->quantity - $request->quantity);
-        // } else {
-        //     $card_stocks->remain = $card_stocks->remain + abs($card_stocks->quantity - $request->quantity);
-        // }
         try {
+            
+            $card_stocks = CardStocks::find($id);
+            // if ($card_stocks->quantity > $request->quantity) {
+            //     $card_stocks->remain = $card_stocks->remain - abs($card_stocks->quantity - $request->quantity);
+            // } else {
+            //     $card_stocks->remain = $card_stocks->remain + abs($card_stocks->quantity - $request->quantity);
+            // }
 
-            $card_stocks->ref_product_id = $request->ref_product_id;
+            // $card_stocks->ref_product_id = $request->ref_product_id;
             $card_stocks->type = 1;
             $card_stocks->label = $request->label;
             // $card_stocks->quantity = $request->quantity;
