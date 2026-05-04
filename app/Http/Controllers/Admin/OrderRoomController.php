@@ -104,10 +104,10 @@ class OrderRoomController extends Controller
                 [$eh, $em] = explode(':', request('end_time_filter'));
                 $endDate->setTime((int)$eh, (int)$em, 59);
             }
-        $query->where(function ($q) use ($startDate, $endDate) {
-                                                                    $q->whereBetween('created_at', [$startDate, $endDate])
-                                                                        ->orWhere('ref_status_id', 2);
-                                                                });
+            $query->where(function ($q) use ($startDate, $endDate) {
+                                                                        $q->whereBetween('booking_date', [$startDate, $endDate])
+                                                                            ->orWhere('ref_status_id', 2);
+                                                                    });
         }
         // $DailySalesClosure = DailySalesClosure::orderBy("id", "DESC")->first();
 
@@ -125,8 +125,8 @@ class OrderRoomController extends Controller
 
         // filter by booking_date (date_range, start_date, end_date)
         $dateRange = request('date_range');
-        $startDate = request('start_date');
-        $endDate = request('end_date');
+        $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+        $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
         if ($dateRange && $dateRange !== 'custom') {
             // 1, 7, 14, 30 days
             $days = intval($dateRange);
@@ -135,8 +135,20 @@ class OrderRoomController extends Controller
                 $to = Carbon::today()->format('Y-m-d');
                 $query->whereBetween('booking_date', [$from, $to]);
             }
-        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
-            $query->whereBetween('booking_date', [$startDate, $endDate]);
+        } elseif ($startDate && $endDate) {
+            
+            if (request('start_time_filter')) {
+                [$sh, $sm] = explode(':', request('start_time_filter'));
+                $startDate->setTime((int)$sh, (int)$sm, 0);
+            }
+            if (request('end_time_filter')) {
+                [$eh, $em] = explode(':', request('end_time_filter'));
+                $endDate->setTime((int)$eh, (int)$em, 59);
+            }
+            $query->where(function ($q) use ($startDate, $endDate) {
+                                                                        $q->whereBetween('booking_date', [$startDate, $endDate])
+                                                                            ->orWhere('ref_status_id', 2);
+                                                                    });
         }
 
         $orderRooms = $query->paginate($limit);
