@@ -89,10 +89,10 @@
                                 <li><a class="dropdown-item text-warning" href="#"
                                         onclick="editOrder({{ $order->id }}); return false;">แก้ไขคำสั่งซื้อ</a>
                                 </li>
+                            @endif
                                 <li><a class="dropdown-item text-danger" href="#"
                                         onclick="cancelOrder({{ $order->id }}); return false;">ยกเลิกคำสั่งซื้อ</a>
                                 </li>
-                            @endif
 
                         </ul>
                     </div>

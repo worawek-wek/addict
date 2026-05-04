@@ -24,9 +24,9 @@ class RoomPOSController extends Controller
             ->map(function ($room) {
                 $activeOrder = Order::where('ref_room_id', $room->id)
                     ->where('ref_status_id', 2) // 2 = กำลังใช้งาน
-                    ->whereDate('booking_date', Carbon::today())
-                    ->whereTime('start_time', '<=', Carbon::now()->format('H:i:s'))
-                    ->whereTime('end_time', '>=', Carbon::now()->format('H:i:s'))
+                    // ->whereDate('booking_date', Carbon::today())
+                    // ->whereTime('start_time', '<=', Carbon::now()->format('H:i:s'))
+                    // ->whereTime('end_time', '>=', Carbon::now()->format('H:i:s'))
                     ->first();
 
                 $room->is_busy = $activeOrder ? true : false;
@@ -36,9 +36,16 @@ class RoomPOSController extends Controller
                         $staff = \App\Models\User::find($activeOrder->ref_user_id);
                         $staffName = $staff ? ($staff->nickname ?? $staff->name) : null;
                     }
+                    $startDateTime = Carbon::parse($activeOrder->booking_date . ' ' . $activeOrder->start_time);
+                    $endDateTime = Carbon::parse($activeOrder->booking_date . ' ' . $activeOrder->end_time);
+
+                    if ($endDateTime->lessThan($startDateTime)) {
+                        $endDateTime->addDay();
+                    }
+
                     $room->active_order = (object) [
-                        'start_time' => $activeOrder->start_time,
-                        'end_time'   => $activeOrder->end_time,
+                        'start_time' => $startDateTime->format('Y-m-d H:i:s'),
+                        'end_time'   => $endDateTime->format('Y-m-d H:i:s'),
                         'staff_name' => $staffName,
                     ];
                 }

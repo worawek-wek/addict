@@ -13,18 +13,18 @@ class CloseExpiredOrders extends Command
 
     public function handle(): int
     {
-        $now  = Carbon::now();
-        $date = $now->toDateString();
-        $time = $now->format('H:i:s');
+        // $now  = Carbon::now();
+        // $date = $now->toDateString();
+        // $time = $now->format('H:i:s');
 
-        $updated = Order::where('ref_status_id', 2)
-            ->whereDate('booking_date', $date)
-            ->whereTime('end_time', '<', $time)
-            ->whereNotNull('end_time')
-            ->update(['ref_status_id' => 3]);
+        // $updated = Order::where('ref_status_id', 2)
+        //     ->whereDate('booking_date', $date)
+        //     ->whereTime('end_time', '<', $time)
+        //     ->whereNotNull('end_time')
+        //     ->update(['ref_status_id' => 3]);
 
-        $this->info("Closed {$updated} expired order(s).");
+        // $this->info("Closed {$updated} expired order(s).");
 
-        return self::SUCCESS;
+        // return self::SUCCESS;
     }
 }

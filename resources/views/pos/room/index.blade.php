@@ -120,9 +120,9 @@
                                 @if (isset($room->active_order))
                                     <div class="small mt-1">
                                         <span class="badge bg-white text-black">
-                                            {{ \Carbon\Carbon::createFromFormat('H:i:s', $room->active_order->start_time)->format('H:i') }}
+                                            {{ \Carbon\Carbon::parse($room->active_order->start_time)->format('H:i') }}
                                             -
-                                            {{ \Carbon\Carbon::createFromFormat('H:i:s', $room->active_order->end_time)->format('H:i') }}
+                                            {{ \Carbon\Carbon::parse($room->active_order->end_time)->format('H:i') }}
                                         </span>
                                     </div>
                                     @if (!empty($room->active_order->staff_name))
@@ -219,69 +219,53 @@
         });
     </script>
     <script>
-        function parseStartTime(startTimeStr) {
-            const now = new Date();
-            const [h, m] = startTimeStr.split(':').map(Number);
+        function parseDateTime(str) {
+            // แปลง "2026-04-29 23:42:53" → local time แบบชัวร์
+            const [date, time] = str.split(' ');
+            const [y, m, d] = date.split('-').map(Number);
+            const [h, i, s] = time.split(':').map(Number);
 
-            let start = new Date(
-                now.getFullYear(),
-                now.getMonth(),
-                now.getDate(),
-                h,
-                m,
-                0
-            );
-
-            // ถ้าเวลาเริ่มมากกว่าเวลาปัจจุบัน → ถือว่าเริ่มเมื่อวาน
-            if (start > now) {
-                start.setDate(start.getDate() - 1);
-            }
-
-            return start;
+            return new Date(y, m - 1, d, h, i, s);
         }
 
         function formatTime(seconds) {
             let hours = Math.floor(seconds / 3600);
             let minutes = Math.floor((seconds % 3600) / 60);
-            return String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
-        }
 
-        function parseEndTime(endTimeStr) {
-            const now = new Date();
-            const [h, m] = endTimeStr.split(':').map(Number);
-            return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
+            return String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0');
         }
 
         function updateAllTimers() {
             let needsReload = false;
+            const now = new Date();
 
             document.querySelectorAll('.timer').forEach(timer => {
                 const startTimeStr = timer.dataset.start;
                 const endTimeStr   = timer.dataset.end;
                 if (!startTimeStr) return;
 
-                const startDate = parseStartTime(startTimeStr);
-                const now = new Date();
-                const diffSeconds = Math.floor((now - startDate) / 1000);
+                const startDate = parseDateTime(startTimeStr);
 
-                timer.innerText = formatTime(diffSeconds);
-
-                // ถ้าถึง end_time แล้ว → reload หน้า
                 if (endTimeStr) {
-                    const endDate = parseEndTime(endTimeStr);
+                    const endDate = parseDateTime(endTimeStr);
+
+                    // 🔥 ถ้าหมดเวลาแล้ว
                     if (now >= endDate) {
+                        timer.innerText = 'หมดเวลาแล้ว';
                         needsReload = true;
+                        return;
                     }
                 }
+
+                const diffSeconds = Math.floor((now - startDate) / 1000);
+                timer.innerText = formatTime(diffSeconds);
             });
 
-            if (needsReload) {
-                location.reload();
-            }
         }
 
-        // เริ่มทันที
+        // เริ่ม
         updateAllTimers();
         setInterval(updateAllTimers, 60000);
-    </script>
+</script>
 
