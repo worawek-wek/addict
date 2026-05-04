@@ -24,6 +24,7 @@ class RoomPOSController extends Controller
             ->map(function ($room) {
                 $activeOrder = Order::where('ref_room_id', $room->id)
                     ->where('ref_status_id', 2) // 2 = กำลังใช้งาน
+                    ->where('type', 1) // 2 = กำลังใช้งาน
                     // ->whereDate('booking_date', Carbon::today())
                     // ->whereTime('start_time', '<=', Carbon::now()->format('H:i:s'))
                     // ->whereTime('end_time', '>=', Carbon::now()->format('H:i:s'))
@@ -44,6 +45,7 @@ class RoomPOSController extends Controller
                     }
 
                     $room->active_order = (object) [
+                        'id' => $activeOrder->id,
                         'start_time' => $startDateTime->format('Y-m-d H:i:s'),
                         'end_time'   => $endDateTime->format('Y-m-d H:i:s'),
                         'staff_name' => $staffName,

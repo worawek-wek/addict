@@ -199,6 +199,7 @@
                     id="btn-finish-service"
                     class="btn btn-warning btn-lg fw-bold"
                     onclick="finishService()"
+                    {{ $orderRoom->id }}
                 >
                     <i class="ti ti-file-description me-2"></i>
                     Check-Out

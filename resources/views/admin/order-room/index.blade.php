@@ -27,7 +27,7 @@
                                                 </h4>
                                             </div>
                                             <div class="row g-3">
-                                                <div class="col-sm-3 mb-2">
+                                                <div class="col-sm-2 mb-2">
                                                     <select name="branch_id" class="form-select p_search"
                                                         onchange='loadData("{{ route('order-rooms.datatable') }}")'>
                                                         @foreach ($branches as $branch)
@@ -36,7 +36,7 @@
                                                         @endforeach
                                                     </select>
                                                 </div>
-                                                <div class="col-sm-3 mb-2">
+                                                <div class="col-sm-2 mb-2">
                                                     <select name="date_range" class="form-select p_search"
                                                         onchange='onDateRangeChange()'>
                                                         <option value="">-- เลือกช่วงเวลา --</option>
@@ -47,16 +47,40 @@
                                                         <option value="custom">ระบุวันที่เอง</option>
                                                     </select>
                                                 </div>
-                                                <div class="col-sm-3 mb-2" id="custom-date-group" style="display:none;">
-                                                    <div class="input-group">
-                                                        <input type="date" name="start_date"
-                                                            class="form-control p_search" placeholder="เริ่มวันที่" />
-                                                        <span class="input-group-text">ถึง</span>
-                                                        <input type="date" name="end_date"
-                                                            class="form-control p_search" placeholder="ถึงวันที่" />
-                                                    </div>
+                                                <div class="col-sm-6 mb-2" id="custom-date-group" style="display:none !important;">
+                                                    <div
+                                                        class="d-flex justify-content-start justify-content-md-end align-items-baseline">
+                                                        <label class="me-3">ตั้งแต่วันที่:</label>
+                                                        <div
+                                                            class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
+                                                            <div id="DataTables_Table_0_filter"
+                                                                class="dataTables_filter mx-n2 me-2">
+                                                                <input name="start_date" id="start_date" type="text"
+                                                                    class="form-control p_search search_date"
+                                                                    value="{{ now()->hour >= 10 ? now()->format('d/m/Y') : now()->subDay()->format('d/m/Y') }}">
+                                                            </div>
+                                                            <div class="dataTables_filter mx-n2 me-1">
+                                                                <input name="start_time_filter" id="start_time_filter" type="time"
+                                                                    class="form-control p_search" value="10:00">
+                                                            </div>
+                                                            <label class="me-3">ถึงวันที่:</label>
+                                                            <div
+                                                                class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-center pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
+                                                                <div id="DataTables_Table_0_filter"
+                                                                    class="dataTables_filter mx-n2 me-2">
+                                                                    <input name="end_date" id="end_date" type="text"
+                                                                        class="form-control p_search search_date"
+                                                                        value="{{ now()->hour >= 10 ? now()->addDay()->format('d/m/Y') : now()->format('d/m/Y') }}">
+                                                                </div>
+                                                                <div class="dataTables_filter mx-n2 me-1">
+                                                                    <input name="end_time_filter" id="end_time_filter" type="time"
+                                                                        class="form-control p_search" value="04:01">
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                 </div>
-                                                <div class="col-sm-3 mb-2">
+                                            </div>
+                                            <div class="col-sm-2 mb-2">
                                                     {{-- <div class="input-group input-group-merge">
                                                         <span class="input-group-text"><i
                                                                 class="ti ti-search"></i></span>
@@ -73,7 +97,6 @@
                                                         @endforeach
                                                     </select>
                                                 </div>
-                                            </div>
 
 
                                         </div>
@@ -128,7 +151,7 @@
             });
 
             // If not custom, clear custom date fields
-            if ($('select[name="date_range"]').val() !== 'custom') {
+            if ($('select[name="date_range"]').val() == null) {
                 searchData['start_date'] = '';
                 searchData['end_date'] = '';
             }
@@ -181,9 +204,9 @@
         }
 
         // If user changes custom date, reload
-        $(document).on('change', 'input[name="start_date"], input[name="end_date"]', function() {
-            loadData(page);
-        });
+        // $(document).on('change', 'input[name="start_date"], input[name="end_date"]', function() {
+        //     loadData(page);
+        // });
 
         function view(id) {
             $.ajax({
@@ -224,6 +247,49 @@
                 }
             });
         }
+        
+    $('.search_date').datepicker({
+        format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
+        autoclose: true, // ปิด datepicker เมื่อเลือกวันที่
+        todayHighlight: true // ไฮไลต์วันที่ปัจจุบัน
+    });
+    // ⭐ สำคัญมาก: set ค่าเริ่มต้นให้ datepicker รู้
+    $('#start_date').datepicker('setDate', $('#start_date').val());
+    $('#end_date').datepicker('setDate', $('#end_date').val());
+
+    // ⭐ ผูกข้อจำกัดตั้งแต่โหลด
+    const startInit = $('#start_date').datepicker('getDate');
+    const endInit = $('#end_date').datepicker('getDate');
+
+    if (startInit) {
+        $('#end_date').datepicker('setStartDate', startInit);
+    }
+
+    if (endInit) {
+        $('#start_date').datepicker('setEndDate', endInit);
+    }
+
+    // event หลังจากนั้น
+    $('#start_date').on('changeDate', function(e) {
+        $('#end_date').datepicker('setStartDate', e.date);
+
+        const endDate = $('#end_date').datepicker('getDate');
+        if (endDate && endDate < e.date) {
+            $('#end_date').datepicker('clearDates');
+        }
+
+        loadData(page);
+    });
+
+    $('#end_date').on('changeDate', function(e) {
+        $('#start_date').datepicker('setEndDate', e.date);
+
+        loadData(page);
+    });
+
+    $('#start_time_filter, #end_time_filter').on('change', function() {
+        loadData(page);
+    });
     </script>
 </body>
 

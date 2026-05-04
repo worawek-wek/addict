@@ -113,10 +113,10 @@
                     @endif
                     <div class="col-sm-1 room-card" data-name="{{ $room->name }}">
                             <div class="timer-box timer m-auto mb-1" data-start="{{ @$room->active_order->start_time }}" data-end="{{ @$room->active_order->end_time }}" style="background-color: {{ $room->is_busy  ? '#6c757d' : '#5e2a5f' }};">00:00</div>
-                        <div
+                        <div @if(@$room->is_busy)  onclick="view({{ @$room->active_order->id }}); return false;" @endif
                             class="card text-center border-0 shadow-sm {{ $room->is_busy ? 'bg-danger text-white' : 'bg-purple text-white' }}">
 
-                            <div @if(!@$room->is_busy) onclick="window.location.href='{{ 'pos/'.$room->id }}'" @endif class="card-body py-5 px-0" onclick="view({{ @$room->order->id }}); return false;">
+                            <div @if(!@$room->is_busy) onclick="window.location.href='{{ 'pos/'.$room->id }}'" @endif class="card-body py-5 px-0">
                                 @if (isset($room->active_order))
                                     <div class="small mt-1">
                                         <span class="badge bg-white text-black">
