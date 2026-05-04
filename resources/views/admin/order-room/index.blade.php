@@ -192,14 +192,42 @@
                 }
             });
         }
+        
+        function formatDate(d) {
+            let day = String(d.getDate()).padStart(2, '0');
+            let month = String(d.getMonth() + 1).padStart(2, '0');
+            let year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
 
         function onDateRangeChange() {
             var val = $('select[name="date_range"]').val();
+
             if (val === 'custom') {
                 $('#custom-date-group').show();
             } else {
                 $('#custom-date-group').hide();
+
+                const now = new Date();
+
+                let startDate, endDate;
+
+                if (now.getHours() >= 10) {
+                    startDate = new Date(now);
+                    endDate = new Date();
+                    endDate.setDate(endDate.getDate() + 1);
+                } else {
+                    startDate = new Date();
+                    startDate.setDate(startDate.getDate() - 1);
+                    endDate = new Date(now);
+                }
+
+                $('#start_date').val(formatDate(startDate));
+                $('#end_date').val(formatDate(endDate));
+                $('#start_time_filter').val("10:00");
+                $('#end_time_filter').val("04:01");
             }
+
             loadData(page);
         }
 

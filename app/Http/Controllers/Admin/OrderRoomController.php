@@ -37,7 +37,7 @@ class OrderRoomController extends Controller
 
         // โหลดหน้าแรกพร้อมข้อมูลเริ่มต้น
         $limit = request()->limit ?? 10;
-        $orderRooms = $this->getOrderRooms($limit);
+        // $orderRooms = $this->getOrderRooms($limit);
         $user = Auth::user(); // user ที่ login อยู่
 
         if ($user->work_status == 3) {
@@ -47,7 +47,7 @@ class OrderRoomController extends Controller
             // เห็นเฉพาะสาขาตัวเอง
             $branches = Branch::where('id', $user->ref_branch_id)->get();
         }
-        return view('admin.order-room.index', compact('orderRooms', 'branches', 'getchild'));
+        return view('admin.order-room.index', compact('branches', 'getchild'));
     }
 
     public function datatable(Request $request)
@@ -93,22 +93,22 @@ class OrderRoomController extends Controller
             $query->where('ref_user_id', $childSelect);
         }
 
-        if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
-            if (request('start_time_filter')) {
-                [$sh, $sm] = explode(':', request('start_time_filter'));
-                $startDate->setTime((int)$sh, (int)$sm, 0);
-            }
-            if (request('end_time_filter')) {
-                [$eh, $em] = explode(':', request('end_time_filter'));
-                $endDate->setTime((int)$eh, (int)$em, 59);
-            }
-            $query->where(function ($q) use ($startDate, $endDate) {
-                                                                        $q->whereBetween('booking_date', [$startDate, $endDate])
-                                                                            ->orWhere('ref_status_id', 2);
-                                                                    });
-        }
+        // if (request('start_date')) {
+        //     $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+        //     $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+        //     if (request('start_time_filter')) {
+        //         [$sh, $sm] = explode(':', request('start_time_filter'));
+        //         $startDate->setTime((int)$sh, (int)$sm, 0);
+        //     }
+        //     if (request('end_time_filter')) {
+        //         [$eh, $em] = explode(':', request('end_time_filter'));
+        //         $endDate->setTime((int)$eh, (int)$em, 59);
+        //     }
+        //     $query->where(function ($q) use ($startDate, $endDate) {
+        //                                                                 $q->whereBetween('booking_date', [$startDate, $endDate])
+        //                                                                     ->orWhere('ref_status_id', 2);
+        //                                                             });
+        // }
         // $DailySalesClosure = DailySalesClosure::orderBy("id", "DESC")->first();
 
         // if (@$DailySalesClosure) {
