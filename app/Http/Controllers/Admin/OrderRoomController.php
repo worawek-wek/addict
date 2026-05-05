@@ -133,24 +133,27 @@ class OrderRoomController extends Controller
             if ($days > 0) {
                 $from = Carbon::today()->subDays($days - 1)->format('Y-m-d');
                 $to = Carbon::today()->format('Y-m-d');
-                $query->whereBetween('booking_date', [$from, $to]);
+                $query->where(function ($q) use ($from, $to) {
+                                                                        $q->whereBetween('booking_date', [$from, $to])
+                                                                            ->orWhere('ref_status_id', 2);
+                                                                    });
             }
         } elseif ($startDate && $endDate) {
             
-            if (request('start_time_filter')) {
-                [$sh, $sm] = explode(':', request('start_time_filter'));
-                $startDate->setTime((int)$sh, (int)$sm, 0);
-            }
-            if (request('end_time_filter')) {
-                [$eh, $em] = explode(':', request('end_time_filter'));
-                $endDate->setTime((int)$eh, (int)$em, 59);
-            }
             $query->where(function ($q) use ($startDate, $endDate) {
-                                                                        $q->whereBetween('booking_date', [$startDate, $endDate])
-                                                                            ->orWhere('ref_status_id', 2);
+                                                                        $q->whereRaw(
+                                                                            "CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?",
+                                                                            [
+                                                                                $startDate->format('Y-m-d H:i:s'),
+                                                                                $endDate->format('Y-m-d H:i:s')
+                                                                            ]
+                                                                        )
+                                                                        ->orWhere('ref_status_id', 2);
                                                                     });
         }
-
+        
+// http://127.0.0.1:9800/admin/order-rooms/datatable?branch_id=1&date_range=&start_date=05%2F05%2F2026&start_time_filter=10%3A00&end_date=06%2F05%2F2026&end_time_filter=04%3A01&childselect=&limit=25
+// http://127.0.0.1:9800/admin/order-rooms/datatable?branch_id=1&date_range=custom&start_date=01%2F05%2F2026&start_time_filter=10%3A00&end_date=06%2F05%2F2026&end_time_filter=04%3A01&childselect=&limit=25
         $orderRooms = $query->paginate($limit);
 
         // กำหนด badge และ label
