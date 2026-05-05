@@ -131,7 +131,6 @@
                                         </div>
                                     @endif
                                 @else
-
                                     <i class="ti ti-door" style="font-size:2rem;"></i>
                                 @endif
                             </div>

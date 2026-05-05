@@ -139,6 +139,11 @@ class ProductController extends Controller
             // filter เฉพาะสาขาของตัวเอง
             $results = $results->where('products.ref_branch_id', $user->ref_branch_id);
         }
+        
+        if (@$request->ref_product_id) {
+            // filter เฉพาะสาขาของตัวเอง
+            $results = $results->where('products.id', $request->ref_product_id);
+        }
 
         if (@$request->created_at) {
             $created_at = Carbon::createFromFormat('d/m/Y', $request->created_at)->format('Y-m-d');
@@ -321,19 +326,21 @@ class ProductController extends Controller
             $card_stocks->ref_product_id = $request->ref_product_id;
             $card_stocks->type = 1;
             $card_stocks->label = $request->label;
+            $card_stocks->stock_before_quantity = $main_stock_remain + $ready_for_sale_remain;
             $card_stocks->quantity = $request->quantity;
+            $card_stocks->stock_after_quantity = $main_stock_remain + $ready_for_sale_remain + $request->quantity;
             $card_stocks->remain = $request->quantity;
             $card_stocks->remark = $request->remark;
             $card_stocks->cost_price = $request->cost_price;
             $card_stocks->save();
         // เพิ่มสต็อก }
+            // return 1234;
 
         // ดึง สินค้า หลัง เพิ่มสต็อก {
             $new_product = Product::find($request->ref_product_id);
             $new_main_stock_remain = $new_product->total_remain ?? 0;
             $new_ready_for_sale_remain = $new_product->ready_for_sale_total_remain ?? 0;
         // ดึง สินค้า หลัง เพิ่มสต็อก }
-            
         // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> ตัดสต็อก {
             $history_stock = new HistoryStock;
             $history_stock->ref_product_id = $request->ref_product_id; // id สินค้า

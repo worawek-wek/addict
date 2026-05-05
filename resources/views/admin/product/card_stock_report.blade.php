@@ -102,7 +102,7 @@
                                             <div class="tab-pane fade show active" id="navs-pills-top-home"
                                                 role="tabpanel">
                                                 <div class="row p-3">
-                                                    <div class="col-lg-5">
+                                                    <div class="col-lg-2">
                                                         <div class="d-flex align-items-center mb-2 mb-md-0">
                                                             <label class="">Show</label>
                                                             <select onchange='loadData("{{$page_url}}/datatable")' name="limit" class="form-select ms-2 me-2 p_search" style="width:100px">
@@ -112,6 +112,17 @@
                                                                 <option value="100">100</option>
                                                             </select>
                                                         </div>
+                                                    </div>
+                                                    
+                                                    <div class="col-sm-3 d-flex align-items-center gap-2">
+                                                        <label for="" class="mb-0">สินค้า</label>
+                                                        <select name="ref_product_id" class="form-select p_search"
+                                                            onchange='loadData("{{ $page_url }}/datatable")' required>
+                                                                <option value="">ทั้งหมด</option>
+                                                            @foreach ($product as $pro)
+                                                                <option value="{{ $pro->id }}">{{ $pro->name }}</option>
+                                                            @endforeach
+                                                        </select>
                                                     </div>
                                                     <div class="col-sm-3 d-flex align-items-center gap-2">
                                                         <label for="booking_date" class="mb-0">วันที่นำเข้า</label>

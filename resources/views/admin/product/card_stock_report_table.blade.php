@@ -15,7 +15,13 @@
                     สินค้า
                 </th>
                 <th class="text-center">
+                    จำนวนก่อนรับเข้า
+                </th>
+                <th class="text-center">
                     รับเข้า
+                </th>
+                <th class="text-center">
+                    จำนวนหลังรับเข้า
                 </th>
                 {{-- <th class="text-center">
                     จ่ายออก
@@ -59,7 +65,13 @@
                     {{ $row->product_name }}
                 </td>
                 <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+                    {{ $row->stock_before_quantity }}
+                </td>
+                <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->type == 1 ?$row->quantity:''; }}
+                </td>
+                <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+                    {{ $row->stock_after_quantity }}
                 </td>
                 {{-- <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->type == 2 ?$row->quantity:''; }}
