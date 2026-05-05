@@ -101,8 +101,8 @@
                                                     <select onchange='loadData("{{ $page_url }}/datatable")'
                                                         name="limit" class="form-select ms-2 me-2 p_search"
                                                         style="width:100px">
-                                                        <option value="25" selected>25</option>
-                                                        <option value="50">50</option>
+                                                        <option value="25">25</option>
+                                                        <option value="50" selected >50</option>
                                                         <option value="100">100</option>
                                                     </select>
                                                 </div>

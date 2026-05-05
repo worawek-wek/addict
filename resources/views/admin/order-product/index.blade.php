@@ -102,8 +102,8 @@
                                                     <select
                                                         onchange='loadData("{{ route('order-products.datatable') }}")'
                                                         name="limit" class="form-select p_search" style="width:120px">
-                                                        <option value="25" selected>25</option>
-                                                        <option value="50">50</option>
+                                                        <option value="25">25</option>
+                                                        <option value="50" selected >50</option>
                                                         <option value="100">100</option>
                                                     </select>
                                                     <label class="ms-2">รายการ</label>
