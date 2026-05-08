@@ -29,13 +29,13 @@ class DrinkController extends Controller
         $user = Auth::user();
         $data['drink'] = Drink::orderBy('name')->get();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branch'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         return view('admin/drink/index', $data);
     }
 
@@ -371,13 +371,13 @@ class DrinkController extends Controller
         $data['drink'] = Drink::find($id);
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branch'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        }        // $data['title'] = 'Profile';
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }        // $data['title'] = 'Profile';
         return view('admin/drink/view', $data);
     }
     
@@ -394,13 +394,13 @@ class DrinkController extends Controller
             // เห็นเฉพาะสาขาของตัวเอง
             $data['drink'] = Drink::where('ref_branch_id', $user->ref_branch_id)->get();
         }
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branch'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        }        // $data['title'] = 'Profile';
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }        // $data['title'] = 'Profile';
         return view('admin/drink/card_stock_report_view', $data);
     }
 

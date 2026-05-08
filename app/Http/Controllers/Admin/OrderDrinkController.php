@@ -25,13 +25,13 @@ class OrderDrinkController extends Controller
         $orderDrinks = $this->getOrderDrinks($limit);
         $user = Auth::user(); // user ที่ login อยู่
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุกสาขา
             $branches = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาตัวเอง
-            $branches = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     // เห็นเฉพาะสาขาตัวเอง
+        //     $branches = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         return view('admin.order-drink.index', compact('orderDrinks', 'branches'));
     }
 
@@ -43,11 +43,12 @@ class OrderDrinkController extends Controller
 
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
+            // super admin เห็นทุกสาขา
             $branches = Branch::orderBy('name')->get();
-        } else {
-            $branches = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     $branches = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         return view('admin.order-drink.datatable', compact('orderDrinks', 'branches'));
     }
 

@@ -212,11 +212,11 @@ class ReportController extends Controller
 
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             $branches = Branch::orderBy('name')->get();
-        } else {
-            $branches = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     $branches = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         $userCommissionMap = \App\Models\UserHasRoomTypeCommission::select('ref_user_id', 'ref_room_type_id', 'ref_course_id', 'price', 'coupon')
             ->get()
             ->keyBy(fn($r) => "{$r->ref_user_id}_{$r->ref_room_type_id}_{$r->ref_course_id}");
@@ -437,11 +437,11 @@ class ReportController extends Controller
 
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             $branches = Branch::orderBy('name')->get();
-        } else {
-            $branches = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     $branches = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         $userCommissionMap = \App\Models\UserHasRoomTypeCommission::select('ref_user_id', 'ref_room_type_id', 'ref_course_id', 'price', 'coupon')
             ->get()
             ->keyBy(fn($r) => "{$r->ref_user_id}_{$r->ref_room_type_id}_{$r->ref_course_id}");
@@ -642,11 +642,11 @@ class ReportController extends Controller
 
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             $branches = Branch::orderBy('name')->get();
-        } else {
-            $branches = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     $branches = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         return view('admin.report.report-overseeEmp-datatable', compact('orderRooms', 'branches'));
     }
 
@@ -850,11 +850,11 @@ class ReportController extends Controller
 
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             $branches = Branch::orderBy('name')->get();
-        } else {
-            $branches = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     $branches = Branch::where('id', $user->ref_branch_id)->get();
+        // }
 
         $userCommissionMap = \App\Models\UserHasRoomTypeCommission::select('ref_user_id', 'ref_room_type_id', 'ref_course_id', 'price', 'coupon')
             ->get()

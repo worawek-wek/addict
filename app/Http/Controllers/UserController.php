@@ -48,13 +48,13 @@ class UserController extends Controller
         $data['position'] = Position::get();
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branch'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        }        // $data['title'] = 'Profile';
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }        // $data['title'] = 'Profile';
 
         return view('admin/user/index', $data);
     }
@@ -284,13 +284,13 @@ class UserController extends Controller
         // $data['all_room'] = Room::get();
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branch'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         return view('admin/user/view', $data);
     }
 
@@ -305,13 +305,13 @@ class UserController extends Controller
                                         }])->get();
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branch'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }
 
         $data['user_has_room_type_commission'] = UserHasRoomTypeCommission::select(
                                             'id',
@@ -350,13 +350,13 @@ class UserController extends Controller
                                         }])->get();
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branch'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         return view('admin/user/commission-option', $data);
     }
 

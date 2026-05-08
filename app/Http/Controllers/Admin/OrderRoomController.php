@@ -40,13 +40,13 @@ class OrderRoomController extends Controller
         // $orderRooms = $this->getOrderRooms($limit);
         $user = Auth::user(); // user ที่ login อยู่
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุกสาขา
             $branches = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาตัวเอง
-            $branches = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     // เห็นเฉพาะสาขาตัวเอง
+        //     $branches = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         return view('admin.order-room.index', compact('branches', 'getchild'));
     }
 
@@ -59,11 +59,11 @@ class OrderRoomController extends Controller
 
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             $branches = Branch::orderBy('name')->get();
-        } else {
-            $branches = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     $branches = Branch::where('id', $user->ref_branch_id)->get();
+        // }
 
         return view('admin.order-room.datatable', compact('orderRooms', 'branches'));
     }

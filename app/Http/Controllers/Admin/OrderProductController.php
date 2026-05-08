@@ -26,13 +26,13 @@ class OrderProductController extends Controller
         $orderProducts = $this->getOrderProducts($limit);
         $user = Auth::user(); // user ที่ login อยู่
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุกสาขา
             $branches = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาตัวเอง
-            $branches = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     // เห็นเฉพาะสาขาตัวเอง
+        //     $branches = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         
         $rounds = DailySalesClosure::orderBy('id', 'DESC')->where('ref_account_id', Auth::id())->get();
 
@@ -60,11 +60,11 @@ class OrderProductController extends Controller
 
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             $branches = Branch::orderBy('name')->get();
-        } else {
-            $branches = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     $branches = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         return view('admin.order-product.datatable', compact('orderProducts', 'branches', 'check'));
     }
 

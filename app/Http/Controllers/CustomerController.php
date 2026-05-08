@@ -43,13 +43,13 @@ class CustomerController extends Controller
         $data['page'] = 'ลูกค้า';
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branches'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branches'] = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branches'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         return view('admin/customer/index', $data);
     }
 

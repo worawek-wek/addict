@@ -24,13 +24,13 @@ class CourseController extends Controller
         $data['page'] = 'คอร์ส';
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branch'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         return view('admin/course/index', $data);
     }
 
@@ -165,13 +165,13 @@ class CourseController extends Controller
         $data['course'] = Course::find($id);
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branch'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         return view('admin/course/view', $data);
     }
 

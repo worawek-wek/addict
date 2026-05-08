@@ -34,13 +34,13 @@ class ProductController extends Controller
         $data['product'] = Product::with('producttype')->get();
         $data['producttype'] = ProductType::all();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branch'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         return view('admin/product/index', $data);
     }
 
@@ -456,13 +456,13 @@ class ProductController extends Controller
         $data['product'] = Product::find($id);
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branch'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        }        // $data['title'] = 'Profile';
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }        // $data['title'] = 'Profile';
         return view('admin/product/view', $data);
     }
 
@@ -479,13 +479,13 @@ class ProductController extends Controller
             // เห็นเฉพาะสาขาของตัวเอง
             $data['product'] = Product::where('ref_branch_id', $user->ref_branch_id)->get();
         }
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branch'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        }        // $data['title'] = 'Profile';
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }        // $data['title'] = 'Profile';
         return view('admin/product/card_stock_report_view', $data);
     }
 
