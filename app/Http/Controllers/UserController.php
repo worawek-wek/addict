@@ -34,6 +34,13 @@ class UserController extends Controller
 
     public function index()
     {
+        // $user = User::orderBy('user_id')->get();
+        // foreach($user as $key => $us){
+        //     $up = User::find($us->id);
+        //     $up->sort = $key+1;
+        //     $up->save();
+        // }
+        // DB::commit();
 
         $data['page_url'] = 'admin/user';
         $data['page'] = 'พนักงาน';
@@ -553,7 +560,12 @@ class UserController extends Controller
     public function destroy($id)
     {
         try {
-            $user = User::destroy($id);
+            $item = User::findOrFail($id);
+            $deletedSort = $item->sort;
+            $item->delete();
+
+            // เลื่อนตัวด้านล่างขึ้น
+            User::where('sort', '>', $deletedSort)->decrement('sort');
             DB::commit();
             return true;
         } catch (QueryException $err) {

@@ -9,10 +9,10 @@
                     รูปภาพ
                 </th>
                 <th class="text-center">
-                    ชื่อพนักงาน
+                    ชื่อพนักงาน(ชื่อเล่น)
                 </th>
                 <th class="text-center">
-                    ชื่อเล่น
+                    รหัสพนักงาน
                 </th>
                 <th class="text-center">
                     ตำแหน่ง
@@ -41,10 +41,11 @@
                     <img src="/upload/user/{{ $row->image_name }}" alt="" width="55px" onerror="this.onerror=null;this.src='/not-found-image.png';">
                 </td>
                 <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                    {{ $row->name }}
+                    <b>{{ $row->name }}</b><br>
+                    {{ @$row->nickname ? "($row->nickname)": ""; }}
                 </td>
                 <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                    {{ $row->nickname }}
+                    {{ $row->user_id }}
                 </td>
                 <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->position->position_name }}

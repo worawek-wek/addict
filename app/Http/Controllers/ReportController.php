@@ -64,6 +64,7 @@ class ReportController extends Controller
 
         $limit = $request->limit ?? 10;
         $stock_history = $this->getStockProductDatatable($limit);
+        // return optional($stock_history[0]->history_stocks->first())->stock_after_quantity;
         return view('admin.report.report-stock-history-datatable', compact('stock_history'));
     }
 
@@ -97,22 +98,21 @@ class ReportController extends Controller
             }
             // return $endDate;
             $query->withSum([
-                        'historyStocksDecrease as quantity_decrease' => function ($q) use ($startDate, $endDate) {
-                            $q->whereBetween('created_at', [$startDate, $endDate]);
-                        }
-                    ], 'quantity') // quantity_decrease จำนวนลดรวม
+                                'historyStocksDecrease as quantity_decrease' => function ($q) use ($startDate, $endDate) {
+                                    $q->whereBetween('created_at', [$startDate, $endDate]);
+                                }
+                            ], 'quantity')
 
-                    ->withSum([
-                        'historyStocksIncrease as quantity_increase' => function ($q) use ($startDate, $endDate) {
-                            $q->whereBetween('created_at', [$startDate, $endDate]);
-                        }
-                    ], 'quantity') // quantity_increase จำนวนเพิ่มรวม
-                    ->with([
-                                'firstOrderOfDay' => function ($q) use ($startDate, $endDate) {
+                            ->withSum([
+                                'historyStocksIncrease as quantity_increase' => function ($q) use ($startDate, $endDate) {
                                     $q->whereBetween('created_at', [$startDate, $endDate]);
-                                },
-                                'lastOrderOfDay' => function ($q) use ($startDate, $endDate) {
-                                    $q->whereBetween('created_at', [$startDate, $endDate]);
+                                }
+                            ], 'quantity')
+
+                            ->with([
+                                'history_stocks' => function ($q) use ($startDate, $endDate) {
+                                    $q->whereBetween('created_at', [$startDate, $endDate])
+                                    ->orderBy('created_at', 'asc');
                                 }
                             ]);
             // $query->whereBetween('created_at', [$startDate, $endDate]);

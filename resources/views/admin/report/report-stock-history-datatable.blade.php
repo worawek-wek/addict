@@ -35,7 +35,8 @@
                 {{ $row->name }}
             </td>
             <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                {{ $row->firstOrderOfDay->stock_before_quantity ?? $row->total_remain + $row->ready_for_sale_total_remain }}
+                {{-- {{ $row->firstOrderOfDay->stock_before_quantity ?? $row->total_remain + $row->ready_for_sale_total_remain }} --}}
+                {{ optional($row->history_stocks->first())->stock_before_quantity }}
             </td>
             <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                 {{ 0-$row->quantity_decrease ?? 0 }}
@@ -47,7 +48,8 @@
                  0
             </td> --}}
             <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                {{ $row->lastOrderOfDay->stock_after_quantity ?? $row->total_remain + $row->ready_for_sale_total_remain }}
+                {{ optional($row->history_stocks->first())->stock_after_quantity }}
+                {{-- {{ $row->lastOrderOfDay->stock_after_quantity ?? $row->total_remain + $row->ready_for_sale_total_remain }} --}}
             </td>         
         </tr>
         @endforeach
