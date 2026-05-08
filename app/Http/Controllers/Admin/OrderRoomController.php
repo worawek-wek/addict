@@ -140,6 +140,15 @@ class OrderRoomController extends Controller
             }
         } elseif ($startDate && $endDate) {
             
+            if (request('start_time_filter')) {
+                [$sh, $sm] = explode(':', request('start_time_filter'));
+                $startDate->setTime((int)$sh, (int)$sm, 0);
+            }
+            if (request('end_time_filter')) {
+                [$eh, $em] = explode(':', request('end_time_filter'));
+                $endDate->setTime((int)$eh, (int)$em, 59);
+            }
+            // return date('d/m/y H:i:s', strtotime($startDate));
             $query->where(function ($q) use ($startDate, $endDate) {
                                                                         $q->whereRaw(
                                                                             "CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?",
