@@ -211,7 +211,7 @@
         <tr style="font-weight:bold; background:#ebebeb;">
             <td style="text-align:right; padding-right: 20px;">รับเงินสุทธิ</td>
             <td style="text-align:right; padding-right: 20px;">
-                {{ number_format(($grandNetSum ?? 0) - ($summary_non_cash ?? 0), 2) }} บาท
+                {{ number_format(abs(($grandNetSum ?? 0) - ($summary_non_cash ?? 0)), 2) }} บาท
             </td>
         </tr>
     </table>
