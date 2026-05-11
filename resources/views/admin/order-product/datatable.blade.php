@@ -37,10 +37,12 @@
         background: #eef5ff;
     }
 </style>
+<div id="check_value" data-check="{{ $check }}"></div>
 <table class="table table-striped">
     <thead>
         <tr>
             <th class="text-center">#</th>
+            <th class="text-center">วันที่ {{$check}} </th>
             <th class="text-center">คำสั่งซื้อ</th>
             <th class="text-center">สาขา</th>
             <th class="text-center">พนักงานขาย</th>
@@ -54,6 +56,7 @@
             <tr>
                 <td class="text-center">
                     {{ $loop->iteration + ($orderProducts->currentPage() - 1) * $orderProducts->perPage() }}</td>
+                <td class="text-center">{{ date("d/m/Y H:i", strtotime($order->booking_date." ".$order->start_time)) }} น.</td>
                 <td class="text-center">{{ $order->order_number ?? '-' }}</td>
                 <td class="text-center">{{ $order->branch->name ?? '-' }}</td>
                 <td class="text-center">{{ $order->seller->nickname ?? '-' }}</td>
@@ -111,7 +114,9 @@
 
 <script>
     function runAfterLoad() {
-        if("{{$check}}" == 0){
+        let check = $('#check_value').data('check');
+
+        if(check == 0){
             $('.ButtonSummaryReport').prop('disabled', true)
         }else{
             $('.ButtonSummaryReport').prop('disabled', false)

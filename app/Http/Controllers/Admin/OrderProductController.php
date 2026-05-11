@@ -23,7 +23,7 @@ class OrderProductController extends Controller
     {
         // โหลดหน้าแรกพร้อมข้อมูลเริ่มต้น
         $limit = request()->limit ?? 10;
-        $orderProducts = $this->getOrderProducts($limit);
+        // $orderProducts = $this->getOrderProducts($limit);
         $user = Auth::user(); // user ที่ login อยู่
 
         // if ($user->work_status == 3) {
@@ -36,7 +36,7 @@ class OrderProductController extends Controller
         
         $rounds = DailySalesClosure::orderBy('id', 'DESC')->where('ref_account_id', Auth::id())->get();
 
-        return view('admin.order-product.index', compact('orderProducts', 'branches', 'rounds'));
+        return view('admin.order-product.index', compact('branches', 'rounds'));
     }
 
     public function get_history_by_round($ref_daily_sales_closure_id)
@@ -89,7 +89,7 @@ class OrderProductController extends Controller
                                         END
                                     ")
             ->orderBy('id', "DESC")
-            ->whereNull('ref_daily_sales_closure_id')
+            // ->whereNull('ref_daily_sales_closure_id')
             ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
@@ -115,20 +115,28 @@ class OrderProductController extends Controller
         }
 
         // filter by booking_date (date_range, start_date, end_date)
-        $dateRange = request('date_range');
-        $startDate = request('start_date');
-        $endDate = request('end_date');
-        if ($dateRange && $dateRange !== 'custom') {
-            // 1, 7, 14, 30 days
-            $days = intval($dateRange);
-            if ($days > 0) {
-                $from = Carbon::today()->subDays($days - 1)->format('Y-m-d');
-                $to = Carbon::today()->format('Y-m-d');
-                $query->whereBetween('booking_date', [$from, $to]);
-            }
-        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
-            $query->whereBetween('booking_date', [$startDate, $endDate]);
+        
+        $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+        $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+
+        if (request('start_time_filter')) {
+            [$sh, $sm] = explode(':', request('start_time_filter'));
+            $startDate->setTime((int)$sh, (int)$sm, 0);
         }
+        if (request('end_time_filter')) {
+            [$eh, $em] = explode(':', request('end_time_filter'));
+            $endDate->setTime((int)$eh, (int)$em, 59);
+        }
+        // return date('d/m/y H:i:s', strtotime($startDate));
+        $query->where(function ($q) use ($startDate, $endDate) {
+                                                                    $q->whereRaw(
+                                                                        "CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?",
+                                                                        [
+                                                                            $startDate->format('Y-m-d H:i:s'),
+                                                                            $endDate->format('Y-m-d H:i:s')
+                                                                        ]
+                                                                    );
+                                                                });
 
         $check = clone $query;
 
@@ -200,7 +208,7 @@ class OrderProductController extends Controller
             'status'  => $order->status->name
         ]);
     }
-    public function pdf($daily_sales_closure_id = null)
+    public function pdf(Request $request, $daily_sales_closure_id = null)
     {
         // $closures = DailySalesClosure::orderBy("id", "DESC")->where('ref_account_id', Auth::id())->take(1)->get();
         // $DailySalesClosure = $closures[0] ?? null;
@@ -211,12 +219,32 @@ class OrderProductController extends Controller
         // } else {
         //     $date_before = date('d/m/Y', strtotime($DailySalesClosure->date_time)) . " 00:00:00";
         // }
+            
+        $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+        $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+
+        if (request('start_time_filter')) {
+            [$sh, $sm] = explode(':', request('start_time_filter'));
+            $startDate->setTime((int)$sh, (int)$sm, 0);
+        }
+        if (request('end_time_filter')) {
+            [$eh, $em] = explode(':', request('end_time_filter'));
+            $endDate->setTime((int)$eh, (int)$em, 59);
+        }
 
         $product_employee = OrderHasProduct::join('products', 'order_has_products.ref_product_id', '=', 'products.id')
             ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id') // Join เพื่อดึงชื่อประเภท
-            ->whereHas('order', function ($query) use ($daily_sales_closure_id) {
-                $query->where('ref_daily_sales_closure_id', $daily_sales_closure_id)
-                    // ->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
+            ->whereHas('order', function ($query) use ($daily_sales_closure_id, $startDate, $endDate) {
+                $query->where(function ($q) use ($startDate, $endDate) {
+                                                                    $q->whereRaw(
+                                                                        "CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?",
+                                                                        [
+                                                                            $startDate->format('Y-m-d H:i:s'),
+                                                                            $endDate->format('Y-m-d H:i:s')
+                                                                        ]
+                                                                    );
+                                                                })
+                    // ->where('ref_daily_sales_closure_id', $daily_sales_closure_id)
                     ->where('customer_type', 1)
                     ->where('payment_status', 1)
                     ->where('type', 2)
@@ -234,9 +262,17 @@ class OrderProductController extends Controller
 
         $product_customer = OrderHasProduct::join('products', 'order_has_products.ref_product_id', '=', 'products.id')
             ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id')
-            ->whereHas('order', function ($query) use ($daily_sales_closure_id) {
-                $query->where('ref_daily_sales_closure_id', $daily_sales_closure_id)
-                    // ->where('ref_daily_sales_closure_id', $DailySalesClosure->id)
+            ->whereHas('order', function ($query) use ($daily_sales_closure_id, $startDate, $endDate) {
+                $query->where(function ($q) use ($startDate, $endDate) {
+                                                                    $q->whereRaw(
+                                                                        "CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?",
+                                                                        [
+                                                                            $startDate->format('Y-m-d H:i:s'),
+                                                                            $endDate->format('Y-m-d H:i:s')
+                                                                        ]
+                                                                    );
+                                                                })
+                    // ->where('ref_daily_sales_closure_id', $daily_sales_closure_id)
                     ->where('customer_type', 2)
                     ->where('payment_status', 1)
                     ->where('type', 2)
@@ -263,7 +299,15 @@ class OrderProductController extends Controller
                 'orders.id',
                 '=',
                 'order_has_products.ref_order_id'
-            )
+            )->where(function ($q) use ($startDate, $endDate) {
+                                                                    $q->whereRaw(
+                                                                        "CONCAT(orders.booking_date, ' ', orders.start_time) BETWEEN ? AND ?",
+                                                                        [
+                                                                            $startDate->format('Y-m-d H:i:s'),
+                                                                            $endDate->format('Y-m-d H:i:s')
+                                                                        ]
+                                                                    );
+                                                                })
             ->select(
                 'orders.payment_method',
                 DB::raw('SUM(order_has_products.price * order_has_products.quantity) as total_price')
