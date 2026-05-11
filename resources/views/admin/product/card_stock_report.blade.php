@@ -75,7 +75,7 @@
                                             <div class="col-sm-12">
                                                 <h4 class="mb-0">
                                                     <i class="tf-icons ti ti-copy text-main ti-md me-2"></i>
-                                                    สต็อกการ์ด(ดื่ม)
+                                                    สต็อกการ์ด(สินค้า)
                                                 </h4>
                                             </div>
                                             <div class="col-sm-12">

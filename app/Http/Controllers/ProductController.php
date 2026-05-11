@@ -204,6 +204,17 @@ class ProductController extends Controller
             // filter เฉพาะสาขาของตัวเอง
             $results = $results->where('products.ref_branch_id', $user->ref_branch_id);
         }
+        
+        if (@$request->ref_product_id) {
+            // filter เฉพาะสาขาของตัวเอง
+            $results = $results->where('products.id', $request->ref_product_id);
+        }
+
+        if (@$request->created_at) {
+            $created_at = Carbon::createFromFormat('d/m/Y', $request->created_at)->format('Y-m-d');
+            $results = $results->WhereDate('card_stocks.created_at', $created_at);
+        }
+
         if (request()->filled('search')) {
             $search = request()->search;
             $results->Where(function ($query) use ($request) {

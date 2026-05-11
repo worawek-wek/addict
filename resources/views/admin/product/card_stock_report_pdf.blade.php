@@ -30,10 +30,22 @@
                     สินค้า
                 </th>
                 <th class="text-center">
+                    จำนวนก่อนรับเข้า
+                </th>
+                <th class="text-center">
                     รับเข้า
                 </th>
                 <th class="text-center">
+                    จำนวนหลังรับเข้า
+                </th>
+                {{-- <th class="text-center">
                     จ่ายออก
+                </th> --}}
+                <th class="text-center">
+                    เบิกสินค้า
+                </th>
+                <th class="text-center">
+                    นำสินค้าออก
                 </th>
                 <th class="text-center">
                     คงเหลือ
@@ -41,9 +53,9 @@
                 <th class="text-center">
                     สาขา
                 </th>
-                    <th class="text-center">
-                        ราคาต้นทุน
-                    </th>
+                <th class="text-center">
+                    ราคาต้นทุน
+                </th>
                 <th class="text-center">
                     หมายเหตุ
                 </th>
@@ -55,28 +67,40 @@
                 <td class="text-center">
                     {{ $key+1 }}
                 </td>
-                <td class="text-center">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ date('d/m/Y',strtotime($row->created_at)) }}
                 </td>
-                <td class="text-center">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->label }}
                 </td>
-                <td class="text-center">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->product_name }}
                 </td>
-                <td class="text-center text-success">
+                <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+                    {{ $row->stock_before_quantity }}
+                </td>
+                <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->type == 1 ?$row->quantity:''; }}
                 </td>
-                <td class="text-center text-success">
-                    {{ $row->type == 2 ?$row->quantity:''; }}
+                <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+                    {{ $row->stock_after_quantity }}
                 </td>
-                <td class="text-center">
+                {{-- <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+                    {{ $row->type == 2 ?$row->quantity:''; }}
+                </td> --}} 
+                <td class="text-center text-danger" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+                    {{ $row->stock_ready_for_sales()->sum('qty') }}
+                </td>
+                <td class="text-center text-danger" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+                    {{ $row->export_stocks()->sum('quantity') }}
+                </td>
+                <td class="text-center text-warning" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->remain }}
                 </td>
-                <td class="text-center">
+                <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->branch_name }}
                 </td>
-                    <td class="text-center">
+                    <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                         {{ number_format($row->cost_price, 2) }}
                     </td>
                 <td class="text-center">
