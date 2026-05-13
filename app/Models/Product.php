@@ -32,6 +32,22 @@ class Product extends Model
     {
         return $this->hasMany(HistoryStock::class, 'ref_product_id', 'id');
     }
+    public function historyStocksOldest()
+    {
+        return $this->hasOne(HistoryStock::class, 'ref_product_id', 'id')
+            ->oldest('id');
+    }
+    public function historyStocksMaxReady()
+    {
+        return $this->hasOne(HistoryStock::class, 'ref_product_id', 'id')
+            ->ofMany('stock_ready_for_sale_before_quantity', 'max');
+    }
+
+    public function historyStocksLatest()
+    {
+        return $this->hasOne(HistoryStock::class, 'ref_product_id', 'id')
+            ->latest('id');
+    }
     public function historyStocksDecrease() // ดึงแค่ จำนวนที่ลด เช่น ตัดสต็อก
     {
         return $this->hasMany(HistoryStock::class, 'ref_product_id', 'id')->where('quantity_type', 0);

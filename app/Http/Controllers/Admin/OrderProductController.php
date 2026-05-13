@@ -12,6 +12,7 @@ use App\Models\OrderStatus;
 use App\Models\OrderHasProduct;
 use App\Models\Product;
 use App\Models\StockReadyForSale;
+use App\Models\HistoryStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -193,12 +194,39 @@ class OrderProductController extends Controller
         $order->ref_status_id = $request->ref_status_id;
         $order->save();
 
+        
         if ($request->ref_status_id == 4) {
             foreach ($order->products as $product) {
+
+            // ดึง สินค้า ก่อน เพิ่มสต็อก {
+                $old_product = Product::find($product->ref_product_id); // ดึง สินค้า ก่อน เพิ่มสต็อก
+                $main_stock_remain = $old_product->total_remain ?? 0;
+                $ready_for_sale_remain = $old_product->ready_for_sale_total_remain ?? 0;
+            // ดึง สินค้า ก่อน เพิ่มสต็อก }
+            
                 StockReadyForSale::where('ref_product_id', $product->ref_product_id)
                     ->orderByDesc('id')
                     ->limit(1)
                     ->increment('remain', $product->quantity);
+
+            // ดึง สินค้า หลัง เพิ่มสต็อก {
+                $new_product = Product::find($product->ref_product_id);
+                $new_main_stock_remain = $new_product->total_remain ?? 0;
+                $new_ready_for_sale_remain = $new_product->ready_for_sale_total_remain ?? 0;
+            // ดึง สินค้า หลัง เพิ่มสต็อก }
+
+            // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> คืนสต็อกขาย {
+                $history_stock = new HistoryStock;
+                $history_stock->ref_product_id = $product->ref_product_id; // id สินค้า
+                $history_stock->quantity = 0-$product->quantity; // จำนวนที่เคลื่อนไหว
+                $history_stock->stock_before_quantity = $new_main_stock_remain; // จำนวน ก่อน ตัดสต็อก
+                $history_stock->stock_after_quantity = $new_main_stock_remain; // จำนวน หลัง ตัดสต็อก
+                $history_stock->stock_ready_for_sale_before_quantity = $ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+                $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+                $history_stock->quantity_type = 0; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
+                $history_stock->withdraw_quantity = 0;
+                $history_stock->save();
+            // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> คืนสต็อกขาย }
             }
         }
 
@@ -288,8 +316,7 @@ class OrderProductController extends Controller
             );
         $data['product_customer'] = $product_customer->get();
 
-        $payment_channel = Order::where('ref_daily_sales_closure_id', $daily_sales_closure_id)
-            ->where('orders.payment_status', 1)
+        $payment_channel = Order::where('orders.payment_status', 1)
             ->where('orders.type', 2)
             ->where('orders.ref_account_id', Auth::id())
             ->groupBy('orders.payment_method')
@@ -447,10 +474,37 @@ class OrderProductController extends Controller
 
             // Restore stock for all existing order items before deleting them
             foreach ($order->products as $oldItem) {
+
+            // ดึง สินค้า ก่อน เพิ่มสต็อก {
+                $old_product = Product::find($oldItem->ref_product_id); // ดึง สินค้า ก่อน เพิ่มสต็อก
+                $main_stock_remain = $old_product->total_remain ?? 0;
+                $ready_for_sale_remain = $old_product->ready_for_sale_total_remain ?? 0;
+            // ดึง สินค้า ก่อน เพิ่มสต็อก }
+
                 StockReadyForSale::where('ref_product_id', $oldItem->ref_product_id)
-                    ->orderByDesc('id')
-                    ->limit(1)
-                    ->increment('remain', $oldItem->quantity);
+                                    ->orderByDesc('id')
+                                    ->limit(1)
+                                    ->increment('remain', $oldItem->quantity);
+
+            // ดึง สินค้า หลัง เพิ่มสต็อก {
+                $new_product = Product::find($oldItem->ref_product_id);
+                $new_main_stock_remain = $new_product->total_remain ?? 0;
+                $new_ready_for_sale_remain = $new_product->ready_for_sale_total_remain ?? 0;
+            // ดึง สินค้า หลัง เพิ่มสต็อก }
+
+            // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> คืนสต็อกขาย {
+                $history_stock = new HistoryStock;
+                $history_stock->ref_product_id = $oldItem->ref_product_id; // id สินค้า
+                $history_stock->quantity = 0-$oldItem->quantity; // จำนวนที่เคลื่อนไหว
+                $history_stock->stock_before_quantity = $new_main_stock_remain; // จำนวน ก่อน ตัดสต็อก
+                $history_stock->stock_after_quantity = $new_main_stock_remain; // จำนวน หลัง ตัดสต็อก
+                $history_stock->stock_ready_for_sale_before_quantity = $ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+                $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+                $history_stock->quantity_type = 0; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
+                $history_stock->withdraw_quantity = 0;
+                $history_stock->save();
+            // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> คืนสต็อกขาย }
+
             }
 
             //clear old items
@@ -464,10 +518,18 @@ class OrderProductController extends Controller
             //add new items and decrement stock
             foreach ($items as $item) {
                 $product = Product::find($item['product_id']);
+                
                 if ($product) {
                     $price    = isset($item['price']) ? floatval($item['price']) : $product->price;
                     $quantity = $item['qty'] ?? $item['quantity'] ?? 1;
                     $totalPrice = $price * $quantity;
+                    
+                // ดึง สินค้า ก่อน เพิ่มสต็อก {
+                    $old_product = Product::find($product->id); // ดึง สินค้า ก่อน เพิ่มสต็อก
+                    $main_stock_remain = $old_product->total_remain ?? 0;
+                    $ready_for_sale_remain = $old_product->ready_for_sale_total_remain ?? 0;
+                // ดึง สินค้า ก่อน เพิ่มสต็อก }
+
                     OrderHasProduct::create([
                         'ref_order_id'   => $order->id,
                         'ref_product_id' => $product->id,
@@ -478,10 +540,30 @@ class OrderProductController extends Controller
                     ]);
                     // Decrement stock for the newly added item
                     StockReadyForSale::where('ref_product_id', $product->id)
-                        ->orderByDesc('id')
-                        ->limit(1)
-                        ->decrement('remain', $quantity);
+                                        ->orderByDesc('id')
+                                        ->limit(1)
+                                        ->decrement('remain', $quantity);
                     $order->total_price += $totalPrice;
+
+                // ดึง สินค้า หลัง เพิ่มสต็อก {
+                    $new_product = Product::find($product->id);
+                    $new_main_stock_remain = $new_product->total_remain ?? 0;
+                    $new_ready_for_sale_remain = $new_product->ready_for_sale_total_remain ?? 0;
+                // ดึง สินค้า หลัง เพิ่มสต็อก }
+
+                // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> คืนสต็อกขาย {
+                    $history_stock = new HistoryStock;
+                    $history_stock->ref_product_id = $product->id; // id สินค้า
+                    $history_stock->quantity = $quantity; // จำนวนที่เคลื่อนไหว
+                    $history_stock->stock_before_quantity = $new_main_stock_remain; // จำนวน ก่อน ตัดสต็อก
+                    $history_stock->stock_after_quantity = $new_main_stock_remain; // จำนวน หลัง ตัดสต็อก
+                    $history_stock->stock_ready_for_sale_before_quantity = $ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+                    $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+                    $history_stock->quantity_type = 0; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
+                    $history_stock->withdraw_quantity = 0;
+                    $history_stock->save();
+                // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> คืนสต็อกขาย }
+
                 } else {
                     throw new \Exception("ไม่พบสินค้า ID: " . $item['product_id']);
                 }

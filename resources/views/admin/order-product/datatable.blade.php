@@ -37,12 +37,11 @@
         background: #eef5ff;
     }
 </style>
-<div id="check_value" data-check="{{ $check }}"></div>
 <table class="table table-striped">
     <thead>
         <tr>
             <th class="text-center">#</th>
-            <th class="text-center">วันที่ {{$check}} </th>
+            <th class="text-center">วันที่</th>
             <th class="text-center">คำสั่งซื้อ</th>
             <th class="text-center">สาขา</th>
             <th class="text-center">พนักงานขาย</th>
@@ -111,7 +110,7 @@
 
     </tbody>
 </table>
-
+<div id="check_value" data-check="{{ $check }}"></div>
 <script>
     function runAfterLoad() {
         let check = $('#check_value').data('check');

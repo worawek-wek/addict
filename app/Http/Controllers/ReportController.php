@@ -109,11 +109,26 @@ class ReportController extends Controller
                                 }
                             ], 'quantity')
 
-                            ->with([
-                                'history_stocks' => function ($q) use ($startDate, $endDate) {
-                                    $q->whereBetween('created_at', [$startDate, $endDate])
-                                    ->orderBy('created_at', 'asc');
+                            ->withSum([
+                                'history_stocks as total_withdraw_quantity' => function ($q) use ($startDate, $endDate) {
+                                    $q->whereBetween('created_at', [$startDate, $endDate]);
                                 }
+                            ], 'withdraw_quantity')
+
+                            ->with([
+
+                                'historyStocksMaxReady' => function ($q) use ($startDate, $endDate) {
+                                    $q->whereBetween('created_at', [$startDate, $endDate]);
+                                },
+
+                                'historyStocksOldest' => function ($q) use ($startDate, $endDate) {
+                                    $q->whereBetween('created_at', [$startDate, $endDate]);
+                                },
+
+                                'historyStocksLatest' => function ($q) use ($startDate, $endDate) {
+                                    $q->whereBetween('created_at', [$startDate, $endDate]);
+                                }
+
                             ]);
             // $query->whereBetween('created_at', [$startDate, $endDate]);
         }

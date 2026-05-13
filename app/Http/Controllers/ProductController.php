@@ -293,6 +293,12 @@ class ProductController extends Controller
     public function withdraw(Request $request)
     {
         try {
+            $product = Product::find($request->ref_product_id);
+            $main_stock_remain = $product->total_remain ?? 0;
+            $ready_for_sale_remain = $product->ready_for_sale_total_remain ?? 0;
+
+//////////////////////////////////////////////////
+
             $card_stocks = CardStocks::find($request->ref_lot_id);
             $card_stocks->remain = $card_stocks->remain-$request->qty;
             $card_stocks->save();
@@ -303,6 +309,25 @@ class ProductController extends Controller
             $product->qty = $request->qty;
             $product->remain = $request->qty;
             $product->save();
+            
+//////////////////////////////////////////////////
+
+                $new_product = Product::find($request->ref_product_id);
+                $new_main_stock_remain = $new_product->total_remain ?? 0;
+                $new_ready_for_sale_remain = $new_product->ready_for_sale_total_remain ?? 0;
+                
+// เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> ตัดสต็อก {
+                $history_stock = new HistoryStock;
+                $history_stock->ref_product_id = $request->ref_product_id; // id สินค้า
+                $history_stock->quantity = 0; // จำนวนที่เคลื่อนไหว
+                $history_stock->stock_before_quantity = $main_stock_remain; // จำนวน ก่อน ตัดสต็อก
+                $history_stock->stock_after_quantity = $new_main_stock_remain; // จำนวน หลัง ตัดสต็อก
+                $history_stock->withdraw_quantity = $request->qty; // จำนวน ก่อน ตัดสต็อก 
+                $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+                $history_stock->stock_ready_for_sale_before_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+                $history_stock->quantity_type = 0; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
+                $history_stock->save();
+
 
             DB::commit();
             return true;
@@ -325,7 +350,6 @@ class ProductController extends Controller
         //     $remain = $card_stocks->remain;
         // }
         try {
-
         // ดึง สินค้า ก่อน เพิ่มสต็อก {
             $product = Product::find($request->ref_product_id); // ดึง สินค้า ก่อน เพิ่มสต็อก
             $main_stock_remain = $product->total_remain ?? 0;
@@ -352,15 +376,18 @@ class ProductController extends Controller
             $new_main_stock_remain = $new_product->total_remain ?? 0;
             $new_ready_for_sale_remain = $new_product->ready_for_sale_total_remain ?? 0;
         // ดึง สินค้า หลัง เพิ่มสต็อก }
-        // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> ตัดสต็อก {
+        // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> เบิกไปสต็อกขาย {
             $history_stock = new HistoryStock;
             $history_stock->ref_product_id = $request->ref_product_id; // id สินค้า
             $history_stock->quantity = $request->quantity; // จำนวนที่เคลื่อนไหว
-            $history_stock->stock_before_quantity = $main_stock_remain + $ready_for_sale_remain; // จำนวน ก่อน ตัดสต็อก
-            $history_stock->stock_after_quantity = $new_main_stock_remain + $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+            $history_stock->stock_before_quantity = $main_stock_remain; // จำนวน ก่อน ตัดสต็อก
+            $history_stock->stock_after_quantity = $new_main_stock_remain; // จำนวน หลัง ตัดสต็อก
+            $history_stock->stock_ready_for_sale_before_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+            $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
             $history_stock->quantity_type = 1; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
+            $history_stock->withdraw_quantity = 0;
             $history_stock->save();
-        // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> ตัดสต็อก }
+        // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> เบิกไปสต็อกขาย }
 
             DB::commit();
             return true;
