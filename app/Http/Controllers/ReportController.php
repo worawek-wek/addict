@@ -98,13 +98,19 @@ class ReportController extends Controller
             }
             // return $endDate;
             $query->withSum([
-                                'historyStocksDecrease as quantity_decrease' => function ($q) use ($startDate, $endDate) {
+                                'historyStocksDecrease as quantity_decrease' => function ($q) use ($startDate, $endDate) { // จำนวน ลด จาก ขายของ สต็อกขาย
                                     $q->whereBetween('created_at', [$startDate, $endDate]);
                                 }
                             ], 'quantity')
 
                             ->withSum([
-                                'historyStocksIncrease as quantity_increase' => function ($q) use ($startDate, $endDate) {
+                                'historyStocksIncrease as quantity_increase' => function ($q) use ($startDate, $endDate) { // จำนวน เพิ่ม จาก คืนของ สต็อกขาย
+                                    $q->whereBetween('created_at', [$startDate, $endDate]);
+                                }
+                            ], 'quantity')
+
+                            ->withSum([
+                                'historyStocksExport as quantity_export' => function ($q) use ($startDate, $endDate) { // จำนวน นำออก สต็อกหลัก
                                     $q->whereBetween('created_at', [$startDate, $endDate]);
                                 }
                             ], 'quantity')

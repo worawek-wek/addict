@@ -430,9 +430,12 @@ class ProductController extends Controller
             $history_stock = new HistoryStock;
             $history_stock->ref_product_id = $request->ref_product_id; // id สินค้า
             $history_stock->quantity = $request->qty; // จำนวนที่เคลื่อนไหว
-            $history_stock->stock_before_quantity = $main_stock_remain + $ready_for_sale_remain; // จำนวน ก่อน ตัดสต็อก
-            $history_stock->stock_after_quantity = $new_main_stock_remain + $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+            $history_stock->stock_before_quantity = $main_stock_remain; // จำนวน ก่อน ตัดสต็อก
+            $history_stock->stock_after_quantity = $new_main_stock_remain; // จำนวน หลัง ตัดสต็อก
+            $history_stock->stock_ready_for_sale_before_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+            $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
             $history_stock->quantity_type = 2; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
+            $history_stock->withdraw_quantity = 0;
             $history_stock->save();
         // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> ตัดสต็อก }
 

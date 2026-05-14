@@ -27,6 +27,9 @@
                 คงเหลือ(สต็อกขาย)
             </th>
             <th class="text-center">
+                นำออก(สต็อกหลัก)
+            </th>
+            <th class="text-center">
                 คงเหลือ(สต็อกหลัก)
             </th>
         </tr>
@@ -60,6 +63,9 @@
             <td class="text-center">
                 {{ optional($row->historyStocksLatest)->stock_ready_for_sale_after_quantity ?? 0 }}
             </td>      
+            <td class="text-center">
+                {{ 0-$row->quantity_export ?? 0 }}
+            </td>
             <td class="text-center">
                 {{ optional($row->historyStocksLatest)->stock_after_quantity ?? 0 }}
                 {{-- {{ $row->lastOrderOfDay->stock_after_quantity ?? $row->total_remain + $row->ready_for_sale_total_remain }} --}}

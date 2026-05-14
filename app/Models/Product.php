@@ -48,13 +48,17 @@ class Product extends Model
         return $this->hasOne(HistoryStock::class, 'ref_product_id', 'id')
             ->latest('id');
     }
-    public function historyStocksDecrease() // ดึงแค่ จำนวนที่ลด เช่น ตัดสต็อก
+    public function historyStocksDecrease() // ดึงแค่ จำนวนที่ลดสต็อกขาย เช่น ขายสินค้า
     {
         return $this->hasMany(HistoryStock::class, 'ref_product_id', 'id')->where('quantity_type', 0);
     }
-    public function historyStocksIncrease() // ดึงแค่ จำนวนที่เพิ่ม เช่น เพิ่มสต็อก
+    public function historyStocksIncrease() // ดึงแค่ จำนวนที่เพิ่มสต็อกขาย เช่น คืนสต็อก
     {
         return $this->hasMany(HistoryStock::class, 'ref_product_id', 'id')->where('quantity_type', 1);
+    }
+    public function historyStocksExport() // ดึงแค่ จำนวนที่นำออกสต็อกหลัก
+    {
+        return $this->hasMany(HistoryStock::class, 'ref_product_id', 'id')->where('quantity_type', 2);
     }
     public function getQuantitySumAttribute() // เวลา เรียกใช้ ->quantity_sum
     {
