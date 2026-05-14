@@ -45,7 +45,7 @@
             </td>
             <td class="text-center">
                 {{-- {{ $row->firstOrderOfDay->stock_before_quantity ?? $row->total_remain + $row->ready_for_sale_total_remain }} --}}
-                {{ optional($row->historyStocksOldest)->stock_before_quantity ?? 0 }}
+                {{ optional($row->historyStocksOldest)->stock_before_quantity ?? $row->total_remain }}
             </td>
             <td class="text-center">
                 {{ $row->quantity_increase ?? 0 }}
@@ -54,20 +54,20 @@
                 {{ $row->total_withdraw_quantity ?? 0 }}
             </td>
             <td class="text-center">
-                {{ optional($row->historyStocksMaxReady)->stock_ready_for_sale_before_quantity ?? 0 }}
+                {{ optional($row->historyStocksMaxReady)->stock_ready_for_sale_before_quantity ?? $row->ready_for_sale_total_remain }}
                 {{-- {{ $row->total_withdraw_quantity ?? 0 }} --}}
             </td>
             <td class="text-center">
                 {{ 0-$row->quantity_decrease ?? 0 }}
             </td>
             <td class="text-center">
-                {{ optional($row->historyStocksLatest)->stock_ready_for_sale_after_quantity ?? 0 }}
+                {{ optional($row->historyStocksLatest)->stock_ready_for_sale_after_quantity ?? $row->ready_for_sale_total_remain }}
             </td>      
             <td class="text-center">
                 {{ 0-$row->quantity_export ?? 0 }}
             </td>
             <td class="text-center">
-                {{ optional($row->historyStocksLatest)->stock_after_quantity ?? 0 }}
+                {{ optional($row->historyStocksLatest)->stock_after_quantity ?? $row->total_remain }}
                 {{-- {{ $row->lastOrderOfDay->stock_after_quantity ?? $row->total_remain + $row->ready_for_sale_total_remain }} --}}
             </td>     
         </tr>

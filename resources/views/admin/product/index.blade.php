@@ -579,8 +579,11 @@
                     success: function(response) {
                         if (response == true) {
                             $('#withdraw_product')[0].reset();
-                            Swal.fire('เบิกสินค้าเรียบร้อยแล้ว', '', 'success');
                             $('#withdrawModal').modal('hide');
+                            Swal.fire('เบิกสินค้าเรียบร้อยแล้ว', '', 'success')
+                                .then(() => {
+                                    location.reload();
+                                });
                             loadData(page);
                         }
                     },
