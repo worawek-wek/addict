@@ -223,7 +223,7 @@
                         <div class="row g-3 p-4">
                             <div class="col-sm-6">
                                 <label for="" class="form-label">สินค้า</label>
-                                <select name="ref_product_id" id="select2Position1" class="select2 form-select form-select-lg" data-allow-clear="true">
+                                <select name="ref_product_id" id="select2Position1" class="select2 form-select form-select-lg select2-import-stock" data-allow-clear="true">
                                     @foreach ($product as $pro)
                                         <option value="{{$pro->id}}">{{$pro->name}}</option>
                                     @endforeach
@@ -269,7 +269,7 @@
 
                             <div class="col-sm-6">
                                 <label>เลือกสินค้า</label>
-                                <select name="ref_product_id" id="select2Product" class="">
+                                <select name="ref_product_id" id="select2Product" class="select2-export-stock">
                                     <option selected disabled hidden value="">เลือกสินค้า</option>
                                     @foreach ($product as $pos)
                                         <option value="{{ $pos->id }}">{{ $pos->name }}</option>
@@ -477,6 +477,9 @@
                         success: function(response) {
                             if (response == true) {
                                 $('#insert_user')[0].reset();
+                                $('.select2-import-stock').each(function () {
+                                    $(this).prop('selectedIndex', 0).trigger('change');
+                                });
                                 Swal.fire('นำเข้าสินค้าเรียบร้อยแล้ว', '', 'success');
                                 $('#addserviceModal').modal('hide');
                                 loadData(page);

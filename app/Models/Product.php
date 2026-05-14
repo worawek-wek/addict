@@ -35,18 +35,18 @@ class Product extends Model
     public function historyStocksOldest()
     {
         return $this->hasOne(HistoryStock::class, 'ref_product_id', 'id')
-            ->oldest('id');
+                    ->oldest('id');
     }
     public function historyStocksMaxReady()
     {
         return $this->hasOne(HistoryStock::class, 'ref_product_id', 'id')
-            ->ofMany('stock_ready_for_sale_before_quantity', 'max');
+                    ->orderByDesc('stock_ready_for_sale_before_quantity')
+                    ->orderByDesc('id');
     }
-
     public function historyStocksLatest()
     {
         return $this->hasOne(HistoryStock::class, 'ref_product_id', 'id')
-            ->latest('id');
+                    ->latest('id');
     }
     public function historyStocksDecrease() // ดึงแค่ จำนวนที่ลดสต็อกขาย เช่น ขายสินค้า
     {
