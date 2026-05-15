@@ -322,11 +322,11 @@
                         <div data-i18n="รายงานขายสินค้า">รายงานขายสินค้า</div>
                     </a>
                 </li> --}}
-                <li class="menu-item">
+                {{-- <li class="menu-item">
                     <a href="/admin/sales_report" class="menu-link">
                         <div data-i18n="รายงานยอดขายสินค้าของสาขา">รายงานยอดขายสินค้าของสาขา</div>
                     </a>
-                </li>
+                </li> --}}
                 <li class="menu-item">
                     <a href="/admin/report/stock-history" class="menu-link">
                         <div data-i18n="รายงานสต็อกการ์ด(สินค้า)">รายงานสต็อกการ์ด(สินค้า)</div>
