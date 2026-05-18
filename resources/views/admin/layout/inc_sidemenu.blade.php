@@ -64,11 +64,11 @@
 </style>
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme pt-2">
     <div class="app-brand demo" style="height: 66px;">
-        <a href="index.html" class="app-brand-link d-block text-center w-100">
+        <div class="app-brand-link d-block text-center w-100">
             <img src="assets/img/illustrations/main.png" alt="" class="mw-100" height="100%">
-        </a>
+        </div>
 
-        <a href="javascript:void(0);" class="layout-menu-toggle text-large ms-auto" style="color: white;">
+        <a href="javascript:void(0);" class="layout-menu-toggle text-large ms-auto text-main">
             <i class="ti menu-toggle-icon d-none d-xl-block ti-sm align-middle"></i>
             <i class="ti ti-x d-block d-xl-none ti-sm align-middle"></i>
         </a>

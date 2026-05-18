@@ -325,6 +325,19 @@
                                                     </label>
                                                 </div>
 
+                                        {{-- <div class="col-md-6">
+                                            <input type="radio" class="btn-check calculate"
+                                                name="payment_method"
+                                                id="pay-cash"
+                                                value="cash"
+                                                required>
+
+                                            <label class="card payment-card text-center p-3" for="pay-cash">
+                                                <i class="bi bi-cash-coin fs-1 text-success"></i>
+                                                <div class="mt-2 fw-bold">เงินสด</div>
+                                            </label>
+                                        </div> --}}
+
                                                 <!-- บัตรเครดิต -->
                                                 <div class="col-md-6">
                                                     <input type="radio" class="btn-check payment-method"

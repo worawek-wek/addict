@@ -415,6 +415,7 @@
                                                 name="payment_method"
                                                 id="pay-cash"
                                                 value="cash"
+                                                checked
                                                 required>
 
                                             <label class="card payment-card text-center p-3" for="pay-cash">
@@ -831,7 +832,28 @@
                 this.reportValidity();
                 return console.log('ฟอร์มไม่ถูกต้อง');
             }
+            if($('.reception-input').val() && !$('#salesReceptionSelect').val()){
 
+                const data = $('#salesReceptionSelect').val();
+
+                if(data != ''){
+
+                }else{
+                    Swal.fire('โปรดตรวจสอบพนักงานขาย.!', '', 'warning');
+                    return;
+                }
+            }
+            if($('.staff-input').val() && !$('#salesStaffSelect').val()){
+
+                const data = $('#salesStaffSelect').val();
+
+                if(data != ''){
+
+                }else{
+                    Swal.fire('โปรดตรวจสอบพนักงานนวด.!', '', 'warning');
+                    return;
+                }
+            }
             var formData = new FormData(this);
 
             Swal.fire({
@@ -946,6 +968,7 @@
     document.querySelectorAll('.staff-input').forEach(input => {
         input.addEventListener('click', function () {
             this.value = '';
+            $('#salesStaffSelect').val('');
             this.focus();
         });
         input.addEventListener('keydown', function (e) {
@@ -984,6 +1007,7 @@
     document.querySelectorAll('.reception-input').forEach(input => {
         input.addEventListener('click', function () {
             this.value = '';
+            $('#salesReceptionSelect').val('');
             this.focus();
         });
         input.addEventListener('keydown', function (e) {
