@@ -183,7 +183,7 @@
                             @foreach ($branch as $bra)
                                 <input class="form-check-input" type="radio" name="ref_branch_id"
                                        id="branch{{ $bra->id }}" value="{{ $bra->id }}"
-                                       {{ $loop->first ? 'checked' : '' }}>
+                                       {{ $loop->first ? 'checked' : '' }} @if (Auth::user()->ref_branch_id == $bra->id) checked @endif>
                                 <label class="form-check-label me-4" for="branch{{ $bra->id }}">
                                     {{ $bra->name }}
                                 </label>
