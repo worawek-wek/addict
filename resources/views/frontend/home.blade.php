@@ -124,21 +124,13 @@
                                     @foreach ($room_type as $key => $item)
                                         
                                     <input type="radio"
-                                            class="btn-check"
+                                            class="btn-check roomTypeB{{$item->ref_branch_id}}"
                                             name="roomType"
                                             id="roomType1{{$key}}"
                                             value="{{ $item->id }}"
-                                            {{-- 
-                                            value="{{ $item['detail']->id }}"
-                                            data-name="{{ $item['name'] }}"
-                                            @foreach ($item['detail']->room_type_has_course as $key1 => $c_item)
-                                                data-{{ $c_item->ref_course_id }}="{{ $c_item->price }}"
-                                            @endforeach --}}
-                                            {{-- data-sixty="{{ $price+700 }}"
-                                            data-ninety="{{ $price+900 }}" --}}
                                             >
 
-                                    <label class="btn btn-purple-check d-flex flex-column justify-content-center text-center"
+                                    <label class="btn btn-purple-check d-flex flex-column justify-content-center text-center roomTypeB{{$item->ref_branch_id}}"
                                         style="width: 19%; min-width: 120px;"
                                         for="roomType1{{$key}}">
 
@@ -268,6 +260,11 @@
                                 // โหลด Add-on Options ใหม่เมื่อเลือกสาขา
         $(document).on('change', 'input[name="ref_branch_id"]', function() {
             const branchId = $(this).val();
+            
+            $('[class*="roomTypeB"]').hide();
+
+            $('.roomTypeB' + branchId).show();
+
             $.get('/api/addon-options/' + branchId, function(options) {
                 let html = '';
                 options.forEach(function(item) {
