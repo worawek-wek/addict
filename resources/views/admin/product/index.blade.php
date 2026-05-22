@@ -85,7 +85,7 @@
                                                         <option value="">ทั้งหมด</option>
                                                     @endif
                                                     @foreach ($branch as $bra)
-                                                        <option value="{{ $bra->id }}">{{ $bra->name }}</option>
+                                                        <option value="{{ $bra->id }}" @if (Auth::user()->ref_branch_id == $bra->id) selected @endif>{{ $bra->name }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -210,14 +210,60 @@
                     <div class="modal-body">
                         <div class="row g-3 p-4">
 
+                            <div class="col-sm-12">
+
+                                <label class="form-label">สาขา</label>
+                                <span class="text-danger">*</span><br>
+
+                                @foreach ($branch as $bra)
+
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="ref_branch_id"
+                                        id="withdraw_branch{{ $bra->id }}"
+                                        value="{{ $bra->id }}"
+                                        onchange="filterWithdrawProduct(this.value)"
+                                        {{ Auth::user()->ref_branch_id == $bra->id ? 'checked' : '' }}>
+
+                                    <label
+                                        class="form-check-label me-4"
+                                        for="withdraw_branch{{ $bra->id }}">
+
+                                        {{ $bra->name }}
+
+                                    </label>
+
+                                @endforeach
+
+                            </div>
+
                             <div class="col-sm-6">
+
                                 <label>เลือกสินค้า</label>
-                                <select name="ref_product_id" id="select2Product" class="">
-                                    <option selected disabled hidden value="">เลือกสินค้า</option>
+
+                                <select
+                                    name="ref_product_id"
+                                    id="select2Product">
+
+                                    <option value="">
+                                        เลือกสินค้า
+                                    </option>
+
                                     @foreach ($product as $pos)
-                                        <option value="{{ $pos->id }}">{{ $pos->name }}</option>
+
+                                        <option
+                                            value="{{ $pos->id }}"
+                                            data-branch="{{ $pos->ref_branch_id }}">
+
+                                            {{ $pos->name }}
+
+                                        </option>
+
                                     @endforeach
+
                                 </select>
+
                             </div>
 
                             <div class="col-sm-4">
@@ -251,28 +297,64 @@
                     @csrf
                     <div class="modal-body">
                         <div class="row g-3 p-4">
-                            <div class="col-sm-12">
-                                <label for="" class="form-label">สาขา</label><span class="text-danger">
-                                    *</span><br>
-                                @foreach ($branch as $bra)
-                                    <input class="form-check-input" type="radio" name="ref_branch_id"
-                                        id="branch{{ $bra->id }}" value="{{ $bra->id }}"
-                                        {{ $loop->first ? 'checked' : '' }}>
-                                    <label class="form-check-label me-4" for="branch{{ $bra->id }}">
-                                        {{ $bra->name }}
-                                    </label>
-                                @endforeach
-                            </div>
-                            <div class="col-sm-6">
-                                <label for="" class="form-label">ประเภทสินค้า</label><span class="text-danger">
-                                    *</span>
-                                <select name="producttype" id="producttype" class="form-control">
-                                    <option value="">---เลือกประเภทสินค้า---</option>
-                                    @foreach ($producttype as $item)
-                                        <option value="{{ $item->id }}">{{ $item->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+<div class="col-sm-12">
+
+    <label class="form-label">สาขา</label>
+    <span class="text-danger">*</span><br>
+
+    @foreach ($branch as $bra)
+
+        <input
+            class="form-check-input branch-radio-insert"
+            type="radio"
+            name="ref_branch_id"
+            id="insert_branch{{ $bra->id }}"
+            value="{{ $bra->id }}"
+            onchange="filterProductType(this.value)"
+            {{ Auth::user()->ref_branch_id == $bra->id ? 'checked' : '' }}>
+
+        <label
+            class="form-check-label me-4"
+            for="insert_branch{{ $bra->id }}">
+
+            {{ $bra->name }}
+
+        </label>
+
+    @endforeach
+
+</div>
+
+<div class="col-sm-6">
+
+    <label class="form-label">ประเภทสินค้า</label>
+
+    <span class="text-danger">*</span>
+
+    <select
+        name="producttype"
+        id="producttype"
+        class="form-control">
+
+        <option value="">
+            ---เลือกประเภทสินค้า---
+        </option>
+
+        @foreach ($producttype as $item)
+
+            <option
+                value="{{ $item->id }}"
+                data-branch="{{ $item->ref_branch_id }}">
+
+                {{ $item->name }}
+
+            </option>
+
+        @endforeach
+
+    </select>
+
+</div>
                             <div class="col-sm-6">
                                 <label for="" class="form-label">ชื่อสินค้า</label><span class="text-danger">
                                     *</span>
@@ -339,8 +421,28 @@
                 <div class="modal-body p-4">
 
                     <form id="formAddProductType" class="mb-4 d-flex gap-2">
-                        <input type="text" id="new_type_name" class="form-control" placeholder="กรอกชื่อประเภทสินค้าใหม่ที่นี่..." required>
-                        <button type="submit" class="btn btn-success text-nowrap"><i class="ti ti-plus"></i> เพิ่ม</button>
+                        
+                        <div class="row g-3 p-4">
+                            <div class="col-sm-12">
+                                <label class="form-label">สาขา *</label><br>
+                                @foreach ($branch as $bra)
+                                    <input class="form-check-input product_type_branch_id" type="radio" name="ref_branch_id"
+                                        id="add-branch{{ $bra->id }}" value="{{ $bra->id }}"
+                                        {{ $loop->first ? 'checked' : '' }} @if (Auth::user()->ref_branch_id == $bra->id) checked @endif>
+                                    <label class="form-check-label me-4" for="add-branch{{ $bra->id }}">
+                                        {{ $bra->name }}
+                                    </label>
+                                @endforeach
+                            </div>
+
+                            <div class="col-sm-12">
+                                <label class="form-label">ชื่อประเภทสินค้า *</label><br>
+                                <input type="text" id="new_type_name" class="form-control" placeholder="กรอกชื่อประเภทสินค้าใหม่ที่นี่..." required>
+                            </div>
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-success text-nowrap"><i class="ti ti-plus"></i> เพิ่ม</button>
+                            </div>
+                        </div>
                     </form>
 
                     <hr>
@@ -351,6 +453,7 @@
                                 <tr>
                                     <th width="15%" class="text-center">ลำดับ</th>
                                     <th>ชื่อประเภทสินค้า</th>
+                                    <th>สาขา</th>
                                     <th width="25%" class="text-center">จัดการ</th>
                                 </tr>
                             </thead>
@@ -713,6 +816,7 @@
                             <tr>
                                 <td class="text-center">${index + 1}</td>
                                 <td>${item.name}</td>
+                                <td>${item.branch.name}</td>
                                 <td class="text-center">
                                     <button type="button" class="btn btn-sm btn-icon btn-warning waves-effect" onclick="editProductType(${item.id}, '${item.name}')" title="แก้ไข">
                                         <i class="ti ti-edit"></i>
@@ -738,13 +842,15 @@
     $('#formAddProductType').on('submit', function(event) {
         event.preventDefault();
         let typeName = $('#new_type_name').val();
+        let ref_branch_id = $('.product_type_branch_id:checked').val();
 
         $.ajax({
             url: '/admin/product-type/store',
             type: 'POST',
             data: {
                 _token: "{{ csrf_token() }}",
-                name: typeName
+                name: typeName,
+                ref_branch_id: ref_branch_id
             },
             success: function(response) {
                 if (response.status == true || response == true) {
@@ -833,7 +939,79 @@
             }
         });
     }
+    // เลือกสาขาแล้วให้แสดง ประภทสินค้า สาขา นั้น ๆ
+    
+    const allWithdrawProducts = [];
 
+    $('#select2Product option').each(function () {
+
+        allWithdrawProducts.push({
+            value: $(this).val(),
+            text: $(this).text(),
+            branch: $(this).data('branch')
+        });
+
+    });
+
+    const allProducts = @json($product);
+
+    function filterWithdrawProduct(branchId) {
+
+        select2Product.clear();
+
+        select2Product.clearOptions();
+
+        allProducts.forEach(product => {
+
+            if (product.ref_branch_id == branchId) {
+
+                select2Product.addOption({
+                    value: product.id,
+                    text: product.name
+                });
+
+            }
+
+        });
+
+        select2Product.refreshOptions(false);
+    }
+
+
+    // โหลดครั้งแรก
+    filterWithdrawProduct(
+        $('input[id^="withdraw_branch"]:checked').val()
+    );
+
+    // =========================
+    // เพิ่มสินค้า
+    // =========================
+
+    const productTypeOptions =
+        $('#producttype').html();
+
+    function filterProductType(branchId) {
+
+        $('#producttype').html(productTypeOptions);
+
+        $('#producttype option').each(function () {
+
+            let branch = $(this).data('branch');
+
+            if (branch && branch != branchId) {
+                $(this).remove();
+            }
+
+        });
+
+    }
+
+
+    // โหลดครั้งแรก
+
+    filterProductType(
+        $('.branch-radio-insert:checked').val()
+    );
 
 </script>
 </body>

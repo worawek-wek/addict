@@ -83,7 +83,7 @@
                                                     <option value="">ทั้งหมด</option>
                                                 @endif
                                                 @foreach ($branch as $bra)
-                                                    <option value="{{ $bra->id }}">{{ $bra->name }}</option>
+                                                    <option value="{{ $bra->id }}" @if (Auth::user()->ref_branch_id == $bra->id) selected @endif>{{ $bra->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -200,6 +200,18 @@
                             </select>
                         </div> --}}
 
+                        <div class="col-sm-12">
+                            <label class="form-label">สาขา *</label><br>
+                            @foreach ($branch as $bra)
+                                <input class="form-check-input" type="radio" name="ref_branch_id"
+                                       id="add-branch{{ $bra->id }}" value="{{ $bra->id }}"
+                                       {{ $loop->first ? 'checked' : '' }}  @if (Auth::user()->ref_branch_id == $bra->id) checked @endif>
+                                <label class="form-check-label me-4" for="add-branch{{ $bra->id }}">
+                                    {{ $bra->name }}
+                                </label>
+                            @endforeach
+                        </div>
+
                         <div class="col-sm-6">
                             <label class="form-label">ชื่อรูปแบบห้อง *</label>
                             <input name="name" type="text" class="form-control" placeholder="ชื่อรูปแบบห้อง" required />
@@ -207,19 +219,19 @@
 
                         <div class="w-100"></div>
                         @foreach ($course as $course_item)
-                            <div class="col-sm-4">
+                            <div class="col-sm-4 course-item course{{$course_item->ref_branch_id}}">
                                 <label class="form-label">{{ $course_item->name }} *</label>
                                 <input name="course[{{$course_item->id}}][price]" type="number" class="form-control"
                                     placeholder="{{ $course_item->name }}" required />
                             </div>
 
-                            <div class="col-sm-4">
+                            <div class="col-sm-4 course-item course{{$course_item->ref_branch_id}}">
                                 <label class="form-label">ค่ามือ</label>
                                 <input name="course[{{$course_item->id}}][commission]" type="number" class="form-control"
                                     placeholder="ค่ามือ" />
                             </div>
 
-                            <div class="col-sm-4">
+                            <div class="col-sm-4 course-item course{{$course_item->ref_branch_id}}">
                                 <label class="form-label">คูปอง</label>
                                 <input name="course[{{$course_item->id}}][coupon]" type="number" class="form-control"
                                     placeholder="คูปอง" />
@@ -316,6 +328,34 @@
             }
         });
     }
+
+    function loadCourseByBranch(branchId){
+
+        $('.course-item').hide();
+
+        $('.course-item input').prop('disabled', true);
+
+        $('.course' + branchId).show();
+
+        $('.course' + branchId + ' input').prop('disabled', false);
+
+    }
+
+    // ตอนเปลี่ยน radio
+    $('input[name="ref_branch_id"]').on('change', function(){
+
+        loadCourseByBranch($(this).val());
+
+    });
+
+    // โหลดครั้งแรก
+    $(document).ready(function(){
+
+        let branchId = $('input[name="ref_branch_id"]:checked').val();
+
+        loadCourseByBranch(branchId);
+
+    });
 
     function changeStatus(id, v, element) {
         $(element).prop('checked', v === 1 ? false : true);

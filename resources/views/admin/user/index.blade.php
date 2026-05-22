@@ -102,7 +102,7 @@
                                                             <option value="all">สาขา</option>
                                                         @endif
                                                         @foreach ($branch as $bra)
-                                                            <option value="{{ $bra->id }}">{{ $bra->name }}</option>
+                                                            <option value="{{ $bra->id }}" @if (Auth::user()->ref_branch_id == $bra->id) selected @endif>{{ $bra->name }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
@@ -172,7 +172,7 @@
                             @foreach ($branch as $bra)
                                 <input class="form-check-input" type="radio" name="ref_branch_id"
                                        id="add-branch{{ $bra->id }}" value="{{ $bra->id }}"
-                                       {{ $loop->first ? 'checked' : '' }}>
+                                       {{ $loop->first ? 'checked' : '' }}  @if (Auth::user()->ref_branch_id == $bra->id) checked @endif>
                                 <label class="form-check-label me-4" for="add-branch{{ $bra->id }}">
                                     {{ $bra->name }}
                                 </label>
@@ -202,7 +202,7 @@
                         <div class="col-sm-6">
                             <label class="form-label">ตำแหน่ง</label>
                             <select name="ref_position_id" id="select2Position1"
-                                    class="select2 form-select form-select-lg" data-allow-clear="true">
+                                    class="select2 form-select form-select-lg">
                                 @foreach ($position as $pos)
                                     <option value="{{ $pos->id }}">{{ $pos->position_name }}</option>
                                 @endforeach
@@ -523,17 +523,17 @@
 
     // Select2 fix
     $(document).ready(function () {
-        $('#select2Position1').select2({ dropdownParent: $('#addserviceModal') });
-        $('#select2Position2').select2({ dropdownParent: $('.card-body') });
-        $('#select2Position3').select2({ dropdownParent: $('.card-body') });
+        // $('#select2Position1').select2({ dropdownParent: $('#addserviceModal') });
+        // $('#select2Position2').select2({ dropdownParent: $('.card-body') });
+        // $('#select2Position3').select2({ dropdownParent: $('.card-body') });
 
-        // Add change event listener for the position select
-        $('#select2Position1').on('change', function () {
-            toggleSalaryInput($(this).val());
-        });
+        // // Add change event listener for the position select
+        // $('#select2Position1').on('change', function () {
+        //     toggleSalaryInput($(this).val());
+        // });
 
-        // Initial check on page load
-        toggleSalaryInput($('#select2Position1').val());
+        // // Initial check on page load
+        // toggleSalaryInput($('#select2Position1').val());
     });
 
     // Function to show/hide the salary field

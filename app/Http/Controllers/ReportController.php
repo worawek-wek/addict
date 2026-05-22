@@ -52,6 +52,7 @@ class ReportController extends Controller
     {
         // return OrderHasProduct::get();
         $data['page_url'] = "admin/report/stock-history";
+        $data['branch'] = Branch::orderBy('name')->get();
         // $data['employees'] = \App\Models\User::where('ref_branch_id', Auth::user()->ref_branch_id)
         //                                     ->where('ref_position_id', 2)
         //                                     ->orderBy('name')
@@ -76,13 +77,21 @@ class ReportController extends Controller
                         // ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
-        $userBranchId = Auth::user()->ref_branch_id ?? null;
-        if ($userBranchId) {
-            $query->where('ref_branch_id', $userBranchId);
-            // $query->whereHas('order', function ($q) use ($userBranchId) {
-            //             $q->where('ref_branch_id', $userBranchId);
-            //         });
+//////////////////////////////////////////////////////////////////////////////////
+        // $userBranchId = Auth::user()->ref_branch_id ?? null;
+        // if ($userBranchId) {
+        //     $query->where('ref_branch_id', $userBranchId);
+        //     // $query->whereHas('order', function ($q) use ($userBranchId) {
+        //     //             $q->where('ref_branch_id', $userBranchId);
+        //     //         });
+        // }
+//////////////////////////////////////////////////////////////////////////////////
+
+        if (@request('ref_branch_id')) {
+            // filter เฉพาะสาขาของตัวเอง
+            $query->where('ref_branch_id', request('ref_branch_id'));
         }
+//////////////////////////////////////////////////////////////////////////////////
 
         if (request('start_date')) {
             
@@ -152,14 +161,11 @@ class ReportController extends Controller
                         // ->orderBy('booking_date')
                         // ->orderBy('start_time');
 
-        // ✅ filter เฉพาะสาขาของ user ที่ login
-        $userBranchId = Auth::user()->ref_branch_id ?? null;
-        if ($userBranchId) {
-            $query->where('ref_branch_id', $userBranchId);
-            // $query->whereHas('order', function ($q) use ($userBranchId) {
-            //             $q->where('ref_branch_id', $userBranchId);
-            //         });
+/////////////////////////////////////////////////////////////////////////////////////////
+        if (@request('ref_branch_id')) {
+            $query->where('ref_branch_id', request('ref_branch_id'));
         }
+/////////////////////////////////////////////////////////////////////////////////////////
 
         if (request('start_date')) {
             
@@ -214,10 +220,11 @@ class ReportController extends Controller
     public function coupon_report(Request $request)
     {
         $data['page_url'] = "admin/report/coupon-report";
+        $data['branch'] = Branch::orderBy('name')->get();
         $data['employees'] = \App\Models\User::where('ref_branch_id', Auth::user()->ref_branch_id)
-            ->where('ref_position_id', 2)
-            ->orderBy('name')
-            ->get();
+                                                ->where('ref_position_id', 2)
+                                                ->orderBy('name')
+                                                ->get();
         return view('admin.report.report-couponReport', $data);
     }
 
@@ -234,7 +241,7 @@ class ReportController extends Controller
         $user = Auth::user();
 
         // if ($user->work_status == 3) {
-            $branches = Branch::orderBy('name')->get();
+        $branches = Branch::orderBy('name')->get();
         // } else {
         //     $branches = Branch::where('id', $user->ref_branch_id)->get();
         // }
@@ -276,14 +283,15 @@ class ReportController extends Controller
             ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
-        $userBranchId = Auth::user()->ref_branch_id ?? null;
-        if ($userBranchId) {
-            $query->where('ref_branch_id', $userBranchId);
-        }
+        // $userBranchId = Auth::user()->ref_branch_id ?? null;
+        // if ($userBranchId) {
+        //     $query->where('ref_branch_id', $userBranchId);
+        // }
 
         // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
-        if (request()->filled('branch_id')) {
-            $query->where('ref_branch_id', request()->branch_id);
+        if (request()->filled('ref_branch_id')) {
+            // dd(123);
+            $query->where('ref_branch_id', request()->ref_branch_id);
         }
 
         if (request()->filled('search')) {
@@ -378,14 +386,17 @@ class ReportController extends Controller
             ->orderBy('start_time');
 
 
-        $userBranchId = Auth::user()->ref_branch_id ?? null;
-        if ($userBranchId) {
-            $orderRooms->where('ref_branch_id', $userBranchId);
-        }
+        // $userBranchId = Auth::user()->ref_branch_id ?? null;
+        // if ($userBranchId) {
+        //     $orderRooms->where('ref_branch_id', $userBranchId);
+        // }
 
-        if (request()->filled('branch_id')) {
-            $orderRooms->where('ref_branch_id', request()->branch_id);
+/////////////////////////////////////////////////////////////////////////////////////////
+        if (@request('ref_branch_id')) {
+            $orderRooms->where('ref_branch_id', request('ref_branch_id'));
         }
+/////////////////////////////////////////////////////////////////////////////////////////
+
 
         if (request()->filled('search')) {
             $search = request()->search;
@@ -447,6 +458,7 @@ class ReportController extends Controller
             ->where('ref_position_id', 2)
             ->orderBy('name')
             ->get();
+        $data['branch'] = Branch::orderBy('name')->get();
         return view('admin.report.report-drink-com', $data);
     }
 
@@ -504,8 +516,8 @@ class ReportController extends Controller
         }
 
         // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
-        if (request()->filled('branch_id')) {
-            $query->where('ref_branch_id', request()->branch_id);
+        if (request('ref_branch_id')) {
+            $query->where('ref_branch_id', request('ref_branch_id'));
         }
 
         if (request()->filled('search')) {
@@ -698,16 +710,16 @@ class ReportController extends Controller
             ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
-        $userBranchId = Auth::user()->ref_branch_id ?? null;
-        if ($userBranchId) {
-            $query->where('ref_branch_id', $userBranchId);
-        }
+        // $userBranchId = Auth::user()->ref_branch_id ?? null;
+        // if ($userBranchId) {
+        //     $query->where('ref_branch_id', $userBranchId);
+        // }
 
         // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
-        if (request()->filled('branch_id')) {
-            $query->where('ref_branch_id', request()->branch_id);
+        
+        if (request('ref_branch_id')) {
+            $query->where('ref_branch_id', request('ref_branch_id'));
         }
-
         // $DailySalesClosure = DailySalesClosure::orderBy("id", "DESC")->first();
 
         // if (@$DailySalesClosure) {
@@ -801,15 +813,16 @@ class ReportController extends Controller
             ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
-        $userBranchId = Auth::user()->ref_branch_id ?? null;
-        if ($userBranchId) {
-            $query->where('ref_branch_id', $userBranchId);
-        }
+        // $userBranchId = Auth::user()->ref_branch_id ?? null;
+        // if ($userBranchId) {
+        //     $query->where('ref_branch_id', $userBranchId);
+        // }
 
-        // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
-        if (request()->filled('branch_id')) {
-            $query->where('ref_branch_id', request()->branch_id);
+/////////////////////////////////////////////////////////////////////////////////////////
+        if (@request('ref_branch_id')) {
+            $query->where('ref_branch_id', request('ref_branch_id'));
         }
+/////////////////////////////////////////////////////////////////////////////////////////
 
         // filter ค้นหา
         if (request()->filled('search')) {
@@ -960,13 +973,13 @@ class ReportController extends Controller
             ->orderBy('created_at', 'ASC');
 
         // filter เฉพาะสาขาของ user ที่ login
-        $userBranchId = Auth::user()->ref_branch_id ?? null;
-        if ($userBranchId) {
-            $query->where('ref_branch_id', $userBranchId);
-        }
+        // $userBranchId = Auth::user()->ref_branch_id ?? null;
+        // if ($userBranchId) {
+        //     $query->where('ref_branch_id', $userBranchId);
+        // }
 
-        if (request()->filled('branch_id')) {
-            $query->where('ref_branch_id', request()->branch_id);
+        if (request('ref_branch_id')) {
+            $query->where('ref_branch_id', request('ref_branch_id'));
         }
 
         if (request()->filled('search')) {
@@ -1040,6 +1053,7 @@ class ReportController extends Controller
         // $order = Order::withSum('addons', 'price')->get();
         // return $this->getOrderRooms(1)[0]->addons_sum_price;
         $data['page_url'] = "admin/report/monthly-sale";
+        $data['branch'] = Branch::orderBy('name')->get();
 
         return view('admin.report.report-saleMonthly', $data);
     }
@@ -1178,6 +1192,7 @@ class ReportController extends Controller
     public function oversee_employee(Request $request)
     {
         $data['page_url'] = "admin/report/oversee-employee";
+        $data['branch'] = Branch::orderBy('name')->get();
 
         return view('admin.report.report-overseeEmp', $data);
     }

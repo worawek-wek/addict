@@ -72,8 +72,27 @@
                                     <div class="card-datatable table-responsive">
                                         <div id="DataTables_Table_0_wrapper"
                                             class="dataTables_wrapper dt-bootstrap5 no-footer">
+                                            <div class="card-header border-bottom border-bottom">
+                                                <div class="row g-3 justify-content-between">
+                                                    {{-- <div class="col-sm-4 mb-2"> --}}
+                                                        <h4 class="mb-0">
+                                                            <i class="tf-icons ti ti-user-dollar text-main ti-md me-2"></i>
+                                                            รายงานยอดขายรวม
+                                                        </h4>
+                                                        <select name="ref_branch_id" class="form-select p_search mt-3"
+                                                            onchange='loadData("{{ route('report-sale-monthly.datatable') }}")' required>
+                                                            @if (Auth::user()->work_status == 3)
+                                                                <option value="">ทั้งหมด</option>
+                                                            @endif
+                                                            @foreach ($branch as $bra)
+                                                                <option value="{{ $bra->id }}" @if (Auth::user()->ref_branch_id == $bra->id) selected @endif>{{ $bra->name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    {{-- </div> --}}
+                                                </div>
+                                            </div>
                                             <div
-                                                class="card-header d-flex border-top rounded-0 flex-wrap py-0 flex-column flex-md-row align-items-start">
+                                                class="card-header d-flex rounded-0 flex-wrap py-0 flex-column flex-md-row align-items-start">
                                                 <div class="me-5 ms-n4 pe-5 mb-n6 mb-md-0">
                                                     <div class="dataTables_length mx-n2 ms-2"
                                                         id="DataTables_Table_0_length">

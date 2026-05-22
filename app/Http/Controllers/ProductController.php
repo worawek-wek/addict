@@ -114,13 +114,14 @@ class ProductController extends Controller
     public function card_stock_report()
     {
         $user = Auth::user();
-        if ($user->ref_position_id == 0) {
+        $data['branch'] = Branch::orderBy('name')->get();
+        // if ($user->ref_position_id == 0) {
             // super admin เห็นทุก branch
             $data['product'] = Product::get();
-        } else {
+        // } else {
             // เห็นเฉพาะสาขาของตัวเอง
-            $data['product'] = Product::where('ref_branch_id', $user->ref_branch_id)->get();
-        }
+            // $data['product'] = Product::where('ref_branch_id', $user->ref_branch_id)->get();
+        // }
         $data['page_url'] = 'admin/card_stock_report';
         $data['page'] = 'สินค้า';
 
@@ -135,14 +136,19 @@ class ProductController extends Controller
                                 ->leftjoin('products', 'card_stocks.ref_product_id', '=', 'products.id')
                                 ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id');
 
-        if ($user->ref_position_id != 0) {
-            // filter เฉพาะสาขาของตัวเอง
-            $results = $results->where('products.ref_branch_id', $user->ref_branch_id);
-        }
+        // if ($user->ref_position_id != 0) {
+        //     // filter เฉพาะสาขาของตัวเอง
+        //     $results = $results->where('products.ref_branch_id', $user->ref_branch_id);
+        // }
         
         if (@$request->ref_product_id) {
             // filter เฉพาะสาขาของตัวเอง
             $results = $results->where('products.id', $request->ref_product_id);
+        }
+
+        if (@$request->ref_branch_id) {
+            // filter เฉพาะสาขาของตัวเอง
+            $results = $results->where('branchs.id', $request->ref_branch_id);
         }
 
         if (@$request->created_at) {
@@ -584,7 +590,7 @@ class ProductController extends Controller
     // ==========================================
     public function getAllProductTypes()
     {
-        $productTypes = ProductType::orderBy('id', 'desc')->get();
+        $productTypes = ProductType::orderBy('id', 'desc')->with('branch')->get();
         return response()->json($productTypes);
     }
 
@@ -601,6 +607,7 @@ class ProductController extends Controller
         try {
             $save = [
                 'name'       => $request->name,
+                'ref_branch_id'       => $request->ref_branch_id,
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
             ];
@@ -663,10 +670,11 @@ class ProductController extends Controller
             }
 
             $productType->delete();
-
+            DB::commit();
             return response()->json(['status' => true, 'message' => 'ลบหมวดหมู่สำเร็จ']);
         } catch (Exception $e) {
             Log::error('Delete Product Type Error: ' . $e->getMessage());
+            DB::rollBack();
             return response()->json(['status' => false, 'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()], 500);
         }
     }

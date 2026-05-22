@@ -22,11 +22,6 @@
             <tr class="odd">
                 <td class="text-center" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance" onclick="view({{ $row->id }})">{{ $list_data->firstItem() + $key }}</td>
                 <td class="text-center" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance" onclick="view({{ $row->id }})">{{ $row->name }}</td>
-                {{-- <td class="text-center">{{ number_format($row->forty_minutes, 2) }}</td>
-                <td class="text-center">{{ number_format($row->sixty_minutes, 2) }}</td>
-                <td class="text-center">{{ number_format($row->ninety_minutes, 2) }}</td> --}}
-                {{-- <td class="text-center" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance" onclick="view({{ $row->id }})">{{ $row->room->name }}</td> --}}
-                {{-- <td class="text-center" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance" onclick="view({{ $row->id }})">{{ $row->room->branch->name }}</td> --}}
                 <td class="text-center" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance" onclick="view({{ $row->id }})">{{ $row->remark }}</td>
                 <td class="text-center">
                     <div class="d-flex justify-content-center align-items-center gap-3">

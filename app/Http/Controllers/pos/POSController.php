@@ -41,11 +41,11 @@ class POSController extends Controller
         $room = Room::find($room_id);
 
         $activeOrder = Order::where('ref_room_id', $room->id)
-            ->where('ref_status_id', 2)
-            ->whereDate('booking_date', today())
-            ->whereTime('start_time', '<=', now())
-            ->whereTime('end_time', '>=', now())
-            ->first();
+                            ->where('ref_status_id', 2)
+                            ->whereDate('booking_date', today())
+                            ->whereTime('start_time', '<=', now())
+                            ->whereTime('end_time', '>=', now())
+                            ->first();
 
         $room->is_busy = (bool) $activeOrder;
 
@@ -82,8 +82,11 @@ class POSController extends Controller
 
         // ---------------- Cart Totals ----------------
         $data['branches'] = Branch::all();
-        $data['room_type'] = RoomType::orderBy('sort')->where('ref_status_id', 1)->get();
-        $data['course'] = Course::orderBy('sort')->where('ref_status_id', 1)->get();
+        $data['room_type'] = RoomType::orderBy('sort')
+                                        ->where('ref_status_id', 1)
+                                        ->where('ref_branch_id', $branchId)
+                                        ->get();
+        $data['course'] = Course::orderBy('sort')->where('ref_branch_id', $branchId)->where('ref_status_id', 1)->get();
         $cart = Session::get('cart', []);
         $data['cart'] = $cart;
         $subtotal = collect($cart)->sum(fn($i) => (float)($i['price'] ?? 0) * (int)($i['qty'] ?? 0));
@@ -106,7 +109,7 @@ class POSController extends Controller
         $data['roomGroups'] = $this->groupRoomsForModal($rooms);
 
         $data['storefrontName'] = 'Cashier';
-        $data['addonOptions'] = AddonOption::orderBy('name')->get();
+        $data['addonOptions'] = AddonOption::where('branch', $branchId)->orderBy('name')->get();
 
         $data['branches'] = Branch::all();
 
@@ -126,7 +129,12 @@ class POSController extends Controller
 
         // ---------------- Cart Totals ----------------
         $data['branches'] = Branch::all();
-        $data['room_type'] = RoomType::orderBy('sort')->where('ref_status_id', 1)->get();
+        $data['room_type'] = RoomType::orderBy('sort')
+                                        ->where('ref_status_id', 1)
+                                        ->whereHas('room', function ($query) use ($branchId) {
+                                            $query->where('ref_branch_id', $branchId);
+                                        })
+                                        ->get();
         $data['course'] = Course::orderBy('sort')->where('ref_status_id', 1)->get();
         $cart = Session::get('cart', []);
         $data['cart'] = $cart;
@@ -174,7 +182,12 @@ class POSController extends Controller
 
         // ---------------- Cart Totals ----------------
         $data['branches'] = Branch::all();
-        $data['room_type'] = RoomType::orderBy('sort')->where('ref_status_id', 1)->get();
+        $data['room_type'] = RoomType::orderBy('sort')
+                                        ->where('ref_status_id', 1)
+                                        ->whereHas('room', function ($query) use ($branchId) {
+                                            $query->where('ref_branch_id', $branchId);
+                                        })
+                                        ->get();
         $data['course'] = Course::orderBy('sort')->where('ref_status_id', 1)->get();
         $cart = Session::get('cart', []);
         $data['cart'] = $cart;
@@ -209,7 +222,11 @@ class POSController extends Controller
     public function get_user(Request $request)
     {
         try {
-            $find = User::where('user_code', $request->user_code)->orWhere('user_id', $request->user_code)->first();
+            return $find = User::where('ref_branch_id', Auth::user()->ref_branch_id)
+                                ->where(function ($q) use ($request) {
+                                    $q->where('user_code', $request->user_code)
+                                        ->orWhere('user_id', $request->user_code);
+                                })->first();
             // if(@$request->ref_position_id){
             // $find = $find->where('ref_position_id', $request->ref_position_id)->first();
             if (!$find) {
@@ -616,70 +633,507 @@ class POSController extends Controller
             // dd(\Carbon\Carbon::parse(date("Y-m-d", strtotime($order->booking_date)) . ' ' . $order->start_time)->format('d/m/Y H:i'));
             $qr = QrCode::size(150)->generate(url("admin/order-rooms/$order->id"));
 
-            $slip = "<!DOCTYPE html>
-                <html lang='th'>
-                <head>
-                    <meta charset='UTF-8'>
-                    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-                    <title>รายละเอียดการจอง</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; font-size: 11px; margin: 0; padding: 0; }
-                        .invoice { width: 69mm; font-size: 11px; padding: 10px; box-sizing: border-box; }
-                        .header { display: flex; justify-content: space-between; align-items: end; font-weight: bold; font-size: 10px; margin-bottom: 5px; }
-                        .title { flex-grow: 1; text-align: center; font-size: 11px; }
-                        .right-align { text-align: right; }
-                        .info-text { margin: 2px 0; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 11px; border-top: 1px dashed #000; border-bottom: 1px dashed #000; }
-                        th, td { padding: 3px 2px; text-align: left; font-size: 11px; }
-                        th { border-bottom: 1px dashed #000; }
+$subtotal = $order->products->sum(fn($p) => $p->price * $p->quantity);
+$discount = $order->discount ?? 0;
+$total    = max(0, $subtotal - $discount);
 
-                        .category-header { background-color: #f0f0f0; font-weight: bold; font-style: italic; border-bottom: 1px dotted #ccc; }
+$payment_status = '';
 
-                        .text-right { text-align: right; }
-                        .text-center { text-align: center; }
+if (!$order->payment_status) {
+    $payment_status = "<div class='unpaid-watermark'>ยังไม่ชำระเงิน</div>";
+}
 
-                        @media print {
-                            @page {
-                                size: 69mm auto;
-                                margin: 0;
-                            }
-                            body {
-                                width: 69mm;
-                                margin: 0;
-                            }
-                            .invoice {
-                                width: 69mm;
-                                padding: 5px;
-                            }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class='invoice'>
-                        <div class='header' align='right'>
-                            <span class='title'>ใบแจ้งหนี้ชั่วคราว</span>
-                            <span class='right-align'>No_: " . $order->order_number . "</span>
-                        </div>
-                        <p class='right-align info-text'><strong>แคชเชียร์:</strong> Addict</p>
-                        <p class='info-text'><strong>เช็คบิล:</strong> " . \Carbon\Carbon::parse(date('Y-m-d', strtotime($order->booking_date)) . ' ' . $order->end_time)->format('d/m/Y H:i:s') . "</p>
+$slip = "
+<!DOCTYPE html>
+<html lang='th'>
 
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>รายการสินค้า</th>
-                                    <th class='text-center'>จำนวน</th>
-                                    <th class='text-right'>@ ราคา</th>
-                                    <th class='text-right'>รวม</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                " . $list_product . "
-                            </tbody>
-                        </table>
+<head>
 
-                        </div>
-                </body>
-                </html>";
+    <meta charset='UTF-8'>
+
+    <meta name='viewport'
+        content='width=device-width, initial-scale=1.0'>
+
+    <title>Receipt</title>
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family: Arial, sans-serif;
+            font-size:11px;
+            color:#000;
+        }
+
+        /* =========================
+            INVOICE
+        ========================== */
+
+        .invoice{
+            width:69mm;
+            padding:5px;
+            font-size:11px;
+        }
+
+        .invoice-header{
+            display:flex;
+            justify-content:space-between;
+            margin-bottom:5px;
+            font-weight:bold;
+        }
+
+        .invoice-title{
+            flex:1;
+            text-align:center;
+        }
+
+        .invoice-table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:5px;
+            border-top:1px dashed #000;
+            border-bottom:1px dashed #000;
+        }
+
+        .invoice-table th,
+        .invoice-table td{
+            padding:3px 2px;
+            font-size:11px;
+        }
+
+        .invoice-table th{
+            border-bottom:1px dashed #000;
+        }
+
+        .text-right{
+            text-align:right;
+        }
+
+        .text-center{
+            text-align:center;
+        }
+
+        /* =========================
+            RECEIPT
+        ========================== */
+
+        .receipt{
+            width:69mm;
+            max-width:69mm;
+            padding:5px;
+            position:relative;
+        }
+
+        .receipt-header{
+            text-align:center;
+            border-bottom:1px dashed #000;
+            padding-bottom:8px;
+            margin-bottom:8px;
+        }
+
+        .receipt-header h1{
+            font-size:16px;
+            margin-bottom:2px;
+        }
+
+        .receipt-subtitle{
+            font-size:11px;
+            margin-bottom:5px;
+        }
+
+        .receipt-info{
+            display:flex;
+            justify-content:space-between;
+            margin-top:3px;
+            font-size:11px;
+        }
+
+        .receipt-info label{
+            display:inline-block;
+            width:65px;
+        }
+
+        .receipt-section-title{
+            text-align:center;
+            font-weight:bold;
+            margin-bottom:5px;
+            font-size:12px;
+        }
+
+        .receipt-table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:5px;
+        }
+
+        .receipt-table th,
+        .receipt-table td{
+            padding:3px 2px;
+            font-size:11px;
+        }
+
+        .receipt-table th{
+            border-bottom:1px dashed #000;
+        }
+
+        .receipt-right{
+            text-align:right;
+        }
+
+        .receipt-total{
+            margin-top:8px;
+            border-top:1px dashed #000;
+            padding-top:5px;
+        }
+
+        .receipt-total-line{
+            display:flex;
+            justify-content:space-between;
+            margin-bottom:3px;
+            font-size:11px;
+        }
+
+        .receipt-grand-total{
+            display:flex;
+            justify-content:space-between;
+            border-top:1px solid #000;
+            padding-top:5px;
+            margin-top:5px;
+            font-size:14px;
+            font-weight:bold;
+        }
+
+        .receipt-footer{
+            text-align:center;
+            margin-top:10px;
+            font-size:11px;
+        }
+
+        .payment-success{
+            text-align:center;
+            font-size:13px;
+            font-weight:bold;
+            color:green;
+            margin-top:10px;
+        }
+
+        .payment-unpaid{
+            text-align:center;
+            font-size:13px;
+            font-weight:bold;
+            color:#d9534f;
+            margin-top:10px;
+        }
+
+        .unpaid-watermark{
+            position:absolute;
+            top:45%;
+            left:50%;
+            transform:translate(-50%, -50%) rotate(-30deg);
+            font-size:34px;
+            color:rgba(255,0,0,0.12);
+            border:3px solid rgba(255,0,0,0.12);
+            padding:8px 15px;
+            font-weight:bold;
+            z-index:0;
+        }
+
+        .receipt-content{
+            position:relative;
+            z-index:1;
+        }
+
+        @page{
+            size:69mm auto;
+            margin:0;
+        }
+
+        @media print{
+
+            body{
+                margin:0;
+                padding:0;
+            }
+
+            .invoice,
+            .receipt{
+                width:69mm;
+                max-width:69mm;
+                padding:5px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- =======================
+        INVOICE
+    ======================== -->
+
+    <div class='invoice'>
+
+        <div class='invoice-header'>
+
+            <div class='invoice-title'>
+                ใบแจ้งหนี้ชั่วคราว
+            </div>
+
+            <div>
+                No : ".$order->order_number."
+            </div>
+
+        </div>
+
+        <div>
+            แคชเชียร์ : Addict
+        </div>
+
+        <div>
+            เช็คบิล :
+            ".\Carbon\Carbon::parse(
+                date('Y-m-d', strtotime($order->booking_date))
+                .' '.
+                $order->end_time
+            )->format('d/m/Y H:i:s')."
+        </div>
+
+        <table class='invoice-table'>
+
+            <thead>
+
+                <tr>
+
+                    <th>รายการสินค้า</th>
+
+                    <th class='text-center'>
+                        จำนวน
+                    </th>
+
+                    <th class='text-right'>
+                        ราคา
+                    </th>
+
+                    <th class='text-right'>
+                        รวม
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                ".$list_product."
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <div style='page-break-before:always;'></div>
+
+    <!-- =======================
+        RECEIPT
+    ======================== -->
+
+    <div class='receipt'>
+
+        ".$payment_status."
+
+        <div class='receipt-content'>
+
+            <div class='receipt-header'>
+
+                <h1>
+                    Addict Coffee House
+                </h1>
+
+                <div class='receipt-subtitle'>
+                    ใบเสร็จรับเงิน / Receipt
+                </div>
+
+                <div class='receipt-info'>
+                    <span>เลขที่</span>
+                    <span>".$order->order_number."</span>
+                </div>
+
+                <div class='receipt-info'>
+                    <span>วันที่</span>
+                    <span>".date('d/m/Y H:i')."</span>
+                </div>
+
+                <div class='receipt-info'>
+                    <span>สาขา</span>
+                    <span>".($order->branch->name ?? '-')."</span>
+                </div>
+
+                <div class='receipt-info'>
+                    <span>พนักงาน</span>
+                    <span>".($order->seller->nickname ?? '-')."</span>
+                </div>
+
+            </div>
+
+            <div class='receipt-section-title'>
+                รายการสินค้า
+            </div>
+
+            <table class='receipt-table'>
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+                        <th>สินค้า</th>
+
+                        <th class='receipt-right'>
+                            จำนวน
+                        </th>
+
+                        <th class='receipt-right'>
+                            รวม
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+";
+$key_p = 1;
+foreach ($order->products as $item) {
+
+    $slip .= "
+        <tr>
+            <td>".$key_p++."</td>
+
+            <td>
+                ".$item->product->name."
+            </td>
+
+            <td class='receipt-right'>
+                ".$item->quantity."
+            </td>
+
+            <td class='receipt-right'>
+                ".number_format(
+                    $item->price * $item->quantity,
+                    2
+                )."
+            </td>
+
+        </tr>
+    ";
+}
+
+$slip .= "
+
+                </tbody>
+
+            </table>
+
+            <div class='receipt-total'>
+
+                <div class='receipt-total-line'>
+
+                    <span>Subtotal</span>
+
+                    <span>
+                        ".number_format($subtotal, 2)."
+                    </span>
+
+                </div>
+";
+
+if ($discount > 0) {
+
+    $slip .= "
+        <div class='receipt-total-line'>
+
+            <span>ส่วนลด</span>
+
+            <span>
+                - ".number_format($discount, 2)."
+            </span>
+
+        </div>
+    ";
+}
+
+$slip .= "
+
+                <div class='receipt-grand-total'>
+
+                    <span>ยอดรวมสุทธิ</span>
+
+                    <span>
+                        ".number_format($total, 2)." ฿
+                    </span>
+
+                </div>
+
+            </div>
+";
+
+if ($order->payment_status) {
+
+    $slip .= "
+        <div class='payment-success'>
+
+            ✓ ชำระเงินแล้ว
+    ";
+
+    if ($order->payment_method) {
+
+        $slip .= "
+            <div>
+                ".$order->payment_method."
+            </div>
+        ";
+    }
+
+    $slip .= "
+        </div>
+    ";
+
+} else {
+
+    $slip .= "
+        <div class='payment-unpaid'>
+
+            ⚠ ยังไม่ชำระเงิน
+
+        </div>
+    ";
+}
+
+$slip .= "
+
+            <div class='receipt-footer'>
+
+                ขอบคุณที่ใช้บริการ / Thank you for your business!
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
+";
             return response()->json([
                 'status' => true,
                 'data' => $slip

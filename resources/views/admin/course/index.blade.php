@@ -69,7 +69,7 @@
                                         <div class="col-sm-12">
                                             <h4 class="mb-0">
                                                 <i class="tf-icons ti ti-copy text-main ti-md me-2"></i>
-                                                ห้อง
+                                                คอร์ส
                                             </h4>
                                         </div>
                                         <div class="col-sm-3">
@@ -79,7 +79,7 @@
                                                     <option value="">ทั้งหมด</option>
                                                 @endif
                                                 @foreach ($branch as $bra)
-                                                    <option value="{{ $bra->id }}">{{ $bra->name }}</option>
+                                                    <option value="{{ $bra->id }}" @if (Auth::user()->ref_branch_id == $bra->id) selected @endif>{{ $bra->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>

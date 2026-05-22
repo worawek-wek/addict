@@ -59,7 +59,7 @@
                     <ul class="list-unstyled mb-4 mt-2" style="padding: 0 20px;">
                       <li class="d-flex mb-3"><b>อีเมล:</b>&nbsp; {{ $user->email }}</li>
                       <li class="d-flex mb-3">
-                        <img src="{{ $user->image_name ? '/upload/user/'.$user->image_name : asset('images/no-image.png') }}"
+                        <img src="{{ $user->image_name ? '/upload/user/'.$user->image_name : asset('images/no-image.png') }}" onerror="this.onerror=null;this.src='/not-found-image.png';"
                              alt="รูปภาพพนักงาน" width="100px">
                       </li>
                     </ul>
@@ -79,9 +79,9 @@
                     <div class="col-sm-6">
                       <label class="form-label">สาขา *</label><br>
                       @foreach ($branch as $bra)
-                        <input type="radio" name="ref_branch_id" id="branch{{ $bra->id }}"
+                        <input type="radio" class="form-check-input" name="ref_branch_id" id="branch{{ $bra->id }}"
                                value="{{ $bra->id }}" {{ $user->ref_branch_id == $bra->id ? 'checked' : '' }}>
-                        <label for="branch{{ $bra->id }}">{{ $bra->name }}</label>
+                        <label class="form-check-label me-4" for="branch{{ $bra->id }}">{{ $bra->name }}</label>
                       @endforeach
                     </div>
 
@@ -128,7 +128,8 @@
                       <div class="preview-container mt-2">
                         <img id="preview2"
                              src="{{ $user->image_name ? '/upload/user/'.$user->image_name : '' }}"
-                             style="{{ $user->image_name ? 'width:30%' : 'display:none;width:30%' }}">
+                             style="{{ $user->image_name ? 'width:30%' : 'display:none;width:30%' }}"
+                             >
                       </div>
                     </div>
 

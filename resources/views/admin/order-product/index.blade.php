@@ -50,7 +50,7 @@
                                                     <select name="branch_id" class="form-select p_search"
                                                         onchange='loadData("{{ route('order-products.datatable') }}")'>
                                                         @foreach ($branches as $branch)
-                                                            <option value="{{ $branch->id }}">{{ $branch->name }}
+                                                            <option value="{{ $branch->id }}"@if (Auth::user()->ref_branch_id == $branch->id) selected @endif>{{ $branch->name }}
                                                             </option>
                                                         @endforeach
                                                     </select>

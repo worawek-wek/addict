@@ -33,7 +33,18 @@
                                                     <i class="tf-icons ti ti-user-dollar text-main ti-md me-2"></i>
                                                     รายงานค่าคอม (นวด+สินค้า)
                                                 </h4>
+                                                <select name="ref_branch_id" class="form-select p_search mt-3"
+                                                    onchange='loadData("{{ $page_url }}/datatable")' required>
+                                                    @if (Auth::user()->work_status == 3)
+                                                        <option value="">ทั้งหมด</option>
+                                                    @endif
+                                                    @foreach ($branch as $bra)
+                                                        <option value="{{ $bra->id }}" @if (Auth::user()->ref_branch_id == $bra->id) selected @endif>{{ $bra->name }}</option>
+                                                    @endforeach
+                                                </select>
                                             </div>
+                                            {{-- <div class="col-sm-3">
+                                            </div> --}}
 
                                             <div class="col-sm-8 d-flex justify-content-end align-items-sm-center gap-2">
                                                 รอบ:

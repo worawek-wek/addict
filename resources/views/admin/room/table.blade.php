@@ -18,7 +18,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach ($list_data as $key => $row)
+        @forelse ($list_data as $key => $row)
             <tr class="odd">
                 <td class="text-center" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance" onclick="view({{ $row->id }})">{{ $list_data->firstItem() + $key }}</td>
                 <td class="text-center" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance" onclick="view({{ $row->id }})">{{ $row->name }}</td>
@@ -64,7 +64,16 @@
                     </div>
                 </td>
             </tr>
-        @endforeach
+        @empty
+
+            <tr>
+                <td colspan="20" class="text-center text-muted py-4">
+                    <i class="ti ti-file-search" style="font-size: 24px;"></i><br>
+                    ไม่พบข้อมูล
+                </td>
+            </tr>
+
+        @endforelse
     </tbody>
 </table>
 

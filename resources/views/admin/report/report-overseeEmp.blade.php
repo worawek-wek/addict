@@ -70,67 +70,85 @@
                         <div class="row ">
                             <div class="col-sm-12">
                                 <div class="card mb-3">
+                                    <div class="card-header border-bottom border-bottom">
+                                        <div class="row g-3 justify-content-between">
+                                            <div class="col-sm-4 mb-2">
+                                                <h4 class="mb-0">
+                                                    <i class="tf-icons ti ti-user-dollar text-main ti-md me-2"></i>
+                                                    รายงานผู้ดูแลพนักงาน
+                                                </h4>
+                                                <select name="ref_branch_id" class="form-select p_search mt-3"
+                                                    onchange='loadData("{{ $page_url }}-datatable")' required>
+                                                    @if (Auth::user()->work_status == 3)
+                                                        <option value="">ทั้งหมด</option>
+                                                    @endif
+                                                    @foreach ($branch as $bra)
+                                                        <option value="{{ $bra->id }}" @if (Auth::user()->ref_branch_id == $bra->id) selected @endif>{{ $bra->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="card-datatable table-responsive">
                                         <div id="DataTables_Table_0_wrapper"
                                             class="dataTables_wrapper dt-bootstrap5 no-footer">
-                                            <div class="card-header border-top rounded-0 py-3">
-
-                                                {{-- Title --}}
-                                                <div class="mb-3">
-                                                    <h4 class="mb-0">
-                                                        <i class="tf-icons ti ti-user-dollar text-main ti-md me-2"></i>
-                                                        รายงานผู้ดูแลพนักงาน
-                                                    </h4>
-                                                </div>
+                                            <div
+                                                class="card-header d-flex rounded-0 flex-wrap py-0 flex-column flex-md-row align-items-start">
 
                                                 {{-- Filter row --}}
                                                 <div class="row g-2 align-items-end">
 
-                                                    {{-- Show rows --}}
-                                                    <div class="col-auto">
-                                                        <label class="form-label mb-1 text-muted small">แสดง</label>
-                                                        <select name="limit" class="form-select form-select-sm p_search"
-                                                            style="min-width:80px;"
-                                                            onchange="loadData(page)">
-                                                            <option value="7">7</option>
-                                                            <option value="10" >10</option>
-                                                            <option value="20">20</option>
-                                                            <option value="50" selected >50</option>
-                                                            <option value="100">100</option>
-                                                        </select>
-                                                    </div>
+                                                <div class="me-5 ms-n4 pe-5 mb-n6 mb-md-0">
 
-                                                    {{-- Divider --}}
-                                                    <div class="col-auto d-none d-md-block">
-                                                        <div class="vr" style="height:38px; opacity:.15;"></div>
+                                                    <!-- <label><input type="search" class="form-control"
+                                                                placeholder="Search Product"
+                                                                aria-controls="DataTables_Table_0"></label> -->
+                                                    <div class="dataTables_length mx-4" id="DataTables_Table_0_length">
+                                                        <label>Show
+                                                            <select name="limit"
+                                                                onchange='loadData("{{ $page_url }}-datatable")'
+                                                                aria-controls="DataTables_Table_0"
+                                                                class="form-select p_search">
+                                                                <option value="7">7</option>
+                                                                <option value="10">10</option>
+                                                                <option value="20">20</option>
+                                                                <option value="50" selected>50</option>
+                                                                <option value="70">70</option>
+                                                                <option value="100">100</option>
+                                                            </select>
+                                                        </label>
                                                     </div>
+                                                </div>
 
+                                                    <div
+                                                        class="dt-action-buttons d-flex flex-column align-items-start align-items-sm-center justify-content-sm-end pt-0 gap-sm-2 gap-sm-0 flex-sm-row">
                                                     {{-- ตั้งแต่วันที่ --}}
                                                     <div class="col-auto">
-                                                        <label class="form-label mb-1 text-muted small">ตั้งแต่วันที่</label>
+                                                        <label class="form-label mb-1">ตั้งแต่วันที่</label>
                                                         <input name="start_date" id="start_date" type="text"
-                                                            class="form-control form-control-sm p_search search_date"
+                                                            class="form-control p_search search_date"
                                                             style="min-width:120px;"
                                                             value="{{ now()->hour >= 10 ? now()->format('d/m/Y') : now()->subDay()->format('d/m/Y') }}">
                                                     </div>
                                                     <div class="col-auto">
-                                                        <label class="form-label mb-1 text-muted small">เวลาเริ่มต้น</label>
+                                                        <label class="form-label mb-1">เวลาเริ่มต้น</label>
                                                         <input name="start_time_filter" id="start_time_filter" type="time"
-                                                            class="form-control form-control-sm p_search" value="10:00">
+                                                            class="form-control p_search" value="10:00">
                                                     </div>
 
                                                     {{-- ถึงวันที่ --}}
                                                     <div class="col-auto">
-                                                        <label class="form-label mb-1 text-muted small">ถึงวันที่</label>
+                                                        <label class="form-label mb-1">ถึงวันที่</label>
                                                         <input name="end_date" id="end_date" type="text"
-                                                            class="form-control form-control-sm p_search search_date"
+                                                            class="form-control p_search search_date"
                                                             style="min-width:120px;"
                                                             value="{{ now()->hour >= 10 ? now()->addDay()->format('d/m/Y') : now()->format('d/m/Y') }}">
                                                     </div>
                                                     <div class="col-auto">
-                                                        <label class="form-label mb-1 text-muted small">เวลาสิ้นสุด</label>
+                                                        <label class="form-label mb-1">เวลาสิ้นสุด</label>
                                                         <input name="end_time_filter" id="end_time_filter" type="time"
-                                                            class="form-control form-control-sm p_search" value="04:01">
+                                                            class="form-control p_search" value="04:01">
                                                     </div>
 
                                                     {{-- Divider --}}
@@ -140,16 +158,16 @@
 
                                                     {{-- ค้นหา --}}
                                                     <div class="col-auto">
-                                                        <label class="form-label mb-1 text-muted small">ค้นหา</label>
+                                                        <label class="form-label mb-1">ค้นหา</label>
                                                         <input name="search" id="search_input" type="search"
-                                                            class="form-control form-control-sm p_search"
+                                                            class="form-control p_search"
                                                             placeholder="ค้นหา..."
                                                             style="min-width:160px;"
                                                             oninput="loadData(page)">
                                                     </div>
 
                                                     {{-- Print PDF --}}
-                                                    <div class="col-auto ms-md-auto">
+                                                    <div class="col-auto">
                                                         <label class="form-label mb-1 d-block">&nbsp;</label>
                                                         <button class="btn btn-primary btn-sm waves-effect waves-light"
                                                             type="button" onclick="printPdf()">
@@ -157,6 +175,7 @@
                                                         </button>
                                                     </div>
 
+                                                </div>
                                                 </div>
                                                 {{-- /Filter row --}}
 

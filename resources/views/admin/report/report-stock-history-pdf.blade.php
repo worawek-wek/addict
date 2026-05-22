@@ -30,19 +30,28 @@
                 รายการ
             </th>
             <th class="text-center">
-                จำนวนเริ่มต้น
+                สต็อกหลัก
+            </th>
+            <th class="text-center">
+                นำเข้า
+            </th>
+            <th class="text-center">
+                เบิก
+            </th>
+            <th class="text-center">
+                สต็อกขาย
             </th>
             <th class="text-center">
                 ยอดขาย
             </th>
             <th class="text-center">
-                นำเข้า
+                คงเหลือ(สต็อกขาย)
             </th>
-            {{-- <th class="text-center">
-                ลด
-            </th> --}}
             <th class="text-center">
-                จำนวนสิ้นสุด
+                นำออก(สต็อกหลัก)
+            </th>
+            <th class="text-center">
+                คงเหลือ(สต็อกหลัก)
             </th>
         </tr>
     </thead>
@@ -52,24 +61,36 @@
             <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                 {{ $key+1 }}
             </td>
-            <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+            <td class="text-center">
                 {{ $row->name }}
             </td>
-            <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                {{ $row->firstOrderOfDay->stock_before_quantity ?? $row->total_remain + $row->ready_for_sale_total_remain }}
+            <td class="text-center">
+                {{-- {{ $row->firstOrderOfDay->stock_before_quantity ?? $row->total_remain + $row->ready_for_sale_total_remain }} --}}
+                {{ optional($row->historyStocksOldest)->stock_before_quantity ?? $row->total_remain }}
             </td>
-            <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                {{ 0-$row->quantity_decrease ?? 0 }}
-            </td>
-            <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
+            <td class="text-center">
                 {{ $row->quantity_increase ?? 0 }}
             </td>
-            {{-- <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                 0
-            </td> --}}
-            <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                {{ $row->lastOrderOfDay->stock_after_quantity ?? $row->total_remain + $row->ready_for_sale_total_remain }}
-            </td>         
+            <td class="text-center">
+                {{ $row->total_withdraw_quantity ?? 0 }}
+            </td>
+            <td class="text-center">
+                {{ optional($row->historyStocksMaxReady)->stock_ready_for_sale_before_quantity ?? $row->ready_for_sale_total_remain }}
+                {{-- {{ $row->total_withdraw_quantity ?? 0 }} --}}
+            </td>
+            <td class="text-center">
+                {{ 0-$row->quantity_decrease ?? 0 }}
+            </td>
+            <td class="text-center">
+                {{ optional($row->historyStocksLatest)->stock_ready_for_sale_after_quantity ?? $row->ready_for_sale_total_remain }}
+            </td>      
+            <td class="text-center">
+                {{ 0-$row->quantity_export ?? 0 }}
+            </td>
+            <td class="text-center">
+                {{ optional($row->historyStocksLatest)->stock_after_quantity ?? $row->total_remain }}
+                {{-- {{ $row->lastOrderOfDay->stock_after_quantity ?? $row->total_remain + $row->ready_for_sale_total_remain }} --}}
+            </td>     
         </tr>
         @endforeach
     </tbody>

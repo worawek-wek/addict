@@ -26,16 +26,18 @@ class RoomTypeController extends Controller
         $data['page_url'] = 'admin/room-type';
         $data['page'] = 'สินค้า';
         $user = Auth::user();
+        $branchId = Auth::user()->ref_branch_id ?? null;
+
         $data['course'] = Course::get();
         $data['room'] = Room::orderByRaw('CAST(name AS UNSIGNED)')->get();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branch'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         return view('admin/room-type/index', $data);
     }
 
@@ -95,11 +97,9 @@ class RoomTypeController extends Controller
         }
 
         // 🔍 filter branch
-        // if (!empty($request->ref_branch_id)) {
-        //     $results = $results->whereHas('room', function ($query) use ($request) {
-        //                             $query->where('ref_branch_id', $request->ref_branch_id);
-        //                         });
-        // }
+        if (!empty($request->ref_branch_id)) {
+            $results = $results->where('ref_branch_id', $request->ref_branch_id);
+        }
         // 🔍 filter room
         // if (!empty($request->ref_room_id)) {
         //     $results = $results->where('ref_room_id', $request->ref_room_id);
@@ -146,7 +146,7 @@ class RoomTypeController extends Controller
                 $last_sort = $last->sort;
             }
             $room_type = new RoomType;
-            // $room_type->ref_room_id = $request->ref_room_id;
+            $room_type->ref_branch_id = $request->ref_branch_id;
             $room_type->name = $request->name;
             $room_type->remark = $request->remark;
             $room_type->sort = $last_sort+1;
@@ -192,9 +192,13 @@ class RoomTypeController extends Controller
     {
 
         $data['page_url'] = 'admin/room-type';
+        $room_type = RoomType::find($id);
+
+        // return $room_type['room_type_has_course'];
+
         $room = Room::get();
         $data['room'] = $room;
-        $couse = Course::get();
+        $couse = Course::where('ref_branch_id', $room_type->ref_branch_id)->get();
         // $couse = Course::where('ref_room_type_id', $id)->get();
         foreach($couse as $row){
             $rthc = RoomTypeHasCourse::where('ref_course_id', $row->id)->where('ref_room_type_id', $id)->first();
@@ -206,17 +210,16 @@ class RoomTypeController extends Controller
             }
         }
         DB::commit();
-        $room_type = RoomType::find($id);
         $data['room_type'] = $room_type;
         $user = Auth::user();
 
-        if ($user->work_status == 3) {
+        // if ($user->work_status == 3) {
             // super admin เห็นทุก branch
             $data['branch'] = Branch::orderBy('name')->get();
-        } else {
-            // เห็นเฉพาะสาขาของตัวเอง
-            $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        }
+        // } else {
+        //     // เห็นเฉพาะสาขาของตัวเอง
+        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
+        // }
         return view('admin/room-type/view', $data);
     }
 

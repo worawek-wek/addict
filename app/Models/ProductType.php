@@ -15,5 +15,8 @@ class ProductType extends Model
     protected $primaryKey = 'id';
     protected $table = 'product_type';
 
-
+    public function branch()
+    {
+        return $this->hasOne(Branch::class, 'id', 'ref_branch_id');
+    }
 }

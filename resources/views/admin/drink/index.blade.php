@@ -85,7 +85,7 @@
                                                         <option value="">ทั้งหมด</option>
                                                     @endif
                                                     @foreach ($branch as $bra)
-                                                        <option value="{{ $bra->id }}">{{ $bra->name }}</option>
+                                                        <option value="{{ $bra->id }}" @if (Auth::user()->ref_branch_id == $bra->id) selected @endif>{{ $bra->name }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>

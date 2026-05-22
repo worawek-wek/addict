@@ -26,15 +26,6 @@
                                 <form id="edit_room_type" enctype="multipart/form-data">
                                     @csrf
                                     <div class="row g-3 p-4">
-                                        {{-- <div class="col-sm-12">
-                                            <label class="form-label">ห้อง <span class="text-danger">*</span></label>
-                                            <select name="ref_room_id" id="select-edit-room" class="">
-                                                <option selected disabled hidden value="">เลือกห้อง</option>
-                                                @foreach ($room as $ro)
-                                                    <option @if ($ro->id == $room_type->ref_room_id) selected @endif value="{{ $ro->id }}">{{ $ro->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div> --}}
 
                                         <div class="col-sm-6">
                                             <label class="form-label">ชื่อห้อง *</label>

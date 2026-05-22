@@ -181,8 +181,8 @@
 
 <body>
 <!-- Layout wrapper -->
-<div class="layout-wrapper layout-content-navbar pt-3">
-    <div class="layout-container">
+<div class="layout-content-navbar pt-3">
+    <div>
         <div>
             <div class="container-fluid">
                     <style>
@@ -384,7 +384,7 @@
                                 <div class="card shadow-sm border-0">
                                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                                         <span class="fw-bold">Invoice</span>
-                                        <span class="text-muted">#0001</span>
+                                        {{-- <span class="text-muted">#0001</span> --}}
                                     </div>
                                     <div class="mb-3 px-4">
                                         <label class="form-label fw-bold">เลือกพนักงานขาย</label>

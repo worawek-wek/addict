@@ -78,7 +78,18 @@
                                                     สต็อกการ์ด(สินค้า)
                                                 </h4>
                                             </div>
-                                            <div class="col-sm-12">
+                                            <div class="col-sm-3">
+                                                <select name="ref_branch_id" class="form-select p_search"
+                                                    onchange='loadData("{{ $page_url }}/datatable")' required>
+                                                    @if (Auth::user()->work_status == 3)
+                                                        <option value="">ทั้งหมด</option>
+                                                    @endif
+                                                    @foreach ($branch as $bra)
+                                                        <option value="{{ $bra->id }}" @if (Auth::user()->ref_branch_id == $bra->id) selected @endif>{{ $bra->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-6">
                                                 <div class="row">
                                                         <div class="input-group input-group-merge">
                                                             <span class="input-group-text" id="basic-addon-search31"><i class="ti ti-search"></i></span>
@@ -221,13 +232,60 @@
                     @csrf
                     <div class="modal-body">
                         <div class="row g-3 p-4">
+                            <div class="col-sm-12">
+
+                                <label class="form-label">สาขา</label>
+                                <span class="text-danger">*</span><br>
+
+                                @foreach ($branch as $bra)
+
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="ref_branch_id"
+                                        id="import_branch{{ $bra->id }}"
+                                        value="{{ $bra->id }}"
+                                        onchange="filterImportProduct(this.value)"
+                                        {{ Auth::user()->ref_branch_id == $bra->id ? 'checked' : '' }}>
+
+                                    <label
+                                        class="form-check-label me-4"
+                                        for="import_branch{{ $bra->id }}">
+
+                                        {{ $bra->name }}
+
+                                    </label>
+
+                                @endforeach
+
+                            </div>
+
                             <div class="col-sm-6">
-                                <label for="" class="form-label">สินค้า</label>
-                                <select name="ref_product_id" id="select2Position1" class="select2 form-select form-select-lg select2-import-stock" data-allow-clear="true">
+
+                                <label class="form-label">
+                                    สินค้า
+                                </label>
+
+                                <select
+                                    name="ref_product_id"
+                                    id="select2Position1"
+                                    class="select2 form-select form-select-lg select2-import-stock"
+                                    data-allow-clear="true">
+
                                     @foreach ($product as $pro)
-                                        <option value="{{$pro->id}}">{{$pro->name}}</option>
+
+                                        <option
+                                            value="{{ $pro->id }}"
+                                            data-branch="{{ $pro->ref_branch_id }}">
+
+                                            {{ $pro->name }}
+
+                                        </option>
+
                                     @endforeach
+
                                 </select>
+
                             </div>
                             <div class="col-sm-6">
                                 <label for="" class="form-label">ราคาต้นทุน</label><span class="text-danger"> *</span>
@@ -266,6 +324,34 @@
                     @csrf
                     <div class="modal-body">
                         <div class="row g-3 p-4">
+
+                            <div class="col-sm-12">
+
+                                <label class="form-label">สาขา</label>
+                                <span class="text-danger">*</span><br>
+
+                                @foreach ($branch as $bra)
+
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="ref_branch_id"
+                                        id="export_branch{{ $bra->id }}"
+                                        value="{{ $bra->id }}"
+                                        onchange="filterExportProduct(this.value)"
+                                        {{ Auth::user()->ref_branch_id == $bra->id ? 'checked' : '' }}>
+
+                                    <label
+                                        class="form-check-label me-4"
+                                        for="export_branch{{ $bra->id }}">
+
+                                        {{ $bra->name }}
+
+                                    </label>
+
+                                @endforeach
+
+                            </div>
 
                             <div class="col-sm-6">
                                 <label>เลือกสินค้า</label>
@@ -530,7 +616,7 @@
                                     .then(() => {
                                         location.reload();
                                     });
-                                // $('#withdrawModal').modal('hide');
+                                // $('#ImportModal').modal('hide');
                                 loadData(page);
                             }
                         },
@@ -557,7 +643,92 @@
             todayHighlight: true  // ไฮไลต์วันที่ปัจจุบัน
         });
         $('#select2Position1').select2();
+///////////////////////////////////////////////////////////////////////////////////////////
+        // เก็บ option เดิมทั้งหมด
+        const importProducts = [];
 
+        $('#select2Position1 option').each(function () {
+
+            importProducts.push({
+                value: $(this).val(),
+                text: $(this).text(),
+                branch: $(this).data('branch')
+            });
+
+        });
+
+
+        // filter
+        function filterImportProduct(branchId) {
+
+            $('#select2Position1').empty();
+
+            importProducts.forEach(function (item) {
+
+                if (item.branch == branchId) {
+
+                    $('#select2Position1').append(`
+                        <option value="${item.value}">
+                            ${item.text}
+                        </option>
+                    `);
+
+                }
+
+            });
+
+            // refresh select2
+            $('#select2Position1').trigger('change');
+
+        }
+
+
+        // โหลดครั้งแรก
+        filterImportProduct(
+            $('input[id^="import_branch"]:checked').val()
+        );
+/////////////////////////////////////////////////////////////////////////////////////////
+        const allWithdrawProducts = [];
+
+        $('#select2Product option').each(function () {
+
+            allWithdrawProducts.push({
+                value: $(this).val(),
+                text: $(this).text(),
+                branch: $(this).data('branch')
+            });
+
+        });
+
+        const allProducts = @json($product);
+
+        function filterExportProduct(branchId) {
+
+            select2Product.clear();
+
+            select2Product.clearOptions();
+
+            allProducts.forEach(product => {
+
+                if (product.ref_branch_id == branchId) {
+
+                    select2Product.addOption({
+                        value: product.id,
+                        text: product.name
+                    });
+
+                }
+
+            });
+
+            select2Product.refreshOptions(false);
+        }
+
+
+        // โหลดครั้งแรก
+        filterExportProduct(
+            $('input[id^="export_branch"]:checked').val()
+        );
     </script>
 </body>
 

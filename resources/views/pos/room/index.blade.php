@@ -43,8 +43,8 @@
 
 <body>
 <!-- Layout wrapper -->
-<div class="layout-wrapper layout-content-navbar pt-3" style="background-color: #a1beff;">
-    <div class="layout-container">
+<div class="layout-content-navbar pt-3" style="background-color: #a1beff;">
+    <div>
 
         <!-- Layout container -->
         <div>

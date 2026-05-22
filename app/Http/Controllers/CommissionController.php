@@ -9,6 +9,7 @@ use App\Models\MassageCommission;
 use App\Models\OrderHasProduct;
 use App\Models\SalesCommissionTier;
 use App\Models\User;
+use App\Models\Branch;
 use Exception;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -112,8 +113,11 @@ class CommissionController extends Controller
         $rounds = HistoryCommission::whereIn('id', function($query) {
                                                 $query->selectRaw('MAX(id)')->from('history_commissions')->groupBy('round');
                                             })->get();
+
+        $branch = Branch::orderBy('name')->get();
+
         $page_url = "admin/commission/view-sales";
-        return view('admin.commission.view_sales', compact('page_url', 'rounds'));
+        return view('admin.commission.view_sales', compact('page_url', 'rounds', 'branch'));
     }
     public function get_history_by_round($round)
     {
@@ -135,6 +139,9 @@ class CommissionController extends Controller
                                 });
         }
 
+        if (@$request->ref_branch_id) {
+            $results = $results->where('ref_branch_id', $request->ref_branch_id);
+        }
         if (request('start_date')) {
             $data['start_date'] = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
 
@@ -168,6 +175,12 @@ class CommissionController extends Controller
                                 });
         }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+        if (@request('ref_branch_id')) {
+            $results->where('ref_branch_id', request('ref_branch_id'));
+        }
+/////////////////////////////////////////////////////////////////////////////////////////
+
         if (request('start_date')) {
             $data['start_date'] = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
 
@@ -193,7 +206,8 @@ class CommissionController extends Controller
     public function drink_view_sales(Request $request)
     {
         $page_url = "admin/commission/drink-view-sales";
-        return view('admin.commission.drink_view_sales', compact('page_url'));
+        $branch = Branch::orderBy('name')->get();
+        return view('admin.commission.drink_view_sales', compact('page_url','branch'));
     }
     public function drink_view_sales_datatable(Request $request)
     {
@@ -207,6 +221,9 @@ class CommissionController extends Controller
                                 });
         }
 
+        if (@$request->ref_branch_id) {
+            $results = $results->where('ref_branch_id', $request->ref_branch_id);
+        }
         if (request('start_date')) {
             $data['start_date'] = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
 
@@ -239,6 +256,12 @@ class CommissionController extends Controller
                                             ->orWhere('nickname','LIKE','%'.request('name').'%');
                                 });
         }
+
+/////////////////////////////////////////////////////////////////////////////////////////
+        if (@request('ref_branch_id')) {
+            $results->where('ref_branch_id', request('ref_branch_id'));
+        }
+/////////////////////////////////////////////////////////////////////////////////////////
 
         if (request('start_date')) {
             $data['start_date'] = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();

@@ -71,11 +71,32 @@
                         <div class="row ">
                             <div class="col-sm-12">
                                 <div class="card mb-3">
+                                    <div class="card-header border-bottom border-bottom">
+                                        <div class="row g-3 justify-content-between">
+                                            <div class="col-sm-12">
+                                                <h4 class="mb-0">
+                                                    <i class="tf-icons ti ti-copy text-main ti-md me-2"></i>
+                                                    รายงานสต็อกการ์ด(สินค้า)
+                                                </h4>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <select name="ref_branch_id" class="form-select p_search"
+                                                    onchange='loadData("{{ $page_url }}-datatable")' required>
+                                                    @if (Auth::user()->work_status == 3)
+                                                        <option value="">ทั้งหมด</option>
+                                                    @endif
+                                                    @foreach ($branch as $bra)
+                                                        <option value="{{ $bra->id }}" @if (Auth::user()->ref_branch_id == $bra->id) selected @endif>{{ $bra->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="card-datatable table-responsive">
                                         <div id="DataTables_Table_0_wrapper"
                                             class="dataTables_wrapper dt-bootstrap5 no-footer">
                                             <div
-                                                class="card-header d-flex border-top rounded-0 flex-wrap py-0 flex-column flex-md-row align-items-start">
+                                                class="card-header d-flex rounded-0 flex-wrap py-0 flex-column flex-md-row align-items-start">
                                                 <div class="me-5 ms-n4 pe-5 mb-n6 mb-md-0">
 
                                                     <!-- <label><input type="search" class="form-control"

@@ -35,7 +35,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($list_data as $key => $row)
+            @forelse ($list_data as $key => $row)
             @php
                 $view = 'style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance" onclick="view('.$row->id.')"';
                 $s_remain = \App\Models\CardStocks::where('ref_product_id', $row->id)->sum('remain') ?? 0;
@@ -107,7 +107,17 @@
                     </div>
                 </td>
             </tr>
-            @endforeach
+            
+            @empty
+
+                <tr>
+                    <td colspan="20" class="text-center text-muted py-4">
+                        <i class="ti ti-file-search" style="font-size: 24px;"></i><br>
+                        ไม่พบข้อมูล
+                    </td>
+                </tr>
+
+            @endforelse
         </tbody>
     </table>
 <!-- END: Data List -->
