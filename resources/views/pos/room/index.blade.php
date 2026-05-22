@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed layout-compact" dir="ltr"
-      data-theme="theme-default" data-assets-path="assets/" data-template="vertical-menu-template">
+    data-theme="theme-default" data-assets-path="assets/" data-template="vertical-menu-template">
 
 <head>
     @include('admin/layout/inc_header')
@@ -42,45 +42,48 @@
 </style>
 
 <body>
-<!-- Layout wrapper -->
-<div class="layout-content-navbar pt-3" style="background-color: #a1beff;">
-    <div>
-
-        <!-- Layout container -->
+    <!-- Layout wrapper -->
+    <div class="layout-content-navbar pt-3" style="background-color: #a1beff;">
         <div>
-            <!-- Navbar -->
-            {{-- @include('admin/layout/inc_topmenu') --}}
-            {{-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// --}}
-        <div class="container-fluid">
 
-            <!-- 🔍 Search -->
-            <div class="d-flex align-items-center gap-2 mb-3">
+            <!-- Layout container -->
+            <div>
+                <!-- Navbar -->
+                {{-- @include('admin/layout/inc_topmenu') --}}
+                {{-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// --}}
+                <div class="container-fluid">
 
-                <!-- search -->
-                <div class="input-group" style="max-width:300px;">
-                    <span class="input-group-text bg-white">
-                        <i class="ti ti-search"></i>
-                    </span>
-                    <input type="text" id="searchRoom" class="form-control" placeholder="Search room...">
-                </div>
+                    <!-- 🔍 Search -->
+                    <div class="d-flex align-items-center gap-2 mb-3">
 
-                <!-- button -->
-                <a href="{{ url('pos/product') }}" class="btn btn-warning d-flex align-items-center justify-content-center gap-2">
-                    <i class="ti ti-shopping-cart"></i>
-                    ขายสินค้า
-                </a>
-                <a href="{{ url('pos/drink') }}" class="btn btn-danger d-flex align-items-center justify-content-center gap-2">
-                    <i class="fa fa-wine-glass"></i>
-                    ขายดื่ม
-                </a>
-                <a href="{{ url('admin/order-rooms') }}" class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
-                    <i class="ti ti-settings"></i>
-                    หลังบ้าน
-                </a>
+                        <!-- search -->
+                        <div class="input-group" style="max-width:300px;">
+                            <span class="input-group-text bg-white">
+                                <i class="ti ti-search"></i>
+                            </span>
+                            <input type="text" id="searchRoom" class="form-control" placeholder="Search room...">
+                        </div>
 
-            </div>
+                        <!-- button -->
+                        <a href="{{ url('pos/product') }}"
+                            class="btn btn-warning d-flex align-items-center justify-content-center gap-2">
+                            <i class="ti ti-shopping-cart"></i>
+                            ขายสินค้า
+                        </a>
+                        <a href="{{ url('pos/drink') }}"
+                            class="btn btn-danger d-flex align-items-center justify-content-center gap-2">
+                            <i class="fa fa-wine-glass"></i>
+                            ขายดื่ม
+                        </a>
+                        <a href="{{ url('admin/order-rooms') }}"
+                            class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
+                            <i class="ti ti-settings"></i>
+                            หลังบ้าน
+                        </a>
 
-                                                {{-- <div class="input-group input-group-merge">
+                    </div>
+
+                    {{-- <div class="input-group input-group-merge">
                                                     <span class="input-group-text" id="basic-addon-search31">
                                                         <i class="ti ti-search"></i>
                                                     </span>
@@ -90,66 +93,85 @@
                                                            aria-label="ค้นหาคีเวิร์ดที่ต้องการ"
                                                            aria-describedby="basic-addon-search31" />
                                                 </div> --}}
-    <style>
-        .timer-box {
-            text-align: center;
-            color: white;
-            border-radius: 6px;
-            padding: 4px 0;
-            font-family: monospace;
-        }
-    </style>
-            <!-- 🏠 Room Grid -->
-            <div class="row g-3" id="roomGrid">
-                @php
-                    $prevGroupId = null;
-                @endphp
+                    <style>
+                        .timer-box {
+                            text-align: center;
+                            color: white;
+                            border-radius: 6px;
+                            padding: 4px 0;
+                            font-family: monospace;
+                        }
+                    </style>
+                    <!-- 🏠 Room Grid -->
+                    {{-- ครอบ container ให้เต็มหน้าจอ --}}
+                    <div style="height: calc(100vh - 160px); overflow: hidden;">
+                        <div id="roomGrid"
+                            style="
+             display: grid;
+             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+             gap: 6px;
+              height: 100%;
+              align-content: start;
+              ">
+                            @php $prevGroupId = null; @endphp
 
-                @foreach ($rooms as $key => $room)
-
-                    {{-- ถ้าเปลี่ยนหมวด → ขึ้นแถวใหม่ --}}
-                    @if ($prevGroupId !== null && $prevGroupId != $room->room_group_id)
-                        <div class="w-100"></div>
-                    @endif
-                    <div class="col-sm-1 room-card" data-name="{{ $room->name }}">
-                            <div class="timer-box timer m-auto mb-1" data-start="{{ @$room->active_order->start_time }}" data-end="{{ @$room->active_order->end_time }}" style="background-color: {{ $room->is_busy  ? '#6c757d' : '#5e2a5f' }};">00:00</div>
-                        <div @if(@$room->is_busy)  onclick="view({{ @$room->active_order->id }}); return false;" @endif
-                            class="card text-center border-0 shadow-sm {{ $room->is_busy ? 'bg-danger text-white' : 'bg-purple text-white' }}">
-
-                            <div @if(!@$room->is_busy) onclick="window.location.href='{{ 'pos/'.$room->id }}'" @endif class="card-body py-5 px-0">
-                                @if (isset($room->active_order))
-                                    <div class="small mt-1">
-                                        <span class="badge bg-white text-black">
-                                            {{ \Carbon\Carbon::parse($room->active_order->start_time)->format('H:i') }}
-                                            -
-                                            {{ \Carbon\Carbon::parse($room->active_order->end_time)->format('H:i') }}
-                                        </span>
-                                    </div>
-                                    @if (!empty($room->active_order->staff_name))
-                                        <div class="small mt-1 text-white">
-                                            <i class="ti ti-user"></i> {{ $room->active_order->staff_name }}
-                                        </div>
-                                    @endif
-                                @else
-                                    <i class="ti ti-door" style="font-size:2rem;"></i>
+                            @foreach ($rooms as $room)
+                                @if ($prevGroupId !== null && $prevGroupId != $room->room_group_id)
+                                    <div style="grid-column: 1 / -1; margin: 0;"></div>
                                 @endif
-                            </div>
-                            <div class="card-footer fw-bold {{ $room->is_busy ? 'bg-danger text-white' : 'bg-light text-dark' }} py-2" >
-                                {{ $room->name }}
-                                {{-- @if (isset($room->active_order))
 
-                                @endif --}}
-                            </div>
+                                <div class="room-card" data-name="{{ $room->name }}">
 
+                                    {{-- Timer --}}
+                                    <div class="timer-box timer text-center mb-1"
+                                        data-start="{{ @$room->active_order->start_time }}"
+                                        data-end="{{ @$room->active_order->end_time }}"
+                                        style="background-color: {{ $room->is_busy ? '#6c757d' : '#5e2a5f' }};
+                           font-size: 0.65rem; padding: 1px 4px;
+                           border-radius: 4px; color: white;">
+                                        00:00
+                                    </div>
+
+                                    {{-- Card --}}
+                                    <div @if (@$room->is_busy) onclick="view({{ @$room->active_order->id }}); return false;" @endif
+                                        class="card text-center border-0 shadow-sm {{ $room->is_busy ? 'bg-danger text-white' : 'bg-purple text-white' }}"
+                                        style="aspect-ratio: 1/1; overflow: hidden; cursor: pointer;">
+
+                                        <div @if (!@$room->is_busy) onclick="window.location.href='{{ 'pos/' . $room->id }}'" @endif
+                                            class="card-body d-flex flex-column align-items-center justify-content-center p-1">
+
+                                            @if (isset($room->active_order))
+                                                <span class="badge bg-white text-black" style="font-size: 0.6rem;">
+                                                    {{ \Carbon\Carbon::parse($room->active_order->start_time)->format('H:i') }}
+                                                    -
+                                                    {{ \Carbon\Carbon::parse($room->active_order->end_time)->format('H:i') }}
+                                                </span>
+                                                @if (!empty($room->active_order->staff_name))
+                                                    <div style="font-size: 0.6rem;" class="mt-1">
+                                                        <i class="ti ti-user"></i>
+                                                        {{ $room->active_order->staff_name }}
+                                                    </div>
+                                                @endif
+                                            @else
+                                                <i class="ti ti-door" style="font-size: 1.2rem;"></i>
+                                            @endif
+
+                                        </div>
+
+                                        <div class="card-footer fw-bold {{ $room->is_busy ? 'bg-danger text-white' : 'bg-light text-dark' }} py-1 px-0"
+                                            style="font-size: 0.68rem;">
+                                            {{ $room->name }}
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                @php $prevGroupId = $room->room_group_id; @endphp
+                            @endforeach
                         </div>
                     </div>
-                    @php
-                        $prevGroupId = $room->room_group_id;
-                    @endphp
-                @endforeach
-            </div>
 
-        </div>
+                </div>
 
                 <!-- Footer -->
                 @include('admin/layout/inc_footer')
@@ -165,106 +187,106 @@
     <!-- Overlay -->
     <div class="layout-overlay layout-menu-toggle"></div>
     <div class="drag-target"></div>
-</div>
+    </div>
 
 
     <div class="modal fade" id="viewOrderRoomModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document" id="view"></div>
     </div>
 
-@include('admin/layout/inc_js')
+    @include('admin/layout/inc_js')
 
 </body>
+
 </html>
-    {{-- ================== STYLES ================== --}}
-    <style>
-        .bg-purple {
-            background-color: #5e2a5f;
-        }
+{{-- ================== STYLES ================== --}}
+<style>
+    .bg-purple {
+        background-color: #5e2a5f;
+    }
 
-        .room-card .card {
-            cursor: pointer;
-            transition: transform .2s;
-        }
+    .room-card .card {
+        cursor: pointer;
+        transition: transform .2s;
+    }
 
-        .room-card .card:hover {
-            transform: scale(1.03);
-        }
-    </style>
+    .room-card .card:hover {
+        transform: scale(1.03);
+    }
+</style>
 
-    {{-- ================== SCRIPT ================== --}}
-    <script>
-        function view(id) {
-            $.ajax({
-                type: "GET",
-                url: "{{ route('order-rooms.index') }}/" + id,
-                success: function(data) {
-                    $("#view").html(data);
-                    $('#viewOrderRoomModal').modal('show');
-                }
-            });
-        }
-        document.addEventListener('DOMContentLoaded', () => {
-            const rooms = document.querySelectorAll('.room-card');
-            const searchInput = document.getElementById('searchRoom');
+{{-- ================== SCRIPT ================== --}}
+<script>
+    function view(id) {
+        $.ajax({
+            type: "GET",
+            url: "{{ route('order-rooms.index') }}/" + id,
+            success: function(data) {
+                $("#view").html(data);
+                $('#viewOrderRoomModal').modal('show');
+            }
+        });
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        const rooms = document.querySelectorAll('.room-card');
+        const searchInput = document.getElementById('searchRoom');
 
-            // ค้นหาห้อง
-            searchInput.addEventListener('input', () => {
-                const q = searchInput.value.toLowerCase();
-                rooms.forEach(r => {
-                    r.style.display = r.dataset.name.toLowerCase().includes(q) ? 'block' : 'none';
-                });
+        // ค้นหาห้อง
+        searchInput.addEventListener('input', () => {
+            const q = searchInput.value.toLowerCase();
+            rooms.forEach(r => {
+                r.style.display = r.dataset.name.toLowerCase().includes(q) ? 'block' : 'none';
             });
         });
-    </script>
-    <script>
-        function parseDateTime(str) {
-            // แปลง "2026-04-29 23:42:53" → local time แบบชัวร์
-            const [date, time] = str.split(' ');
-            const [y, m, d] = date.split('-').map(Number);
-            const [h, i, s] = time.split(':').map(Number);
-
-            return new Date(y, m - 1, d, h, i, s);
-        }
-
-        function formatTime(seconds) {
-            let hours = Math.floor(seconds / 3600);
-            let minutes = Math.floor((seconds % 3600) / 60);
-
-            return String(hours).padStart(2, '0') + ':' +
-                String(minutes).padStart(2, '0');
-        }
-
-        function updateAllTimers() {
-            let needsReload = false;
-            const now = new Date();
-
-            document.querySelectorAll('.timer').forEach(timer => {
-                const startTimeStr = timer.dataset.start;
-                const endTimeStr   = timer.dataset.end;
-                if (!startTimeStr) return;
-
-                const startDate = parseDateTime(startTimeStr);
-
-                if (endTimeStr) {
-                    const endDate = parseDateTime(endTimeStr);
-
-                    // 🔥 ถ้าหมดเวลาแล้ว
-                    if (now >= endDate) {
-                        timer.innerText = 'หมดเวลาแล้ว';
-                        needsReload = true;
-                        return;
-                    }
-                }
-
-                const diffSeconds = Math.floor((now - startDate) / 1000);
-                timer.innerText = formatTime(diffSeconds);
-            });
-
-        }
-
-        // เริ่ม
-        updateAllTimers();
-        setInterval(updateAllTimers, 60000);
+    });
 </script>
+<script>
+    function parseDateTime(str) {
+        // แปลง "2026-04-29 23:42:53" → local time แบบชัวร์
+        const [date, time] = str.split(' ');
+        const [y, m, d] = date.split('-').map(Number);
+        const [h, i, s] = time.split(':').map(Number);
 
+        return new Date(y, m - 1, d, h, i, s);
+    }
+
+    function formatTime(seconds) {
+        let hours = Math.floor(seconds / 3600);
+        let minutes = Math.floor((seconds % 3600) / 60);
+
+        return String(hours).padStart(2, '0') + ':' +
+            String(minutes).padStart(2, '0');
+    }
+
+    function updateAllTimers() {
+        let needsReload = false;
+        const now = new Date();
+
+        document.querySelectorAll('.timer').forEach(timer => {
+            const startTimeStr = timer.dataset.start;
+            const endTimeStr = timer.dataset.end;
+            if (!startTimeStr) return;
+
+            const startDate = parseDateTime(startTimeStr);
+
+            if (endTimeStr) {
+                const endDate = parseDateTime(endTimeStr);
+
+                // 🔥 ถ้าหมดเวลาแล้ว
+                if (now >= endDate) {
+                    timer.innerText = 'หมดเวลาแล้ว';
+                    needsReload = true;
+                    return;
+                }
+            }
+
+            const diffSeconds = Math.floor((now - startDate) / 1000);
+            timer.innerText = formatTime(diffSeconds);
+        });
+
+    }
+
+    // เริ่ม
+    updateAllTimers();
+    setInterval(updateAllTimers, 60000);
+</script>
