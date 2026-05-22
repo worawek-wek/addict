@@ -41,7 +41,7 @@ class DrinkController extends Controller
 
     public function datatable(Request $request)
     {
-        $results = Drink::orderBy('sort');
+        $results = Drink::orderBy('name');
         if (!empty($request->search)) {
             $results->where(function ($q) use ($request) {
                 $q->where('name', 'LIKE', "%{$request->search}%")

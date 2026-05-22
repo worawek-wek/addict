@@ -56,7 +56,7 @@
                                 <i class="fa fa-trash"></i>
                                 ลบ
                             </a>
-                            <select name="sort"
+                            {{-- <select name="sort"
                                     class="sort-item"
                                     data-id="{{ $row->id }}"
                                     data-old="{{ $row->sort }}"
@@ -68,7 +68,7 @@
                                             selected
                                         @endif>{{ $i }}</option>
                                 @endfor
-                            </select>
+                            </select> --}}
                     </div>
                 </td>
             </tr>

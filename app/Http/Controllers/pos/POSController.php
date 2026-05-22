@@ -82,11 +82,11 @@ class POSController extends Controller
 
         // ---------------- Cart Totals ----------------
         $data['branches'] = Branch::all();
-        $data['room_type'] = RoomType::orderBy('sort')
+        $data['room_type'] = RoomType::orderBy('name')
                                         ->where('ref_status_id', 1)
                                         ->where('ref_branch_id', $branchId)
                                         ->get();
-        $data['course'] = Course::orderBy('sort')->where('ref_branch_id', $branchId)->where('ref_status_id', 1)->get();
+        $data['course'] = Course::orderBy('name')->where('ref_branch_id', $branchId)->where('ref_status_id', 1)->get();
         $cart = Session::get('cart', []);
         $data['cart'] = $cart;
         $subtotal = collect($cart)->sum(fn($i) => (float)($i['price'] ?? 0) * (int)($i['qty'] ?? 0));
@@ -129,13 +129,13 @@ class POSController extends Controller
 
         // ---------------- Cart Totals ----------------
         $data['branches'] = Branch::all();
-        $data['room_type'] = RoomType::orderBy('sort')
+        $data['room_type'] = RoomType::orderBy('name')
                                         ->where('ref_status_id', 1)
                                         ->whereHas('room', function ($query) use ($branchId) {
                                             $query->where('ref_branch_id', $branchId);
                                         })
                                         ->get();
-        $data['course'] = Course::orderBy('sort')->where('ref_status_id', 1)->get();
+        $data['course'] = Course::orderBy('name')->where('ref_status_id', 1)->get();
         $cart = Session::get('cart', []);
         $data['cart'] = $cart;
         $subtotal = collect($cart)->sum(fn($i) => (float)($i['price'] ?? 0) * (int)($i['qty'] ?? 0));
@@ -182,13 +182,13 @@ class POSController extends Controller
 
         // ---------------- Cart Totals ----------------
         $data['branches'] = Branch::all();
-        $data['room_type'] = RoomType::orderBy('sort')
+        $data['room_type'] = RoomType::orderBy('name')
                                         ->where('ref_status_id', 1)
                                         ->whereHas('room', function ($query) use ($branchId) {
                                             $query->where('ref_branch_id', $branchId);
                                         })
                                         ->get();
-        $data['course'] = Course::orderBy('sort')->where('ref_status_id', 1)->get();
+        $data['course'] = Course::orderBy('name')->where('ref_status_id', 1)->get();
         $cart = Session::get('cart', []);
         $data['cart'] = $cart;
         $subtotal = collect($cart)->sum(fn($i) => (float)($i['price'] ?? 0) * (int)($i['qty'] ?? 0));

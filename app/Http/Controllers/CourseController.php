@@ -70,7 +70,7 @@ class CourseController extends Controller
     }
     public function datatable(Request $request)
     {
-        $results = Course::orderBy('sort');
+        $results = Course::orderBy('name');
 
         // 🔍 search
         if (!empty($request->search)) {

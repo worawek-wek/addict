@@ -84,7 +84,7 @@ class RoomTypeController extends Controller
     }
     public function datatable(Request $request)
     {
-        $results = RoomType::orderBy('sort', 'ASC');
+        $results = RoomType::orderBy('name', 'ASC');
 
         // 🔍 search
         if (!empty($request->search)) {

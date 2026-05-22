@@ -125,11 +125,12 @@ class UserController extends Controller
     public function datatable(Request $request)
     {
         $results = User::where('work_status', '!=', 3)
-            ->orderBy('sort');
+            ->orderBy('user_id');
 
         if (@$request->search) {
             $results = $results->orWhere(function ($query) use ($request) {
                 $query->where('name', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('user_id', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('email', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('salary', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
