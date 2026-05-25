@@ -467,7 +467,7 @@ class FrontHomeController extends Controller
         $startTime   = $request->start_time;
         $endTime     = $request->end_time;
 
-        $rooms = Room::where('ref_branch_id', $branchId)->get()
+        $rooms = RoomType::where('ref_branch_id', $branchId)->get()
             ->map(function ($room) use ($bookingDate, $startTime, $endTime) {
                 $hasConflict = Order::where('ref_room_id', $room->id)
                     ->where('booking_date', $bookingDate)
