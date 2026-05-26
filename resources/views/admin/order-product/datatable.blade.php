@@ -238,8 +238,10 @@
     }
 
 
-    const editOrder = (orderId) => {
-        window.location.href = `/admin/order-products/edit/${orderId}`;
+    if (typeof window.editOrder === 'undefined') {
+        window.editOrder = function(orderId) {
+            window.location.href = `/admin/order-products/edit/${orderId}`;
+        }
     }
 
     function printReceipt(orderId) {

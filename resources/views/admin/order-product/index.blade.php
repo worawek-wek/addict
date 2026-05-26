@@ -33,7 +33,7 @@
                                                     การขายสินค้า (Order Products)
                                                 </h4>
                                             </div>
-                                            
+
                                             {{-- <div class="col-sm-8 d-flex justify-content-end align-items-sm-center gap-2">
                                                 ประวัติปิดการขาย:
                                                 <select onchange='getHistoryRound(this.value)'
@@ -50,7 +50,9 @@
                                                     <select name="branch_id" class="form-select p_search"
                                                         onchange='loadData("{{ route('order-products.datatable') }}")'>
                                                         @foreach ($branches as $branch)
-                                                            <option value="{{ $branch->id }}"@if (Auth::user()->ref_branch_id == $branch->id) selected @endif>{{ $branch->name }}
+                                                            <option
+                                                                value="{{ $branch->id }}"@if (Auth::user()->ref_branch_id == $branch->id) selected @endif>
+                                                                {{ $branch->name }}
                                                             </option>
                                                         @endforeach
                                                     </select>
@@ -79,8 +81,9 @@
                                                                     value="{{ now()->hour >= 10 ? now()->format('d/m/Y') : now()->subDay()->format('d/m/Y') }}">
                                                             </div>
                                                             <div class="dataTables_filter mx-n2 me-1">
-                                                                <input name="start_time_filter" id="start_time_filter" type="time"
-                                                                    class="form-control p_search" value="10:00">
+                                                                <input name="start_time_filter" id="start_time_filter"
+                                                                    type="time" class="form-control p_search"
+                                                                    value="10:00">
                                                             </div>
                                                             <label class="me-3">ถึงวันที่:</label>
                                                             <div
@@ -92,8 +95,9 @@
                                                                         value="{{ now()->hour >= 10 ? now()->addDay()->format('d/m/Y') : now()->format('d/m/Y') }}">
                                                                 </div>
                                                                 <div class="dataTables_filter mx-n2 me-1">
-                                                                    <input name="end_time_filter" id="end_time_filter" type="time"
-                                                                        class="form-control p_search" value="04:01">
+                                                                    <input name="end_time_filter" id="end_time_filter"
+                                                                        type="time" class="form-control p_search"
+                                                                        value="04:01">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -108,8 +112,7 @@
                                                         tabindex="0" aria-controls="DataTables_Table_0" type="button"
                                                         aria-haspopup="dialog" aria-expanded="false"
                                                         onclick="printSummaryReport('/admin/order-products/pdf')"
-                                                        id="ButtonSummaryReport"
-                                                        >
+                                                        id="ButtonSummaryReport">
                                                         <span><i class="ti ti-receipt"></i>
                                                             พิมพ์</span>
                                                     </button>
@@ -137,7 +140,7 @@
                                                         onchange='loadData("{{ route('order-products.datatable') }}")'
                                                         name="limit" class="form-select p_search" style="width:120px">
                                                         <option value="25">25</option>
-                                                        <option value="50" selected >50</option>
+                                                        <option value="50" selected>50</option>
                                                         <option value="100">100</option>
                                                     </select>
                                                     <label class="ms-2">รายการ</label>
@@ -213,8 +216,8 @@
         }
 
         function printSummaryReport(url) {
-            
-            $('.p_search').each(function () {
+
+            $('.p_search').each(function() {
                 var inputName = $(this).attr('name');
                 var inputValue = $(this).val();
                 searchData[inputName] = inputValue;
