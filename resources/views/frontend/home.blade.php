@@ -274,11 +274,12 @@
                                     </i>
                                 </div>
                                 <h4 class="fw-bold mb-2">
-                                    ไม่พบข้อมูล
-                                </h4>
-                                <p class="text-muted mb-0">
-                                    ยังไม่มีข้อมูลในระบบ
-                                </p>
+                                        No Time Period Found
+                                    </h4>
+
+                                    <p class="text-muted mb-0">
+                                        There are currently no time period members available.
+                                    </p>
                             </div>
                         </div>
                     `;
@@ -296,10 +297,11 @@
                                         </i>
                                     </div>
                                     <h4 class="fw-bold mb-2">
-                                        ไม่พบข้อมูล
+                                        No Staff Found
                                     </h4>
+
                                     <p class="text-muted mb-0">
-                                        ยังไม่มีข้อมูลในระบบ
+                                        There are currently no staff members available.
                                     </p>
                                 </div>
                             </div>
@@ -478,10 +480,11 @@
                                         </i>
                                     </div>
                                     <h4 class="fw-bold mb-2">
-                                        ไม่พบข้อมูล
+                                        No Room Found
                                     </h4>
+
                                     <p class="text-muted mb-0">
-                                        ยังไม่มีข้อมูลในระบบ
+                                        There are currently no room members available.
                                     </p>
                                 </div>
                             </div>
@@ -605,10 +608,11 @@
                                         </i>
                                     </div>
                                     <h4 class="fw-bold mb-2">
-                                        ไม่พบข้อมูล
+                                        No Staff Found
                                     </h4>
+
                                     <p class="text-muted mb-0">
-                                        ยังไม่มีข้อมูลในระบบ
+                                        There are currently no staff members available.
                                     </p>
                                 </div>
                             </div>
