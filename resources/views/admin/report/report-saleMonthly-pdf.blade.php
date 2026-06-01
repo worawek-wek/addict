@@ -80,7 +80,7 @@
 
                     $coursePrice = $order->total_price ?? 0;
                     if ($isCancelled) {
-                        $coursePrice = -$coursePrice;
+                        $coursePrice = 0;
                     }
 
                     $rtcKey = "{$order->ref_room_type_id}_{$order->service_laundry_cost}";
@@ -106,10 +106,6 @@
                     $grandCoursePriceSum += $isCancelled ? 0 : $coursePrice;
                     $grandDiscountSum += $isCancelled ? 0 : $order->discount ?? 0;
                     $grandDrinkSum += $isCancelled ? 0 : $order->products_sum_price ?? 0;
-                    $summary_non_cash =
-                        ($summary_type_payment_transfer ?? 0) +
-                        ($summary_type_payment_credit ?? 0) +
-                        ($summary_type_payment_al ?? 0);
                 @endphp
                 <tr>
                     <td>{{ $globalIndex }}</td>
@@ -131,10 +127,10 @@
                     </td>
                     <td>{{ $order->payment_method }}</td>
                     <td>{{ number_format($coursePrice) }}</td>
-                    <td>{{ $isCancelled ? '-' : number_format($order->discount ?? 0) }}</td>
-                    <td>{{ $isCancelled ? '-' : number_format($order->products_sum_price ?? 0) }}</td>
-                    <td>{{ $isCancelled ? '-' : number_format($usedCoupon) }}</td>
-                    <td>{{ $isCancelled ? '-' : number_format($actualRevenue) }}</td>
+                    <td>{{ number_format($isCancelled ? 0 : ($order->discount ?? 0)) }}</td>
+                    <td>{{ number_format($isCancelled ? 0 : ($order->products_sum_price ?? 0)) }}</td>
+                    <td>{{ number_format($isCancelled ? 0 : $usedCoupon) }}</td>
+                    <td>{{ number_format($isCancelled ? 0 : $actualRevenue) }}</td>
                     <td>{{ $order->status->name }}</td>
                 </tr>
             @endforeach
@@ -204,14 +200,14 @@
         <tr style="font-weight:bold; background:#ebebeb;">
             <td style="text-align:right; padding-right: 20px;">QR Code , Credit Card , AliPay</td>
             <td style="text-align:right; padding-right: 20px;">
-                {{ number_format($summary_non_cash ?? 0, 2) }}
+                {{ number_format(($totalNetTransfer ?? 0) + ($totalNetCredit ?? 0) + ($totalNetAl ?? 0), 2) }}
                 บาท
             </td>
         </tr>
         <tr style="font-weight:bold; background:#ebebeb;">
             <td style="text-align:right; padding-right: 20px;">รับเงินสุทธิ</td>
             <td style="text-align:right; padding-right: 20px;">
-                {{ number_format(abs(($grandNetSum ?? 0) - ($summary_non_cash ?? 0)), 2) }} บาท
+                {{ number_format($totalNetCash ?? 0, 2) }} บาท
             </td>
         </tr>
     </table>

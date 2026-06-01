@@ -197,6 +197,18 @@
                             <input name="minute" type="text" class="form-control" placeholder="จำนวณ นาที" required />
                         </div>
 
+                        <div class="col-sm-6">
+                            <label class="form-label d-block">Online Booking</label>
+                            <label class="switch switch-primary mb-0">
+                                <input type="checkbox" name="show_online_booking" value="1" class="switch-input">
+                                <span class="switch-toggle-slider">
+                                    <span class="switch-on"><i class="ti ti-check"></i></span>
+                                    <span class="switch-off"><i class="ti ti-x"></i></span>
+                                </span>
+                                <span class="switch-label">แสดงในหน้า จอง Online</span>
+                            </label>
+                        </div>
+
                         <div class="col-sm-12">
                             <label class="form-label">หมายเหตุ</label>
                             <textarea name="remark" class="form-control"></textarea>
@@ -292,7 +304,7 @@
             }
         });
     }
-    
+
     function changeStatus(id, v, element) {
         $(element).prop('checked', v === 1 ? false : true);
         Swal.fire({
@@ -312,6 +324,35 @@
                     success: function (response) {
                         if (response == true) {
                             Swal.fire('เปลี่ยนสถานะเรียบร้อยแล้ว', '', 'success');
+                            loadData(page);
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    }
+                });
+            }
+        });
+    }
+    function changeOnlineBooking(id, v, element) {
+        $(element).prop('checked', v === 1 ? false : true);
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ?',
+            text: 'คุณต้องการเปลี่ยนการแสดงใน Online Booking หรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            didOpen: () => Swal.getConfirmButton().focus()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ $page_url }}/change-online-booking/' + id,
+                    type: 'POST',
+                    data: { show_online_booking: v, _token: "{{ csrf_token() }}" },
+                    success: function (response) {
+                        if (response == true) {
+                            Swal.fire('เปลี่ยน Online Booking เรียบร้อยแล้ว', '', 'success');
                             loadData(page);
                         }
                     },

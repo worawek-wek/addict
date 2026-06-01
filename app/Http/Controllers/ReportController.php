@@ -64,12 +64,19 @@ class ReportController extends Controller
     {
 
         $limit = $request->limit ?? 10;
-        $stock_history = $this->getStockProductDatatable($limit);
+        $stock_history = $this->getStockProductDatatable($limit, $request);
         // return optional($stock_history[0]->history_stocks->first())->stock_after_quantity;
         return view('admin.report.report-stock-history-datatable', compact('stock_history'));
     }
 
-    private function getStockProductDatatable($limit)
+    private function getStockProductDatatable($limit, Request $request)
+    {
+        [$query] = $this->buildStockHistoryProductQuery($request);
+
+        return $query->paginate($limit)->appends($request->query());
+    }
+
+    private function buildStockHistoryProductQuery(Request $request): array
     {
         $query = Product::orderBy('id');
                         // ->whereIn('ref_status_id', [2, 3])
@@ -87,24 +94,14 @@ class ReportController extends Controller
         // }
 //////////////////////////////////////////////////////////////////////////////////
 
-        if (@request('ref_branch_id')) {
+        if ($request->filled('ref_branch_id')) {
             // filter เฉพาะสาขาของตัวเอง
-            $query->where('ref_branch_id', request('ref_branch_id'));
+            $query->where('ref_branch_id', $request->ref_branch_id);
         }
 //////////////////////////////////////////////////////////////////////////////////
 
-        if (request('start_date')) {
-            
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
-            if (request('start_time_filter')) {
-                [$sh, $sm] = explode(':', request('start_time_filter'));
-                $startDate->setTime((int)$sh, (int)$sm, 0);
-            }
-            if (request('end_time_filter')) {
-                [$eh, $em] = explode(':', request('end_time_filter'));
-                $endDate->setTime((int)$eh, (int)$em, 59);
-            }
+        [$startDate, $endDate] = $this->stockHistoryDateRange($request);
+        if ($startDate && $endDate) {
             // return $endDate;
             $query->withSum([
                                 'historyStocksDecrease as quantity_decrease' => function ($q) use ($startDate, $endDate) { // จำนวน ลด จาก ขายของ สต็อกขาย
@@ -148,59 +145,34 @@ class ReportController extends Controller
             // $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
-        $orderRooms = $query->paginate($limit);
-        // กำหนด badge และ label
+        return [$query, $startDate, $endDate];
+    }
 
-        return $orderRooms;
+    private function stockHistoryDateRange(Request $request): array
+    {
+        if (!$request->filled('start_date')) {
+            $startDate = now()->hour >= 10 ? now()->startOfDay() : now()->subDay()->startOfDay();
+            $endDate = now()->hour >= 10 ? now()->addDay()->endOfDay() : now()->endOfDay();
+        } else {
+            $startDate = Carbon::createFromFormat('d/m/Y', $request->start_date)->startOfDay();
+            $endDate = Carbon::createFromFormat('d/m/Y', $request->end_date ?: $request->start_date)->endOfDay();
+        }
+
+        if ($request->filled('start_time_filter')) {
+            [$sh, $sm] = explode(':', $request->start_time_filter);
+            $startDate->setTime((int)$sh, (int)$sm, 0);
+        }
+        if ($request->filled('end_time_filter')) {
+            [$eh, $em] = explode(':', $request->end_time_filter);
+            $endDate->setTime((int)$eh, (int)$em, 59);
+        }
+
+        return [$startDate, $endDate];
     }
 
     public function stock_history_pdf(Request $request)
     {
-        $query = Product::orderBy('id');
-                        // ->whereIn('ref_status_id', [2, 3])
-                        // ->orderBy('booking_date')
-                        // ->orderBy('start_time');
-
-/////////////////////////////////////////////////////////////////////////////////////////
-        if (@request('ref_branch_id')) {
-            $query->where('ref_branch_id', request('ref_branch_id'));
-        }
-/////////////////////////////////////////////////////////////////////////////////////////
-
-        if (request('start_date')) {
-            
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
-            if (request('start_time_filter')) {
-                [$sh, $sm] = explode(':', request('start_time_filter'));
-                $startDate->setTime((int)$sh, (int)$sm, 0);
-            }
-            if (request('end_time_filter')) {
-                [$eh, $em] = explode(':', request('end_time_filter'));
-                $endDate->setTime((int)$eh, (int)$em, 59);
-            }
-            // return $endDate;
-            $query->withSum([
-                        'historyStocksDecrease as quantity_decrease' => function ($q) use ($startDate, $endDate) {
-                            $q->whereBetween('created_at', [$startDate, $endDate]);
-                        }
-                    ], 'quantity') // quantity_decrease จำนวนลดรวม
-
-                    ->withSum([
-                        'historyStocksIncrease as quantity_increase' => function ($q) use ($startDate, $endDate) {
-                            $q->whereBetween('created_at', [$startDate, $endDate]);
-                        }
-                    ], 'quantity') // quantity_increase จำนวนเพิ่มรวม
-                    ->with([
-                                'firstOrderOfDay' => function ($q) use ($startDate, $endDate) {
-                                    $q->whereBetween('created_at', [$startDate, $endDate]);
-                                },
-                                'lastOrderOfDay' => function ($q) use ($startDate, $endDate) {
-                                    $q->whereBetween('created_at', [$startDate, $endDate]);
-                                }
-                            ]);
-            // $query->whereBetween('created_at', [$startDate, $endDate]);
-        }
+        [$query, $startDate, $endDate] = $this->buildStockHistoryProductQuery($request);
         $data['stock_history'] = $query->get();
         $data['startDate'] = $startDate;
         $data['endDate'] = $endDate;
@@ -957,7 +929,7 @@ class ReportController extends Controller
             ->withSum('products', 'price')
             ->with(['branch', 'customer', 'user', 'room', 'status', 'room_type'])
             ->where('type', 1)
-            ->whereIn('ref_status_id', [2, 3])
+            ->whereIn('ref_status_id', [2, 3, 4])
             ->orderByRaw("
                         CASE
                             WHEN ref_status_id = 1 AND CONCAT(booking_date, ' ', start_time) <= '{$now}' AND CONCAT(booking_date, ' ', end_time) >= '{$now}' AND (payment_method IS NULL OR payment_method = '') THEN 1 -- จอง (ถึงเวลาแล้ว) ที่ยังไม่มี payment_method
@@ -1076,7 +1048,7 @@ class ReportController extends Controller
                 'seller'
             ])
             ->where('type', 1)
-            ->whereIn('ref_status_id', [2, 3])
+            ->whereIn('ref_status_id', [2, 3, 4])
             // ->select('orders.*')
             ->orderBy('created_at', 'ASC');
 
@@ -1134,15 +1106,15 @@ class ReportController extends Controller
             ->get()
             ->keyBy(fn($r) => "{$r->ref_room_type_id}_{$r->ref_course_id}");
 
-        $data['discounts_summary'] = $data['orderRooms']->sum('discount');
-        $data['addons_sum_price'] = $data['orderRooms']->sum('addons_sum_price');
-        $data['summary_receive_price'] = $data['orderRooms']->sum('price');
-        $data['summary_receive_price_after_discount'] = $data['orderRooms']->sum('total_price');
+        $nonCancelledOrders = $data['orderRooms']->where('ref_status_id', '!=', 4);
+        $data['discounts_summary'] = $nonCancelledOrders->sum('discount');
+        $data['addons_sum_price'] = $nonCancelledOrders->sum('addons_sum_price');
+        $data['summary_receive_price'] = $nonCancelledOrders->sum('price');
+        $data['summary_receive_price_after_discount'] = $nonCancelledOrders->sum('total_price');
         $data['report_start_date'] = request('start_date') ?? date('d/m/Y');
         $data['report_end_date']   = request('end_date')   ?? date('d/m/Y');
         $data['report_start_time'] = request('start_time_filter') ?? '00:00';
         $data['report_end_time']   = request('end_time_filter')   ?? '23:59';
-        $nonCancelledOrders = $data['orderRooms']->where('ref_status_id', '!=', 4);
         $data['summary_type_payment_cash'] = $nonCancelledOrders->where('payment_method', 'cash')->sum('total_price');
         $data['summary_type_payment_credit'] = $nonCancelledOrders->where('payment_method', 'credit_card')->sum('total_price');
         $data['summary_type_payment_transfer'] = $nonCancelledOrders->where('payment_method', 'qr_code')->sum('total_price');
@@ -1150,8 +1122,7 @@ class ReportController extends Controller
 
         // Compute grandCommission, totalNetSum and totalNetCash for PDF summary
         $pdfGrandCommission = 0.0;
-        $pdfTotalNetSum = 0.0;
-        $pdfTotalNetCash = 0.0;
+        $pdfTotalNetSum = $pdfTotalNetCash = $pdfTotalNetTransfer = $pdfTotalNetCredit = $pdfTotalNetAl = 0.0;
         foreach ($nonCancelledOrders as $order) {
             $coursePrice    = $order->total_price ?? 0;
             $usedCoupon     = 0;
@@ -1173,10 +1144,16 @@ class ReportController extends Controller
             $pdfGrandCommission += $usedCommission;
             $pdfTotalNetSum     += $rev;
             if ($order->payment_method === 'cash') $pdfTotalNetCash += $rev;
+            if ($order->payment_method === 'qr_code') $pdfTotalNetTransfer += $rev;
+            if ($order->payment_method === 'credit_card') $pdfTotalNetCredit += $rev;
+            if ($order->payment_method === 'alipay') $pdfTotalNetAl += $rev;
         }
         $data['grandCommission'] = $pdfGrandCommission;
         $data['totalNetSum']     = $pdfTotalNetSum;
         $data['totalNetCash']    = $pdfTotalNetCash;
+        $data['totalNetTransfer'] = $pdfTotalNetTransfer;
+        $data['totalNetCredit'] = $pdfTotalNetCredit;
+        $data['totalNetAl'] = $pdfTotalNetAl;
 
         $html = view('admin.report.report-saleMonthly-pdf', $data)->render();
 

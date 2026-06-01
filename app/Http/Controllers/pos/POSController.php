@@ -222,40 +222,100 @@ class POSController extends Controller
     public function get_user(Request $request)
     {
         try {
-            return $find = User::where('ref_branch_id', Auth::user()->ref_branch_id)
-                                ->where(function ($q) use ($request) {
-                                    $q->where('user_code', $request->user_code)
-                                        ->orWhere('user_id', $request->user_code);
-                                })->first();
-            // if(@$request->ref_position_id){
-            // $find = $find->where('ref_position_id', $request->ref_position_id)->first();
-            if (!$find) {
-                return [
-                    "id" => null,
-                    "name" => "ไม่พบพนักงาน"
-                ];;
-            }
-            return [
-                "id" => $find->id,
-                "name" => "$find->nickname"
-            ];
-            // }
-            if (!$find) {
-                return "เข้างานผิดพลาด ไม่พบพนักงาน";
-            }
-            $user = User::find($find->id);
-            $user->work_status = 1;
-            $user->ref_status_id = 1;
-            $user->save();
+            $userCode = preg_replace('/[\x00-\x1F\x7F]/u', '', trim((string) $request->user_code));
+            $branchId = Auth::user()->ref_branch_id;
+            $positionId = $request->filled('ref_position_id') ? (int) $request->ref_position_id : null;
+            $isProductPos = $request->input('context') === 'product'
+                || str_contains((string) $request->headers->get('referer'), '/pos/product');
 
-            DB::commit();
+            if ($isProductPos) {
+                $positionId = 1;
+            }
 
-            return [
-                "id" => $user->id,
-                "name" => "$user->name"
-            ];
-        } catch (QueryException $err) {
-            DB::rollBack();
+            $positionIds = null;
+
+            if ($positionId === 1) {
+                $positionIds = [1, 3, 4, 5, 6];
+            } elseif ($positionId) {
+                $positionIds = [$positionId];
+            }
+
+            if ($userCode === '') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'กรุณาแตะบัตรหรือป้อนรหัสพนักงาน',
+                    'id' => null,
+                    'name' => null,
+                ], 422);
+            }
+
+            $find = User::where('ref_branch_id', $branchId)
+                ->when($positionIds, function ($query) use ($positionIds) {
+                    $query->whereIn('ref_position_id', $positionIds);
+                })
+                ->where(function ($q) use ($userCode) {
+                    $q->where('user_code', $userCode)
+                        ->orWhere('user_id', $userCode);
+                })
+                ->first();
+
+            if (!$find) {
+                $matchedUsers = User::where(function ($q) use ($userCode) {
+                    $q->where('user_code', $userCode)
+                        ->orWhere('user_id', $userCode);
+                });
+
+                $foundInCurrentBranch = (clone $matchedUsers)
+                    ->where('ref_branch_id', $branchId)
+                    ->first();
+
+                if ($foundInCurrentBranch && $positionIds && !in_array((int) $foundInCurrentBranch->ref_position_id, $positionIds, true)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'พบพนักงานนี้ แต่ตำแหน่งไม่ตรงกับช่องที่เลือก',
+                        'id' => null,
+                        'name' => null,
+                    ], 404);
+                }
+
+                $foundInOtherBranch = (clone $matchedUsers)
+                    ->where('ref_branch_id', '!=', $branchId)
+                    ->first();
+
+                if ($foundInOtherBranch) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'พบพนักงานนี้ แต่อยู่คนละสาขา',
+                        'id' => null,
+                        'name' => null,
+                    ], 404);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ไม่พบพนักงาน',
+                    'id' => null,
+                    'name' => null,
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'id' => $find->id,
+                'name' => $find->nickname ?: $find->name,
+                'user_id' => $find->user_id,
+                'user_code' => $find->user_code,
+                'ref_position_id' => $find->ref_position_id,
+            ]);
+        } catch (\Throwable $err) {
+            report($err);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'เกิดข้อผิดพลาดในการค้นหาพนักงาน',
+                'id' => null,
+                'name' => null,
+            ], 500);
         }
     }
 
@@ -343,6 +403,9 @@ class POSController extends Controller
 
     public function checkout(Request $request)
     {
+        $request->validate([
+            'payment_method' => 'nullable|in:cash,credit_card,alipay,qr_code,promptpay,wechat,ewallet',
+        ]);
 
         $payment_met = $request->input('payment_method');
         // // return 123;
@@ -563,7 +626,7 @@ class POSController extends Controller
                 $new_product = Product::find($id);
                 $new_main_stock_remain = $new_product->total_remain ?? 0;
                 $new_ready_for_sale_remain = $new_product->ready_for_sale_total_remain ?? 0;
-                
+
 // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> ตัดสต็อก {
 
                 $history_stock = new HistoryStock;
@@ -585,7 +648,7 @@ class POSController extends Controller
                 // $history_stock->quantity_type = 0; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
                 // $history_stock->save();
 // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> ตัดสต็อก }
-                
+
                 $order->products()->create([
                     'ref_product_id' => $id,
                     'price'          => $price,

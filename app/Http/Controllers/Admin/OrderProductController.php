@@ -20,6 +20,69 @@ use Illuminate\Support\Facades\DB;
 
 class OrderProductController extends Controller
 {
+    private const BUSINESS_DAY_START = '10:00';
+    private const BUSINESS_DAY_END = '04:01';
+
+    private function currentBusinessDayRange(): array
+    {
+        $now = Carbon::now();
+        $endToday = $now->copy()->setTime(4, 1, 59);
+
+        if ($now->lessThanOrEqualTo($endToday)) {
+            return [
+                $now->copy()->subDay()->setTime(10, 0, 0),
+                $endToday,
+            ];
+        }
+
+        return [
+            $now->copy()->setTime(10, 0, 0),
+            $now->copy()->addDay()->setTime(4, 1, 59),
+        ];
+    }
+
+    private function isOrderInCurrentBusinessDay(Order $order): bool
+    {
+        if (!$order->booking_date || !$order->start_time) {
+            return false;
+        }
+
+        [$start, $end] = $this->currentBusinessDayRange();
+        $orderDateTime = Carbon::parse($order->booking_date . ' ' . $order->start_time);
+
+        return $orderDateTime->between($start, $end, true);
+    }
+
+    private function rejectIfOrderIsLocked(Order $order)
+    {
+        if ($this->isOrderInCurrentBusinessDay($order)) {
+            return null;
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'ไม่สามารถจัดการคำสั่งซื้อของวันก่อนหน้าได้',
+        ], 423);
+    }
+
+    private function productDateRangeFromRequest(): array
+    {
+        $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
+        $endDate = Carbon::createFromFormat('d/m/Y', request('end_date') ?: request('start_date'))->startOfDay();
+
+        [$sh, $sm] = explode(':', request('start_time_filter', self::BUSINESS_DAY_START));
+        [$eh, $em] = explode(':', request('end_time_filter', self::BUSINESS_DAY_END));
+
+        $startDate->setTime((int) $sh, (int) $sm, 0);
+        $endDate->setTime((int) $eh, (int) $em, 59);
+
+        if ($endDate->lessThanOrEqualTo($startDate)) {
+            $endDate->addDay();
+        }
+
+        return [$startDate, $endDate];
+    }
+
     public function index()
     {
         // โหลดหน้าแรกพร้อมข้อมูลเริ่มต้น
@@ -56,8 +119,9 @@ class OrderProductController extends Controller
     {
 
         $limit = $request->limit ?? 10;
-        $orderProducts = $this->getOrderProducts($limit)['orderProducts'];
-        $check = $this->getOrderProducts($limit)['check'];
+        $result = $this->getOrderProducts($limit);
+        $orderProducts = $result['orderProducts'];
+        $check = $result['check'];
 
         $user = Auth::user();
 
@@ -117,17 +181,7 @@ class OrderProductController extends Controller
 
         // filter by booking_date (date_range, start_date, end_date)
         
-        $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-        $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
-
-        if (request('start_time_filter')) {
-            [$sh, $sm] = explode(':', request('start_time_filter'));
-            $startDate->setTime((int)$sh, (int)$sm, 0);
-        }
-        if (request('end_time_filter')) {
-            [$eh, $em] = explode(':', request('end_time_filter'));
-            $endDate->setTime((int)$eh, (int)$em, 59);
-        }
+        [$startDate, $endDate] = $this->productDateRangeFromRequest();
         // return date('d/m/y H:i:s', strtotime($startDate));
         $query->where(function ($q) use ($startDate, $endDate) {
                                                                     $q->whereRaw(
@@ -150,6 +204,7 @@ class OrderProductController extends Controller
         foreach ($orderProducts as $order) {
             $startDateTime = Carbon::parse($order->booking_date . ' ' . $order->start_time);
             $endDateTime   = Carbon::parse($order->booking_date . ' ' . $order->end_time);
+            $order->can_manage = $this->isOrderInCurrentBusinessDay($order);
 
             if (!empty($order->payment_method)) {
                 $order->badge_class = 'bg-info';
@@ -190,12 +245,18 @@ class OrderProductController extends Controller
         ]);
 
         $order = Order::findOrFail($id);
+        if ($locked = $this->rejectIfOrderIsLocked($order)) {
+            return $locked;
+        }
+
+        $isCancelling = (int) $request->ref_status_id === 4 && (int) $order->ref_status_id !== 4;
+
         $order->payment_status = $request->status_id;
         $order->ref_status_id = $request->ref_status_id;
         $order->save();
 
         
-        if ($request->ref_status_id == 4) {
+        if ($isCancelling) {
             foreach ($order->products as $product) {
 
             // ดึง สินค้า ก่อน เพิ่มสต็อก {
@@ -218,12 +279,12 @@ class OrderProductController extends Controller
             // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> คืนสต็อกขาย {
                 $history_stock = new HistoryStock;
                 $history_stock->ref_product_id = $product->ref_product_id; // id สินค้า
-                $history_stock->quantity = 0-$product->quantity; // จำนวนที่เคลื่อนไหว
-                $history_stock->stock_before_quantity = $new_main_stock_remain; // จำนวน ก่อน ตัดสต็อก
+                $history_stock->quantity = $product->quantity; // จำนวนที่เคลื่อนไหว
+                $history_stock->stock_before_quantity = $main_stock_remain; // จำนวน ก่อน ตัดสต็อก
                 $history_stock->stock_after_quantity = $new_main_stock_remain; // จำนวน หลัง ตัดสต็อก
-                $history_stock->stock_ready_for_sale_before_quantity = $ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+                $history_stock->stock_ready_for_sale_before_quantity = $ready_for_sale_remain; // จำนวน ก่อน ตัดสต็อก
                 $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
-                $history_stock->quantity_type = 0; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
+                $history_stock->quantity_type = 1; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
                 $history_stock->withdraw_quantity = 0;
                 $history_stock->save();
             // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> คืนสต็อกขาย }
@@ -248,17 +309,7 @@ class OrderProductController extends Controller
         //     $date_before = date('d/m/Y', strtotime($DailySalesClosure->date_time)) . " 00:00:00";
         // }
             
-        $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-        $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
-
-        if (request('start_time_filter')) {
-            [$sh, $sm] = explode(':', request('start_time_filter'));
-            $startDate->setTime((int)$sh, (int)$sm, 0);
-        }
-        if (request('end_time_filter')) {
-            [$eh, $em] = explode(':', request('end_time_filter'));
-            $endDate->setTime((int)$eh, (int)$em, 59);
-        }
+        [$startDate, $endDate] = $this->productDateRangeFromRequest();
 
         $product_employee = OrderHasProduct::join('products', 'order_has_products.ref_product_id', '=', 'products.id')
             ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id') // Join เพื่อดึงชื่อประเภท
@@ -426,8 +477,15 @@ class OrderProductController extends Controller
     }
     public function confirmPayment(Request $request, $id)
     {
-        // return $request;
+        $request->validate([
+            'payment_channel' => 'required|in:cash,credit_card,alipay,qr_code',
+        ]);
+
         $order = Order::findOrFail($id);
+        if ($locked = $this->rejectIfOrderIsLocked($order)) {
+            return $locked;
+        }
+
         $order->payment_status = 1;
         $order->payment_method = $request->payment_channel;
         $order->save();
@@ -450,11 +508,24 @@ class OrderProductController extends Controller
     public function edit(Request $request, $id)
     {
         $order = Order::with(['branch', 'products.product', 'seller'])->findOrFail($id);
-        $products = Product::where('ref_branch_id', $order->ref_branch_id)
-            ->orWhereNull('ref_branch_id')
+        if (!$this->isOrderInCurrentBusinessDay($order)) {
+            abort(403, 'ไม่สามารถจัดการคำสั่งซื้อของวันก่อนหน้าได้');
+        }
+
+        $existingQtyByProduct = $order->products
+            ->groupBy('ref_product_id')
+            ->map(fn($items) => $items->sum('quantity'));
+
+        $products = Product::where(function ($query) use ($order) {
+                $query->where('ref_branch_id', $order->ref_branch_id)
+                    ->orWhereNull('ref_branch_id');
+            })
+            ->where('ref_status_id', 1)
+            ->orderBy('name')
             ->get()
-            ->map(function ($p) {
-                $p->stock = StockReadyForSale::where('ref_product_id', $p->id)->sum('remain');
+            ->map(function ($p) use ($existingQtyByProduct) {
+                $currentStock = StockReadyForSale::where('ref_product_id', $p->id)->sum('remain');
+                $p->stock = $currentStock + (int) ($existingQtyByProduct[$p->id] ?? 0);
                 return $p;
             });
         return view('admin.order-product.edit', compact('order', 'products'));
@@ -462,10 +533,18 @@ class OrderProductController extends Controller
 
     public function updateProducts(Request $request, $id)
     {
+        $order = Order::findOrFail($id);
+        if ($locked = $this->rejectIfOrderIsLocked($order)) {
+            return $locked;
+        }
+
+        $request->validate([
+            'payment_method' => 'nullable|in:cash,credit_card,alipay,qr_code',
+        ]);
+
         try {
-            DB::beginTransaction();
             $updated_by = Auth::id();
-            $order = Order::find($id);
+            DB::beginTransaction();
             $discount = $request->input('discount', 0);
             $payment_method = $request->input('payment_method', null);
 
@@ -594,6 +673,10 @@ class OrderProductController extends Controller
     public function removeProduct(Request $request, $id, $productId)
     {
         $order = Order::findOrFail($id);
+        if ($locked = $this->rejectIfOrderIsLocked($order)) {
+            return $locked;
+        }
+
         $row = $order->products()->where('ref_product_id', $productId)->first();
         if ($row) {
             StockReadyForSale::where('ref_product_id', $productId)
@@ -608,10 +691,14 @@ class OrderProductController extends Controller
     public function updatePaymentMethod(Request $request, $id)
     {
         $request->validate([
-            'payment_method' => 'nullable|string|max:100'
+            'payment_method' => 'nullable|in:cash,credit_card,alipay,qr_code',
         ]);
 
         $order = Order::findOrFail($id);
+        if ($locked = $this->rejectIfOrderIsLocked($order)) {
+            return $locked;
+        }
+
         $order->payment_method = $request->payment_method;
 
         // --- คำนวณค่าคอมมิชชั่นพนักงานนวด ---

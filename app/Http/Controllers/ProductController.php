@@ -90,6 +90,20 @@ class ProductController extends Controller
         }
     }
 
+    public function change_sell_with_course(Request $request, $id)
+    {
+        try {
+            $product = Product::find($id);
+            $product->sell_with_course = $request->sell_with_course ? 1 : 0;
+            $product->save();
+
+            DB::commit();
+            return true;
+        } catch (QueryException $err) {
+            DB::rollBack();
+        }
+    }
+
     public function update_sort(Request $request, $id)
     {
         try {
@@ -273,11 +287,12 @@ class ProductController extends Controller
             $lastSort = Product::lockForUpdate()->max('sort') ?? 0;
 
             $product = new Product;
-            $product->ref_branch_id = $request->ref_branch_id;
+            $product->ref_branch_id = $request->ref_branch_id ?: Auth::user()->ref_branch_id;
             $product->type_id = $request->producttype;
             $product->name = $request->name;
             $product->price = $request->price;
             $product->price_staff = $request->price_staff;
+            $product->sell_with_course = $request->boolean('sell_with_course');
             $product->cost = @$request->cost ?? 0.00;
             $product->remark = $request->remark;
             $product->minimum = $request->minimum;
@@ -553,6 +568,7 @@ class ProductController extends Controller
             // $product->type_id = $request->producttype;
             $product->price = $request->price;
             $product->price_staff = $request->price_staff;
+            $product->sell_with_course = $request->boolean('sell_with_course');
             $product->cost = @$request->cost ?? 0.00;
             // $product->stock = $request->stock;
             $product->remark = $request->remark;

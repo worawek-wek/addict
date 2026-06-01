@@ -122,7 +122,7 @@
                                         $price = 1000;
                                     @endphp --}}
                                     @foreach ($room_type as $key => $item)
-                                        
+
                                     <input type="radio"
                                             class="btn-check roomTypeB{{$item->ref_branch_id}}"
                                             name="roomType"
@@ -260,7 +260,7 @@
                                 // โหลด Add-on Options ใหม่เมื่อเลือกสาขา
         $(document).on('change', 'input[name="ref_branch_id"]', function() {
             const branchId = $(this).val();
-            
+
             $('[class*="course-list"]').hide();
 
             $('.course' + branchId).show();
@@ -346,11 +346,15 @@
                             </div>
                             <div class="col-12">
                                 <label class="form-label fs-14 mb-0">Duration of service use</label>
-                                <div class="d-flex gap-2 flex-wrap course-list-div">
+                                <div class="d-flex gap-2 flex-wrap course-list-div ">
                                     @foreach ($course as $key_2 => $course_item)
+                                        @php
+                                            preg_match('/\d+/', $course_item->name, $courseMinutesMatch);
+                                            $courseMinutes = $courseMinutesMatch[0] ?? 60;
+                                        @endphp
                                         <input type="radio" class="btn-check course-list course{{ $course_item->ref_branch_id }}" name="timeService" id="data-{{ $course_item->id }}"
-                                            value="{{ $course_item->id }}" autocomplete="off">
-                                        <label class="btn btn-purple-check flex-fill rounded-0 course-list course{{ $course_item->ref_branch_id }}" for="data-{{ $course_item->id }}">
+                                            value="{{ $course_item->id }}" data-minutes="{{ $courseMinutes }}" autocomplete="off">
+                                        <label class="btn btn-purple-check flex-fill rounded-0 course-list course{{ $course_item->ref_branch_id }}" for="data-{{ $course_item->id }}" style="font-size: 12px; padding: 6px 10px;">
                                             {{ $course_item->name }}
                                         </label>
                                     @endforeach
@@ -421,13 +425,42 @@
         $('#menu li').eq(4).addClass('active');
     </script>
     <script>
+        function getSelectedCourseMinutes() {
+            const selectedCourse = document.querySelector('input[name="timeService"]:checked');
+            const minutes = parseInt(selectedCourse?.dataset.minutes || '60', 10);
+
+            return Number.isFinite(minutes) && minutes > 0 ? minutes : 60;
+        }
+
+        function selectFirstVisibleCourse(branchId) {
+            const $branchCourses = $(`input[name="timeService"].course${branchId}`);
+            const selectedBranchCourse = $branchCourses.filter(':checked');
+
+            if (selectedBranchCourse.length === 0 && $branchCourses.length > 0) {
+                $('input[name="timeService"]').prop('checked', false);
+                $branchCourses.first().prop('checked', true);
+            } else if ($branchCourses.length === 0) {
+                $('input[name="timeService"]').prop('checked', false);
+            }
+        }
+
+        function refreshAvailability() {
+            const branchId = $('input[name="ref_branch_id"]:checked').val();
+
+            if (branchId) {
+                loadUsers(branchId);
+                loadRooms(branchId);
+            } else {
+                updateSummary();
+            }
+        }
+
         function loadRooms(branchId) {
             const bookingDate = $('#inputDate').val();
             const startTime = $('#inputTime').val();
+            const selectedRoomId = $('input[name="roomType"]:checked').val();
 
-            let duration = $('input[name="timeService"]:checked').val();
-            let addMinutes = duration === 'forty_minutes' ? 40 :
-                duration === 'ninety_minutes' ? 90 : 60;
+            let addMinutes = getSelectedCourseMinutes();
             let endTime = moment(startTime, 'HH:mm').add(addMinutes, 'minutes').format('HH:mm');
 
             $.get(`/check-room-availability/${branchId}`, {
@@ -454,9 +487,16 @@
                             </div>
                         `;
                 }else{
+                    const availableRooms = rooms.filter(room => room.available);
+                    const checkedRoomId = availableRooms.some(room => String(room.id) === String(selectedRoomId))
+                        ? selectedRoomId
+                        : availableRooms[0]?.id;
+
                     rooms.forEach((room, index) => {
                         const availableClass = room.available ? '' : 'opacity-50';
                         const disabled = room.available ? '' : 'disabled';
+                        const coursePrices = JSON.stringify(room.course_prices || {});
+                        const checked = String(room.id) === String(checkedRoomId) ? 'checked' : '';
                         const statusMsg = room.available ?
                             `<small class="text-success"> Available </small>` :
                             `<small class="text-danger"> Booked </small>`;
@@ -468,7 +508,8 @@
                         data-forty="${room.forty}"
                         data-sixty="${room.sixty}"
                         data-ninety="${room.ninety}"
-                        ${index === 0 && room.available ? 'checked' : ''}
+                        data-course-prices='${coursePrices}'
+                        ${checked}
                         ${disabled}>
                     <label
                         class="btn btn-purple-check d-flex flex-column justify-content-center text-center ${availableClass}"
@@ -545,11 +586,10 @@
         function loadUsers(branchId) {
             const bookingDate = $('#inputDate').val();
             const startTime = $('#inputTime').val();
+            const selectedUserId = $('input[name="selected_user"]:checked').val();
 
             // duration
-            let duration = $('input[name="timeService"]:checked').val();
-            let addMinutes = duration === 'forty_minutes' ? 40 :
-                duration === 'ninety_minutes' ? 90 : 60;
+            let addMinutes = getSelectedCourseMinutes();
             let endTime = moment(startTime, 'HH:mm').add(addMinutes, 'minutes').format('HH:mm');
 
             $.get(`/check-availability/${branchId}`, {
@@ -580,6 +620,7 @@
                     const nickname = row.nickname ?? row.name;
                     const availableClass = row.available ? '' : 'opacity-50';
                     const disabled = row.available ? '' : 'disabled';
+                    const checked = row.available && String(row.id) === String(selectedUserId) ? 'checked' : '';
                     const statusMsg = row.available ?
                         `<small class="text-success"> Available </small>` :
                         `<small class="text-danger"> Booked </small>`;
@@ -592,6 +633,7 @@
                                         data-nickname="${nickname}"
                                         data-image="/upload/user/${row.image}"
                                         data-salary="${row.salary}"
+                                        ${checked}
                                         ${disabled}>
                                     <label class="form-check-label d-block" for="user${index}">
                                         <img src="/upload/user/${row.image}" class="mw-100 mb-2">
@@ -620,10 +662,13 @@
             function() {
                 const branchId = $('input[name="ref_branch_id"]:checked').val();
                 if (branchId) {
-                    loadUsers(branchId);
-                    loadRooms(branchId); // ✅ ต้องเรียกด้วย
+                    selectFirstVisibleCourse(branchId);
+                    refreshAvailability();
                 }
             });
+
+        $(document).on('change', 'input[name="timeService"]', refreshAvailability);
+        $('#inputDate, #inputTime').on('input change', refreshAvailability);
 
         // โหลดครั้งแรก
         $(document).ready(function() {
@@ -681,20 +726,19 @@
             let roomPrice = 0;
             if (selectedRoomType) {
                 const label = document.querySelector(`label[for="${selectedRoomType.id}"]`);
-                summaryRoomType.textContent = `Type room - ${label?.innerText.trim()}`;
+                const roomName = selectedRoomType.dataset.name || label?.innerText.trim() || '-';
+                summaryRoomType.textContent = `Type room - ${roomName}`;
 
-                // const forty = parseFloat(selectedRoomType.dataset.forty || 0);
-                // const sixty = parseFloat(selectedRoomType.dataset.sixty || 0);
-                // const ninety = parseFloat(selectedRoomType.dataset.ninety || 0);
-                const duration = document.querySelector('input[name="timeService"]:checked')?.id;
-                // document.querySelector('input[name="timeService"]:checked')
+                const selectedCourseId = document.querySelector('input[name="timeService"]:checked')?.value;
+                let coursePrices = {};
 
-                // let dataKey = selectedTime.id;   // ได้ "data-11"
+                try {
+                    coursePrices = JSON.parse(selectedRoomType.dataset.coursePrices || '{}');
+                } catch (error) {
+                    coursePrices = {};
+                }
 
-                // ดึงค่าจาก roomType ตาม key นั้น
-                roomPrice = selectedRoomType.getAttribute(duration);
-                console.log(roomPrice)
-                // alert(value)
+                roomPrice = parseFloat(coursePrices[selectedCourseId] || 0);
             }
 
             // ระยะเวลา
@@ -744,9 +788,9 @@
             });
 
             // ราคารวม
-            const total = Number(roomPrice) +
-                          Number(staffSalary) +
-                          Number(addonTotal);
+            const total = (Number(roomPrice) || 0) +
+                          (Number(staffSalary) || 0) +
+                          (Number(addonTotal) || 0);
             valueSummaryPrice.value = total;
             summaryPrice.textContent = total.toLocaleString(undefined, {
                 minimumFractionDigits: 2

@@ -5,6 +5,7 @@
             <th class="text-center">ชื่อห้อง</th>
             <th class="text-center">สาขา</th>
             <th class="text-center">หมายเหตุ</th>
+            <th class="text-center">Online Booking</th>
             <th class="text-center">ดำเนินการ</th>
         </tr>
     </thead>
@@ -15,6 +16,18 @@
                 <td class="text-center" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance" onclick="view({{ $row->id }})">{{ $row->name }}</td>
                 <td class="text-center" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance" onclick="view({{ $row->id }})">{{ $row->branch->name }}</td>
                 <td class="text-center" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance" onclick="view({{ $row->id }})">{{ $row->remark }}</td>
+                <td class="text-center">
+                    <label class="switch switch-primary mb-0">
+                        <input type="checkbox" class="switch-input"
+                            onchange="changeOnlineBooking({{ $row->id }}, this.checked ? 1 : 0, this)"
+                            @if ($row->show_online_booking) checked @endif
+                        />
+                        <span class="switch-toggle-slider">
+                            <span class="switch-on"><i class="ti ti-check"></i></span>
+                            <span class="switch-off"><i class="ti ti-x"></i></span>
+                        </span>
+                    </label>
+                </td>
                 <td class="text-center">
                     <div class="d-flex justify-content-center align-items-center gap-3">
                         <!-- Toggle Switch -->

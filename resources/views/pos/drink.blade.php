@@ -272,7 +272,7 @@
                                     <div class="mb-3 px-4">
                                         <label class="form-label fw-bold">เลือกพนักงานขาย</label>
                                             <div class="d-flex align-items-center justify-content-between app-academy-md-80">
-                                            <input name="reception_name" type="text" id="reception" placeholder="แตะบัตรพนักงาน หรือ ป้อนรหัสพนักงาน" class="form-control me-2 reception-input" required/>
+                                            <input name="reception_name" type="text" id="reception" placeholder="แตะบัตรพนักงาน หรือ ป้อนรหัสพนักงาน" class="form-control me-2 reception-input" data-ref-position-id="1" required/>
                                             <input name="reception_id" type="hidden" id="salesReceptionSelect">
                                             <input type="hidden" name="ref_position_id" value="1">
                                             </div>
@@ -280,9 +280,9 @@
                                     <div class="mb-3 px-4">
                                         <label class="form-label fw-bold">เลือกพนักงานนวด</label>
                                             <div class="d-flex align-items-center justify-content-between app-academy-md-80">
-                                            <input name="staff_name" type="text" id="staff" placeholder="แตะบัตรพนักงานนวด หรือ ป้อนพนักงานนวด" class="form-control me-2 staff-input" required/>
+                                            <input name="staff_name" type="text" id="staff" placeholder="แตะบัตรพนักงานนวด หรือ ป้อนพนักงานนวด" class="form-control me-2 staff-input" data-ref-position-id="2" required/>
                                             <input name="staff_id" type="hidden" id="salesStaffSelect">
-                                            <input type="hidden" name="ref_position_id" value="1">
+                                            <input type="hidden" name="ref_position_id" value="2">
                                             </div>
                                     </div>
                                     <div class="mb-3 px-4">
@@ -831,81 +831,73 @@
         }
     });
     // calculate();
+    const bindEmployeeLookup = (input, hiddenId, errorText) => {
+        if (!input || input.dataset.lookupBound === '1') return;
+
+        input.dataset.lookupBound = '1';
+
+        const hiddenInput = input.closest('.d-flex')?.querySelector(`#${hiddenId}`) || document.getElementById(hiddenId);
+
+        const lookupEmployee = async () => {
+            const userCode = input.value.trim();
+            if (!userCode) return;
+
+            if (hiddenInput?.value && input.dataset.selectedName === userCode) {
+                return;
+            }
+
+            const refPositionId = input.dataset.refPositionId || '';
+
+            try {
+                const response = await fetch(`/pos/get-user?user_code=${encodeURIComponent(userCode)}&ref_position_id=${encodeURIComponent(refPositionId)}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                });
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    input.value = '';
+                    input.dataset.selectedName = '';
+                    if (hiddenInput) hiddenInput.value = '';
+                    Swal.fire('แจ้งเตือน', data.message || 'ไม่พบพนักงาน', 'warning');
+                    return;
+                }
+
+                input.value = data.name;
+                input.dataset.selectedName = data.name;
+                if (hiddenInput) hiddenInput.value = data.id;
+                input.blur(); // กันยิงซ้ำจากเครื่องสแกน
+            } catch (err) {
+                console.error(err);
+                Swal.fire('เกิดข้อผิดพลาด', errorText, 'error');
+            }
+        };
+
+        input.addEventListener('click', function () {
+            this.value = '';
+            this.dataset.selectedName = '';
+            if (hiddenInput) hiddenInput.value = '';
+            this.focus();
+        });
+
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === 'Tab') {
+                e.preventDefault(); // กัน submit form
+                lookupEmployee();
+            }
+        });
+
+        input.addEventListener('change', lookupEmployee);
+    };
+
     document.querySelectorAll('.staff-input').forEach(input => {
-        input.addEventListener('click', function () {
-            this.value = '';
-            this.focus();
-        });
-        input.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault(); // กัน submit form
-
-                const userCode = this.value.trim();
-                if (!userCode) return;
-
-                fetch(`/pos/get-user?user_code=${encodeURIComponent(userCode)}`, {
-                    method: 'GET',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    console.log(data);
-
-                    // if (data.success) {
-                        this.value = data.name;
-                        $('#salesStaffSelect').val(data.id);
-                        this.blur(); // กันยิงซ้ำจากเครื่องสแกน
-                    // } else {
-                    //     alert(data.message || 'ไม่พบพนักงาน');
-                    //     this.value = '';
-                    // }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('เกิดข้อผิดพลาด');
-                });
-            }
-        });
+        bindEmployeeLookup(input, 'salesStaffSelect', 'ไม่สามารถค้นหาพนักงานได้');
     });
+
     document.querySelectorAll('.reception-input').forEach(input => {
-        input.addEventListener('click', function () {
-            this.value = '';
-            this.focus();
-        });
-        input.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault(); // กัน submit form
-
-                const userCode = this.value.trim();
-                if (!userCode) return;
-
-                fetch(`/pos/get-user?user_code=${encodeURIComponent(userCode)}`, {
-                    method: 'GET',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    console.log(data);
-
-                    // if (data.success) {
-                        this.value = data.name;
-                        $('#salesReceptionSelect').val(data.id);
-                        this.blur(); // กันยิงซ้ำจากเครื่องสแกน
-                    // } else {
-                    //     alert(data.message || 'ไม่พบพนักงาน');
-                    //     this.value = '';
-                    // }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('เกิดข้อผิดพลาด');
-                });
-            }
-        });
+        bindEmployeeLookup(input, 'salesReceptionSelect', 'ไม่สามารถค้นหาพนักงานขายได้');
     });
     function collectCalculatePayload() {
         const payload = {};
@@ -1534,7 +1526,7 @@
                 error: function(error) {
                     document.getElementById("staff").value = "";
                     document.getElementById("salesStaffSelect").value = "";
-                    Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    Swal.fire('แจ้งเตือน', error.responseJSON?.message || 'ไม่พบพนักงาน', 'warning');
                     console.error('เกิดข้อผิดพลาด:', error);
                 }
             });
@@ -1558,9 +1550,9 @@
 
                 },
                 error: function(error) {
-                    document.getElementById("staff").value = "";
+                    document.getElementById("user").value = "";
                     document.getElementById("walkinStaffSelect").value = "";
-                    Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    Swal.fire('แจ้งเตือน', error.responseJSON?.message || 'ไม่พบพนักงาน', 'warning');
                     console.error('เกิดข้อผิดพลาด:', error);
                 }
             });

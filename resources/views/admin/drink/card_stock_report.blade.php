@@ -5,7 +5,6 @@
 
 <head>
     <link rel="stylesheet" href="assets/vendor/libs/bootstrap-datepicker/bootstrap-datepicker.css" />
-    <script src="assets/vendor/libs/bootstrap-datepicker/bootstrap-datepicker.js"></script>
 
     @include('admin/layout/inc_header')
     <title>Dashboard - CRM | Vuexy - Bootstrap Admin Template</title>

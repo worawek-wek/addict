@@ -10,6 +10,7 @@ class Product extends Model
     // use HasFactory;
     protected $fillable = [
         'name',
+        'sell_with_course',
     ];
 
     public $timestamps = true;

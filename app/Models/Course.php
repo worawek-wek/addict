@@ -10,6 +10,7 @@ class Course extends Model
     // use HasFactory;
     protected $fillable = [
         'name',
+        'show_online_booking',
     ];
 
     public $timestamps = true;

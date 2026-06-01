@@ -52,6 +52,7 @@
     </thead>
     <tbody>
         @foreach ($orderProducts as $order)
+            @php $canManage = $order->can_manage ?? false; @endphp
             <tr>
                 <td class="text-center">
                     {{ $loop->iteration + ($orderProducts->currentPage() - 1) * $orderProducts->perPage() }}</td>
@@ -67,6 +68,11 @@
                         <span class="badge bg-warning">ยังไม่ชำระเงิน</span>
                     @else
                         <span class="badge bg-success">ชำระเงินแล้ว</span>
+                    @endif
+                    @if (!$canManage)
+                        <div class="mt-1">
+                            <span class="badge bg-secondary">ปิดรอบแล้ว</span>
+                        </div>
                     @endif
                 </td>
                 <td class="text-center">
@@ -84,7 +90,7 @@
                                 </li>
                                 
                             @endif
-                            @if ($order->payment_status == 0)
+                            @if ($order->payment_status == 0 && $canManage)
                                 <li><a class="dropdown-item text-success" href="#"
                                         onclick="confirmOrder({{ $order->id }}); return false;">ยืนยันชำระเงิน</a>
                                 </li>
@@ -92,10 +98,13 @@
                                         onclick="editOrder({{ $order->id }}); return false;">แก้ไขคำสั่งซื้อ</a>
                                 </li>
                             @endif
-                            @if ($order->ref_status_id != 4)
+                            @if ($order->ref_status_id != 4 && $canManage)
                                 <li><a class="dropdown-item text-danger" href="#"
                                         onclick="cancelOrder({{ $order->id }}); return false;">ยกเลิกคำสั่งซื้อ</a>
                                 </li>
+                            @endif
+                            @if (!$canManage)
+                                <li><span class="dropdown-item text-muted">จัดการไม่ได้หลังปิดรอบ</span></li>
                             @endif
                         </ul>
                     </div>
@@ -195,8 +204,11 @@
                                     loadData(page);
                                     printReceipt(orderId);
                                 });
+                        } else {
+                            Swal.fire('ผิดพลาด!', data.message || 'ไม่สามารถยืนยันชำระเงินได้', 'error');
                         }
-                    });
+                    })
+                    .catch(() => Swal.fire('ผิดพลาด!', 'ไม่สามารถยืนยันชำระเงินได้', 'error'));
             }
         });
     }
@@ -232,7 +244,8 @@
                         } else {
                             Swal.fire('ผิดพลาด!', data.message || 'ไม่สามารถยกเลิกคำสั่งซื้อได้', 'error');
                         }
-                    });
+                    })
+                    .catch(() => Swal.fire('ผิดพลาด!', 'ไม่สามารถยกเลิกคำสั่งซื้อได้', 'error'));
             }
         });
     }
@@ -252,7 +265,7 @@
         const iframe = document.createElement('iframe');
         iframe.id  = 'slip-print-frame';
         iframe.src = `/admin/order-products/${orderId}/slip`;
-        iframe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;border:none;visibility:hidden;';
+        iframe.style.cssText = 'position:fixed;top:0;left:-10000px;width:80mm;height:100vh;border:none;';
         document.body.appendChild(iframe);
 
         iframe.onload = function () {

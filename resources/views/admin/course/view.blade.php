@@ -53,10 +53,22 @@
                                             <label class="form-label">ชื่อคอร์ส <span class="text-danger">*</span></label>
                                             <input name="name" type="text" class="form-control" value="{{ $course->name }}" placeholder="ชื่อคอร์ส" required />
                                         </div>
-                                        
+
                                         <div class="col-sm-6">
                                             <label class="form-label">จำนวณ นาที <span class="text-danger">*</span></label>
                                             <input name="minute" type="text" class="form-control" value="{{ $course->minute }}" placeholder="จำนวณ นาที" required />
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <label class="form-label d-block">Online Booking</label>
+                                            <label class="switch switch-primary mb-0">
+                                                <input type="checkbox" name="show_online_booking" value="1" class="switch-input"
+                                                    @if ($course->show_online_booking) checked @endif>
+                                                <span class="switch-toggle-slider">
+                                                    <span class="switch-on"><i class="ti ti-check"></i></span>
+                                                    <span class="switch-off"><i class="ti ti-x"></i></span>
+                                                </span>
+                                            </label>
                                         </div>
 
                                         <div class="col-sm-12">

@@ -1,7 +1,7 @@
 {{-- หน้า POS --}}
 <!doctype html>
 <html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed layout-compact" dir="ltr"
-      data-theme="theme-default" data-assets-path="assets/" data-template="vertical-menu-template">
+    data-theme="theme-default" data-assets-path="assets/" data-template="vertical-menu-template">
 
 <head>
     @include('admin/layout/inc_header')
@@ -42,14 +42,16 @@
         border-top: 65px solid #54BAB9;
         border-right: 65px solid transparent;
     }
+
     .btn-course {
         background-color: #ed2eed;
         color: white;
         border: 1px solid #ed2eed;
     }
 
-    .btn-check:checked + .btn-course {
-        background-color: #a31ea3;   /* สีตอนเลือก */
+    .btn-check:checked+.btn-course {
+        background-color: #a31ea3;
+        /* สีตอนเลือก */
         border-color: #a31ea3;
         color: #fff;
     }
@@ -59,14 +61,18 @@
         border-color: #c91ec9 !important;
         color: #fff !important;
     }
+
     .qty-input {
         font-weight: 600;
         border-left: 0;
         border-right: 0;
     }
-    .qty-minus, .qty-plus {
+
+    .qty-minus,
+    .qty-plus {
         width: 32px;
     }
+
     .payment-card {
         cursor: pointer;
         border: 2px solid #eee;
@@ -81,7 +87,7 @@
     }
 
     /* checked ปกติ */
-    .btn-check:checked + .payment-card {
+    .btn-check:checked+.payment-card {
         border-color: #0d6efd;
         background-color: #f0f7ff;
     }
@@ -93,7 +99,8 @@
         opacity: 0.5;
         filter: grayscale(100%);
         cursor: not-allowed;
-        pointer-events: none;     /* กัน hover / click */
+        pointer-events: none;
+        /* กัน hover / click */
         transform: none !important;
     }
 
@@ -104,18 +111,18 @@
     }
 
     /* กัน checked style ตอน disabled */
-    .btn-check:disabled + .payment-card {
+    .btn-check:disabled+.payment-card {
         border-color: #eee;
         background-color: #f8f9fa;
     }
 </style>
 
 <body>
-<!-- Layout wrapper -->
-<div class="pt-3">
-    <div>
+    <!-- Layout wrapper -->
+    <div class="pt-3">
         <div>
-            <div class="container-fluid">
+            <div>
+                <div class="container-fluid">
 
                     <style>
                         .timer-box {
@@ -125,127 +132,63 @@
                             padding: 4px 0;
                             font-family: monospace;
                         }
+
                         .label-pos {
                             background-color: antiquewhite;
                             border-radius: 2px;
                         }
                     </style>
                     <form method="POST" id="insert_product" action="{{ route('pos.checkout') }}">
-                    {{-- <form id="insert_order"> --}}
+                        {{-- <form id="insert_order"> --}}
                         @csrf
                         <input type="hidden" name="type" value="2">
                         <div class="container-fluid">
                             <div class="row">
- <div class="d-flex align-items-center gap-2 mb-3 ms-3">
+                                <div class="d-flex align-items-center gap-2 mb-3 ms-3">
 
 
-                <!-- button -->
-                <a href="{{ url('pos/drink') }}" class="btn btn-danger d-flex align-items-center justify-content-center gap-2">
-                    <i class="fa fa-wine-glass"></i>
-                    ขายดื่ม
-                </a>
-                <a href="{{ url('pos/room') }}" class="btn btn-info d-flex align-items-center justify-content-center gap-2">
-                    <i class="fa fa-door-open"></i>
-                    รวมห้อง
-                </a>
-                <a href="{{ url('admin/order-rooms') }}" class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
-                    <i class="ti ti-settings"></i>
-                    หลังบ้าน
-                </a>
+                                    <!-- button -->
+                                    <a href="{{ url('pos/drink') }}"
+                                        class="btn btn-danger d-flex align-items-center justify-content-center gap-2">
+                                        <i class="fa fa-wine-glass"></i>
+                                        ขายดื่ม
+                                    </a>
+                                    <a href="{{ url('pos/room') }}"
+                                        class="btn btn-info d-flex align-items-center justify-content-center gap-2">
+                                        <i class="fa fa-door-open"></i>
+                                        รวมห้อง
+                                    </a>
+                                    <a href="{{ url('admin/order-rooms') }}"
+                                        class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
+                                        <i class="ti ti-settings"></i>
+                                        หลังบ้าน
+                                    </a>
 
-            </div>
+                                </div>
                                 <div class="col-md-9">
                                     <div class="card">
                                         <div class="card-body">
-                                        <div class="col-12 mt-2">
-                                            <h4 class="label-pos ff-playfair p-2">สินค้า</h4>
-                                        </div>
-                                        <div class="row" id="productGrid">
-                                            {{-- @include('pos.partials.product-grid', ['products' => $products]) --}}
-                                            @forelse($products as $product)
-                                                @php
-                                                    $totalRemain = \App\Models\StockReadyForSale::where('ref_product_id', $product->id)->sum('remain') ?? 0;
-                                                    $inStock = $totalRemain > 0;
-                                                @endphp
-                                                                <input type="hidden"
-                                                                        name="price_cus[{{ $product->id }}]"
-                                                                        value="{{ $product->price }}"
-                                                                        />
-                                                                <input type="hidden"
-                                                                        name="price_staff[{{ $product->id }}]"
-                                                                        value="{{ $product->price_staff }}"
-                                                                        />
-                                                <div class="col-md-2 mb-4">
-                                                    <div class="card border-0 shadow-sm {{ $inStock ? '' : 'opacity-50' }}">
-
-                                                    {{-- ใช้ Bootstrap Icon (อาหาร/เครื่องดื่ม) แทนรูปภาพ --}}
-                                                    <div class="d-flex justify-content-center align-items-center pt-2">
-                                                        <i class="bi bi-cup-straw" style="font-size:3rem; color:#5e2a5f;"></i>
-                                                    </div>
-
-                                                    <div class="card-body text-center">
-                                                        <h6 class="card-title text-truncate mb-1" title="{{ $product->name }}">{{ $product->name }}</h6>
-                                                        <p class="fw-bold text-success product-price mb-1"
-                                                                        data-price-customer="{{ $product->price }}"
-                                                                        data-price-staff="{{ $product->price_staff }}">THB {{ number_format($product->price_staff, 2) }}</p>
-                                                        <div class="small text-muted  mb-2">Stock: {{ $totalRemain }}</div>
-
-                                                        @if($inStock)
-                                                            <div class="input-group input-group-sm justify-content-center">
-                                                                <button class="btn btn-outline-secondary qty-minus"
-                                                                        type="button"
-                                                                        data-max="{{ $totalRemain }}">−</button>
-
-                                                                <input type="number"
-                                                                        class="form-control text-center qty-input calculate"
-                                                                        name="qty[{{ $product->id }}]"
-                                                                        @if(@$product_id == $product->id)
-                                                                        value="1"
-                                                                        @else
-                                                                        value="0"
-                                                                        @endif
-                                                                        min="0"
-                                                                        max="{{ $totalRemain }}"
-                                                                        data-name="{{ $product->name }}"
-                                                                        data-price-customer="{{ $product->price }}"
-                                                                        data-price-staff="{{ $product->price_staff }}"
-                                                                        style="max-width:60px;"
-                                                                        onchange="calculate()" />
-
-                                                                <button class="btn btn-outline-secondary qty-plus"
-                                                                        type="button"
-                                                                        data-max="{{ $totalRemain }}">+</button>
-                                                            </div>
-                                                        @else
-                                                            <button class="btn btn-secondary w-100" disabled>Out of Stock</button>
-                                                        @endif
-                                                    </div>
-                                                    </div>
-                                                </div>
-                                                @empty
-                                                <div class="col-12">
-                                                    <div class="alert alert-light border d-flex align-items-center" role="alert">
-                                                    <i class="bi bi-search me-2"></i>
-                                                    <div>
-                                                        No products found
-                                                        @if(request('q')) for "<strong>{{ request('q') }}</strong>" @endif
-                                                    </div>
-                                                    </div>
-                                                </div>
-                                            @endforelse
+                                            <div class="col-12 mt-2">
+                                                <h4 class="label-pos ff-playfair p-2">สินค้า</h4>
+                                            </div>
+                                            <div class="row" id="productGrid">
+                                                @include('pos.partials.product-grid', [
+                                                    'products' => $products,
+                                                ])
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                                 </div>
 
                                 <div class="col-md-3">
                                     <div class="card shadow-sm border-0">
-                                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                        <div
+                                            class="card-header bg-white d-flex justify-content-between align-items-center">
                                             <span class="fw-bold">Invoice</span>
                                             {{-- <span class="text-muted">#0001</span> --}}
                                         </div>
                                         <div class="mb-3 px-4">
-                                        <label class="form-label fw-bold">ผู้ซื้อ</label>
+                                            <label class="form-label fw-bold">ผู้ซื้อ</label>
                                             <div class="d-flex gap-3">
 
                                                 <div>
@@ -270,11 +213,15 @@
                                             <label class="form-label fw-bold">เลือกพนักงานขาย</label>
                                             {{-- <select id="salesStaffSelect" class="form-select"></select> --}}
                                             {{-- <form id="form_staff"> --}}
-                                                <div class="d-flex align-items-center justify-content-between app-academy-md-80">
-                                                    <input name="reception_name" type="text" id="reception" placeholder="แสกนบัตรพนักงาน" class="form-control me-2 reception-input" required/>
-                                                    <input name="reception_id" type="hidden" id="salesReceptionSelect">
-                                                    <input type="hidden" name="ref_position_id" value="1">
-                                                </div>
+                                            <div
+                                                class="d-flex align-items-center justify-content-between app-academy-md-80">
+                                                <input name="reception_name" type="text" id="reception"
+                                                    placeholder="แสกนบัตรพนักงาน"
+                                                    class="form-control me-2 reception-input" data-ref-position-id="1"
+                                                    required />
+                                                <input name="reception_id" type="hidden" id="salesReceptionSelect">
+                                                <input type="hidden" name="ref_position_id" value="1">
+                                            </div>
                                             {{-- </form> --}}
                                         </div>
                                         <div class="px-4 mt-4">
@@ -284,10 +231,8 @@
 
                                                 <!-- ชำระแล้ว -->
                                                 <div class="col-md-6">
-                                                    <input type="radio" class="btn-check"
-                                                        name="payment_status"
-                                                        id="status-paid"
-                                                        value="1" checked>
+                                                    <input type="radio" class="btn-check" name="payment_status"
+                                                        id="status-paid" value="1" checked>
 
                                                     <label class="card payment-card text-center p-3" for="status-paid">
                                                         <i class="bi bi-check-circle-fill fs-1 text-success"></i>
@@ -297,12 +242,11 @@
 
                                                 <!-- ค้างชำระ -->
                                                 <div class="col-md-6">
-                                                    <input type="radio" class="btn-check"
-                                                        name="payment_status"
-                                                        id="status-pending"
-                                                        value="0">
+                                                    <input type="radio" class="btn-check" name="payment_status"
+                                                        id="status-pending" value="0">
 
-                                                    <label class="card payment-card text-center p-3" for="status-pending">
+                                                    <label class="card payment-card text-center p-3"
+                                                        for="status-pending">
                                                         <i class="bi bi-clock-history fs-1 text-warning"></i>
                                                         <div class="mt-2 fw-bold">ยังไม่ชำระ</div>
                                                     </label>
@@ -325,7 +269,7 @@
                                                     </label>
                                                 </div>
 
-                                        {{-- <div class="col-md-6">
+                                                {{-- <div class="col-md-6">
                                             <input type="radio" class="btn-check calculate"
                                                 name="payment_method"
                                                 id="pay-cash"
@@ -349,15 +293,12 @@
                                                 </div>
                                                 <!-- Alipay -->
                                                 <div class="col-md-6">
-                                                    <input type="radio"
-                                                        class="btn-check payment-method"
-                                                        name="payment_method"
-                                                        id="pay-alipay"
-                                                        value="alipay">
+                                                    <input type="radio" class="btn-check payment-method"
+                                                        name="payment_method" id="pay-alipay" value="alipay">
 
                                                     <label class="card payment-card text-center p-3" for="pay-alipay">
                                                         <i class="bi bi-phone fs-1 text-info"></i>
-                                                        <div class="mt-2 fw-bold">Alipay</div>
+                                                        <div class="mt-2 fw-bold">Alipay / WeChat</div>
                                                     </label>
                                                 </div>
                                                 <!-- QR -->
@@ -394,11 +335,20 @@
                                             </div>
                                         </div>
                                         <div class="card-footer bg-white">
-                                            <div class="d-flex justify-content-between"><span>Subtotal</span><span>THB  <span id="subtotal">{{ number_format($subtotal, 2) }}</span></span></div>
-                                            <div class="d-flex justify-content-between"><span>Discount</span><span>- THB  <span id="discount">{{ number_format($discount, 2) }}</span></span></div>
+                                            <div class="d-flex justify-content-between"><span>Subtotal</span><span>THB
+                                                    <span
+                                                        id="subtotal">{{ number_format($subtotal, 2) }}</span></span>
+                                            </div>
+                                            <div class="d-flex justify-content-between"><span>Discount</span><span>-
+                                                    THB <span
+                                                        id="discount">{{ number_format($discount, 2) }}</span></span>
+                                            </div>
                                             {{-- <div class="d-flex justify-content-between"><span>Tax</span><span>THB  <span id="tax">{{ number_format($tax, 2) }}</span></span></div> --}}
                                             <hr>
-                                            <div class="d-flex justify-content-between fw-bold"><span>Total</span><span>THB <span id="total">{{ number_format($total, 2) }}</span></span></div>
+                                            <div class="d-flex justify-content-between fw-bold">
+                                                <span>Total</span><span>THB <span
+                                                        id="total">{{ number_format($total, 2) }}</span></span>
+                                            </div>
                                             <input type="hidden" name="total_price" id="total_value">
 
                                             <button type="submit" class="btn btn-dark w-100 mt-3">
@@ -411,7 +361,7 @@
                             </div>
                         </div>
                     </form>
-{{-- <script>
+                    {{-- <script>
     document.addEventListener('click', function (e) {
 
         // ➕ เพิ่มจำนวน
@@ -432,28 +382,25 @@
         }
     });
 </script> --}}
-                <!-- Footer -->
-                @include('admin/layout/inc_footer')
-                <!-- / Footer -->
+                    <!-- Footer -->
+                    @include('admin/layout/inc_footer')
+                    <!-- / Footer -->
 
-                <div class="content-backdrop fade"></div>
+                    <div class="content-backdrop fade"></div>
+                </div>
+                <!-- Content wrapper -->
             </div>
-            <!-- Content wrapper -->
+            <!-- / Layout page -->
         </div>
-        <!-- / Layout page -->
+
+        <!-- Overlay -->
+        <div class="layout-overlay layout-menu-toggle"></div>
+        <div class="drag-target"></div>
     </div>
-
-    <!-- Overlay -->
-    <div class="layout-overlay layout-menu-toggle"></div>
-    <div class="drag-target"></div>
-</div>
-<iframe id="print-iframe" style="display: none;"></iframe>
+    <iframe id="print-iframe" style="display: none;"></iframe>
 
 
-@include('admin/layout/inc_js')
-
-</body>
-</html>
+    @include('admin/layout/inc_js')
 
 {{-- ================== STYLES ================== --}}
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -462,13 +409,17 @@
         pointer-events: none;
         opacity: 0.5;
     }
+
     .room-chip.active,
     .cash-btn.active,
-    .other-btn.active { background-color: #5e2a5f; color: #fff; }
+    .other-btn.active {
+        background-color: #5e2a5f;
+        color: #fff;
+    }
 </style>
 <script>
     document.querySelectorAll('.qty-input, input[name="customer_type"]').forEach(el => {
-        el.addEventListener('change', function () {
+        el.addEventListener('change', function() {
 
             // ===== customer_type เปลี่ยน =====
             if (this.name === 'customer_type') {
@@ -491,33 +442,36 @@
                     }
                 });
 
-                    console.log(111)
+                console.log(111)
                 // (ของเดิม) อัปเดตราคาบนการ์ดสินค้า
 
-                    document.querySelectorAll('.product-price').forEach(priceEl => {
-                        console.log(priceEl);
+                document.querySelectorAll('.product-price').forEach(priceEl => {
+                    console.log(priceEl);
 
-                        const price = saleType === '1'
-                            ? Number(priceEl.dataset.priceStaff)
-                            : Number(priceEl.dataset.priceCustomer);
+                    const price = saleType === '1' ?
+                        Number(priceEl.dataset.priceStaff) :
+                        Number(priceEl.dataset.priceCustomer);
 
-                        priceEl.textContent =
-                            'THB ' + price.toLocaleString('th-TH', { minimumFractionDigits: 2 });
-                        // optional: เปลี่ยนสี
-                        priceEl.classList.toggle('text-success', saleType === '1');
-                        priceEl.classList.toggle('text-primary', saleType !== '1');
-                    });
-                }
+                    priceEl.textContent =
+                        'THB ' + price.toLocaleString('th-TH', {
+                            minimumFractionDigits: 2
+                        });
+                    // optional: เปลี่ยนสี
+                    priceEl.classList.toggle('text-success', saleType === '1');
+                    priceEl.classList.toggle('text-primary', saleType !== '1');
+                });
+            }
 
             // ===== ของเดิม =====
             calculate();
         });
     });
+
     function togglePaymentMethod() {
 
         const status = $('input[name="payment_status"]:checked').val();
 
-        $('.payment-method').each(function () {
+        $('.payment-method').each(function() {
 
             const card = $(this).closest('.payment-card');
 
@@ -539,7 +493,7 @@
         });
     }
 
-// bind event
+    // bind event
     document.querySelectorAll('input[name="payment_status"]').forEach(el => {
         el.addEventListener('change', togglePaymentMethod);
     });
@@ -547,52 +501,52 @@
     // init ตอนโหลด
     togglePaymentMethod();
 
-        $('#insert_product').on('submit', function(event) {
-            event.preventDefault();
+    $('#insert_product').on('submit', function(event) {
+        event.preventDefault();
 
-            const iframe = document.getElementById('print-iframe');
+        const iframe = document.getElementById('print-iframe');
 
-            if (!this.checkValidity()) {
-                this.reportValidity();
-                return console.log('ฟอร์มไม่ถูกต้อง');
+        if (!this.checkValidity()) {
+            this.reportValidity();
+            return console.log('ฟอร์มไม่ถูกต้อง');
+        }
+
+        var formData = new FormData(this);
+
+        var paymentStatus = formData.get('payment_status');
+
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ?',
+            text: 'คุณต้องการเพิ่มคำสั่งซื้อหรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            didOpen: () => {
+                Swal.getConfirmButton().focus();
             }
-
-            var formData = new FormData(this);
-
-            var paymentStatus = formData.get('payment_status');
-
-            Swal.fire({
-                title: 'ยืนยันการดำเนินการ?',
-                text: 'คุณต้องการเพิ่มคำสั่งซื้อหรือไม่?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'ตกลง',
-                cancelButtonText: 'ยกเลิก',
-                didOpen: () => {
-                    Swal.getConfirmButton().focus();
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '/pos/checkout',
-                        type: 'POST',
-                        data: formData,
-                        contentType: false, // ✅ ต้องมี
-                        processData: false, // ✅ ต้องมี
-                        success: function(response) {
-                            if (response.status == true) {
-                                Swal.fire({
-                                    title: 'เพิ่มคำสั่งซื้อเรียบร้อยแล้ว',
-                                    icon: 'success',
-                                    timer: 2000,
-                                    timerProgressBar: true,
-                                    showConfirmButton: false
-                                }).then(() => {
-                                    if (paymentStatus == '0') {
-                                        location.reload();
-                                    } else {
-                                        const newWindow = window.open('', '_blank');
-                                        newWindow.document.write(`
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/pos/checkout',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false, // ✅ ต้องมี
+                    processData: false, // ✅ ต้องมี
+                    success: function(response) {
+                        if (response.status == true) {
+                            Swal.fire({
+                                title: 'เพิ่มคำสั่งซื้อเรียบร้อยแล้ว',
+                                icon: 'success',
+                                timer: 2000,
+                                timerProgressBar: true,
+                                showConfirmButton: false
+                            }).then(() => {
+                                if (paymentStatus == '0') {
+                                    location.reload();
+                                } else {
+                                    const newWindow = window.open('', '_blank');
+                                    newWindow.document.write(`
                                             <html>
                                             <head>
                                                 <title>Print</title>
@@ -610,43 +564,43 @@
                                             </body>
                                             </html>
                                         `);
-                                        newWindow.document.close();
+                                    newWindow.document.close();
 
-                                        location.reload();
-                                    }
-                                });
-                            }
-                        },
-                        error: function(error) {
-                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
-                            console.error('เกิดข้อผิดพลาด:', error);
+                                    location.reload();
+                                }
+                            });
                         }
-                    });
-                }
-            });
-        });
-
-        $('#insert_order').on('submit', function(event) {
-            event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
-            if(!this.checkValidity()) {
-                // ถ้าฟอร์มไม่ถูกต้อง
-                this.reportValidity();
-                return console.log('ฟอร์มไม่ถูกต้อง');
+                    },
+                    error: function(error) {
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        console.error('เกิดข้อผิดพลาด:', error);
+                    }
+                });
             }
-            return alert(456)
-            $.ajax({
-                url: '/pos/insert-order', // เปลี่ยน URL เป็นจุดหมายที่ต้องการ
-                type: 'GET',
-                data: $(this).serialize(),
-                success: function(response) {
-
-                },
-                error: function(error) {
-
-                }
-            });
         });
-    document.addEventListener('click', function (e) {
+    });
+
+    $('#insert_order').on('submit', function(event) {
+        event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
+        if (!this.checkValidity()) {
+            // ถ้าฟอร์มไม่ถูกต้อง
+            this.reportValidity();
+            return console.log('ฟอร์มไม่ถูกต้อง');
+        }
+        return alert(456)
+        $.ajax({
+            url: '/pos/insert-order', // เปลี่ยน URL เป็นจุดหมายที่ต้องการ
+            type: 'GET',
+            data: $(this).serialize(),
+            success: function(response) {
+
+            },
+            error: function(error) {
+
+            }
+        });
+    });
+    document.addEventListener('click', function(e) {
 
         // ➕ เพิ่มจำนวน
         if (e.target.classList.contains('qty-plus')) {
@@ -668,82 +622,7 @@
         }
     });
     calculate();
-    document.querySelectorAll('.staff-input').forEach(input => {
-        input.addEventListener('click', function () {
-            this.value = '';
-            this.focus();
-        });
-        input.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault(); // กัน submit form
 
-                const userCode = this.value.trim();
-                if (!userCode) return;
-
-                fetch(`/pos/get-user?user_code=${encodeURIComponent(userCode)}`, {
-                    method: 'GET',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    console.log(data);
-
-                    // if (data.success) {
-                        this.value = data.name;
-                        $('#salesStaffSelect').val(data.id);
-                        this.blur(); // กันยิงซ้ำจากเครื่องสแกน
-                    // } else {
-                    //     alert(data.message || 'ไม่พบพนักงาน');
-                    //     this.value = '';
-                    // }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('เกิดข้อผิดพลาด');
-                });
-            }
-        });
-    });
-    document.querySelectorAll('.reception-input').forEach(input => {
-        input.addEventListener('click', function () {
-            this.value = '';
-            this.focus();
-        });
-        input.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault(); // กัน submit form
-
-                const userCode = this.value.trim();
-                if (!userCode) return;
-
-                fetch(`/pos/get-user?user_code=${encodeURIComponent(userCode)}`, {
-                    method: 'GET',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    console.log(data);
-
-                    // if (data.success) {
-                        this.value = data.name;
-                        $('#salesReceptionSelect').val(data.id);
-                        this.blur(); // กันยิงซ้ำจากเครื่องสแกน
-                    // } else {
-                    //     alert(data.message || 'ไม่พบพนักงาน');
-                    //     this.value = '';
-                    // }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('เกิดข้อผิดพลาด');
-                });
-            }
-        });
-    });
     function collectCalculatePayload() {
         const payload = {};
 
@@ -801,6 +680,7 @@
 
         return payload;
     }
+
     function calculate() {
 
         let subtotal = 0;
@@ -819,9 +699,9 @@
 
             const name = input.dataset.name;
 
-            const price = saleType === '1'
-                ? parseFloat(input.dataset.priceStaff)
-                : parseFloat(input.dataset.priceCustomer);
+            const price = saleType === '1' ?
+                parseFloat(input.dataset.priceStaff) :
+                parseFloat(input.dataset.priceCustomer);
 
             const total = qty * price;
             subtotal += total;
@@ -858,7 +738,9 @@
         document.getElementById('invoiceItems').innerHTML = html;
 
         // render price
-        const formatted = subtotal.toLocaleString('th-TH', { minimumFractionDigits: 2 });
+        const formatted = subtotal.toLocaleString('th-TH', {
+            minimumFractionDigits: 2
+        });
 
         document.getElementById('subtotal').innerText = formatted;
         document.getElementById('total').innerText = formatted;
@@ -866,6 +748,7 @@
         // hidden input (เอาไว้ submit)
         document.getElementById('total_value').value = subtotal;
     }
+
     function removeItem(productId) {
 
         const input = document.querySelector(`input[name="qty[${productId}]"]`);
@@ -884,8 +767,80 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const bindEmployeeLookup = (input, hiddenId, errorText) => {
+            if (!input || input.dataset.lookupBound === '1') return;
+
+            input.dataset.lookupBound = '1';
+
+            const hiddenInput = input.closest('.d-flex')?.querySelector(`#${hiddenId}`) || document.getElementById(hiddenId);
+
+            const lookupEmployee = async () => {
+                const userCode = input.value.trim();
+                if (!userCode) return;
+
+                if (hiddenInput?.value && input.dataset.selectedName === userCode) {
+                    return;
+                }
+
+                const refPositionId = input.classList.contains('reception-input') ? '1' : (input.dataset.refPositionId || '');
+
+                try {
+                    const response = await fetch(`/pos/get-user?user_code=${encodeURIComponent(userCode)}&ref_position_id=${encodeURIComponent(refPositionId)}&context=product`, {
+                        method: 'GET',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    });
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        input.value = '';
+                        input.dataset.selectedName = '';
+                        if (hiddenInput) hiddenInput.value = '';
+                        Swal.fire('แจ้งเตือน', data.message || 'ไม่พบพนักงาน', 'warning');
+                        return;
+                    }
+
+                    input.value = data.name;
+                    input.dataset.selectedName = data.name;
+                    if (hiddenInput) hiddenInput.value = data.id;
+                    input.blur(); // กันยิงซ้ำจากเครื่องสแกน
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire('เกิดข้อผิดพลาด', errorText, 'error');
+                }
+            };
+
+            input.addEventListener('click', function() {
+                this.value = '';
+                this.dataset.selectedName = '';
+                if (hiddenInput) hiddenInput.value = '';
+                this.focus();
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === 'Tab') {
+                    e.preventDefault();
+                    lookupEmployee();
+                }
+            });
+
+            input.addEventListener('change', lookupEmployee);
+        };
+
+        document.querySelectorAll('.staff-input').forEach(input => {
+            bindEmployeeLookup(input, 'salesStaffSelect', 'ไม่สามารถค้นหาพนักงานได้');
+        });
+
+        document.querySelectorAll('.reception-input').forEach(input => {
+            bindEmployeeLookup(input, 'salesReceptionSelect', 'ไม่สามารถค้นหาพนักงานขายได้');
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(
+            tooltipTriggerEl))
     });
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -912,6 +867,20 @@
         const walkinModalEl = document.getElementById('walkinModal');
         const paymentModalEl = document.getElementById('checkoutPaymentModal');
 
+        if (
+            !salesStaffSelect ||
+            !customerSelect ||
+            !roomIdInput ||
+            !nextBtn ||
+            !walkinNextBtn ||
+            !walkinTimeSelect ||
+            !roomModalEl ||
+            !walkinModalEl ||
+            !paymentModalEl
+        ) {
+            return;
+        }
+
         // --- Temporary State Variables ---
         let tempRoomId = null;
         let tempMamaId = null;
@@ -936,7 +905,7 @@
         //     placeholder: '-- เลือกพนักงานขาย --',
         //     allowClear: true,
         //     ajax: {
-        //         url: '{{ route("pos.api.searchSalesStaff") }}',
+        //         url: '{{ route('pos.api.searchSalesStaff') }}',
         //         dataType: 'json',
         //         delay: 250,
         //         data: params => ({ q: params.term }),
@@ -968,10 +937,13 @@
                 fetch(`/pos/room/${tempRoomId}/customers`)
                     .then(res => res.json())
                     .then(data => {
-                        customerSelect.innerHTML = '<option value="" disabled selected>-- กรุณาเลือก --</option>';
-                        customerSelect.innerHTML += '<option value="walkin">+ Walk-in Customer</option>';
+                        customerSelect.innerHTML =
+                            '<option value="" disabled selected>-- กรุณาเลือก --</option>';
+                        customerSelect.innerHTML +=
+                            '<option value="walkin">+ Walk-in Customer</option>';
                         data.forEach(c => {
-                            customerSelect.innerHTML += `<option value="${c.order_id}" data-customer-id="${c.customer_id}">[Order #${c.order_id}] ${c.name}</option>`;
+                            customerSelect.innerHTML +=
+                                `<option value="${c.order_id}" data-customer-id="${c.customer_id}">[Order #${c.order_id}] ${c.name}</option>`;
                         });
                         customerSelect.disabled = false;
                     });
@@ -997,7 +969,9 @@
             roomModalEl.addEventListener('hidden.bs.modal', () => {
                 const paymentModal = new bootstrap.Modal(paymentModalEl);
                 paymentModal.show();
-            }, { once: true });
+            }, {
+                once: true
+            });
         });
 
         // --- Flow Control: Walk-in ---
@@ -1006,9 +980,13 @@
                 const roomModal = bootstrap.Modal.getInstance(roomModalEl);
                 roomModal.hide();
                 roomModalEl.addEventListener('hidden.bs.modal', () => {
-                    const walkinModal = new bootstrap.Modal(walkinModalEl, { focus: false });
+                    const walkinModal = new bootstrap.Modal(walkinModalEl, {
+                        focus: false
+                    });
                     walkinModal.show();
-                }, { once: true });
+                }, {
+                    once: true
+                });
             }
         });
 
@@ -1026,7 +1004,9 @@
             walkinModalEl.addEventListener('hidden.bs.modal', () => {
                 const paymentModal = new bootstrap.Modal(paymentModalEl);
                 paymentModal.show();
-            }, { once: true });
+            }, {
+                once: true
+            });
         });
 
         // --- Walk-in Modal Select2 Initializers & Event Listeners ---
@@ -1038,9 +1018,14 @@
                 url: '/pos/api/search-users',
                 dataType: 'json',
                 delay: 250,
-                data: params => ({ q: params.term }),
+                data: params => ({
+                    q: params.term
+                }),
                 processResults: data => ({
-                    results: data.map(u => ({ id: u.id, text: `${u.phone} - ${u.name}` }))
+                    results: data.map(u => ({
+                        id: u.id,
+                        text: `${u.phone} - ${u.name}`
+                    }))
                 })
             }
         });
@@ -1050,7 +1035,7 @@
         //     placeholder: '-- ค้นหาพนักงาน --',
         //     allowClear: true,
         //     ajax: {
-        //         url: '{{ route("pos.api.searchStaff") }}',
+        //         url: '{{ route('pos.api.searchStaff') }}',
         //         dataType: 'json',
         //         delay: 250,
         //         data: params => ({ q: params.term }),
@@ -1064,8 +1049,8 @@
         // }).on('select2:select', checkWalkinNextBtnStatus)
         //   .on('select2:clear', checkWalkinNextBtnStatus);
 
-    walkinTimeSelect.addEventListener('change', checkWalkinNextBtnStatus);
-    document.getElementById('walkinStaffSelect').addEventListener('input', checkWalkinNextBtnStatus);
+        walkinTimeSelect.addEventListener('change', checkWalkinNextBtnStatus);
+        document.getElementById('walkinStaffSelect').addEventListener('input', checkWalkinNextBtnStatus);
 
         $('#walkinAddonSelect').select2({
             dropdownParent: $("#walkinModal"),
@@ -1075,7 +1060,9 @@
                 url: '/pos/api/search-addons',
                 dataType: 'json',
                 delay: 250,
-                data: params => ({ q: params.term }),
+                data: params => ({
+                    q: params.term
+                }),
                 processResults: data => ({
                     results: data.map(a => ({
                         id: a.id,
@@ -1086,8 +1073,8 @@
         });
 
         // --- Payment Logic ---
-    const paymentMethod = document.getElementById('paymentMethod');
-    // const confirmBtn = document.getElementById('confirmBtn'); // Already declared above
+        const paymentMethod = document.getElementById('paymentMethod');
+        // const confirmBtn = document.getElementById('confirmBtn'); // Already declared above
         // เมื่อเลือกวิธีการชำระเงิน ให้เซ็ตค่าและ enable ปุ่ม
         document.querySelectorAll('input[name="payment_method_radio"]').forEach(radio => {
             radio.addEventListener('change', function() {
@@ -1105,18 +1092,26 @@
         const clearSearchBtn = document.getElementById('clearSearch');
         const productGrid = document.getElementById('productGrid');
         let searchTimeout;
-        searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                fetch(`?q=${this.value}&ajax=true`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                    .then(response => response.text())
-                    .then(html => { productGrid.innerHTML = html; });
-            }, 500);
-        });
-        clearSearchBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            searchInput.dispatchEvent(new Event('input'));
-        });
+        if (searchInput && clearSearchBtn && productGrid) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    fetch(`?q=${this.value}&ajax=true`, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.text())
+                        .then(html => {
+                            productGrid.innerHTML = html;
+                        });
+                }, 500);
+            });
+            clearSearchBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+            });
+        }
 
         // --- Modal Event Listeners (Cleanup & API Call) ---
         roomModalEl.addEventListener('show.bs.modal', () => {
@@ -1137,39 +1132,45 @@
             const staffId = formStaffId.value;
             const csrfToken = '{{ csrf_token() }}';
 
-            fetch('{{ route("pos.api.calculateSummary") }}', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                body: JSON.stringify({
-                    addon_id: addonId,
-                    room_id: roomId,
-                    duration_minutes: duration,
-                    staff_id: staffId
+            fetch('{{ route('pos.api.calculateSummary') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        addon_id: addonId,
+                        room_id: roomId,
+                        duration_minutes: duration,
+                        staff_id: staffId
+                    })
                 })
-            })
-            .then(response => response.json())
-            .then(data => {
-                summaryContainer.innerHTML = '';
-                if (data.items && data.items.length > 0) {
-                    data.items.forEach(item => {
-                        const itemDiv = document.createElement('div');
-                        itemDiv.className = 'd-flex justify-content-between text-muted small py-1';
-                        itemDiv.innerHTML = `
+                .then(response => response.json())
+                .then(data => {
+                    summaryContainer.innerHTML = '';
+                    if (data.items && data.items.length > 0) {
+                        data.items.forEach(item => {
+                            const itemDiv = document.createElement('div');
+                            itemDiv.className =
+                                'd-flex justify-content-between text-muted small py-1';
+                            itemDiv.innerHTML = `
                             <span>${item.name} <small>(${item.details})</small></span>
                             <span>${parseFloat(item.total).toFixed(2)}</span>
                         `;
-                        summaryContainer.appendChild(itemDiv);
-                    });
-                } else {
-                    summaryContainer.innerHTML = '<p class="text-center text-muted py-3">ไม่มีรายการ</p>';
-                }
-                totalContainer.textContent = `THB ${parseFloat(data.total).toFixed(2)}`;
-                formTotalPrice.value = data.total;
-            })
-            .catch(error => {
-                summaryContainer.innerHTML = '<p class="text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
-                console.error('Error fetching summary:', error);
-            });
+                            summaryContainer.appendChild(itemDiv);
+                        });
+                    } else {
+                        summaryContainer.innerHTML =
+                            '<p class="text-center text-muted py-3">ไม่มีรายการ</p>';
+                    }
+                    totalContainer.textContent = `THB ${parseFloat(data.total).toFixed(2)}`;
+                    formTotalPrice.value = data.total;
+                })
+                .catch(error => {
+                    summaryContainer.innerHTML =
+                        '<p class="text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
+                    console.error('Error fetching summary:', error);
+                });
         });
 
         roomModalEl.addEventListener('hidden.bs.modal', () => {
@@ -1180,7 +1181,7 @@
                 btn.classList.add('room-chip-disabled');
                 btn.classList.remove('active');
                 const tooltip = bootstrap.Tooltip.getInstance(btn);
-                if(tooltip) tooltip.enable();
+                if (tooltip) tooltip.enable();
             });
 
             customerSelect.innerHTML = '<option value="" disabled selected>-- กรุณาเลือก --</option>';
@@ -1200,7 +1201,8 @@
         });
 
         paymentModalEl.addEventListener('hidden.bs.modal', () => {
-            document.querySelectorAll('.cash-btn, .other-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.cash-btn, .other-btn').forEach(b => b.classList.remove(
+                'active'));
             cashInput.value = '';
             paymentMethod.value = '';
             cashAmount.value = '';
@@ -1209,7 +1211,7 @@
 
         $('#form_staff').on('submit', function(event) {
             event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
-            if(!this.checkValidity()) {
+            if (!this.checkValidity()) {
                 // ถ้าฟอร์มไม่ถูกต้อง
                 this.reportValidity();
                 return console.log('ฟอร์มไม่ถูกต้อง');
@@ -1224,7 +1226,7 @@
                         btn.disabled = false;
                         btn.classList.remove('room-chip-disabled');
                         const tooltip = bootstrap.Tooltip.getInstance(btn);
-                        if(tooltip) tooltip.disable();
+                        if (tooltip) tooltip.disable();
                     });
                     checkNextBtnStatus();
                     document.getElementById("staff").value = response.name;
@@ -1235,14 +1237,15 @@
                 error: function(error) {
                     document.getElementById("staff").value = "";
                     document.getElementById("salesStaffSelect").value = "";
-                    Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    Swal.fire('แจ้งเตือน', error.responseJSON?.message || 'ไม่พบพนักงาน',
+                        'warning');
                     console.error('เกิดข้อผิดพลาด:', error);
                 }
             });
         });
         $('#form_user').on('submit', function(event) {
             event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
-            if(!this.checkValidity()) {
+            if (!this.checkValidity()) {
                 // ถ้าฟอร์มไม่ถูกต้อง
                 this.reportValidity();
                 return console.log('ฟอร์มไม่ถูกต้อง');
@@ -1259,9 +1262,10 @@
 
                 },
                 error: function(error) {
-                    document.getElementById("staff").value = "";
+                    document.getElementById("user").value = "";
                     document.getElementById("walkinStaffSelect").value = "";
-                    Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    Swal.fire('แจ้งเตือน', error.responseJSON?.message || 'ไม่พบพนักงาน',
+                        'warning');
                     console.error('เกิดข้อผิดพลาด:', error);
                 }
             });
@@ -1271,6 +1275,7 @@
     function clearInput(id) {
         document.getElementById(id).value = '';
     }
+
     function clearStaffInput(id) {
         document.getElementById(id).value = '';
         tempMamaId = null;
@@ -1278,10 +1283,23 @@
 </script>
 
 <script>
-    @if(session('error'))
-    Swal.fire({ icon:'error', title:'Error', text:@json(session('error')), confirmButtonColor:'#5e2a5f' })
+    @if (session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: @json(session('error')),
+            confirmButtonColor: '#5e2a5f'
+        })
     @endif
-    @if(session('success'))
-    Swal.fire({ icon:'success', title:'Success', text:@json(session('success')), confirmButtonColor:'#5e2a5f' })
+    @if (session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: @json(session('success')),
+            confirmButtonColor: '#5e2a5f'
+        })
     @endif
 </script>
+</body>
+
+</html>

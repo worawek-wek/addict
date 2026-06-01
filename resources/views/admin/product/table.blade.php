@@ -21,6 +21,9 @@
                     ราคา(พนักงาน)
                 </th>
                 <th class="text-center">
+                    ขายพร้อมคอร์ส
+                </th>
+                <th class="text-center">
                     ขั้นต่ำ
                 </th>
                 {{-- <th class="text-center">
@@ -61,6 +64,18 @@
                 </td>
                 <td class="text-center" {!! $view !!}>
                     {{ $row->price_staff }}
+                </td>
+                <td class="text-center">
+                    <label class="switch switch-primary mb-0">
+                        <input type="checkbox" class="switch-input"
+                            onchange="changeSellWithCourse({{ $row->id }}, this.checked ? 1 : 0, this)"
+                            @if ($row->sell_with_course) checked @endif
+                        />
+                        <span class="switch-toggle-slider">
+                            <span class="switch-on"><i class="ti ti-check"></i></span>
+                            <span class="switch-off"><i class="ti ti-x"></i></span>
+                        </span>
+                    </label>
                 </td>
                 <td class="text-center" {!! $view !!}>
                     {{ $row->minimum }}

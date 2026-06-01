@@ -343,6 +343,7 @@ Route::prefix('admin')->group(function () {
             Route::get('product', 'index')->name('product');
             Route::get('product/datatable', 'datatable')->name('product.datatable');
             Route::post('product/change-status/{id}', 'change_status')->name('product.change-status');
+            Route::post('product/change-sell-with-course/{id}', 'change_sell_with_course')->name('product.change-sell-with-course');
             Route::post('product/update-sort/{id}', 'update_sort')->name('product.update-sort');
             Route::get('card_stock_report', 'card_stock_report')->name('card_stock_report');
             Route::get('card_stock_report/get-stock/{product_id}', 'get_stock')->name('card_stock_report.get-stock');
@@ -410,6 +411,7 @@ Route::prefix('admin')->group(function () {
             Route::get('course/datatable', 'datatable')->name('course.datatable');
             Route::post('course/update-sort/{id}', 'update_sort')->name('course.update-sort');
             Route::post('course/change-status/{id}', 'change_status')->name('course.change-status');
+            Route::post('course/change-online-booking/{id}', 'change_online_booking')->name('course.change-online-booking');
             Route::post('course', 'store')->name('course.insert');
             Route::get('course/{id}', 'edit')->name('course');
             Route::post('course/{id}', 'update')->name('course.update');

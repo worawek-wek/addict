@@ -35,7 +35,7 @@
                     $isCancelled = $order->ref_status_id == 4;
                     $coursePrice = $order->total_price ?? 0;
                     if ($isCancelled) {
-                        $coursePrice = -$coursePrice;
+                        $coursePrice = 0;
                     }
 
                     $usedCoupon = 0;
@@ -84,10 +84,10 @@
                     <td>{{ $durStr }}</td>
                     <td>{{ $order->payment_method }}</td>
                     <td class="text-end">{{ number_format($coursePrice) }}</td>
-                    <td class="text-end">{{ $isCancelled ? '-' : number_format($order->discount ?? 0) }}</td>
-                    <td class="text-end">{{ $isCancelled ? '-' : number_format($order->products_sum_price ?? 0) }}</td>
-                    <td class="text-end">{{ $isCancelled ? '-' : number_format($usedCoupon) }}</td>
-                    <td class="text-end">{{ $isCancelled ? '-' : number_format($actualRevenue) }}</td>
+                    <td class="text-end">{{ number_format($isCancelled ? 0 : ($order->discount ?? 0)) }}</td>
+                    <td class="text-end">{{ number_format($isCancelled ? 0 : ($order->products_sum_price ?? 0)) }}</td>
+                    <td class="text-end">{{ number_format($isCancelled ? 0 : $usedCoupon) }}</td>
+                    <td class="text-end">{{ number_format($isCancelled ? 0 : $actualRevenue) }}</td>
                     <td>{{ $order->status->name }}</td>
                 </tr>
             @endforeach
@@ -141,7 +141,7 @@
                         <tr class="fw-bold table-primary">
                             <td>รับจริงสุทธิ</td>
                             <td class="text-end">
-                                {{ !empty($totalCashRaw) && !empty($grandCommission) ? number_format($totalCashRaw - $grandCommission, 2) : '-' }}
+                                {{ number_format($totalNetCash, 2) }}
                                 บาท</td>
                         </tr>
                     </table>

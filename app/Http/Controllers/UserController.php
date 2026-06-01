@@ -500,9 +500,27 @@ class UserController extends Controller
     public function clock_in(Request $request)
     {
         try {
-            $find = User::where('user_code', $request->user_code)->first();
+            $userCode = preg_replace('/[\x00-\x1F\x7F]/u', '', trim((string) $request->user_code));
+
+            if ($userCode === '') {
+                return "เข้างานผิดพลาด ไม่พบพนักงาน";
+            }
+
+            $branchId = Auth::user()->ref_branch_id ?? null;
+            $matchedUsers = User::where(function ($q) use ($userCode) {
+                $q->where('user_code', $userCode)
+                    ->orWhere('user_id', $userCode);
+            });
+
+            $find = $branchId
+                ? (clone $matchedUsers)->where('ref_branch_id', $branchId)->first()
+                : $matchedUsers->first();
 
             if (!$find) {
+                if ($branchId && (clone $matchedUsers)->where('ref_branch_id', '!=', $branchId)->exists()) {
+                    return "เข้างานผิดพลาด พบพนักงานนี้ แต่อยู่คนละสาขา";
+                }
+
                 return "เข้างานผิดพลาด ไม่พบพนักงาน";
             }
             $user = User::find($find->id);

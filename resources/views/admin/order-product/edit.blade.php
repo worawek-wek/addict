@@ -293,7 +293,7 @@
                                                     {{ $order->payment_method == 'alipay' ? 'checked' : '' }}>
                                                 <label class="card payment-card text-center p-3" for="pay-alipay">
                                                     <i class="bi bi-phone fs-1 text-info"></i>
-                                                    <div class="mt-2 fw-bold">Alipay</div>
+                                                    <div class="mt-2 fw-bold">Alipay / WeChat</div>
                                                 </label>
                                             </div>
 
@@ -304,7 +304,7 @@
                                                 <label class="card payment-card text-center p-3" for="pay-qr">
                                                     <i class="bi bi-qr-code-scan fs-1 text-dark"></i>
                                                     <div class="mt-2 fw-bold">QR Code</div>
-                                                    <div class="small text-muted">PromptPay / WeChat / Alipay</div>
+                                                    <div class="small text-muted">PromptPay</div>
                                                 </label>
                                             </div>
 

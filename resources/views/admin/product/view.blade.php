@@ -91,6 +91,11 @@
                                                 <span>{{ $product->price_staff }}</span>
                                             </li>
                                             <li class="d-flex align-items-center mb-3">
+                                                <i class="ti ti-link text-heading"></i><span
+                                                    class="fw-medium mx-2 me-4 text-heading">ขายพร้อมคอร์ส:</span>
+                                                <span>{{ $product->sell_with_course ? 'ใช่' : 'ไม่ใช่' }}</span>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-3">
                                                 <i class="ti ti-user text-heading"></i><span
                                                     class="fw-medium mx-2 me-4 text-heading">ต้นทุน:</span>
                                                 <span>{{ $product->name }}</span>
@@ -124,7 +129,7 @@
                                             @foreach ($branch as $bra)
                                                 <input class="form-check-input" type="radio" name="ref_branch_id"
                                                     id="branch{{ $bra->id }}" value="{{ $bra->id }}"
-                                                    {{ $loop->first ? 'checked' : '' }}>
+                                                    {{ $product->ref_branch_id == $bra->id ? 'checked' : '' }}>
                                                 <label class="form-check-label me-4" for="branch{{ $bra->id }}">
                                                     {{ $bra->name }}
                                                 </label>
@@ -153,6 +158,17 @@
                                                 class="text-danger"> *</span>
                                             <input name="price_staff" type="text" class="form-control"
                                                 placeholder="ราคาขาย" required value="{{ $product->price_staff }}" />
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label class="form-label d-block">ขายพร้อมคอร์ส</label>
+                                            <label class="switch switch-primary mb-0">
+                                                <input type="checkbox" name="sell_with_course" value="1" class="switch-input"
+                                                    @if ($product->sell_with_course) checked @endif>
+                                                <span class="switch-toggle-slider">
+                                                    <span class="switch-on"><i class="ti ti-check"></i></span>
+                                                    <span class="switch-off"><i class="ti ti-x"></i></span>
+                                                </span>
+                                            </label>
                                         </div>
                                         <div class="col-sm-6">
                                             <label for="" class="form-label">Minimum Stock แจ้งเตือนที่ต้องการซื้อ</label><span

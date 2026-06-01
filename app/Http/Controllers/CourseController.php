@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Course;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 DB::beginTransaction();
 
@@ -41,6 +42,19 @@ class CourseController extends Controller
             $user = Course::find($id);
             $user->ref_status_id = $request->ref_status_id;
             $user->save();
+
+            DB::commit();
+            return true;
+        } catch (QueryException $err) {
+            DB::rollBack();
+        }
+    }
+    public function change_online_booking(Request $request, $id)
+    {
+        try {
+            $course = Course::find($id);
+            $course->show_online_booking = $request->show_online_booking ? 1 : 0;
+            $course->save();
 
             DB::commit();
             return true;
@@ -126,6 +140,7 @@ class CourseController extends Controller
             $course->ref_branch_id = $request->ref_branch_id;
             $course->name = $request->name;
             $course->minute = $request->minute;
+            $course->show_online_booking = $request->boolean('show_online_booking');
             // $course->sixty_minutes = $request->sixty_minutes;
             // $course->ninety_minutes = $request->ninety_minutes;
             // $course->forty_minutes = $request->forty_minutes;
@@ -190,6 +205,7 @@ class CourseController extends Controller
             $course->ref_branch_id = $request->ref_branch_id;
             $course->name = $request->name;
             $course->minute = $request->minute;
+            $course->show_online_booking = $request->boolean('show_online_booking');
             // $course->forty_minutes = $request->forty_minutes;
             // $course->sixty_minutes = $request->sixty_minutes;
             // $course->ninety_minutes = $request->ninety_minutes;

@@ -374,6 +374,16 @@
                                     required />
                             </div>
                             <div class="col-sm-6">
+                                <label class="form-label d-block">ขายพร้อมคอร์ส</label>
+                                <label class="switch switch-primary mb-0">
+                                    <input type="checkbox" name="sell_with_course" value="1" class="switch-input">
+                                    <span class="switch-toggle-slider">
+                                        <span class="switch-on"><i class="ti ti-check"></i></span>
+                                        <span class="switch-off"><i class="ti ti-x"></i></span>
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="col-sm-6">
                                 <label for="" class="form-label">Minimum Stock แจ้งเตือนที่ต้องการซื้อ</label><span
                                     class="text-danger"> *</span>
                                 <input name="minimum" type="number" class="form-control"
@@ -421,7 +431,7 @@
                 <div class="modal-body p-4">
 
                     <form id="formAddProductType" class="mb-4 d-flex gap-2">
-                        
+
                         <div class="row g-3 p-4">
                             <div class="col-sm-12">
                                 <label class="form-label">สาขา *</label><br>
@@ -640,6 +650,36 @@
                     success: function (response) {
                         if (response == true) {
                             Swal.fire('เปลี่ยนสถานะเรียบร้อยแล้ว', '', 'success');
+                            loadData(page);
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    }
+                });
+            }
+        });
+    }
+//////////////////////////////////////////////////////////////////////////////////////////////
+    function changeSellWithCourse(id, v, element) {
+        $(element).prop('checked', v === 1 ? false : true);
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ?',
+            text: 'คุณต้องการเปลี่ยนการขายพร้อมคอร์สหรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            didOpen: () => Swal.getConfirmButton().focus()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ $page_url }}/change-sell-with-course/' + id,
+                    type: 'POST',
+                    data: { sell_with_course: v, _token: "{{ csrf_token() }}" },
+                    success: function (response) {
+                        if (response == true) {
+                            Swal.fire('เปลี่ยนการขายพร้อมคอร์สเรียบร้อยแล้ว', '', 'success');
                             loadData(page);
                         }
                     },
@@ -940,7 +980,7 @@
         });
     }
     // เลือกสาขาแล้วให้แสดง ประภทสินค้า สาขา นั้น ๆ
-    
+
     const allWithdrawProducts = [];
 
     $('#select2Product option').each(function () {

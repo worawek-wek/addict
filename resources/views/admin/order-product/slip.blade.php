@@ -5,7 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ใบเสร็จ #{{ $order->order_number }}</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            color: #000 !important;
+            text-shadow: none !important;
+        }
 
         @page {
             size: 80mm auto;   /* thermal slip width, height auto */
@@ -13,27 +19,36 @@
         }
 
         body {
-            font-family: 'Courier New', monospace;
+            font-family: Tahoma, Arial, sans-serif;
             background-color: #f5f5f5;
             padding: 10px;
             display: flex;
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
+            font-size: 13px;
+            font-weight: 500;
         }
 
         @media print {
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
             body {
                 background: white;
                 padding: 0;
                 display: block;
+                width: 72mm;
+                font-size: 13px;
             }
         }
 
         .receipt {
             background-color: white;
-            width: 100%;
-            max-width: 280px;
+            width: 72mm;
+            max-width: 72mm;
             padding: 10px 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             position: relative;
@@ -42,7 +57,8 @@
         @media print {
             .receipt {
                 box-shadow: none;
-                max-width: 100%;
+                width: 72mm;
+                max-width: 72mm;
                 padding: 0;
             }
         }
@@ -67,37 +83,38 @@
 
         .header {
             text-align: center;
-            border-bottom: 2px dashed #333;
-            padding-bottom: 15px;
-            margin-bottom: 15px;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
         }
 
-        .header h1 { font-size: 20px; margin-bottom: 4px; }
-        .header .subtitle { font-size: 13px; color: #555; margin-bottom: 8px; }
+        .header h1 { font-size: 18px; margin-bottom: 4px; font-weight: 800; }
+        .header .subtitle { font-size: 13px; margin-bottom: 8px; font-weight: 700; }
 
         .info-line {
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
+            gap: 8px;
+            font-size: 12.5px;
             margin: 3px 0;
         }
 
         .section {
             margin: 12px 0;
-            border-bottom: 1px dashed #ccc;
+            border-bottom: 1px dashed #000;
             padding-bottom: 10px;
         }
 
         .section-title {
             font-weight: bold;
-            font-size: 13px;
+            font-size: 14px;
             text-align: center;
             margin-bottom: 8px;
         }
 
         table { width: 100%; border-collapse: collapse; }
-        th, td { font-size: 12px; padding: 3px 2px; }
-        th { border-bottom: 1px solid #ccc; text-align: left; }
+        th, td { font-size: 12.5px; padding: 4px 2px; vertical-align: top; }
+        th { border-bottom: 1px solid #000; text-align: left; font-weight: 800; }
         td.right, th.right { text-align: right; }
         td.center { text-align: center; }
 
@@ -110,12 +127,10 @@
             margin: 5px 0;
         }
 
-        .total-line.discount { color: #c00; }
-
         .total-line.grand {
             font-size: 16px;
-            font-weight: bold;
-            border-top: 2px solid #333;
+            font-weight: 800;
+            border-top: 2px solid #000;
             padding-top: 8px;
             margin-top: 8px;
         }
@@ -129,19 +144,22 @@
             font-weight: bold;
         }
 
-        .payment-badge.paid { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .payment-badge.unpaid { background: #fff3cd; color: #856404; border: 1px solid #ffc107; }
+        .payment-badge.paid,
+        .payment-badge.unpaid {
+            background: transparent;
+            border: 1px solid #000;
+        }
 
         .footer {
             margin-top: 18px;
             text-align: center;
-            font-size: 11px;
-            color: #666;
+            font-size: 12px;
+            font-weight: 700;
         }
 
         @media print {
             body { background: white; padding: 0; }
-            .receipt { box-shadow: none; max-width: 100%; }
+            .receipt { box-shadow: none; width: 72mm; max-width: 72mm; }
             .no-print { display: none !important; }
         }
     </style>
@@ -198,7 +216,7 @@
                             <td class="right">{{ number_format($item->price * $item->quantity, 2) }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" style="text-align:center; color:#999;">ไม่มีสินค้า</td></tr>
+                        <tr><td colspan="5" style="text-align:center;">ไม่มีสินค้า</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -234,13 +252,13 @@
         <div style="text-align:center; margin-top:10px;">
             @if ($order->payment_status)
                 <span class="payment-badge paid">
-                    ✓ ชำระเงินแล้ว
+                    ชำระเงินแล้ว
                     @if($order->payment_method)
                         — {{ $order->payment_method }}
                     @endif
                 </span>
             @else
-                <span class="payment-badge unpaid">⚠ ยังไม่ชำระเงิน</span>
+                <span class="payment-badge unpaid">ยังไม่ชำระเงิน</span>
             @endif
         </div>
 
@@ -252,18 +270,14 @@
         <div style="text-align:center; margin-top:20px;" class="no-print">
             <button onclick="window.print()"
                 style="padding:8px 24px; background:#333; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:14px;">
-                🖨️ พิมพ์ใบเสร็จ
+                พิมพ์ใบเสร็จ
             </button>
             <button onclick="window.close()"
                 style="padding:8px 24px; background:#ccc; color:#333; border:none; border-radius:6px; cursor:pointer; font-size:14px; margin-left:8px;">
-                ✕ ปิด
+                ปิด
             </button>
         </div>
     </div>
 
-    <script>
-        // Always auto-print (loaded inside hidden iframe by parent page)
-        window.onload = function () { window.print(); };
-    </script>
 </body>
 </html>

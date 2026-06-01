@@ -43,12 +43,28 @@ class FrontClockInController extends Controller
 
         return view('clock-in/index', $data);
     }
-    public function clock_in(Request $request)
+    public function clock_in(Request $request, $branch = null)
     {
         try{
-            $find = User::where('user_code',$request->user_code)->first();
+            $userCode = preg_replace('/[\x00-\x1F\x7F]/u', '', trim((string) $request->user_code));
+            $matchedUsers = User::where(function ($q) use ($userCode) {
+                $q->where('user_code', $userCode)
+                    ->orWhere('user_id', $userCode);
+            });
+
+            if ($userCode === '') {
+                return "เข้างานผิดพลาด ไม่พบพนักงาน";
+            }
+
+            $find = $branch
+                ? (clone $matchedUsers)->where('ref_branch_id', $branch)->first()
+                : $matchedUsers->first();
 
             if(!$find){
+                if ($branch && (clone $matchedUsers)->where('ref_branch_id', '!=', $branch)->exists()) {
+                    return "เข้างานผิดพลาด พบพนักงานนี้ แต่อยู่คนละสาขา";
+                }
+
                 return "เข้างานผิดพลาด ไม่พบพนักงาน";
             }
             $user = User::find($find->id);

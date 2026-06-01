@@ -56,7 +56,7 @@
                     {{ $list_data->firstItem()+$key }}
                 </td>
                 <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                    {{ date('d/m/Y',strtotime($row->created_at)) }}
+                    {{ date('d/m/Y H:i:s',strtotime($row->created_at)) }}
                 </td>
                 <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->label }}
@@ -75,7 +75,7 @@
                 </td>
                 {{-- <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->type == 2 ?$row->quantity:''; }}
-                </td> --}} 
+                </td> --}}
                 <td class="text-center text-danger" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->stock_ready_for_sales()->sum('qty') }}
                 </td>
@@ -106,7 +106,7 @@
                     </div>
                 </td> --}}
             </tr>
-            
+
         @empty
 
             <tr>

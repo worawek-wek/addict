@@ -12,10 +12,12 @@ use App\Models\Order;
 use App\Models\OrderHasProduct;
 use App\Models\Room;
 use App\Models\RoomType;
+use App\Models\RoomTypeHasCourse;
 use App\Models\Branch;
 use App\Models\Course;
 use App\Models\OrderHasAddonOption;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,7 +38,10 @@ class FrontHomeController extends Controller
         session(["branch_id" => $id]);
         //     return redirect('dashboard');
         // }
-        $data['course'] = Course::orderBy('sort')->where('ref_status_id', 1)->get();
+        $data['course'] = Course::orderBy('sort')
+            ->where('ref_status_id', 1)
+            ->where('show_online_booking', 1)
+            ->get();
 
         $data['user'] = User::where('ref_status_id', 1)
             ->where('ref_branch_id', 1)
@@ -95,7 +100,13 @@ class FrontHomeController extends Controller
             $ref_seller_id = Auth::guard('customer')->user()->id;
             $user = User::find($request->selected_user);
             $room = RoomType::find($request->roomType);
-            $course = Course::find($request->timeService);
+            $course = Course::where('ref_status_id', 1)
+                ->where('show_online_booking', 1)
+                ->find($request->timeService);
+            if (!$course) {
+                DB::rollBack();
+                return back()->with('error', 'ไม่พบ Time Period ที่เปิดให้จองออนไลน์');
+            }
             // $massage_price = $user ? $user->salary : 0;
             $room_price = 0;
             // if (!empty($request->roomType) && $request->timeService) {
@@ -111,9 +122,8 @@ class FrontHomeController extends Controller
             //             break;
             //     }
             // }
-            $order_price = $request->total_price;
-            // $price = 0;
             $price = $this->calculate_all($request);
+            $order_price = $price;
 
             // // กำหนดค่าระยะเวลาเป็นตัวเลข
             // if ($request->timeService == 'forty_minutes') {
@@ -284,12 +294,13 @@ class FrontHomeController extends Controller
         $price = 0;
 
         $user = User::find($request->selected_user);
-        $price += $user->salary;
+        $price += $user?->salary ?? 0;
 
         if (!empty($request->ref_product_id)) {
             foreach ($request->ref_product_id as $product) {
                 if (!empty($request->product_qty[$product])) {
-                    $price += Product::find($product)->price * $request->product_qty[$product];
+                    $productModel = Product::find($product);
+                    $price += ($productModel?->price ?? 0) * $request->product_qty[$product];
                 }
             }
         }
@@ -304,18 +315,11 @@ class FrontHomeController extends Controller
         }
 
         if (!empty($request->roomType) && $request->timeService) {
-            $room = Room::find($request->roomType);
-            switch ($request->timeService) {
-                case 'forty_minutes':
-                    $price += $room->forty_minutes;
-                    break;
-                case 'sixty_minutes':
-                    $price += $room->sixty_minutes;
-                    break;
-                case 'ninety_minutes':
-                    $price += $room->ninety_minutes;
-                    break;
-            }
+            $roomCoursePrice = RoomTypeHasCourse::where('ref_room_type_id', $request->roomType)
+                ->where('ref_course_id', $request->timeService)
+                ->value('price');
+
+            $price += $roomCoursePrice ?? 0;
         }
 
         return $price; // float
@@ -469,6 +473,9 @@ class FrontHomeController extends Controller
 
         $rooms = RoomType::where('ref_branch_id', $branchId)->get()
             ->map(function ($room) use ($bookingDate, $startTime, $endTime) {
+                $coursePrices = RoomTypeHasCourse::where('ref_room_type_id', $room->id)
+                    ->pluck('price', 'ref_course_id');
+
                 $hasConflict = Order::where('ref_room_id', $room->id)
                     ->where('booking_date', $bookingDate)
                     ->where('ref_status_id', '!=', 4) // 👈 ข้าม order ที่ถูกยกเลิก
@@ -484,6 +491,7 @@ class FrontHomeController extends Controller
                     'forty'     => $room->forty_minutes,
                     'sixty'     => $room->sixty_minutes,
                     'ninety'    => $room->ninety_minutes,
+                    'course_prices' => $coursePrices,
                     'available' => !$hasConflict,
                 ];
             });

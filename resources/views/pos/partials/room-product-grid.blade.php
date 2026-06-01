@@ -3,35 +3,37 @@
         $totalRemain = \App\Models\StockReadyForSale::where('ref_product_id', $product->id)->sum('remain') ?? 0;
         $inStock = $totalRemain > 0;
     @endphp
-    <input type="hidden" name="price_cus[{{ $product->id }}]" value="{{ $product->price }}">
-    <input type="hidden" name="price_staff[{{ $product->id }}]" value="{{ $product->price_staff }}">
-    <div class="col-md-2 mb-4" style="min-width: 40px;">
+    <div class="col-md-2 mb-4">
         <div class="card border-0 shadow-sm {{ $inStock ? '' : 'opacity-50' }}">
-            <div class="d-flex justify-content-center align-items-center pt-2">
+            <div class="d-flex justify-content-center align-items-center py-4">
                 <i class="bi bi-cup-straw" style="font-size:3rem; color:#5e2a5f;"></i>
             </div>
             <div class="card-body text-center">
-                <h6 class="card-title text-truncate mb-1" title="{{ $product->name }}">{{ $product->name }}</h6>
-                <p class="fw-bold text-success product-price mb-1"
-                    data-price-customer="{{ $product->price }}"
-                    data-price-staff="{{ $product->price_staff }}">THB {{ number_format($product->price_staff, 2) }}</p>
+                <h6 class="card-title text-truncate" title="{{ $product->name }}">{{ $product->name }}</h6>
+                <p class="fw-bold text-primary mb-2">THB {{ number_format($product->price, 2) }}</p>
                 <div class="small text-muted mb-2">Stock: {{ $totalRemain }}</div>
 
                 @if($inStock)
                     <div class="input-group input-group-sm justify-content-center">
-                        <button class="btn btn-outline-secondary qty-minus" type="button" data-max="{{ $totalRemain }}">-</button>
+                        <button class="btn btn-outline-secondary qty-minus course-product-control"
+                                type="button"
+                                data-max="{{ $totalRemain }}"
+                                disabled>-</button>
+
                         <input type="number"
-                            class="form-control text-center qty-input calculate"
+                            class="form-control text-center qty-input calculate course-product-control"
                             name="qty[{{ $product->id }}]"
-                            @if(@$product_id == $product->id) value="1" @else value="0" @endif
+                            value="0"
                             min="0"
                             max="{{ $totalRemain }}"
-                            data-name="{{ $product->name }}"
-                            data-price-customer="{{ $product->price }}"
-                            data-price-staff="{{ $product->price_staff }}"
                             style="max-width:60px;"
-                            onchange="calculate()">
-                        <button class="btn btn-outline-secondary qty-plus" type="button" data-max="{{ $totalRemain }}">+</button>
+                            onchange="calculate()"
+                            disabled>
+
+                        <button class="btn btn-outline-secondary qty-plus course-product-control"
+                                type="button"
+                                data-max="{{ $totalRemain }}"
+                                disabled>+</button>
                     </div>
                 @else
                     <button class="btn btn-secondary w-100" disabled>Out of Stock</button>
