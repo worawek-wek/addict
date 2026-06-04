@@ -451,10 +451,9 @@ class POSController extends Controller
         //     }
         // return $request->input('type');
         $mama_id = $request->input('mama_id');
-        $order = Order::create([
+        $order = Order::createWithGeneratedOrderNumber([
             'type'      => $request->input('type') ?? 1,
             'ref_branch_id'      => Auth::user()->ref_branch_id,
-            'order_number'    => Auth::user()->ref_branch_id . strtoupper(uniqid()),
             'ref_customer_id'   => $request->input('customer_id') ?: null,
             'ref_account_id'    => Auth::id(),
             'ref_user_id'    => $request->input('staff_id') ?? null,
@@ -473,7 +472,7 @@ class POSController extends Controller
             'payment_method' => $request->input('payment_method') ?? null,
             'payment_status' => $request->input('payment_status') ?? 1,
             'paid_at' => ((int) $request->input('payment_status', 1) === 1) ? now() : null,
-        ]);
+        ], $request->filled('ref_course_id') ? Order::ORDER_NUMBER_COURSE : Order::ORDER_NUMBER_PRODUCT);
         // เพิ่ม addon option ใน order_has_addon_options
         if ($request->filled('ref_option_id')) {
             foreach ($request->ref_option_id as $addon_id) {
@@ -1372,10 +1371,9 @@ $slip .= "
     public function drink_checkout(Request $request)
     {
         $mama_id = $request->input('mama_id');
-        $order = Order::create([
+        $order = Order::createWithGeneratedOrderNumber([
             'type'      => 3,
             'ref_branch_id'      => Auth::user()->ref_branch_id,
-            'order_number'    => Auth::user()->ref_branch_id . strtoupper(uniqid()),
             'ref_customer_id'   => $request->input('customer_id') ?: null,
             'ref_account_id'    => Auth::id(),
             'ref_user_id'    => $request->input('staff_id') ?? null,
@@ -1394,7 +1392,7 @@ $slip .= "
             'payment_method' => $request->input('payment_method') ?? null,
             'payment_status' => $request->input('payment_status') ?? 1,
             'paid_at' => ((int) $request->input('payment_status', 1) === 1) ? now() : null,
-        ]);
+        ], Order::ORDER_NUMBER_PRODUCT);
 
         // --- โค้ดส่วนที่เหลือของคุณ (ทำงานกับตัวแปร $order ที่ได้มา) ---
         $list_drink = "";

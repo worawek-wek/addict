@@ -145,9 +145,9 @@
     }
 
     .btn-course {
-        background-color: #ed2eed;
-        color: white;
-        border: 1px solid #ed2eed;
+        background-color: #fff;
+        color: #5e2a5f;
+        border: 1px solid #c77ac7;
     }
 
     .btn-check:checked+.btn-course {
@@ -158,9 +158,9 @@
     }
 
     .btn-course:hover {
-        background-color: #c91ec9 !important;
-        border-color: #c91ec9 !important;
-        color: #fff !important;
+        background-color: #f7e9f7 !important;
+        border-color: #a31ea3 !important;
+        color: #5e2a5f !important;
     }
 
     .time-period-grid {
@@ -235,7 +235,7 @@
         scrollbar-width: thin;
     }
 
-    .pos-room-page .selection-panel > .card-body {
+    .pos-room-page .selection-panel>.card-body {
         padding: .5rem;
     }
 
@@ -257,14 +257,26 @@
     }
 
     .pos-room-page .custom-option-content svg {
+        display: block;
         width: 24px;
         height: 24px;
+        margin-left: auto !important;
+        margin-right: auto !important;
         margin-bottom: .25rem !important;
     }
 
     .pos-room-page .custom-option-header .h6 {
+        display: block;
         font-size: 12px;
         line-height: 1.2;
+        text-align: center;
+        width: 100%;
+    }
+
+    .pos-room-page .custom-option-header {
+        display: block;
+        text-align: center;
+        width: 100%;
     }
 
     .pos-room-page .form-label {
@@ -273,20 +285,38 @@
     }
 
     .pos-room-page .time-period-grid {
-        --bs-gutter-x: .35rem;
-        --bs-gutter-y: .35rem;
+        --bs-gutter-x: .25rem;
+        --bs-gutter-y: .2rem;
     }
 
     .pos-room-page .time-period-option {
-        padding-left: .2rem;
-        padding-right: .2rem;
+        padding-left: .125rem;
+        padding-right: .125rem;
+    }
+
+    .pos-room-page .time-period-group {
+        margin-bottom: .2rem;
+    }
+
+    .pos-room-page .time-period-group .row {
+        --bs-gutter-x: .25rem;
+        --bs-gutter-y: .2rem;
     }
 
     .pos-room-page .time-period-label {
-        min-height: 34px;
-        padding: .25rem .4rem !important;
-        font-size: 12px !important;
+        min-height: 28px;
+        padding: .15rem .3rem !important;
+        font-size: 11px !important;
         line-height: 1.15;
+        font-weight: 700;
+        white-space: normal;
+    }
+
+    .pos-room-page .time-period-empty {
+        border: 1px dashed #d6d6d6;
+        color: #777;
+        font-size: 12px;
+        padding: .45rem .6rem;
     }
 
     .pos-room-page #addon-options-list {
@@ -321,14 +351,14 @@
     }
 
     @media (min-width: 1200px) {
-        .pos-room-page .pos-product-grid > .col {
+        .pos-room-page .pos-product-grid>.col {
             flex: 0 0 12.5%;
             max-width: 12.5%;
         }
     }
 
     @media (min-width: 768px) and (max-width: 1199.98px) {
-        .pos-room-page .pos-product-grid > .col {
+        .pos-room-page .pos-product-grid>.col {
             flex: 0 0 16.666667%;
             max-width: 16.666667%;
         }
@@ -506,11 +536,10 @@
                                                                     value="{{ $type->id }}"
                                                                     id="room_type{{ $type->id }}"
                                                                     @if ($key == 0) checked @endif
-                                                                    onchange="calculate()" />
-                                                                <svg class="mb-2 mx-auto" width="32"
+                                                                    onchange="filterCoursesBySelectedRoomType(); calculate()" />
+                                                                <svg class="mb-2  mx-auto" width="32"
                                                                     viewBox="0 0 53 53"
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    style="margin-left: 20% !important;">
+                                                                    xmlns="http://www.w3.org/2000/svg">
                                                                     <g>
                                                                         <g>
                                                                             <path
@@ -556,7 +585,8 @@
                                                                         </g>
                                                                     </g>
                                                                 </svg>
-                                                                <span class="custom-option-header">
+                                                                <span class="custom-option-header"
+                                                                    style="text-align: center;">
                                                                     <span class="h6 mb-0">{{ $type->name }}</span>
                                                                 </span>
                                                             </label>
@@ -565,33 +595,87 @@
                                                 @endforeach
                                             </div>
 
+                                            @php
+                                                $roomTypeIdsByCourse = [];
+                                                foreach ($room_type as $type) {
+                                                    foreach ($type->room_type_has_course as $roomCourse) {
+                                                        $roomTypeIdsByCourse[$roomCourse->ref_course_id][] =
+                                                            (string) $type->id;
+                                                    }
+                                                }
+
+                                                $coursePeriod = function ($item) {
+                                                    if (!empty($item->minute)) {
+                                                        return (int) $item->minute;
+                                                    }
+
+                                                    $name = strtoupper(trim($item->name));
+
+                                                    if (preg_match('/(?:PT|M)?\s*(\d{2,3})\b/', $name, $match)) {
+                                                        return (int) $match[1];
+                                                    }
+
+                                                    return 9999;
+                                                };
+
+                                                $coursePrefix = function ($item) {
+                                                    $name = trim($item->name);
+                                                    $name = preg_replace('/^[\s\(\[]+/u', '', $name);
+
+                                                    if (preg_match('/^[^\s\)\]]+/u', $name, $match)) {
+                                                        return mb_strtoupper($match[0], 'UTF-8');
+                                                    }
+
+                                                    return 'OTHER';
+                                                };
+
+                                                $courseGroups = $course
+                                                    ->groupBy($coursePrefix)
+                                                    ->sortKeys()
+                                                    ->map(function ($items) use ($coursePeriod) {
+                                                        return $items->sortBy(function ($item) use ($coursePeriod) {
+                                                            return sprintf(
+                                                                '%04d-%s',
+                                                                $coursePeriod($item),
+                                                                $item->name,
+                                                            );
+                                                        });
+                                                    });
+                                            @endphp
                                             <div class="col-12 mt-2">
                                                 <h4 class="label-pos ff-playfair p-2 mt-4">Time Period</h4>
                                             </div>
                                             <div class="col-12">
                                                 <label class="form-label fs-14 mb-0">Duration of service use</label>
                                                 <div class="row g-2 time-period-grid">
-                                                    @foreach ($course->groupBy(fn ($item) => mb_substr(trim($item->name), 0, 1)) as $courseGroup)
-                                                        @if (!$loop->first)
-                                                            <div class="w-100"></div>
-                                                        @endif
-                                                        @foreach ($courseGroup as $course_item)
-                                                        <div class="col-6 col-md-2 col-xl-3 time-period-option">
-                                                            <input type="radio" class="btn-check calculate"
-                                                                name="ref_course_id" id="course{{ $course_item->id }}"
-                                                                autocomplete="off" required
-                                                                onchange="calculate(); updateCourseProductControls();"
-                                                                value="{{ $course_item->id }}">
+                                                    @foreach ($courseGroups as $courseGroup)
+                                                        <div class="col-12 time-period-group">
+                                                            <div class="row g-2">
+                                                                @foreach ($courseGroup as $course_item)
+                                                                    <div class="col-6 col-md-3 col-xl-3 time-period-option"
+                                                                        data-room-type-ids="{{ implode(',', $roomTypeIdsByCourse[$course_item->id] ?? []) }}">
+                                                                        <input type="radio"
+                                                                            class="btn-check calculate"
+                                                                            name="ref_course_id"
+                                                                            id="course{{ $course_item->id }}"
+                                                                            autocomplete="off" required
+                                                                            onchange="calculate(); updateCourseProductControls();"
+                                                                            value="{{ $course_item->id }}">
 
-                                                            <label
-                                                                class="btn btn-course w-100 rounded-0 time-period-label"
-                                                                style="font-size: 14px; padding: 6px 10px;"
-                                                                for="course{{ $course_item->id }}">
-                                                                {{ $course_item->name }}
-                                                            </label>
+                                                                        <label
+                                                                            class="btn btn-course w-100 rounded-0 time-period-label"
+                                                                            style="font-size: 14px; padding: 6px 10px;"
+                                                                            for="course{{ $course_item->id }}">
+                                                                            {{ $course_item->name }}
+                                                                        </label>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
                                                         </div>
-                                                        @endforeach
                                                     @endforeach
+                                                    <div class="col-12 time-period-empty d-none">
+                                                        ไม่มี Time Period สำหรับรูปแบบห้องนี้
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -616,7 +700,8 @@
                                                                 <svg class="w-6 h-6 text-gray-800 dark:text-white mx-auto mb-2"
                                                                     aria-hidden="true"
                                                                     xmlns="http://www.w3.org/2000/svg" width="24"
-                                                                    height="24" fill="none" viewBox="0 0 24 24">
+                                                                    height="24" fill="none"
+                                                                    viewBox="0 0 24 24">
                                                                     <path stroke="currentColor" stroke-linecap="round"
                                                                         stroke-linejoin="round" stroke-width="2"
                                                                         d="M12.01 6.001C6.5 1 1 8 5.782 13.001L12.011 20l6.23-7C23 8 17.5 1 12.01 6.002Z" />
@@ -632,7 +717,8 @@
                                             <div class="col-12 mt-2">
                                                 <h4 class="label-pos ff-playfair p-2">สินค้า</h4>
                                             </div>
-                                            <div class="row row-cols-4 row-cols-md-6 row-cols-xl-8 pos-product-grid" id="productGrid">
+                                            <div class="row row-cols-4 row-cols-md-6 row-cols-xl-8 pos-product-grid"
+                                                id="productGrid">
                                                 @include('pos.partials.room-product-grid', [
                                                     'products' => $products,
                                                 ])
@@ -654,7 +740,8 @@
                                                 class="d-flex align-items-center justify-content-between app-academy-md-80">
                                                 <input name="reception_name" type="text" id="reception"
                                                     placeholder="แตะบัตรพนักงาน หรือ ป้อนรหัสพนักงาน"
-                                                    class="form-control me-2 reception-input" data-ref-position-id="1" required />
+                                                    class="form-control me-2 reception-input" data-ref-position-id="1"
+                                                    required />
                                                 <input name="reception_id" type="hidden" id="salesReceptionSelect">
                                                 <input type="hidden" name="ref_position_id" value="1">
                                             </div>
@@ -665,7 +752,8 @@
                                                 class="d-flex align-items-center justify-content-between app-academy-md-80">
                                                 <input name="staff_name" type="text" id="staff"
                                                     placeholder="แตะบัตรพนักงานนวด หรือ ป้อนพนักงานนวด"
-                                                    class="form-control me-2 staff-input" data-ref-position-id="2" required />
+                                                    class="form-control me-2 staff-input" data-ref-position-id="2"
+                                                    required />
                                                 <input name="staff_id" type="hidden" id="salesStaffSelect">
                                                 <input type="hidden" name="ref_position_id" value="2">
                                             </div>
@@ -1146,40 +1234,27 @@
             }
         }
         var formData = new FormData(this);
+        $.ajax({
+            url: '/pos/checkout',
+            type: 'POST',
+            data: formData,
+            contentType: false, // ✅ ต้องมี
+            processData: false, // ✅ ต้องมี
+            success: function(response) {
+                if (response.status == true) {
 
-        Swal.fire({
-            title: 'ยืนยันการดำเนินการ?',
-            text: 'คุณต้องการเพิ่มคำสั่งซื้อหรือไม่?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'ตกลง',
-            cancelButtonText: 'ยกเลิก',
-            didOpen: () => {
-                Swal.getConfirmButton().focus();
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: '/pos/checkout',
-                    type: 'POST',
-                    data: formData,
-                    contentType: false, // ✅ ต้องมี
-                    processData: false, // ✅ ต้องมี
-                    success: function(response) {
-                        if (response.status == true) {
-
-                            Swal.fire({
-                                title: 'เพิ่มคำสั่งซื้อเรียบร้อยแล้ว',
-                                icon: 'success',
-                                timer: 2000,
-                                timerProgressBar: true,
-                                showConfirmButton: false
-                            }).then(() => {
-                                // if (paymentStatus == '0') {
-                                //     location.reload();
-                                // } else {
-                                const newWindow = window.open('', '_blank');
-                                newWindow.document.write(`
+                    Swal.fire({
+                        title: 'เพิ่มคำสั่งซื้อเรียบร้อยแล้ว',
+                        icon: 'success',
+                        timer: 2000,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    }).then(() => {
+                        // if (paymentStatus == '0') {
+                        //     location.reload();
+                        // } else {
+                        const newWindow = window.open('', '_blank');
+                        newWindow.document.write(`
                                             <html>
                                             <head>
                                                 <title>Print</title>
@@ -1197,20 +1272,18 @@
                                             </body>
                                             </html>
                                         `);
-                                newWindow.document.close();
-                                window.location.href = '/pos/room';
-                                // location.reload();
-                                // }
-                            });
-                            // $('#addserviceModal').modal('hide');
-                            // loadData(page);
-                        }
-                    },
-                    error: function(error) {
-                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
-                        console.error('เกิดข้อผิดพลาด:', error);
-                    }
-                });
+                        newWindow.document.close();
+                        window.location.href = '/pos/room';
+                        // location.reload();
+                        // }
+                    });
+                    // $('#addserviceModal').modal('hide');
+                    // loadData(page);
+                }
+            },
+            error: function(error) {
+                Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                console.error('เกิดข้อผิดพลาด:', error);
             }
         });
     });
@@ -1258,6 +1331,51 @@
         }
     });
 
+    function filterCoursesBySelectedRoomType() {
+        const selectedRoomTypeId = document.querySelector('input[name="ref_room_type_id"]:checked')?.value ||
+            '';
+        let visibleCount = 0;
+        let clearedCourse = false;
+
+        document.querySelectorAll('.time-period-option').forEach(option => {
+            const roomTypeIds = (option.dataset.roomTypeIds || '')
+                .split(',')
+                .map(value => value.trim())
+                .filter(Boolean);
+            const shouldShow = roomTypeIds.length === 0 || roomTypeIds.includes(selectedRoomTypeId);
+            const courseInput = option.querySelector('input[name="ref_course_id"]');
+
+            option.classList.toggle('d-none', !shouldShow);
+
+            if (shouldShow) {
+                visibleCount += 1;
+                return;
+            }
+
+            if (courseInput?.checked) {
+                courseInput.checked = false;
+                clearedCourse = true;
+            }
+        });
+
+        document.querySelectorAll('.time-period-group').forEach(group => {
+            const hasVisibleOption = Array.from(group.querySelectorAll('.time-period-option'))
+                .some(option => !option.classList.contains('d-none'));
+
+            group.classList.toggle('d-none', !hasVisibleOption);
+        });
+
+        document.querySelector('.time-period-empty')?.classList.toggle('d-none', visibleCount > 0);
+
+        if (clearedCourse) {
+            document.querySelectorAll('.course-product-control.qty-input').forEach(input => {
+                input.value = 0;
+            });
+        }
+
+        updateCourseProductControls();
+    }
+
     function updateCourseProductControls() {
         const hasCourse = !!document.querySelector('input[name="ref_course_id"]:checked');
 
@@ -1276,6 +1394,7 @@
             renderProductSummary();
         }
     }
+    filterCoursesBySelectedRoomType();
     updateCourseProductControls();
     calculate();
     const bindEmployeeLookup = (input, hiddenId, errorText) => {
@@ -1283,7 +1402,9 @@
 
         input.dataset.lookupBound = '1';
 
-        const hiddenInput = input.closest('.d-flex')?.querySelector(`#${hiddenId}`) || document.getElementById(hiddenId);
+        const hiddenInput = input.closest('.d-flex')?.querySelector(`#${hiddenId}`) || document
+            .getElementById(
+                hiddenId);
 
         const lookupEmployee = async () => {
             const userCode = input.value.trim();
@@ -1296,12 +1417,13 @@
             const refPositionId = input.dataset.refPositionId || '';
 
             try {
-                const response = await fetch(`/pos/get-user?user_code=${encodeURIComponent(userCode)}&ref_position_id=${encodeURIComponent(refPositionId)}`, {
-                    method: 'GET',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
-                });
+                const response = await fetch(
+                    `/pos/get-user?user_code=${encodeURIComponent(userCode)}&ref_position_id=${encodeURIComponent(refPositionId)}`, {
+                        method: 'GET',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    });
                 const data = await response.json();
 
                 if (!response.ok || !data.success) {
@@ -1977,7 +2099,8 @@
                 error: function(error) {
                     document.getElementById("staff").value = "";
                     document.getElementById("salesStaffSelect").value = "";
-                    Swal.fire('แจ้งเตือน', error.responseJSON?.message || 'ไม่พบพนักงาน', 'warning');
+                    Swal.fire('แจ้งเตือน', error.responseJSON?.message || 'ไม่พบพนักงาน',
+                        'warning');
                     console.error('เกิดข้อผิดพลาด:', error);
                 }
             });
@@ -2003,7 +2126,8 @@
                 error: function(error) {
                     document.getElementById("user").value = "";
                     document.getElementById("walkinStaffSelect").value = "";
-                    Swal.fire('แจ้งเตือน', error.responseJSON?.message || 'ไม่พบพนักงาน', 'warning');
+                    Swal.fire('แจ้งเตือน', error.responseJSON?.message || 'ไม่พบพนักงาน',
+                        'warning');
                     console.error('เกิดข้อผิดพลาด:', error);
                 }
             });

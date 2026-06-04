@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Order extends Model
 {
     // use HasFactory;
+    public const ORDER_NUMBER_COURSE = 'M';
+    public const ORDER_NUMBER_PRODUCT = 'P';
+
      protected $fillable = [
         'type',
         'ref_branch_id',
@@ -37,6 +42,60 @@ class Order extends Model
     protected $primaryKey = 'id';
     protected $table = 'orders';
 
+    public static function generateOrderNumber(string $suffix, $date = null): string
+    {
+        $date = $date ? Carbon::parse($date) : now();
+        $suffix = strtoupper($suffix);
+
+        return $date->format('dmY')
+            . str_pad(static::nextOrderSequenceForYear($date), 7, '0', STR_PAD_LEFT)
+            . $suffix;
+    }
+
+    public static function createWithGeneratedOrderNumber(array $attributes, string $suffix): self
+    {
+        return DB::transaction(function () use ($attributes, $suffix) {
+            $attributes['order_number'] = static::generateOrderNumber($suffix);
+
+            return static::create($attributes);
+        });
+    }
+
+    protected static function nextOrderSequenceForYear(Carbon $date): int
+    {
+        $yearStart = $date->copy()->startOfYear();
+        $yearEnd = $date->copy()->endOfYear();
+
+        $countBasedSequence = static::query()
+            ->where(function ($query) use ($yearStart, $yearEnd) {
+                $query->whereBetween('created_at', [$yearStart, $yearEnd])
+                    ->orWhere(function ($query) use ($yearStart, $yearEnd) {
+                        $query->whereNull('created_at')
+                            ->whereBetween('booking_date', [
+                                $yearStart->toDateString(),
+                                $yearEnd->toDateString(),
+                            ]);
+                    });
+            })
+            ->lockForUpdate()
+            ->count() + 1;
+
+        $year = $date->format('Y');
+        $maxFormattedSequence = static::query()
+            ->where('order_number', 'like', '____' . $year . '_______%')
+            ->lockForUpdate()
+            ->pluck('order_number')
+            ->reduce(function ($max, $orderNumber) use ($year) {
+                if (preg_match('/^\d{4}' . preg_quote($year, '/') . '(\d{7})[MP]$/', $orderNumber, $matches)) {
+                    return max($max, (int) $matches[1]);
+                }
+
+                return $max;
+            }, 0);
+
+        return max($countBasedSequence, $maxFormattedSequence + 1);
+    }
+
     public function branch()
     {
         return $this->hasOne('App\Models\Branch', 'id', 'ref_branch_id');
@@ -59,11 +118,11 @@ class Order extends Model
     }
     public function user()
     {
-        return $this->belongsTo(User::class, 'ref_user_id');
+        return $this->belongsTo(User::class, 'ref_user_id')->withTrashed();
     }
     public function seller()
     {
-        return $this->belongsTo(User::class, 'ref_seller_id');
+        return $this->belongsTo(User::class, 'ref_seller_id')->withTrashed();
     }
     public function addons()
     {

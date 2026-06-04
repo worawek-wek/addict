@@ -2,25 +2,56 @@
     table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 10px;
+        font-size: 11px;
+        table-layout: fixed;
     }
 
     th,
     td {
         border: 1px solid #000;
-        padding: 4px 6px;
+        padding: 5px 4px;
         text-align: center;
+        word-wrap: break-word;
     }
 
     thead th {
         background-color: #f0f0f0;
         font-weight: bold;
     }
+
+    tbody td {
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .col-order {
+        width: 7%;
+    }
+
+    .col-product {
+        width: 21%;
+    }
+
+    .col-number {
+        width: 9%;
+    }
 </style>
-<span style="font-size: 12px; font-weight: bold;">รายงานสต็อกการ์ด(สินค้า) วันที่ {{ date('d/m/Y H:i น.', strtotime($startDate)) }} - {{ date('d/m/Y H:i น.', strtotime($endDate)) }} , พิมพ์เมื่อ {{ date('d/m/Y H:i น.') }}</span>
+<span style="font-size: 13px; font-weight: bold;">รายงานสต็อกการ์ด(สินค้า) วันที่ {{ date('d/m/Y H:i น.', strtotime($startDate)) }} - {{ date('d/m/Y H:i น.', strtotime($endDate)) }} , พิมพ์เมื่อ {{ date('d/m/Y H:i น.') }}</span>
 
 {{-- {{dd($list_data['to'])}} --}}
 <table class="datatables-basic table dataTable no-footer dtr-column" id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info">
+    <colgroup>
+        <col class="col-order">
+        <col class="col-product">
+        <col class="col-number">
+        <col class="col-number">
+        <col class="col-number">
+        <col class="col-number">
+        <col class="col-number">
+        <col class="col-number">
+        <col class="col-number">
+        <col class="col-number">
+    </colgroup>
     <thead class="border-top">
         <tr class=" table-info">
             <th class="text-center" tabindex="0" style="width: 40px;">
@@ -55,7 +86,7 @@
             </th>
         </tr>
     </thead>
-    <tbody style="font-size: small;">
+    <tbody>
         @foreach ($stock_history as $key => $row)
         <tr class="odd">
             <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">

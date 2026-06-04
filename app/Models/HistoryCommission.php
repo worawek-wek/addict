@@ -16,6 +16,6 @@ class HistoryCommission extends Model
     
     public function user()
     {
-        return $this->hasOne('App\Models\User', 'id', 'ref_staff_id');
+        return $this->hasOne('App\Models\User', 'id', 'ref_staff_id')->withTrashed();
     }
 }

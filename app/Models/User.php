@@ -10,7 +10,8 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable , SoftDeletes;
+
 
     /**
      * The attributes that are mass assignable.
@@ -51,7 +52,7 @@ class User extends Authenticatable
      *
      * @var array
      */
-    
+
     public function position()
     {
         return $this->hasOne('App\Models\Position', 'id', 'ref_position_id');
@@ -62,7 +63,7 @@ class User extends Authenticatable
     }
     public function user()
     {
-        return $this->hasOne('App\Models\User', 'id', 'ref_user_id');
+        return $this->hasOne('App\Models\User', 'id', 'ref_user_id')->withTrashed();
     }
     public function history_commission()
     {

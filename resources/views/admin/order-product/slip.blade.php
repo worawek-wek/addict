@@ -14,8 +14,8 @@
         }
 
         @page {
-            size: 80mm auto;   /* thermal slip width, height auto */
-            margin: 4mm 4mm;
+            size: 80mm auto;
+            margin: 0;
         }
 
         body {
@@ -40,26 +40,29 @@
                 background: white;
                 padding: 0;
                 display: block;
-                width: 72mm;
+                width: 80mm;
                 font-size: 13px;
             }
         }
 
         .receipt {
             background-color: white;
-            width: 72mm;
-            max-width: 72mm;
+            width: 68mm;
+            max-width: 68mm;
             padding: 10px 8px;
+            margin: 0 auto;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             position: relative;
+            overflow: hidden;
         }
 
         @media print {
             .receipt {
                 box-shadow: none;
-                width: 72mm;
-                max-width: 72mm;
+                width: 68mm;
+                max-width: 68mm;
                 padding: 0;
+                margin: 0 auto;
             }
         }
 
@@ -112,11 +115,21 @@
             margin-bottom: 8px;
         }
 
-        table { width: 100%; border-collapse: collapse; }
-        th, td { font-size: 12.5px; padding: 4px 2px; vertical-align: top; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th, td {
+            font-size: 12px;
+            padding: 4px 1px;
+            vertical-align: top;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
         th { border-bottom: 1px solid #000; text-align: left; font-weight: 800; }
         td.right, th.right { text-align: right; }
         td.center { text-align: center; }
+        .col-index { width: 6mm; }
+        .col-qty { width: 10mm; }
+        .col-total { width: 17mm; }
+        .product-name { padding-left: 1px; }
 
         .total-section { margin-top: 12px; }
 
@@ -159,7 +172,7 @@
 
         @media print {
             body { background: white; padding: 0; }
-            .receipt { box-shadow: none; width: 72mm; max-width: 72mm; }
+            .receipt { box-shadow: none; width: 68mm; max-width: 68mm; }
             .no-print { display: none !important; }
         }
     </style>
@@ -197,12 +210,17 @@
         <div class="section">
             <div class="section-title">รายการสินค้า</div>
             <table>
+                <colgroup>
+                    <col class="col-index">
+                    <col>
+                    <col class="col-qty">
+                    <col class="col-total">
+                </colgroup>
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>สินค้า</th>
                         <th class="right">จำนวน</th>
-                        <th class="right">ราคา</th>
                         <th class="right">รวม</th>
                     </tr>
                 </thead>
@@ -210,13 +228,12 @@
                     @forelse ($order->products as $i => $item)
                         <tr>
                             <td>{{ $i + 1 }}</td>
-                            <td>{{ $item->product->name ?? '-' }}</td>
+                            <td class="product-name">{{ $item->product->name ?? '-' }}</td>
                             <td class="right">{{ $item->quantity }}</td>
-                            <td class="right">{{ number_format($item->price, 2) }}</td>
                             <td class="right">{{ number_format($item->price * $item->quantity, 2) }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" style="text-align:center;">ไม่มีสินค้า</td></tr>
+                        <tr><td colspan="4" style="text-align:center;">ไม่มีสินค้า</td></tr>
                     @endforelse
                 </tbody>
             </table>

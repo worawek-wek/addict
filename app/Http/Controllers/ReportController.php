@@ -79,12 +79,12 @@ class ReportController extends Controller
     private function buildStockHistoryProductQuery(Request $request): array
     {
         $query = Product::orderBy('id');
-                        // ->whereIn('ref_status_id', [2, 3])
-                        // ->orderBy('booking_date')
-                        // ->orderBy('start_time');
+        // ->whereIn('ref_status_id', [2, 3])
+        // ->orderBy('booking_date')
+        // ->orderBy('start_time');
 
         // ✅ filter เฉพาะสาขาของ user ที่ login
-//////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////
         // $userBranchId = Auth::user()->ref_branch_id ?? null;
         // if ($userBranchId) {
         //     $query->where('ref_branch_id', $userBranchId);
@@ -92,56 +92,56 @@ class ReportController extends Controller
         //     //             $q->where('ref_branch_id', $userBranchId);
         //     //         });
         // }
-//////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////
 
         if ($request->filled('ref_branch_id')) {
             // filter เฉพาะสาขาของตัวเอง
             $query->where('ref_branch_id', $request->ref_branch_id);
         }
-//////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////
 
         [$startDate, $endDate] = $this->stockHistoryDateRange($request);
         if ($startDate && $endDate) {
             // return $endDate;
             $query->withSum([
-                                'historyStocksDecrease as quantity_decrease' => function ($q) use ($startDate, $endDate) { // จำนวน ลด จาก ขายของ สต็อกขาย
-                                    $q->whereBetween('created_at', [$startDate, $endDate]);
-                                }
-                            ], 'quantity')
+                'historyStocksDecrease as quantity_decrease' => function ($q) use ($startDate, $endDate) { // จำนวน ลด จาก ขายของ สต็อกขาย
+                    $q->whereBetween('created_at', [$startDate, $endDate]);
+                }
+            ], 'quantity')
 
-                            ->withSum([
-                                'historyStocksIncrease as quantity_increase' => function ($q) use ($startDate, $endDate) { // จำนวน เพิ่ม จาก คืนของ สต็อกขาย
-                                    $q->whereBetween('created_at', [$startDate, $endDate]);
-                                }
-                            ], 'quantity')
+                ->withSum([
+                    'historyStocksIncrease as quantity_increase' => function ($q) use ($startDate, $endDate) { // จำนวน เพิ่ม จาก คืนของ สต็อกขาย
+                        $q->whereBetween('created_at', [$startDate, $endDate]);
+                    }
+                ], 'quantity')
 
-                            ->withSum([
-                                'historyStocksExport as quantity_export' => function ($q) use ($startDate, $endDate) { // จำนวน นำออก สต็อกหลัก
-                                    $q->whereBetween('created_at', [$startDate, $endDate]);
-                                }
-                            ], 'quantity')
+                ->withSum([
+                    'historyStocksExport as quantity_export' => function ($q) use ($startDate, $endDate) { // จำนวน นำออก สต็อกหลัก
+                        $q->whereBetween('created_at', [$startDate, $endDate]);
+                    }
+                ], 'quantity')
 
-                            ->withSum([
-                                'history_stocks as total_withdraw_quantity' => function ($q) use ($startDate, $endDate) {
-                                    $q->whereBetween('created_at', [$startDate, $endDate]);
-                                }
-                            ], 'withdraw_quantity')
+                ->withSum([
+                    'history_stocks as total_withdraw_quantity' => function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('created_at', [$startDate, $endDate]);
+                    }
+                ], 'withdraw_quantity')
 
-                            ->with([
+                ->with([
 
-                                'historyStocksMaxReady' => function ($q) use ($startDate, $endDate) {
-                                    $q->whereBetween('created_at', [$startDate, $endDate]);
-                                },
+                    'historyStocksMaxReady' => function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('created_at', [$startDate, $endDate]);
+                    },
 
-                                'historyStocksOldest' => function ($q) use ($startDate, $endDate) {
-                                    $q->whereBetween('created_at', [$startDate, $endDate]);
-                                },
+                    'historyStocksOldest' => function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('created_at', [$startDate, $endDate]);
+                    },
 
-                                'historyStocksLatest' => function ($q) use ($startDate, $endDate) {
-                                    $q->whereBetween('created_at', [$startDate, $endDate]);
-                                }
+                    'historyStocksLatest' => function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('created_at', [$startDate, $endDate]);
+                    }
 
-                            ]);
+                ]);
             // $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -193,10 +193,12 @@ class ReportController extends Controller
     {
         $data['page_url'] = "admin/report/coupon-report";
         $data['branch'] = Branch::orderBy('name')->get();
-        $data['employees'] = \App\Models\User::where('ref_branch_id', Auth::user()->ref_branch_id)
-                                                ->where('ref_position_id', 2)
-                                                ->orderBy('name')
-                                                ->get();
+        $data['employees'] = \App\Models\User::withTrashed()
+            ->where('ref_branch_id', Auth::user()->ref_branch_id)
+            ->where('ref_position_id', 2)
+            ->orderBy('name')
+            ->get();
+
         return view('admin.report.report-couponReport', $data);
     }
 
@@ -208,6 +210,7 @@ class ReportController extends Controller
         $orderRooms->setCollection(
             $orderRooms->getCollection()->sortBy('created_at')->values()
         );
+
 
 
         $user = Auth::user();
@@ -274,10 +277,10 @@ class ReportController extends Controller
         }
 
         if (request()->filled('user_id')) {
-            $get_user_id = User::where('user_id', request('user_id'))->first();
-            if ($get_user_id) {
-                $query->where('ref_user_id', $get_user_id->id);
-            }
+            $userId = trim((string) request('user_id'));
+            $query->whereHas('user', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            });
         }
 
         if (request('start_date')) {
@@ -366,11 +369,11 @@ class ReportController extends Controller
         //     $orderRooms->where('ref_branch_id', $userBranchId);
         // }
 
-/////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////////////////////////
         if (@request('ref_branch_id')) {
             $orderRooms->where('ref_branch_id', request('ref_branch_id'));
         }
-/////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////////////////////////
 
 
         if (request()->filled('search')) {
@@ -381,10 +384,10 @@ class ReportController extends Controller
         }
 
         if (request()->filled('user_id')) {
-            $get_user_id = User::where('user_id', request('user_id'))->first();
-            if ($get_user_id) {
-                $orderRooms->where('ref_user_id', $get_user_id->id);
-            }
+            $userId = trim((string) request('user_id'));
+            $orderRooms->whereHas('user', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            });
         }
 
         if (request('start_date')) {
@@ -432,7 +435,8 @@ class ReportController extends Controller
     public function drink_com(Request $request)
     {
         $data['page_url'] = "admin/report/drink-com";
-        $data['employees'] = \App\Models\User::where('ref_branch_id', Auth::user()->ref_branch_id)
+        $data['employees'] = \App\Models\User::withTrashed()
+            ->where('ref_branch_id', Auth::user()->ref_branch_id)
             ->where('ref_position_id', 2)
             ->orderBy('name')
             ->get();
@@ -449,7 +453,7 @@ class ReportController extends Controller
         $user = Auth::user();
 
         // if ($user->work_status == 3) {
-            $branches = Branch::orderBy('name')->get();
+        $branches = Branch::orderBy('name')->get();
         // } else {
         //     $branches = Branch::where('id', $user->ref_branch_id)->get();
         // }
@@ -506,7 +510,7 @@ class ReportController extends Controller
         }
 
         if (request()->filled('user_id')) {
-            $get_user_id = User::where('user_id', request('user_id'))->first();
+            $get_user_id = User::withTrashed()->where('user_id', request('user_id'))->first();
             if ($get_user_id) {
                 $query->where('ref_user_id', $get_user_id->id);
             }
@@ -602,7 +606,7 @@ class ReportController extends Controller
         }
 
         if (request()->filled('user_id')) {
-            $get_user_id = User::where('user_id', request('user_id'))->first();
+            $get_user_id = User::withTrashed()->where('user_id', request('user_id'))->first();
             if ($get_user_id) {
                 $orderRooms->where('ref_user_id', $get_user_id->id);
             }
@@ -654,7 +658,7 @@ class ReportController extends Controller
         $user = Auth::user();
 
         // if ($user->work_status == 3) {
-            $branches = Branch::orderBy('name')->get();
+        $branches = Branch::orderBy('name')->get();
         // } else {
         //     $branches = Branch::where('id', $user->ref_branch_id)->get();
         // }
@@ -694,7 +698,7 @@ class ReportController extends Controller
         // }
 
         // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
-        
+
         if (request('ref_branch_id')) {
             $query->where('ref_branch_id', request('ref_branch_id'));
         }
@@ -796,11 +800,11 @@ class ReportController extends Controller
         //     $query->where('ref_branch_id', $userBranchId);
         // }
 
-/////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////////////////////////
         if (@request('ref_branch_id')) {
             $query->where('ref_branch_id', request('ref_branch_id'));
         }
-/////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////////////////////////
 
         // filter ค้นหา
         if (request()->filled('search')) {
@@ -863,7 +867,7 @@ class ReportController extends Controller
         $user = Auth::user();
 
         // if ($user->work_status == 3) {
-            $branches = Branch::orderBy('name')->get();
+        $branches = Branch::orderBy('name')->get();
         // } else {
         //     $branches = Branch::where('id', $user->ref_branch_id)->get();
         // }

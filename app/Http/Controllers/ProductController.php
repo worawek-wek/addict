@@ -148,7 +148,8 @@ class ProductController extends Controller
         $results = CardStocks::select('card_stocks.*', 'products.name as product_name', 'branchs.name as branch_name', 'card_stocks.cost_price')
                                 ->orderBy('card_stocks.id', 'DESC')
                                 ->leftjoin('products', 'card_stocks.ref_product_id', '=', 'products.id')
-                                ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id');
+                                ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id')
+                                ->where('card_stocks.remain', '>', 0);
 
         // if ($user->ref_position_id != 0) {
         //     // filter เฉพาะสาขาของตัวเอง
@@ -203,7 +204,9 @@ class ProductController extends Controller
     }
     public function get_stock(Request $request, $product_id)
     {
-        $stock = CardStocks::where('ref_product_id', $product_id)->get();
+        $stock = CardStocks::where('ref_product_id', $product_id)
+            ->where('remain', '>', 0)
+            ->get();
         return $stock;
     }
     public function get_stock_by_id(Request $request, $stock_id)
@@ -218,7 +221,8 @@ class ProductController extends Controller
         $results = CardStocks::select('card_stocks.*', 'products.name as product_name', 'branchs.name as branch_name', 'card_stocks.cost_price')
                                 ->orderBy('card_stocks.id', 'DESC')
                                 ->leftjoin('products', 'card_stocks.ref_product_id', '=', 'products.id')
-                                ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id');
+                                ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id')
+                                ->where('card_stocks.remain', '>', 0);
 
         if ($user->ref_position_id != 0) {
             // filter เฉพาะสาขาของตัวเอง

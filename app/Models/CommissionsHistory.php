@@ -22,11 +22,11 @@ class CommissionsHistory extends Model
     // Relationships
     public function massageStaff()
     {
-        return $this->belongsTo(User::class, 'user_message_id');
+        return $this->belongsTo(User::class, 'user_message_id')->withTrashed();
     }
     public function salesStaff()
     {
-        return $this->belongsTo(User::class, 'user_sales_id');
+        return $this->belongsTo(User::class, 'user_sales_id')->withTrashed();
     }
     public function order()
     {

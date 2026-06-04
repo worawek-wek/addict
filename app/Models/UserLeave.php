@@ -24,11 +24,11 @@ class UserLeave extends Model
     
     public function user()
     {
-        return $this->hasOne('App\Models\User', 'id', 'ref_user_id');
+        return $this->hasOne('App\Models\User', 'id', 'ref_user_id')->withTrashed();
     }
     public function approve()
     {
-        return $this->hasOne('App\Models\User', 'id', 'ref_approve_id');
+        return $this->hasOne('App\Models\User', 'id', 'ref_approve_id')->withTrashed();
     }
     public function leave()
     {

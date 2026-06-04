@@ -46,12 +46,14 @@ class CommissionController extends Controller
     {
         if (auth()->user()->ref_position_id == 0) {
             // superadmin: แสดงพนักงานนวดทุกสาขา
-            $users = User::with(['branch', 'position'])
+            $users = User::withTrashed()
+                ->with(['branch', 'position'])
                 ->where('ref_position_id', 2)
                 ->get();
         } else {
             $userBranchId = auth()->user()->ref_branch_id ?? null;
-            $users = User::with(['branch', 'position'])
+            $users = User::withTrashed()
+                ->with(['branch', 'position'])
                 ->where('ref_position_id', 2)
                 ->where('ref_branch_id', $userBranchId)
                 ->get();
@@ -130,7 +132,7 @@ class CommissionController extends Controller
     public function view_sales_datatable(Request $request)
     {
         // $user = Auth::user();
-        $results = User::where('ref_position_id', 1)->orderBy('id');
+        $results = User::withTrashed()->where('ref_position_id', 1)->orderBy('id');
 
         if (request('name')) {
             $results->Where(function ($query) use ($request) {
@@ -166,7 +168,7 @@ class CommissionController extends Controller
     
     public function view_sales_pdf(Request $request)
     {
-        $results = User::where('ref_position_id', 1)->orderBy('id');
+        $results = User::withTrashed()->where('ref_position_id', 1)->orderBy('id');
 
         if (request('name')) {
             $results->Where(function ($query) use ($request) {
@@ -212,7 +214,7 @@ class CommissionController extends Controller
     public function drink_view_sales_datatable(Request $request)
     {
         // $user = Auth::user();
-        $results = User::where('ref_position_id', 1)->orderBy('id');
+        $results = User::withTrashed()->where('ref_position_id', 1)->orderBy('id');
 
         if (request('name')) {
             $results->Where(function ($query) use ($request) {
@@ -248,7 +250,7 @@ class CommissionController extends Controller
     
     public function drink_view_sales_pdf(Request $request)
     {
-        $results = User::where('ref_position_id', 1)->orderBy('id');
+        $results = User::withTrashed()->where('ref_position_id', 1)->orderBy('id');
 
         if (request('name')) {
             $results->Where(function ($query) use ($request) {
@@ -431,7 +433,7 @@ class CommissionController extends Controller
     {
         try {
 
-            $results = User::where('ref_position_id', 1)->orderBy('id');
+            $results = User::withTrashed()->where('ref_position_id', 1)->orderBy('id');
 
             if (request('name')) {
                 $results->Where(function ($query) use ($request) {
@@ -585,7 +587,7 @@ class CommissionController extends Controller
             ->orderBy('booking_date', 'desc')
             ->get();
 
-        $user = \App\Models\User::find($userId);
+        $user = \App\Models\User::withTrashed()->find($userId);
 
         return view('admin.commission.sales_orders', compact('orders', 'user', 'startDate', 'endDate'));
     }
@@ -622,7 +624,7 @@ class CommissionController extends Controller
             ->orderBy('booking_date', 'desc')
             ->get();
 
-        $user = \App\Models\User::find($userId);
+        $user = \App\Models\User::withTrashed()->find($userId);
 
         return view('admin.commission.sales_orders', compact('orders', 'user', 'startDate', 'endDate'));
     }

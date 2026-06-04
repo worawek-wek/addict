@@ -57,7 +57,7 @@ class ExportExcelController extends Controller
                 ,"สถานะ"
             ];		
         
-        $results = User::orderBy('deleted_at','ASC');
+        $results = User::withTrashed()->orderBy('deleted_at','ASC');
 
         if($request->ref_branch_id != "null"){
             $results = $results->where('ref_branch_id', $request->ref_branch_id);
@@ -136,7 +136,7 @@ class ExportExcelController extends Controller
         }
 
         if($request->ref_branch_id != "null"){
-            $user_id = User::where('ref_branch_id',$request->ref_branch_id)->get("id");
+            $user_id = User::withTrashed()->where('ref_branch_id',$request->ref_branch_id)->get("id");
             $user_id = json_decode($user_id, true);
             $user_id = array_column($user_id, 'id');
 

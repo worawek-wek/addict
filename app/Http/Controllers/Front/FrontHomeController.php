@@ -138,13 +138,9 @@ class FrontHomeController extends Controller
 
             $customer_find = Auth::guard('customer')->user();
 
-            // Generate order_number: ONLINE + 7 random digits, must be unique
-            do {
-                $order_number = 'ONLINE' . str_pad(strval(rand(0, 9999999)), 7, '0', STR_PAD_LEFT);
-            } while (Order::where('order_number', $order_number)->exists());
             $order = new Order;
             $order->ref_account_id = Auth::id();
-            $order->order_number = $order_number;
+            $order->order_number = Order::generateOrderNumber(Order::ORDER_NUMBER_COURSE);
             $order->ref_branch_id = $request->ref_branch_id;
 
             if (@$customer_find) {
