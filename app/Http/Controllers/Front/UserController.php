@@ -166,6 +166,9 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'email' => 'nullable|email|unique:users,email',
+        ]);
 
         $work_start_date = Carbon::createFromFormat('d/m/Y', $request->work_start_date)->format('Y-m-d');
         try {
@@ -232,6 +235,10 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'email' => 'nullable|email|unique:users,email,' . $id,
+        ]);
+
         try {
 
             // $work_start_date = Carbon::createFromFormat('d/m/Y', $request->work_start_date)->format('Y-m-d');

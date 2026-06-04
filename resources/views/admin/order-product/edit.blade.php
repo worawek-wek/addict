@@ -92,9 +92,202 @@
         border-color: #eee !important;
         background-color: #fff !important;
     }
+
+    .order-product-edit-page {
+        font-size: 13px;
+        overflow-x: hidden;
+    }
+
+    .order-product-edit-page .content-wrapper > .pt-3 {
+        height: calc(100vh - 68px);
+        padding-top: .5rem !important;
+        overflow: hidden;
+    }
+
+    .order-product-edit-page .container-fluid {
+        padding-left: .5rem;
+        padding-right: .5rem;
+    }
+
+    .order-product-edit-page .edit-title-bar {
+        gap: .5rem !important;
+        margin-bottom: .5rem !important;
+    }
+
+    .order-product-edit-page .edit-title-bar .btn,
+    .order-product-edit-page .edit-title-bar .badge {
+        font-size: 12px;
+        padding: .3rem .5rem;
+    }
+
+    .order-product-edit-page .edit-title-bar h5 {
+        font-size: 1rem;
+        padding: .35rem .5rem !important;
+    }
+
+    .order-product-edit-page .edit-product-panel,
+    .order-product-edit-page .edit-invoice-panel {
+        height: calc(100vh - 126px);
+        overflow-x: hidden;
+        overflow-y: auto;
+        scrollbar-width: thin;
+    }
+
+    .order-product-edit-page .edit-product-panel > .card-body {
+        padding: .5rem;
+    }
+
+    .order-product-edit-page .label-pos {
+        font-size: 1rem;
+        margin-bottom: .5rem;
+        padding: .35rem .5rem !important;
+    }
+
+    .order-product-edit-page .edit-product-grid {
+        --bs-gutter-x: .4rem;
+        --bs-gutter-y: .4rem;
+    }
+
+    @media (min-width: 1200px) {
+        .order-product-edit-page .edit-product-grid > .col {
+            flex: 0 0 12.5%;
+            max-width: 12.5%;
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 1199.98px) {
+        .order-product-edit-page .edit-product-grid > .col {
+            flex: 0 0 16.666667%;
+            max-width: 16.666667%;
+        }
+    }
+
+    .order-product-edit-page .product-card-btn {
+        min-height: 118px;
+        border-radius: 6px;
+        padding: 0 !important;
+    }
+
+    .order-product-edit-page .edit-product-icon {
+        padding-top: .3rem !important;
+    }
+
+    .order-product-edit-page .edit-product-icon i {
+        font-size: 1.6rem !important;
+    }
+
+    .order-product-edit-page .product-card-btn .card-body {
+        padding: .35rem .4rem .45rem !important;
+    }
+
+    .order-product-edit-page .product-card-btn .card-title {
+        font-size: 12px;
+        line-height: 1.2;
+        margin-bottom: .15rem !important;
+    }
+
+    .order-product-edit-page .product-card-btn .product-price {
+        font-size: 11px;
+        line-height: 1.2;
+    }
+
+    .order-product-edit-page .product-card-btn .product-stock {
+        font-size: 10px;
+        margin-bottom: .25rem !important;
+    }
+
+    .order-product-edit-page .product-card-btn .input-group {
+        flex-wrap: nowrap;
+    }
+
+    .order-product-edit-page .product-card-btn .qty-minus,
+    .order-product-edit-page .product-card-btn .qty-plus {
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        line-height: 1;
+    }
+
+    .order-product-edit-page .product-card-btn .qty-input {
+        height: 24px;
+        max-width: 38px !important;
+        padding: .1rem;
+        font-size: 11px;
+    }
+
+    .order-product-edit-page .product-card-btn .btn-out-of-stock {
+        padding: .2rem .35rem;
+        font-size: 10px !important;
+    }
+
+    .order-product-edit-page .edit-invoice-panel {
+        font-size: 12px;
+    }
+
+    .order-product-edit-page .edit-invoice-panel .card-header,
+    .order-product-edit-page .edit-invoice-panel .card-footer {
+        padding: .5rem .75rem;
+    }
+
+    .order-product-edit-page .edit-invoice-panel .px-4 {
+        padding-left: .75rem !important;
+        padding-right: .75rem !important;
+    }
+
+    .order-product-edit-page .edit-invoice-panel .mb-3,
+    .order-product-edit-page .edit-invoice-panel .mt-2,
+    .order-product-edit-page .edit-invoice-panel .mt-3 {
+        margin-top: .5rem !important;
+        margin-bottom: .5rem !important;
+    }
+
+    .order-product-edit-page .edit-invoice-panel .form-label {
+        font-size: 12px;
+        margin-bottom: .25rem;
+    }
+
+    .order-product-edit-page .edit-invoice-panel .form-control,
+    .order-product-edit-page .edit-invoice-panel .btn {
+        font-size: 12px;
+        padding: .35rem .5rem;
+    }
+
+    .order-product-edit-page .edit-invoice-panel .row.g-3 {
+        --bs-gutter-x: .4rem;
+        --bs-gutter-y: .4rem;
+    }
+
+    .order-product-edit-page .edit-invoice-panel .payment-card {
+        border-radius: 8px;
+        padding: .45rem !important;
+    }
+
+    .order-product-edit-page .edit-invoice-panel .payment-card i {
+        font-size: 1.35rem !important;
+    }
+
+    .order-product-edit-page .edit-invoice-panel .payment-card .mt-2 {
+        margin-top: .2rem !important;
+        font-size: 11px;
+        line-height: 1.15;
+    }
+
+    .order-product-edit-page .edit-invoice-panel .payment-card .small {
+        font-size: 10px;
+    }
+
+    .order-product-edit-page .edit-invoice-panel .table th,
+    .order-product-edit-page .edit-invoice-panel .table td {
+        font-size: 11px;
+        padding: .25rem;
+    }
+
+    .order-product-edit-page .edit-invoice-panel hr {
+        margin: .5rem 0;
+    }
 </style>
 
-<body>
+<body class="order-product-edit-page">
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
             @include('admin/layout/inc_sidemenu')
@@ -106,7 +299,7 @@
                         <div class="container-fluid">
 
                             {{-- Back + title bar --}}
-                            <div class="d-flex align-items-center mb-3 gap-3">
+                            <div class="d-flex align-items-center mb-3 gap-3 edit-title-bar">
                                 <a href="{{ route('order-products.index') }}" class="btn btn-outline-secondary btn-sm">
                                     <i class="ti ti-arrow-left"></i> กลับ
                                 </a>
@@ -123,12 +316,12 @@
                             <div class="row">
                                 {{-- ===================== LEFT: Product Grid ===================== --}}
                                 <div class="col-md-9">
-                                    <div class="card">
+                                    <div class="card edit-product-panel">
                                         <div class="card-body">
                                             <div class="col-12 mt-2">
                                                 <h4 class="label-pos ff-playfair p-2">สินค้า</h4>
                                             </div>
-                                            <div class="row g-3" id="productGrid">
+                                            <div class="row row-cols-4 row-cols-md-6 row-cols-xl-8 edit-product-grid" id="productGrid">
                                                 @forelse ($products as $product)
                                                     @php
                                                         $inStock = $product->stock > 0;
@@ -144,11 +337,11 @@
                                                     <input type="hidden" name="price_staff[{{ $product->id }}]"
                                                         value="{{ $product->price_staff ?? 0 }}">
 
-                                                    <div class="col-md-2 mb-4">
+                                                    <div class="col">
                                                         <div
                                                             class="product-card-btn {{ $inStock ? '' : 'out-of-stock' }} p-2 text-center">
                                                             <div
-                                                                class="d-flex justify-content-center align-items-center pt-2">
+                                                                class="d-flex justify-content-center align-items-center pt-2 edit-product-icon">
                                                                 <i class="bi bi-cup-straw"
                                                                     style="font-size:3rem; color:#5e2a5f;"></i>
                                                             </div>
@@ -161,7 +354,7 @@
                                                                     data-price-staff="{{ $product->price_staff ?? 0 }}">
                                                                     THB {{ number_format($product->price ?? 0, 2) }}
                                                                 </p>
-                                                                <div class="small text-muted mb-2">Stock:
+                                                                <div class="small text-muted mb-2 product-stock">Stock:
                                                                     {{ $product->stock }}</div>
 
                                                                 @if ($inStock)
@@ -187,7 +380,7 @@
                                                                             data-max="{{ $product->stock }}">+</button>
                                                                     </div>
                                                                 @else
-                                                                    <button class="btn btn-secondary w-100 btn-sm"
+                                                                    <button class="btn btn-secondary w-100 btn-sm btn-out-of-stock"
                                                                         disabled>Out of Stock</button>
                                                                 @endif
                                                             </div>
@@ -208,7 +401,7 @@
 
                                 {{-- ===================== RIGHT: Invoice Panel ===================== --}}
                                 <div class="col-md-3">
-                                    <div class="card shadow-sm border-0">
+                                    <div class="card shadow-sm border-0 edit-invoice-panel">
                                         <div
                                             class="card-header bg-white d-flex justify-content-between align-items-center">
                                             <span class="fw-bold">Invoice</span>

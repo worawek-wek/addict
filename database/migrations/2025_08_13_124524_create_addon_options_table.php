@@ -17,6 +17,9 @@ return new class extends Migration
             $table->id();
             $table->string('name', 100);
             $table->decimal('price', 10, 2);
+            $table->unsignedBigInteger('branch')->nullable();
+            $table->decimal('commission', 10, 2)->default(0);
+            $table->decimal('coupon', 10, 2)->default(0);
             $table->timestamps();
         });
     }

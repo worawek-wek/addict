@@ -43,12 +43,21 @@ class OrderProductController extends Controller
 
     private function isOrderInCurrentBusinessDay(Order $order): bool
     {
-        if (!$order->booking_date || !$order->start_time) {
+        if ((int) $order->payment_status === 0) {
+            return true;
+        }
+
+        $orderDateTime = $order->paid_at
+            ? Carbon::parse($order->paid_at)
+            : (($order->booking_date && $order->start_time)
+                ? Carbon::parse($order->booking_date . ' ' . $order->start_time)
+                : null);
+
+        if (!$orderDateTime) {
             return false;
         }
 
         [$start, $end] = $this->currentBusinessDayRange();
-        $orderDateTime = Carbon::parse($order->booking_date . ' ' . $order->start_time);
 
         return $orderDateTime->between($start, $end, true);
     }
@@ -184,14 +193,17 @@ class OrderProductController extends Controller
         [$startDate, $endDate] = $this->productDateRangeFromRequest();
         // return date('d/m/y H:i:s', strtotime($startDate));
         $query->where(function ($q) use ($startDate, $endDate) {
-                                                                    $q->whereRaw(
-                                                                        "CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?",
-                                                                        [
-                                                                            $startDate->format('Y-m-d H:i:s'),
-                                                                            $endDate->format('Y-m-d H:i:s')
-                                                                        ]
-                                                                    );
-                                                                });
+            $range = [
+                $startDate->format('Y-m-d H:i:s'),
+                $endDate->format('Y-m-d H:i:s'),
+            ];
+
+            $q->where('payment_status', 0)
+                ->orWhereRaw(
+                    "COALESCE(paid_at, CONCAT(booking_date, ' ', start_time)) BETWEEN ? AND ?",
+                    $range
+                );
+        });
 
         $check = clone $query;
 
@@ -253,6 +265,9 @@ class OrderProductController extends Controller
 
         $order->payment_status = $request->status_id;
         $order->ref_status_id = $request->ref_status_id;
+        if ((int) $request->status_id === 1 && !$order->paid_at) {
+            $order->paid_at = now();
+        }
         $order->save();
 
         
@@ -315,14 +330,14 @@ class OrderProductController extends Controller
             ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id') // Join เพื่อดึงชื่อประเภท
             ->whereHas('order', function ($query) use ($daily_sales_closure_id, $startDate, $endDate) {
                 $query->where(function ($q) use ($startDate, $endDate) {
-                                                                    $q->whereRaw(
-                                                                        "CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?",
-                                                                        [
-                                                                            $startDate->format('Y-m-d H:i:s'),
-                                                                            $endDate->format('Y-m-d H:i:s')
-                                                                        ]
-                                                                    );
-                                                                })
+                    $q->whereRaw(
+                        "COALESCE(paid_at, CONCAT(booking_date, ' ', start_time)) BETWEEN ? AND ?",
+                        [
+                            $startDate->format('Y-m-d H:i:s'),
+                            $endDate->format('Y-m-d H:i:s')
+                        ]
+                    );
+                })
                     // ->where('ref_daily_sales_closure_id', $daily_sales_closure_id)
                     ->where('customer_type', 1)
                     ->where('payment_status', 1)
@@ -343,14 +358,14 @@ class OrderProductController extends Controller
             ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id')
             ->whereHas('order', function ($query) use ($daily_sales_closure_id, $startDate, $endDate) {
                 $query->where(function ($q) use ($startDate, $endDate) {
-                                                                    $q->whereRaw(
-                                                                        "CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?",
-                                                                        [
-                                                                            $startDate->format('Y-m-d H:i:s'),
-                                                                            $endDate->format('Y-m-d H:i:s')
-                                                                        ]
-                                                                    );
-                                                                })
+                    $q->whereRaw(
+                        "COALESCE(paid_at, CONCAT(booking_date, ' ', start_time)) BETWEEN ? AND ?",
+                        [
+                            $startDate->format('Y-m-d H:i:s'),
+                            $endDate->format('Y-m-d H:i:s')
+                        ]
+                    );
+                })
                     // ->where('ref_daily_sales_closure_id', $daily_sales_closure_id)
                     ->where('customer_type', 2)
                     ->where('payment_status', 1)
@@ -378,14 +393,14 @@ class OrderProductController extends Controller
                 '=',
                 'order_has_products.ref_order_id'
             )->where(function ($q) use ($startDate, $endDate) {
-                                                                    $q->whereRaw(
-                                                                        "CONCAT(orders.booking_date, ' ', orders.start_time) BETWEEN ? AND ?",
-                                                                        [
-                                                                            $startDate->format('Y-m-d H:i:s'),
-                                                                            $endDate->format('Y-m-d H:i:s')
-                                                                        ]
-                                                                    );
-                                                                })
+                $q->whereRaw(
+                    "COALESCE(orders.paid_at, CONCAT(orders.booking_date, ' ', orders.start_time)) BETWEEN ? AND ?",
+                    [
+                        $startDate->format('Y-m-d H:i:s'),
+                        $endDate->format('Y-m-d H:i:s')
+                    ]
+                );
+            })
             ->select(
                 'orders.payment_method',
                 DB::raw('SUM(order_has_products.price * order_has_products.quantity) as total_price')
@@ -488,6 +503,7 @@ class OrderProductController extends Controller
 
         $order->payment_status = 1;
         $order->payment_method = $request->payment_channel;
+        $order->paid_at = now();
         $order->save();
 
 
@@ -656,9 +672,13 @@ class OrderProductController extends Controller
             if ($payment_status == 1) {
                 $order->payment_status = 1;
                 $order->payment_method = $payment_method ?: null;
+                if (!$order->paid_at) {
+                    $order->paid_at = now();
+                }
             } else {
                 $order->payment_status = 0;
                 $order->payment_method = null;
+                $order->paid_at = null;
             }
 
             $order->save();

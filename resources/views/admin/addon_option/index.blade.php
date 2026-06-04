@@ -54,6 +54,8 @@
                                                         <th>ID</th>
                                                         <th>Name</th>
                                                         <th>Price</th>
+                                                        <th>ค่ามือ</th>
+                                                        <th>รับจริงร้าน</th>
                                                         <th>Branch</th>
                                                         <th>Actions</th>
                                                     </tr>
@@ -67,6 +69,8 @@
                                                             <td>{{ $option->id }}</td>
                                                             <td>{{ $option->name }}</td>
                                                             <td>{{ number_format($option->price, 2) }}</td>
+                                                            <td>{{ number_format($option->commission ?? 0, 2) }}</td>
+                                                            <td>{{ number_format($option->coupon ?? 0, 2) }}</td>
                                                             <td>{{ $branchNames[$option->branch] ?? '-' }}</td>
                                                             <td>
                                                                 <a href="{{ route('addon_options.edit', $option->id) }}" class="btn btn-sm btn-warning">Edit</a>

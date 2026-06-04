@@ -213,6 +213,9 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'email' => 'nullable|email|unique:users,email',
+        ]);
 
         $image_name = "";
         if ($request->file('image_name')) {
@@ -385,6 +388,10 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'email' => 'nullable|email|unique:users,email,' . $id,
+        ]);
+
         // return $request;
         try {
             $user = User::find($id);

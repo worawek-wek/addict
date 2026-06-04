@@ -85,7 +85,9 @@
                                                         <option value="">ทั้งหมด</option>
                                                     @endif
                                                     @foreach ($branch as $bra)
-                                                        <option value="{{ $bra->id }}" @if (Auth::user()->ref_branch_id == $bra->id) selected @endif>{{ $bra->name }}</option>
+                                                        <option value="{{ $bra->id }}"
+                                                            @if (Auth::user()->ref_branch_id == $bra->id) selected @endif>
+                                                            {{ $bra->name }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -121,7 +123,7 @@
                                                                 style="width:100px">
                                                                 <option value="10">10</option>
                                                                 <option value="20">20</option>
-                                                                <option value="50" selected >50</option>
+                                                                <option value="50" selected>50</option>
                                                                 <option value="100">100</option>
                                                             </select>
                                                         </div>
@@ -145,10 +147,10 @@
                                                             data-bs-toggle="modal" data-bs-target="#addserviceModal">
                                                             <span><i class="ti ti-plus"></i> เพิ่มสินค้า</span>
                                                         </button>
-                                                        <button style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
+                                                        <button
+                                                            style="padding-right: 14px;padding-left: 14px;margin-right: 0px;"
                                                             class="btn buttons-collection btn-primary waves-effect waves-light"
-                                                            type="button"
-                                                            data-bs-toggle="modal"
+                                                            type="button" data-bs-toggle="modal"
                                                             data-bs-target="#manageProductTypeModal"
                                                             onclick="loadProductTypes()">
                                                             <span><i class="ti ti-settings"></i> ประเภทสินค้า</span>
@@ -216,24 +218,16 @@
                                 <span class="text-danger">*</span><br>
 
                                 @foreach ($branch as $bra)
-
-                                    <input
-                                        class="form-check-input"
-                                        type="radio"
-                                        name="ref_branch_id"
-                                        id="withdraw_branch{{ $bra->id }}"
-                                        value="{{ $bra->id }}"
+                                    <input class="form-check-input" type="radio" name="ref_branch_id"
+                                        id="withdraw_branch{{ $bra->id }}" value="{{ $bra->id }}"
                                         onchange="filterWithdrawProduct(this.value)"
                                         {{ Auth::user()->ref_branch_id == $bra->id ? 'checked' : '' }}>
 
-                                    <label
-                                        class="form-check-label me-4"
-                                        for="withdraw_branch{{ $bra->id }}">
+                                    <label class="form-check-label me-4" for="withdraw_branch{{ $bra->id }}">
 
                                         {{ $bra->name }}
 
                                     </label>
-
                                 @endforeach
 
                             </div>
@@ -242,24 +236,18 @@
 
                                 <label>เลือกสินค้า</label>
 
-                                <select
-                                    name="ref_product_id"
-                                    id="select2Product">
+                                <select name="ref_product_id" id="select2Product">
 
                                     <option value="">
                                         เลือกสินค้า
                                     </option>
 
                                     @foreach ($product as $pos)
-
-                                        <option
-                                            value="{{ $pos->id }}"
-                                            data-branch="{{ $pos->ref_branch_id }}">
+                                        <option value="{{ $pos->id }}" data-branch="{{ $pos->ref_branch_id }}">
 
                                             {{ $pos->name }}
 
                                         </option>
-
                                     @endforeach
 
                                 </select>
@@ -272,9 +260,11 @@
                                 </select>
                             </div>
                             <div class="col-sm-6">
-                                <label for="" class="form-label">จำนวนที่เบิก</label><span class="text-danger">
+                                <label for="" class="form-label">จำนวนที่เบิก</label><span
+                                    class="text-danger">
                                     *</span>
-                                <input name="qty" type="number" class="form-control" id="stock_qty" placeholder="จำนวนที่เบิก" required />
+                                <input name="qty" type="number" class="form-control" id="stock_qty"
+                                    placeholder="จำนวนที่เบิก" required />
                             </div>
                         </div>
                     </div>
@@ -297,64 +287,50 @@
                     @csrf
                     <div class="modal-body">
                         <div class="row g-3 p-4">
-<div class="col-sm-12">
+                            <div class="col-sm-12">
 
-    <label class="form-label">สาขา</label>
-    <span class="text-danger">*</span><br>
+                                <label class="form-label">สาขา</label>
+                                <span class="text-danger">*</span><br>
 
-    @foreach ($branch as $bra)
+                                @foreach ($branch as $bra)
+                                    <input class="form-check-input branch-radio-insert" type="radio"
+                                        name="ref_branch_id" id="insert_branch{{ $bra->id }}"
+                                        value="{{ $bra->id }}" onchange="filterProductType(this.value)"
+                                        {{ Auth::user()->ref_branch_id == $bra->id ? 'checked' : '' }}>
 
-        <input
-            class="form-check-input branch-radio-insert"
-            type="radio"
-            name="ref_branch_id"
-            id="insert_branch{{ $bra->id }}"
-            value="{{ $bra->id }}"
-            onchange="filterProductType(this.value)"
-            {{ Auth::user()->ref_branch_id == $bra->id ? 'checked' : '' }}>
+                                    <label class="form-check-label me-4" for="insert_branch{{ $bra->id }}">
 
-        <label
-            class="form-check-label me-4"
-            for="insert_branch{{ $bra->id }}">
+                                        {{ $bra->name }}
 
-            {{ $bra->name }}
+                                    </label>
+                                @endforeach
 
-        </label>
+                            </div>
 
-    @endforeach
+                            <div class="col-sm-6">
 
-</div>
+                                <label class="form-label">ประเภทสินค้า</label>
 
-<div class="col-sm-6">
+                                <span class="text-danger">*</span>
 
-    <label class="form-label">ประเภทสินค้า</label>
+                                <select name="producttype" id="producttype" class="form-control">
 
-    <span class="text-danger">*</span>
+                                    <option value="">
+                                        ---เลือกประเภทสินค้า---
+                                    </option>
 
-    <select
-        name="producttype"
-        id="producttype"
-        class="form-control">
+                                    @foreach ($producttype as $item)
+                                        <option value="{{ $item->id }}"
+                                            data-branch="{{ $item->ref_branch_id }}">
 
-        <option value="">
-            ---เลือกประเภทสินค้า---
-        </option>
+                                            {{ $item->name }}
 
-        @foreach ($producttype as $item)
+                                        </option>
+                                    @endforeach
 
-            <option
-                value="{{ $item->id }}"
-                data-branch="{{ $item->ref_branch_id }}">
+                                </select>
 
-                {{ $item->name }}
-
-            </option>
-
-        @endforeach
-
-    </select>
-
-</div>
+                            </div>
                             <div class="col-sm-6">
                                 <label for="" class="form-label">ชื่อสินค้า</label><span class="text-danger">
                                     *</span>
@@ -362,13 +338,15 @@
                                     required />
                             </div>
                             <div class="col-sm-6">
-                                <label for="" class="form-label">ราคาขาย(ลูกค้า)</label><span class="text-danger">
+                                <label for="" class="form-label">ราคาขาย(ลูกค้า)</label><span
+                                    class="text-danger">
                                     *</span>
                                 <input name="price" type="text" class="form-control" placeholder="ราคาขาย"
                                     required />
                             </div>
                             <div class="col-sm-6">
-                                <label for="" class="form-label">ราคาขาย(พนักงาน)</label><span class="text-danger">
+                                <label for="" class="form-label">ราคาขาย(พนักงาน)</label><span
+                                    class="text-danger">
                                     *</span>
                                 <input name="price_staff" type="text" class="form-control" placeholder="ราคาขาย"
                                     required />
@@ -376,7 +354,8 @@
                             <div class="col-sm-6">
                                 <label class="form-label d-block">ขายพร้อมคอร์ส</label>
                                 <label class="switch switch-primary mb-0">
-                                    <input type="checkbox" name="sell_with_course" value="1" class="switch-input">
+                                    <input type="checkbox" name="sell_with_course" value="1"
+                                        class="switch-input">
                                     <span class="switch-toggle-slider">
                                         <span class="switch-on"><i class="ti ti-check"></i></span>
                                         <span class="switch-off"><i class="ti ti-x"></i></span>
@@ -384,10 +363,10 @@
                                 </label>
                             </div>
                             <div class="col-sm-6">
-                                <label for="" class="form-label">Minimum Stock แจ้งเตือนที่ต้องการซื้อ</label><span
-                                    class="text-danger"> *</span>
+                                <label for="" class="form-label">Minimum Stock
+                                    แจ้งเตือนที่ต้องการซื้อ</label><span class="text-danger"> *</span>
                                 <input name="minimum" type="number" class="form-control"
-                                    placeholder="Minimum Stock แจ้งเตือนที่ต้องการซื้อ" required  />
+                                    placeholder="Minimum Stock แจ้งเตือนที่ต้องการซื้อ" required />
                             </div>
                             <script>
                                 //// ทำ input เงินเดือน เริ่ม
@@ -436,9 +415,10 @@
                             <div class="col-sm-12">
                                 <label class="form-label">สาขา *</label><br>
                                 @foreach ($branch as $bra)
-                                    <input class="form-check-input product_type_branch_id" type="radio" name="ref_branch_id"
-                                        id="add-branch{{ $bra->id }}" value="{{ $bra->id }}"
-                                        {{ $loop->first ? 'checked' : '' }} @if (Auth::user()->ref_branch_id == $bra->id) checked @endif>
+                                    <input class="form-check-input product_type_branch_id" type="radio"
+                                        name="ref_branch_id" id="add-branch{{ $bra->id }}"
+                                        value="{{ $bra->id }}" {{ $loop->first ? 'checked' : '' }}
+                                        @if (Auth::user()->ref_branch_id == $bra->id) checked @endif>
                                     <label class="form-check-label me-4" for="add-branch{{ $bra->id }}">
                                         {{ $bra->name }}
                                     </label>
@@ -447,10 +427,12 @@
 
                             <div class="col-sm-12">
                                 <label class="form-label">ชื่อประเภทสินค้า *</label><br>
-                                <input type="text" id="new_type_name" class="form-control" placeholder="กรอกชื่อประเภทสินค้าใหม่ที่นี่..." required>
+                                <input type="text" id="new_type_name" class="form-control"
+                                    placeholder="กรอกชื่อประเภทสินค้าใหม่ที่นี่..." required>
                             </div>
                             <div class="col-sm-12">
-                                <button type="submit" class="btn btn-success text-nowrap"><i class="ti ti-plus"></i> เพิ่ม</button>
+                                <button type="submit" class="btn btn-success text-nowrap"><i class="ti ti-plus"></i>
+                                    เพิ่ม</button>
                             </div>
                         </div>
                     </form>
@@ -468,14 +450,17 @@
                                 </tr>
                             </thead>
                             <tbody id="productTypeTableBody">
-                                <tr><td colspan="3" class="text-center">กำลังโหลดข้อมูล...</td></tr>
+                                <tr>
+                                    <td colspan="3" class="text-center">กำลังโหลดข้อมูล...</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
 
                 </div>
                 <div class="modal-footer rounded-0 justify-content-center">
-                    <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+                    <button type="button" class="btn btn-label-secondary"
+                        data-bs-dismiss="modal">ปิดหน้าต่าง</button>
                 </div>
             </div>
         </div>
@@ -484,40 +469,46 @@
 
     <!-- / Layout wrapper -->
     @include('admin/layout/inc_js')
-<script>
+    <script>
         let select2Product = null;
         let select2Stock = null;
 
         select2Product = new TomSelect("#select2Product", {
-                        create: false,
-                        maxItems: 1,
-                        allowEmptyOption: true,
-                        sortField: { field: "text", direction: "asc" }
-                    });
+            create: false,
+            maxItems: 1,
+            allowEmptyOption: true,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
 
         select2Stock = new TomSelect("#select2Stock", {
-                        create: false,
-                        maxItems: 1,
-                        allowEmptyOption: true,
-                        sortField: { field: "text", direction: "asc" }
-                    });
+            create: false,
+            maxItems: 1,
+            allowEmptyOption: true,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
 
-    $('#select2Product').on('change', function () {
+        $('#select2Product').on('change', function() {
             const product_id = $(this).val();
             if (product_id) {
 
                 document.getElementById('loadingOverlay').style.display = 'flex';
 
-            if (select2Stock) {
-                select2Stock.destroy();
-            }
-            $('#select2Stock').html('<option selected disabled hidden value="">เลือก Lot</option>');
+                if (select2Stock) {
+                    select2Stock.destroy();
+                }
+                $('#select2Stock').html('<option selected disabled hidden value="">เลือก Lot</option>');
 
                 $.ajax({
                     url: 'admin/card_stock_report/get-stock/' + product_id,
                     type: 'GET',
-                    success: function (data) {
-                        data.forEach(function (stock) {
+                    success: function(data) {
+                        data.forEach(function(stock) {
                             $('#select2Stock').append(
                                 `<option value="${stock.id}">${stock.label}</option>`
                             );
@@ -527,7 +518,10 @@
                             create: false,
                             maxItems: 1,
                             allowEmptyOption: true,
-                            sortField: { field: "text", direction: "asc" }
+                            sortField: {
+                                field: "text",
+                                direction: "asc"
+                            }
                         });
                         document.getElementById('loadingOverlay').style.display = 'none';
                     },
@@ -540,7 +534,7 @@
             }
         });
 
-        $('#select2Stock').on('change', function () {
+        $('#select2Stock').on('change', function() {
             var stock_id = $(this).val();
 
             if (stock_id) {
@@ -550,7 +544,7 @@
                 $.ajax({
                     url: 'admin/card_stock_report/get-stock-by-id/' + stock_id,
                     type: 'GET',
-                    success: function (data) {
+                    success: function(data) {
 
                         $('#stock_qty').val(data.remain).attr('max', data.remain);;
 
@@ -564,295 +558,304 @@
                 });
             }
         });
-//////////////////////////////////////////////////////////////////////////////////////////////
-    var page = "{{ $page_url }}/datatable";
-    var searchData = {};
-    loadData(page);
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        var page = "{{ $page_url }}/datatable";
+        var searchData = {};
+        loadData(page);
 
-    function loadData(pages) {
+        function loadData(pages) {
 
-        $('.p_search').each(function() {
-            var inputName = $(this).attr('name'); // ดึงชื่อ attribute 'name' ของ input
-            var inputValue = $(this).val(); // ดึงค่า value ของ input
+            $('.p_search').each(function() {
+                var inputName = $(this).attr('name'); // ดึงชื่อ attribute 'name' ของ input
+                var inputValue = $(this).val(); // ดึงค่า value ของ input
 
-            searchData[inputName] = inputValue; // เก็บข้อมูลลงในออบเจ็กต์ searchData
-        });
+                searchData[inputName] = inputValue; // เก็บข้อมูลลงในออบเจ็กต์ searchData
+            });
 
-        // alert(page);
-        page = pages;
-        $.ajax({
-            type: "GET",
-            url: pages,
-            data: searchData,
-            success: function(data) {
-                $("#table-data").html(data);
-            }
-        });
-        // alert(page);
-    }
-
-    function view(id) {
-        $.ajax({
-            type: "GET",
-            url: "{{ $page_url }}/" + id,
-            success: function(data) {
-                $("#view").html(data);
-            }
-        });
-    }
-//////////////////////////////////////////////////////////////////////////////////////////////
-    function Delete(id, v, element) {
-        $(element).prop('checked', v === 1 ? false : true);
-        Swal.fire({
-            title: 'ยืนยันการดำเนินการ?',
-            text: 'คุณต้องการลบสินค้าหรือไม่?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'ตกลง',
-            cancelButtonText: 'ยกเลิก',
-            didOpen: () => Swal.getConfirmButton().focus()
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: '{{ $page_url }}/' + id,
-                    type: 'DELETE',
-                    data: { _token: "{{ csrf_token() }}" },
-                    success: function (response) {
-                        if (response == true) {
-                            Swal.fire('ลบสินค้าเรียบร้อยแล้ว', '', 'success');
-                            loadData(page);
-                        }
-                    },
-                    error: function () {
-                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
-                    }
-                });
-            }
-        });
-    }
-//////////////////////////////////////////////////////////////////////////////////////////////
-    function changeStatus(id, v, element) {
-        $(element).prop('checked', v === 1 ? false : true);
-        Swal.fire({
-            title: 'ยืนยันการดำเนินการ?',
-            text: 'คุณต้องการเปลี่ยนสถานะหรือไม่?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'ตกลง',
-            cancelButtonText: 'ยกเลิก',
-            didOpen: () => Swal.getConfirmButton().focus()
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: '{{ $page_url }}/change-status/' + id,
-                    type: 'POST',
-                    data: { ref_status_id: v, _token: "{{ csrf_token() }}" },
-                    success: function (response) {
-                        if (response == true) {
-                            Swal.fire('เปลี่ยนสถานะเรียบร้อยแล้ว', '', 'success');
-                            loadData(page);
-                        }
-                    },
-                    error: function () {
-                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
-                    }
-                });
-            }
-        });
-    }
-//////////////////////////////////////////////////////////////////////////////////////////////
-    function changeSellWithCourse(id, v, element) {
-        $(element).prop('checked', v === 1 ? false : true);
-        Swal.fire({
-            title: 'ยืนยันการดำเนินการ?',
-            text: 'คุณต้องการเปลี่ยนการขายพร้อมคอร์สหรือไม่?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'ตกลง',
-            cancelButtonText: 'ยกเลิก',
-            didOpen: () => Swal.getConfirmButton().focus()
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: '{{ $page_url }}/change-sell-with-course/' + id,
-                    type: 'POST',
-                    data: { sell_with_course: v, _token: "{{ csrf_token() }}" },
-                    success: function (response) {
-                        if (response == true) {
-                            Swal.fire('เปลี่ยนการขายพร้อมคอร์สเรียบร้อยแล้ว', '', 'success');
-                            loadData(page);
-                        }
-                    },
-                    error: function () {
-                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
-                    }
-                });
-            }
-        });
-    }
-//////////////////////////////////////////////////////////////////////////////////////////////
-    $('#withdraw_product').on('submit', function(event) {
-        event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
-
-        if (!this.checkValidity()) {
-            this.reportValidity();
-            return console.log('ฟอร์มไม่ถูกต้อง');
+            // alert(page);
+            page = pages;
+            $.ajax({
+                type: "GET",
+                url: pages,
+                data: searchData,
+                success: function(data) {
+                    $("#table-data").html(data);
+                }
+            });
+            // alert(page);
         }
 
-        var formData = new FormData(this);
-
-        Swal.fire({
-            title: 'ยืนยันการดำเนินการ?',
-            text: 'คุณต้องการเบิกสินค้าหรือไม่?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'ตกลง',
-            cancelButtonText: 'ยกเลิก',
-            didOpen: () => {
-                Swal.getConfirmButton().focus();
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: '/admin/product/withdraw-product',
-                    type: 'POST',
-                    data: formData,
-                    contentType: false, // ✅ ต้องมี
-                    processData: false, // ✅ ต้องมี
-                    success: function(response) {
-                        if (response == true) {
-                            $('#withdraw_product')[0].reset();
-                            $('#withdrawModal').modal('hide');
-                            Swal.fire('เบิกสินค้าเรียบร้อยแล้ว', '', 'success')
-                                .then(() => {
-                                    location.reload();
-                                });
-                            loadData(page);
-                        }
-                    },
-                    error: function(error) {
-                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
-                        console.error('เกิดข้อผิดพลาด:', error);
-                    }
-                });
-            }
-        });
-    });
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-    $('#insert_user').on('submit', function(event) {
-        event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
-
-        if (!this.checkValidity()) {
-            this.reportValidity();
-            return console.log('ฟอร์มไม่ถูกต้อง');
+        function view(id) {
+            $.ajax({
+                type: "GET",
+                url: "{{ $page_url }}/" + id,
+                success: function(data) {
+                    $("#view").html(data);
+                }
+            });
         }
-
-        var formData = new FormData(this);
-
-        Swal.fire({
-            title: 'ยืนยันการดำเนินการ?',
-            text: 'คุณต้องการเพิ่มสินค้าหรือไม่?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'ตกลง',
-            cancelButtonText: 'ยกเลิก',
-            didOpen: () => {
-                Swal.getConfirmButton().focus();
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: '{{ $page_url }}',
-                    type: 'POST',
-                    data: formData,
-                    contentType: false, // ✅ ต้องมี
-                    processData: false, // ✅ ต้องมี
-                    success: function(response) {
-                        if (response == true) {
-                            $('#insert_user')[0].reset();
-                            Swal.fire('เพิ่มสินค้าเรียบร้อยแล้ว', '', 'success');
-                            $('#addserviceModal').modal('hide');
-                            loadData(page);
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        function Delete(id, v, element) {
+            $(element).prop('checked', v === 1 ? false : true);
+            Swal.fire({
+                title: 'ยืนยันการดำเนินการ?',
+                text: 'คุณต้องการลบสินค้าหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                didOpen: () => Swal.getConfirmButton().focus()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '{{ $page_url }}/' + id,
+                        type: 'DELETE',
+                        data: {
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            if (response == true) {
+                                Swal.fire('ลบสินค้าเรียบร้อยแล้ว', '', 'success');
+                                loadData(page);
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
                         }
-                    },
-                    error: function(error) {
-                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
-                        console.error('เกิดข้อผิดพลาด:', error);
-                    }
-                });
-            }
-        });
-    });
-//////////////////////////////////////////////////////////////////////////////////////////////
-    function updateSort(el) {
-        // return alert(v);
-        let id       = el.dataset.id;
-        let oldSort  = el.dataset.old;   // ค่าเดิม
-        let newSort  = el.value;          // ค่าใหม่
-        if(newSort == ''){
-            return loadData(page);
+                    });
+                }
+            });
         }
-        Swal.fire({
-            title: 'ยืนยันการดำเนินการ?',
-            text: 'คุณต้องการเปลี่ยนลำดับหรือไม่?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'ตกลง',
-            cancelButtonText: 'ยกเลิก',
-            didOpen: () => Swal.getConfirmButton().focus()
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: '{{ $page_url }}/update-sort/' + id,
-                    type: 'POST',
-                    data: {
-                        _token: "{{ csrf_token() }}",
-                        id: id,
-                        old_sort: oldSort,
-                        new_sort: newSort
-                    },
-                    success: function (response) {
-                        if (response == true) {
-                            Swal.fire('เปลี่ยนลำดับเรียบร้อยแล้ว', '', 'success');
-                            loadData(page);
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        function changeStatus(id, v, element) {
+            $(element).prop('checked', v === 1 ? false : true);
+            Swal.fire({
+                title: 'ยืนยันการดำเนินการ?',
+                text: 'คุณต้องการเปลี่ยนสถานะหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                didOpen: () => Swal.getConfirmButton().focus()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '{{ $page_url }}/change-status/' + id,
+                        type: 'POST',
+                        data: {
+                            ref_status_id: v,
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            if (response == true) {
+                                Swal.fire('เปลี่ยนสถานะเรียบร้อยแล้ว', '', 'success');
+                                loadData(page);
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
                         }
-                    },
-                    error: function () {
-                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
-                    }
-                });
+                    });
+                }
+            });
+        }
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        function changeSellWithCourse(id, v, element) {
+            $(element).prop('checked', v === 1 ? false : true);
+            Swal.fire({
+                title: 'ยืนยันการดำเนินการ?',
+                text: 'คุณต้องการเปลี่ยนการขายพร้อมคอร์สหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                didOpen: () => Swal.getConfirmButton().focus()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '{{ $page_url }}/change-sell-with-course/' + id,
+                        type: 'POST',
+                        data: {
+                            sell_with_course: v,
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            if (response == true) {
+                                Swal.fire('เปลี่ยนการขายพร้อมคอร์สเรียบร้อยแล้ว', '', 'success');
+                                loadData(page);
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        }
+                    });
+                }
+            });
+        }
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        $('#withdraw_product').on('submit', function(event) {
+            event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
+
+            if (!this.checkValidity()) {
+                this.reportValidity();
+                return console.log('ฟอร์มไม่ถูกต้อง');
             }
+
+            var formData = new FormData(this);
+
+            Swal.fire({
+                title: 'ยืนยันการดำเนินการ?',
+                text: 'คุณต้องการเบิกสินค้าหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                didOpen: () => {
+                    Swal.getConfirmButton().focus();
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/admin/product/withdraw-product',
+                        type: 'POST',
+                        data: formData,
+                        contentType: false, // ✅ ต้องมี
+                        processData: false, // ✅ ต้องมี
+                        success: function(response) {
+                            if (response == true) {
+                                $('#withdraw_product')[0].reset();
+                                $('#withdrawModal').modal('hide');
+                                Swal.fire('เบิกสินค้าเรียบร้อยแล้ว', '', 'success')
+                                    .then(() => {
+                                        location.reload();
+                                    });
+                                loadData(page);
+                            }
+                        },
+                        error: function(error) {
+                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                            console.error('เกิดข้อผิดพลาด:', error);
+                        }
+                    });
+                }
+            });
         });
-    }
-//////////////////////////////////////////////////////////////////////////////////////////////
-    // window.onload = function() {
-    //     $('#addserviceModal').modal('show');
-    // };
-    $('#bs-datepicker-format').datepicker({
-        format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
-        autoclose: true, // ปิด datepicker เมื่อเลือกวันที่
-        todayHighlight: true // ไฮไลต์วันที่ปัจจุบัน
-    });
-    $('#select2Position1').select2();
-    // $('#select2Product').select2({ dropdownParent: $('.card-body') });
-    // $('#select2Stock').select2({ dropdownParent: $('.card-body') });
 
-    // ==========================================
-    // ระบบจัดการประเภทสินค้า (Product Type CRUD)
-    // ==========================================
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        $('#insert_user').on('submit', function(event) {
+            event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
 
-    function loadProductTypes() {
-        $('#productTypeTableBody').html('<tr><td colspan="3" class="text-center"><i class="ti ti-loader ti-spin"></i> กำลังโหลด...</td></tr>');
+            if (!this.checkValidity()) {
+                this.reportValidity();
+                return console.log('ฟอร์มไม่ถูกต้อง');
+            }
 
-        $.ajax({
-            url: '/admin/product-type/get-all',
-            type: 'GET',
-            success: function(response) {
-                let html = '';
-                if(response.length > 0) {
-                    response.forEach((item, index) => {
-                        html += `
+            var formData = new FormData(this);
+
+            Swal.fire({
+                title: 'ยืนยันการดำเนินการ?',
+                text: 'คุณต้องการเพิ่มสินค้าหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                didOpen: () => {
+                    Swal.getConfirmButton().focus();
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '{{ $page_url }}',
+                        type: 'POST',
+                        data: formData,
+                        contentType: false, // ✅ ต้องมี
+                        processData: false, // ✅ ต้องมี
+                        success: function(response) {
+                            if (response == true) {
+                                $('#insert_user')[0].reset();
+                                Swal.fire('เพิ่มสินค้าเรียบร้อยแล้ว', '', 'success');
+                                $('#addserviceModal').modal('hide');
+                                loadData(page);
+                            }
+                        },
+                        error: function(error) {
+                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                            console.error('เกิดข้อผิดพลาด:', error);
+                        }
+                    });
+                }
+            });
+        });
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        function updateSort(el) {
+            // return alert(v);
+            let id = el.dataset.id;
+            let oldSort = el.dataset.old; // ค่าเดิม
+            let newSort = el.value; // ค่าใหม่
+            if (newSort == '') {
+                return loadData(page);
+            }
+            Swal.fire({
+                title: 'ยืนยันการดำเนินการ?',
+                text: 'คุณต้องการเปลี่ยนลำดับหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                didOpen: () => Swal.getConfirmButton().focus()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '{{ $page_url }}/update-sort/' + id,
+                        type: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            id: id,
+                            old_sort: oldSort,
+                            new_sort: newSort
+                        },
+                        success: function(response) {
+                            if (response == true) {
+                                Swal.fire('เปลี่ยนลำดับเรียบร้อยแล้ว', '', 'success');
+                                loadData(page);
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        }
+                    });
+                }
+            });
+        }
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        // window.onload = function() {
+        //     $('#addserviceModal').modal('show');
+        // };
+        $('#bs-datepicker-format').datepicker({
+            format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
+            autoclose: true, // ปิด datepicker เมื่อเลือกวันที่
+            todayHighlight: true // ไฮไลต์วันที่ปัจจุบัน
+        });
+        $('#select2Position1').select2();
+        // $('#select2Product').select2({ dropdownParent: $('.card-body') });
+        // $('#select2Stock').select2({ dropdownParent: $('.card-body') });
+
+        // ==========================================
+        // ระบบจัดการประเภทสินค้า (Product Type CRUD)
+        // ==========================================
+
+        function loadProductTypes() {
+            $('#productTypeTableBody').html(
+                '<tr><td colspan="3" class="text-center"><i class="ti ti-loader ti-spin"></i> กำลังโหลด...</td></tr>');
+
+            $.ajax({
+                url: '/admin/product-type/get-all',
+                type: 'GET',
+                success: function(response) {
+                    let html = '';
+                    if (response.length > 0) {
+                        response.forEach((item, index) => {
+                            html += `
                             <tr>
                                 <td class="text-center">${index + 1}</td>
                                 <td>${item.name}</td>
@@ -867,193 +870,200 @@
                                 </td>
                             </tr>
                         `;
-                    });
-                } else {
-                    html = '<tr><td colspan="3" class="text-center text-muted">ยังไม่มีข้อมูลประเภทสินค้า</td></tr>';
+                        });
+                    } else {
+                        html =
+                            '<tr><td colspan="3" class="text-center text-muted">ยังไม่มีข้อมูลประเภทสินค้า</td></tr>';
+                    }
+                    $('#productTypeTableBody').html(html);
+                },
+                error: function(error) {
+                    $('#productTypeTableBody').html(
+                        '<tr><td colspan="3" class="text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>'
+                        );
                 }
-                $('#productTypeTableBody').html(html);
-            },
-            error: function(error) {
-                $('#productTypeTableBody').html('<tr><td colspan="3" class="text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>');
-            }
-        });
-    }
+            });
+        }
 
-    $('#formAddProductType').on('submit', function(event) {
-        event.preventDefault();
-        let typeName = $('#new_type_name').val();
-        let ref_branch_id = $('.product_type_branch_id:checked').val();
+        $('#formAddProductType').on('submit', function(event) {
+            event.preventDefault();
+            let typeName = $('#new_type_name').val();
+            let ref_branch_id = $('.product_type_branch_id:checked').val();
 
-        $.ajax({
-            url: '/admin/product-type/store',
-            type: 'POST',
-            data: {
-                _token: "{{ csrf_token() }}",
-                name: typeName,
-                ref_branch_id: ref_branch_id
-            },
-            success: function(response) {
-                if (response.status == true || response == true) {
-                    $('#new_type_name').val('');
-                    Swal.fire({
-                        title: 'เพิ่มสำเร็จ',
-                        icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                    loadProductTypes();
-                }
-            },
-            error: function(error) {
-                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเพิ่มข้อมูลได้', 'error');
-            }
-        });
-    });
-
-    function editProductType(id, oldName) {
-        Swal.fire({
-            title: 'แก้ไขประเภทสินค้า',
-            input: 'text',
-            inputValue: oldName,
-            showCancelButton: true,
-            confirmButtonText: 'บันทึก',
-            cancelButtonText: 'ยกเลิก',
-            inputValidator: (value) => {
-                if (!value) { return 'กรุณากรอกชื่อประเภทสินค้า!'; }
-            }
-        }).then((result) => {
-            if (result.isConfirmed && result.value !== oldName) {
-                $.ajax({
-                    url: '/admin/product-type/update/' + id,
-                    type: 'POST',
-                    data: {
-                        _token: "{{ csrf_token() }}",
-                        name: result.value
-                    },
-                    success: function(response) {
+            $.ajax({
+                url: '/admin/product-type/store',
+                type: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    name: typeName,
+                    ref_branch_id: ref_branch_id
+                },
+                success: function(response) {
+                    if (response.status == true || response == true) {
+                        $('#new_type_name').val('');
                         Swal.fire({
-                            title: 'แก้ไขสำเร็จ',
+                            title: 'เพิ่มสำเร็จ',
                             icon: 'success',
                             timer: 1500,
                             showConfirmButton: false
                         });
                         loadProductTypes();
-                    },
-                    error: function() {
-                        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถแก้ไขข้อมูลได้', 'error');
                     }
-                });
-            }
+                },
+                error: function(error) {
+                    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเพิ่มข้อมูลได้', 'error');
+                }
+            });
         });
-    }
 
-    function deleteProductType(id) {
-        Swal.fire({
-            title: 'ยืนยันการลบ?',
-            text: "หากลบแล้วจะไม่สามารถกู้คืนได้!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#8592a3',
-            confirmButtonText: 'ใช่, ลบเลย!',
-            cancelButtonText: 'ยกเลิก'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: '/admin/product-type/delete/' + id,
-                    type: 'DELETE',
-                    data: { _token: "{{ csrf_token() }}" },
-                    success: function(response) {
-                        Swal.fire({
-                            title: 'ลบข้อมูลแล้ว',
-                            icon: 'success',
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
-                        loadProductTypes(); // โหลดตารางใหม่
-                    },
-                    error: function() {
-                        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถลบข้อมูลได้ (อาจมีสินค้าผูกอยู่)', 'error');
+        function editProductType(id, oldName) {
+            Swal.fire({
+                title: 'แก้ไขประเภทสินค้า',
+                input: 'text',
+                inputValue: oldName,
+                showCancelButton: true,
+                confirmButtonText: 'บันทึก',
+                cancelButtonText: 'ยกเลิก',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'กรุณากรอกชื่อประเภทสินค้า!';
                     }
-                });
-            }
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value !== oldName) {
+                    $.ajax({
+                        url: '/admin/product-type/update/' + id,
+                        type: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            name: result.value
+                        },
+                        success: function(response) {
+                            Swal.fire({
+                                title: 'แก้ไขสำเร็จ',
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            loadProductTypes();
+                        },
+                        error: function() {
+                            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถแก้ไขข้อมูลได้', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function deleteProductType(id) {
+            Swal.fire({
+                title: 'ยืนยันการลบ?',
+                text: "หากลบแล้วจะไม่สามารถกู้คืนได้!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#8592a3',
+                confirmButtonText: 'ใช่, ลบเลย!',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/admin/product-type/delete/' + id,
+                        type: 'DELETE',
+                        data: {
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            Swal.fire({
+                                title: 'ลบข้อมูลแล้ว',
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            loadProductTypes(); // โหลดตารางใหม่
+                        },
+                        error: function() {
+                            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถลบข้อมูลได้ (อาจมีสินค้าผูกอยู่)',
+                                'error');
+                        }
+                    });
+                }
+            });
+        }
+        // เลือกสาขาแล้วให้แสดง ประภทสินค้า สาขา นั้น ๆ
+
+        const allWithdrawProducts = [];
+
+        $('#select2Product option').each(function() {
+
+            allWithdrawProducts.push({
+                value: $(this).val(),
+                text: $(this).text(),
+                branch: $(this).data('branch')
+            });
+
         });
-    }
-    // เลือกสาขาแล้วให้แสดง ประภทสินค้า สาขา นั้น ๆ
 
-    const allWithdrawProducts = [];
+        const allProducts = @json($product);
 
-    $('#select2Product option').each(function () {
+        function filterWithdrawProduct(branchId) {
 
-        allWithdrawProducts.push({
-            value: $(this).val(),
-            text: $(this).text(),
-            branch: $(this).data('branch')
-        });
+            select2Product.clear();
 
-    });
+            select2Product.clearOptions();
 
-    const allProducts = @json($product);
+            allProducts.forEach(product => {
 
-    function filterWithdrawProduct(branchId) {
+                if (product.ref_branch_id == branchId) {
 
-        select2Product.clear();
+                    select2Product.addOption({
+                        value: product.id,
+                        text: product.name
+                    });
 
-        select2Product.clearOptions();
+                }
 
-        allProducts.forEach(product => {
+            });
 
-            if (product.ref_branch_id == branchId) {
-
-                select2Product.addOption({
-                    value: product.id,
-                    text: product.name
-                });
-
-            }
-
-        });
-
-        select2Product.refreshOptions(false);
-    }
+            select2Product.refreshOptions(false);
+        }
 
 
-    // โหลดครั้งแรก
-    filterWithdrawProduct(
-        $('input[id^="withdraw_branch"]:checked').val()
-    );
+        // โหลดครั้งแรก
+        filterWithdrawProduct(
+            $('input[id^="withdraw_branch"]:checked').val()
+        );
 
-    // =========================
-    // เพิ่มสินค้า
-    // =========================
+        // =========================
+        // เพิ่มสินค้า
+        // =========================
 
-    const productTypeOptions =
-        $('#producttype').html();
+        const productTypeOptions =
+            $('#producttype').html();
 
-    function filterProductType(branchId) {
+        function filterProductType(branchId) {
 
-        $('#producttype').html(productTypeOptions);
+            $('#producttype').html(productTypeOptions);
 
-        $('#producttype option').each(function () {
+            $('#producttype option').each(function() {
 
-            let branch = $(this).data('branch');
+                let branch = $(this).data('branch');
 
-            if (branch && branch != branchId) {
-                $(this).remove();
-            }
+                if (branch && branch != branchId) {
+                    $(this).remove();
+                }
 
-        });
+            });
 
-    }
+        }
 
 
-    // โหลดครั้งแรก
+        // โหลดครั้งแรก
 
-    filterProductType(
-        $('.branch-radio-insert:checked').val()
-    );
-
-</script>
+        filterProductType(
+            $('.branch-radio-insert:checked').val()
+        );
+    </script>
 </body>
 
 </html>

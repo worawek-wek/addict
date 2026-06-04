@@ -128,11 +128,11 @@ class SideMenu
         ];
         
         if($user){
-            if(in_array($user->ref_position_id,[1,3])){
+            if(in_array($user->ref_position_id,[1,3,6])){
                 return $admin;
             }
         }
-        if($ref_user && !in_array($user->ref_position_id,[1,3])){
+        if($ref_user && !in_array($user->ref_position_id,[1,3,6])){
                 return $boss;
         }
         return $employee;

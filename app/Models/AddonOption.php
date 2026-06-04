@@ -17,7 +17,7 @@ class AddonOption extends Model
         'commission',
         'coupon',
     ];
-    
+
     public function user_has_option_commission()
     {
         return $this->hasOne('App\Models\UserHasOptionCommission', 'ref_option_id', 'id');

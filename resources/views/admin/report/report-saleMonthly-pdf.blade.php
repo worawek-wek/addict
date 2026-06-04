@@ -172,7 +172,7 @@
             </td>
         </tr>
         <tr>
-            <td style="text-align:right; padding-right: 20px;">Alipay</td>
+            <td style="text-align:right; padding-right: 20px;"> Alipay / Wechat</td>
             <td style="text-align:right; padding-right: 20px;">
                 {{ number_format($summary_type_payment_al ?? 0, 2) }} บาท
             </td>
@@ -198,16 +198,16 @@
             </td>
         </tr>
         <tr style="font-weight:bold; background:#ebebeb;">
-            <td style="text-align:right; padding-right: 20px;">QR Code , Credit Card , AliPay</td>
+            <td style="text-align:right; padding-right: 20px;">QR Code , Credit Card , Alipay / Wechat</td>
             <td style="text-align:right; padding-right: 20px;">
-                {{ number_format(($totalNetTransfer ?? 0) + ($totalNetCredit ?? 0) + ($totalNetAl ?? 0), 2) }}
+                {{ number_format($summary_type_payment_non_cash ?? 0, 2) }}
                 บาท
             </td>
         </tr>
         <tr style="font-weight:bold; background:#ebebeb;">
             <td style="text-align:right; padding-right: 20px;">รับเงินสุทธิ</td>
             <td style="text-align:right; padding-right: 20px;">
-                {{ number_format($totalNetCash ?? 0, 2) }} บาท
+                {{ number_format($totalNetCashAfterNonCash ?? 0, 2) }} บาท
             </td>
         </tr>
     </table>

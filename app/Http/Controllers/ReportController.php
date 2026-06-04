@@ -291,6 +291,9 @@ class ReportController extends Controller
                 [$eh, $em] = explode(':', request('end_time_filter'));
                 $endDate->setTime((int)$eh, (int)$em, 59);
             }
+            if ($endDate->lessThan($startDate)) {
+                $endDate->addDay();
+            }
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -394,6 +397,9 @@ class ReportController extends Controller
             if (request('end_time_filter')) {
                 [$eh, $em] = explode(':', request('end_time_filter'));
                 $endDate->setTime((int)$eh, (int)$em, 59);
+            }
+            if ($endDate->lessThan($startDate)) {
+                $endDate->addDay();
             }
             $orderRooms->whereBetween('created_at', [$startDate, $endDate]);
         }
@@ -873,6 +879,7 @@ class ReportController extends Controller
         // Compute summary totals over ALL filtered records (not just current page)
         $allOrders = $this->buildOrderRoomsQuery()->get();
         $totalNetSum = $totalNetCash = $totalNetTransfer = $totalNetCredit = $totalNetAl = 0.0;
+        $totalRawTransfer = $totalRawCredit = $totalRawAl = 0.0;
         $grandCommission = 0.0;
         $totalCashRaw = 0.0;
         foreach ($allOrders as $order) {
@@ -900,10 +907,21 @@ class ReportController extends Controller
                 $totalCashRaw += $coursePrice;
                 $totalNetCash += $rev;
             }
-            if ($order->payment_method === 'qr_code')     $totalNetTransfer += $rev;
-            if ($order->payment_method === 'credit_card') $totalNetCredit   += $rev;
-            if ($order->payment_method === 'alipay')      $totalNetAl       += $rev;
+            if ($order->payment_method === 'qr_code') {
+                $totalNetTransfer += $rev;
+                $totalRawTransfer += $coursePrice;
+            }
+            if ($order->payment_method === 'credit_card') {
+                $totalNetCredit += $rev;
+                $totalRawCredit += $coursePrice;
+            }
+            if ($order->payment_method === 'alipay') {
+                $totalNetAl += $rev;
+                $totalRawAl += $coursePrice;
+            }
         }
+        $totalRawNonCash = $totalRawTransfer + $totalRawCredit + $totalRawAl;
+        $totalNetCashAfterNonCash = $totalNetSum - $totalRawNonCash;
 
         return view('admin.report.report-saleMonthly-datatable', compact(
             'orderRooms',
@@ -915,6 +933,11 @@ class ReportController extends Controller
             'totalNetTransfer',
             'totalNetCredit',
             'totalNetAl',
+            'totalRawTransfer',
+            'totalRawCredit',
+            'totalRawAl',
+            'totalRawNonCash',
+            'totalNetCashAfterNonCash',
             'grandCommission',
             'totalCashRaw'
         ));
@@ -923,6 +946,7 @@ class ReportController extends Controller
     private function buildOrderRoomsQuery()
     {
         $now = Carbon::now()->format('Y-m-d H:i:s');
+        $user = Auth::user();
 
         $query = Order::withSum('addons', 'price')
             ->withSum('addons', 'coupon')
@@ -944,14 +968,10 @@ class ReportController extends Controller
                     ")
             ->orderBy('created_at', 'ASC');
 
-        // filter เฉพาะสาขาของ user ที่ login
-        // $userBranchId = Auth::user()->ref_branch_id ?? null;
-        // if ($userBranchId) {
-        //     $query->where('ref_branch_id', $userBranchId);
-        // }
-
-        if (request('ref_branch_id')) {
+        if (request()->filled('ref_branch_id')) {
             $query->where('ref_branch_id', request('ref_branch_id'));
+        } elseif (!request()->has('ref_branch_id') && $user && $user->ref_branch_id) {
+            $query->where('ref_branch_id', $user->ref_branch_id);
         }
 
         if (request()->filled('search')) {
@@ -1055,15 +1075,11 @@ class ReportController extends Controller
 
 
 
-        // ✅ filter เฉพาะสาขาของ user ที่ login
-        $userBranchId = Auth::user()->ref_branch_id ?? null;
-        if ($userBranchId) {
-            $query->where('ref_branch_id', $userBranchId);
-        }
-
-        // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
-        if (request()->filled('branch_id')) {
-            $query->where('ref_branch_id', request()->branch_id);
+        $user = Auth::user();
+        if (request()->filled('ref_branch_id')) {
+            $query->where('ref_branch_id', request()->ref_branch_id);
+        } elseif (!request()->has('ref_branch_id') && $user && $user->ref_branch_id) {
+            $query->where('ref_branch_id', $user->ref_branch_id);
         }
 
         // $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
@@ -1119,6 +1135,10 @@ class ReportController extends Controller
         $data['summary_type_payment_credit'] = $nonCancelledOrders->where('payment_method', 'credit_card')->sum('total_price');
         $data['summary_type_payment_transfer'] = $nonCancelledOrders->where('payment_method', 'qr_code')->sum('total_price');
         $data['summary_type_payment_al'] = $nonCancelledOrders->where('payment_method', 'alipay')->sum('total_price');
+        $data['summary_type_payment_non_cash'] =
+            $data['summary_type_payment_transfer'] +
+            $data['summary_type_payment_credit'] +
+            $data['summary_type_payment_al'];
 
         // Compute grandCommission, totalNetSum and totalNetCash for PDF summary
         $pdfGrandCommission = 0.0;
@@ -1154,6 +1174,7 @@ class ReportController extends Controller
         $data['totalNetTransfer'] = $pdfTotalNetTransfer;
         $data['totalNetCredit'] = $pdfTotalNetCredit;
         $data['totalNetAl'] = $pdfTotalNetAl;
+        $data['totalNetCashAfterNonCash'] = $pdfTotalNetSum - $data['summary_type_payment_non_cash'];
 
         $html = view('admin.report.report-saleMonthly-pdf', $data)->render();
 

@@ -228,10 +228,6 @@ class POSController extends Controller
             $isProductPos = $request->input('context') === 'product'
                 || str_contains((string) $request->headers->get('referer'), '/pos/product');
 
-            if ($isProductPos) {
-                $positionId = 1;
-            }
-
             $positionIds = null;
 
             if ($positionId === 1) {
@@ -360,6 +356,7 @@ class POSController extends Controller
 
         return $out;
     }
+
     public function updateCart(Request $request, $id)
     {
         $cart = Session::get('cart', []);
@@ -475,6 +472,7 @@ class POSController extends Controller
             'total_price' => preg_replace('/[^0-9.]/', '', $request->input('total_price')),
             'payment_method' => $request->input('payment_method') ?? null,
             'payment_status' => $request->input('payment_status') ?? 1,
+            'paid_at' => ((int) $request->input('payment_status', 1) === 1) ? now() : null,
         ]);
         // เพิ่ม addon option ใน order_has_addon_options
         if ($request->filled('ref_option_id')) {
@@ -1395,6 +1393,7 @@ $slip .= "
             'total_price' => preg_replace('/[^0-9.]/', '', $request->input('total_price')),
             'payment_method' => $request->input('payment_method') ?? null,
             'payment_status' => $request->input('payment_status') ?? 1,
+            'paid_at' => ((int) $request->input('payment_status', 1) === 1) ? now() : null,
         ]);
 
         // --- โค้ดส่วนที่เหลือของคุณ (ทำงานกับตัวแปร $order ที่ได้มา) ---

@@ -30,6 +30,7 @@ class Order extends Model
         'duration_minutes',
         'payment_method',
         'payment_status',
+        'paid_at',
         'sales_commission',
     ];
     public $timestamps = true;

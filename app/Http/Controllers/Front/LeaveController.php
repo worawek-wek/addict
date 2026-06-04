@@ -200,7 +200,7 @@ class LeaveController extends Controller
         }
 
         $user = Auth::user();
-        if (!in_array($user->ref_position_id,[1,3])){
+        if (!in_array($user->ref_position_id,[1,3,6])){
             $ref_user = User::where("ref_user_id", $user->id)->get(); /// เช็คว่า user ที่ใช้งานอยู่เป็นหัวหน้างานไหม
             if(@$ref_user){
                 $results = $results->WhereIn('ref_user_id', array_column(json_decode($ref_user, true), 'id'));

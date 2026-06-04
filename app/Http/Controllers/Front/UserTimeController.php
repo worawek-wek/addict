@@ -29,7 +29,7 @@ class UserTimeController extends Controller
      */
     public function index($id = null)
     {
-        if(!in_array(Auth::user()->ref_position_id, [1,3]) && $id != Auth::user()->id){
+        if(!in_array(Auth::user()->ref_position_id, [1,3,6]) && $id != Auth::user()->id){
             return redirect("user-time/".Auth::user()->id);
         }
 
@@ -47,7 +47,7 @@ class UserTimeController extends Controller
     }
     public function detail($id = null)
     {
-        if(!in_array(Auth::user()->ref_position_id, [1,3]) && $id != Auth::user()->id){
+        if(!in_array(Auth::user()->ref_position_id, [1,3,6]) && $id != Auth::user()->id){
             return redirect("user-time/".Auth::user()->id);
         }
 
@@ -518,4 +518,3 @@ class UserTimeController extends Controller
 // $spreadSheet = $Reader->load('upload/time_excel/'.$targetPath);
 // $excelSheet = $spreadSheet->getActiveSheet();
 // return $spreadSheetAry = $excelSheet->toArray();
-

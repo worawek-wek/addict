@@ -55,6 +55,7 @@
                             $usedCommission = $roomTypeCourse->commission;
                             $usedCoupon = $roomTypeCourse->coupon;
                         }
+
                         $actualRevenue = $coursePrice - ($usedCoupon + $usedCommission);
                         $grandNetSum += $actualRevenue;
                     }
@@ -123,25 +124,25 @@
                         </tr>
                         <tr>
                             <td>QR Code</td>
-                            <td class="text-end">{{ number_format($totalNetTransfer, 2) ?? '-' }} บาท</td>
+                            <td class="text-end">{{ number_format($totalRawTransfer, 2) ?? '-' }} บาท</td>
                         </tr>
                         <tr>
                             <td>บัตรเครดิต</td>
-                            <td class="text-end">{{ number_format($totalNetCredit, 2) ?? '-' }} บาท</td>
+                            <td class="text-end">{{ number_format($totalRawCredit, 2) ?? '-' }} บาท</td>
                         </tr>
                         <tr>
-                            <td>Alipay</td>
-                            <td class="text-end">{{ number_format($totalNetAl, 2) ?? '-' }} บาท</td>
+                            <td>Alipay / Wechat</td>
+                            <td class="text-end">{{ number_format($totalRawAl, 2) ?? '-' }} บาท</td>
                         </tr>
                         <tr class="fw-bold">
                             <td>คงเหลือเงินสดรับจริง</td>
-                            <td class="text-end">{{ number_format($totalNetCash, 2) ?? '-' }} บาท</td>
+                            <td class="text-end">{{ number_format($totalNetCashAfterNonCash, 2) ?? '-' }} บาท</td>
                         </tr>
 
                         <tr class="fw-bold table-primary">
                             <td>รับจริงสุทธิ</td>
                             <td class="text-end">
-                                {{ number_format($totalNetCash, 2) }}
+                                {{ number_format($totalNetCashAfterNonCash, 2) }}
                                 บาท</td>
                         </tr>
                     </table>

@@ -7,9 +7,6 @@
     @include('admin/layout/inc_header')
     <title>Dashboard - CRM | Vuexy - Bootstrap Admin Template</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js"></script>
-
 </head>
 
 <style>

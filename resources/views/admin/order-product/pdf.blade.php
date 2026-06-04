@@ -138,7 +138,7 @@
                     <tr>
                         <td width="10%">{{ $key+1 }}</td>
                         <td width="50%">{{ $item->type_name ?? 'ไม่ระบุประเภท' }}</td>
-                        <td width="20%">{{ number_format($item->total_qty) }} ชิ้น 111</td>
+                        <td width="20%">{{ number_format($item->total_qty) }} ชิ้น</td>
                         <td width="20%" align="right">{{ number_format($item->total_price, 2) }}</td>
                     </tr>
                 @endforeach
@@ -156,7 +156,7 @@
                     <tr>
                         <td width="10%">{{ $key+1 }}</td>
                         <td width="50%">{{ $item2->type_name ?? 'ไม่ระบุประเภท' }}</td>
-                        <td width="20%">{{ number_format($item2->total_qty) }} ชิ้น 222</td>
+                        <td width="20%">{{ number_format($item2->total_qty) }} ชิ้น</td>
                         <td width="20%" align="right">{{ number_format($item2->total_price, 2) }}</td>
                     </tr>
                 @endforeach

@@ -56,9 +56,9 @@
                                                         placeholder="ค่ามือ" />
                                                 </div>
                                                 <div class="col-sm-4">
-                                                    <label class="form-label">คูปอง</label>
+                                                    <label class="form-label">รับจริงร้าน</label>
                                                     <input name="coupon" type="number" step="any" class="form-control" value="{{ $option->coupon }}"
-                                                        placeholder="คูปอง" />
+                                                        placeholder="รับจริงร้าน" />
                                                 </div>
                                             </div>
                                             <div class="text-end mt-4">

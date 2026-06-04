@@ -52,11 +52,14 @@
     </thead>
     <tbody>
         @foreach ($orderProducts as $order)
-            @php $canManage = $order->can_manage ?? false; @endphp
+            @php
+                $canManage = $order->can_manage ?? false;
+                $displayDate = $order->paid_at ?: ($order->booking_date . ' ' . $order->start_time);
+            @endphp
             <tr>
                 <td class="text-center">
                     {{ $loop->iteration + ($orderProducts->currentPage() - 1) * $orderProducts->perPage() }}</td>
-                <td class="text-center">{{ date("d/m/Y H:i", strtotime($order->booking_date." ".$order->start_time)) }} น.</td>
+                <td class="text-center">{{ date("d/m/Y H:i", strtotime($displayDate)) }} น.</td>
                 <td class="text-center">{{ $order->order_number ?? '-' }}</td>
                 <td class="text-center">{{ $order->branch->name ?? '-' }}</td>
                 <td class="text-center">{{ $order->seller->nickname ?? '-' }}</td>

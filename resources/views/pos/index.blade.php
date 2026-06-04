@@ -209,9 +209,260 @@
         border-color: #0d6efd;
         background-color: #f0f7ff;
     }
+
+    .pos-room-page {
+        height: 100vh;
+        font-size: 13px;
+        overflow: hidden;
+    }
+
+    .pos-room-page .layout-content-navbar {
+        height: 100vh;
+        padding-top: .5rem !important;
+        overflow: hidden;
+    }
+
+    .pos-room-page .container-fluid {
+        padding-left: .5rem;
+        padding-right: .5rem;
+    }
+
+    .pos-room-page .selection-panel,
+    .pos-room-page .pos-invoice-panel {
+        height: calc(100vh - 20px);
+        overflow-x: hidden;
+        overflow-y: auto;
+        scrollbar-width: thin;
+    }
+
+    .pos-room-page .selection-panel > .card-body {
+        padding: .5rem;
+    }
+
+    .pos-room-page .label-pos {
+        font-size: 1rem;
+        margin: .35rem 0;
+        padding: .3rem .5rem !important;
+    }
+
+    .pos-room-page .custom-option-content {
+        padding: .45rem !important;
+        min-height: 78px;
+    }
+
+    .pos-room-page .custom-option-content .form-check-input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .pos-room-page .custom-option-content svg {
+        width: 24px;
+        height: 24px;
+        margin-bottom: .25rem !important;
+    }
+
+    .pos-room-page .custom-option-header .h6 {
+        font-size: 12px;
+        line-height: 1.2;
+    }
+
+    .pos-room-page .form-label {
+        font-size: 12px;
+        margin-bottom: .2rem;
+    }
+
+    .pos-room-page .time-period-grid {
+        --bs-gutter-x: .35rem;
+        --bs-gutter-y: .35rem;
+    }
+
+    .pos-room-page .time-period-option {
+        padding-left: .2rem;
+        padding-right: .2rem;
+    }
+
+    .pos-room-page .time-period-label {
+        min-height: 34px;
+        padding: .25rem .4rem !important;
+        font-size: 12px !important;
+        line-height: 1.15;
+    }
+
+    .pos-room-page #addon-options-list {
+        gap: .35rem !important;
+    }
+
+    .pos-room-page #addon-options-list .snack-item {
+        width: 15.8% !important;
+        min-width: 120px !important;
+    }
+
+    .pos-room-page .btn-purple-check {
+        min-height: 46px;
+        padding: .3rem .4rem;
+        font-size: 11px;
+        line-height: 1.15;
+    }
+
+    .pos-room-page .btn-purple-check svg {
+        width: 16px;
+        height: 16px;
+        margin-bottom: .15rem !important;
+    }
+
+    .pos-room-page .btn-purple-check small {
+        font-size: 10px;
+    }
+
+    .pos-room-page .pos-product-grid {
+        --bs-gutter-x: .4rem;
+        --bs-gutter-y: .4rem;
+    }
+
+    @media (min-width: 1200px) {
+        .pos-room-page .pos-product-grid > .col {
+            flex: 0 0 12.5%;
+            max-width: 12.5%;
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 1199.98px) {
+        .pos-room-page .pos-product-grid > .col {
+            flex: 0 0 16.666667%;
+            max-width: 16.666667%;
+        }
+    }
+
+    .pos-room-page .pos-product-card {
+        min-height: 118px;
+        border-radius: 6px;
+    }
+
+    .pos-room-page .pos-product-icon {
+        padding-top: .3rem !important;
+        padding-bottom: 0 !important;
+    }
+
+    .pos-room-page .pos-product-icon i {
+        font-size: 1.6rem !important;
+    }
+
+    .pos-room-page .pos-product-card .card-body {
+        padding: .35rem .4rem .45rem;
+    }
+
+    .pos-room-page .pos-product-card .card-title {
+        font-size: 12px;
+        line-height: 1.2;
+        margin-bottom: .15rem !important;
+    }
+
+    .pos-room-page .pos-product-card .product-price {
+        font-size: 11px;
+        line-height: 1.2;
+        margin-bottom: .15rem !important;
+    }
+
+    .pos-room-page .pos-product-card .product-stock {
+        font-size: 10px;
+        margin-bottom: .25rem !important;
+    }
+
+    .pos-room-page .pos-product-card .input-group {
+        flex-wrap: nowrap;
+    }
+
+    .pos-room-page .pos-product-card .qty-minus,
+    .pos-room-page .pos-product-card .qty-plus {
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        line-height: 1;
+    }
+
+    .pos-room-page .pos-product-card .qty-input {
+        height: 24px;
+        max-width: 38px !important;
+        padding: .1rem;
+        font-size: 11px;
+    }
+
+    .pos-room-page .pos-product-card .btn-out-of-stock {
+        padding: .2rem .35rem;
+        font-size: 10px !important;
+    }
+
+    .pos-room-page .pos-invoice-panel {
+        font-size: 12px;
+    }
+
+    .pos-room-page .pos-invoice-panel .card-header,
+    .pos-room-page .pos-invoice-panel .card-footer {
+        padding: .45rem .7rem;
+    }
+
+    .pos-room-page .pos-invoice-panel .px-4 {
+        padding-left: .7rem !important;
+        padding-right: .7rem !important;
+    }
+
+    .pos-room-page .pos-invoice-panel .mb-3,
+    .pos-room-page .pos-invoice-panel .mt-2,
+    .pos-room-page .pos-invoice-panel .mt-3 {
+        margin-top: .45rem !important;
+        margin-bottom: .45rem !important;
+    }
+
+    .pos-room-page .pos-invoice-panel .form-control,
+    .pos-room-page .pos-invoice-panel .btn {
+        font-size: 12px;
+        padding: .35rem .5rem;
+    }
+
+    .pos-room-page .pos-invoice-panel .row.g-3 {
+        --bs-gutter-x: .4rem;
+        --bs-gutter-y: .4rem;
+    }
+
+    .pos-room-page .pos-invoice-panel .payment-card {
+        border-radius: 8px;
+        padding: .45rem !important;
+    }
+
+    .pos-room-page .pos-invoice-panel .payment-card i {
+        font-size: 1.35rem !important;
+    }
+
+    .pos-room-page .pos-invoice-panel .payment-card .mt-2 {
+        margin-top: .2rem !important;
+        font-size: 11px;
+        line-height: 1.15;
+    }
+
+    .pos-room-page .pos-invoice-panel h6 {
+        font-size: 13px;
+        margin-bottom: .45rem !important;
+    }
+
+    .pos-room-page .product-row,
+    .pos-room-page .summary-row {
+        font-size: 12px !important;
+        margin-bottom: 2px !important;
+    }
+
+    .pos-room-page .pos-invoice-panel .table th,
+    .pos-room-page .pos-invoice-panel .table td {
+        font-size: 11px;
+        padding: .25rem;
+    }
+
+    .pos-room-page .pos-invoice-panel hr {
+        margin: .45rem 0;
+    }
 </style>
 
-<body>
+<body class="pos-room-page">
     <!-- Layout wrapper -->
     <div class="layout-content-navbar pt-3">
         <div>
@@ -239,7 +490,7 @@
                             <div class="row">
 
                                 <div class="col-md-9">
-                                    <div class="card">
+                                    <div class="card selection-panel">
                                         <div class="card-body">
                                             <div class="col-12">
                                                 <h4 class="label-pos ff-playfair p-2">รูปแบบห้อง</h4>
@@ -381,7 +632,7 @@
                                             <div class="col-12 mt-2">
                                                 <h4 class="label-pos ff-playfair p-2">สินค้า</h4>
                                             </div>
-                                            <div class="row" id="productGrid">
+                                            <div class="row row-cols-4 row-cols-md-6 row-cols-xl-8 pos-product-grid" id="productGrid">
                                                 @include('pos.partials.room-product-grid', [
                                                     'products' => $products,
                                                 ])
@@ -391,7 +642,7 @@
                                 </div>
 
                                 <div class="col-md-3">
-                                    <div class="card shadow-sm border-0">
+                                    <div class="card shadow-sm border-0 pos-invoice-panel">
                                         <div
                                             class="card-header bg-white d-flex justify-content-between align-items-center">
                                             <span class="fw-bold">Invoice</span>
