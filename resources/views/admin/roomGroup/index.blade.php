@@ -102,8 +102,8 @@
                                                         name="limit" class="form-select ms-2 me-2 p_search"
                                                         style="width:100px">
                                                         <option value="25">25</option>
-                                                        <option value="50" selected >50</option>
-                                                        <option value="100">100</option>
+                                                        <option value="50">50</option>
+                                                        <option value="100" selected>100</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -278,7 +278,7 @@
     });
 
     const loadData = (url) => {
-        let limit = document.querySelector('.p_search[name="limit"]')?.value || 25;
+        let limit = document.querySelector('.p_search[name="limit"]')?.value || 100;
         let search = document.querySelector('.p_search[name="search"]')?.value || '';
         let branchId = document.querySelector('.p_search[name="ref_branch_id"]')?.value || '';
 
@@ -469,7 +469,7 @@
         if (e.target.closest('.pagination a')) {
             e.preventDefault();
             let url = e.target.closest('.pagination a').href;
-            let limit = document.querySelector('.p_search[name="limit"]')?.value || 10;
+            let limit = document.querySelector('.p_search[name="limit"]')?.value || 100;
             let search = document.querySelector('.p_search[name="search"]')?.value || '';
 
             fetch(`${url}&limit=${limit}&search=${search}`)

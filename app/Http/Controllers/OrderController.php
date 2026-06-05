@@ -61,7 +61,7 @@ class OrderController extends Controller
         }
 
         // limit
-        $limit = $request->limit ?? 15;
+        $limit = $request->limit ?? 100;
 
         $results = $results->paginate($limit);
 
@@ -97,7 +97,7 @@ class OrderController extends Controller
         }
 
         // limit
-        $limit = $request->limit ?? 15;
+        $limit = $request->limit ?? 100;
 
         $results = $results->paginate($limit);
 

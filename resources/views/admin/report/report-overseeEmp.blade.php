@@ -110,9 +110,9 @@
                                                                 <option value="7">7</option>
                                                                 <option value="10">10</option>
                                                                 <option value="20">20</option>
-                                                                <option value="50" selected>50</option>
+                                                                <option value="50">50</option>
                                                                 <option value="70">70</option>
-                                                                <option value="100">100</option>
+                                                                <option value="100" selected>100</option>
                                                             </select>
                                                         </label>
                                                     </div>
@@ -126,12 +126,12 @@
                                                         <input name="start_date" id="start_date" type="text"
                                                             class="form-control p_search search_date"
                                                             style="min-width:120px;"
-                                                            value="{{ now()->hour >= 10 ? now()->format('d/m/Y') : now()->subDay()->format('d/m/Y') }}">
+                                                            value="{{ \App\Support\AdminBusinessDay::currentRange()[0]->format('d/m/Y') }}">
                                                     </div>
                                                     <div class="col-auto">
                                                         <label class="form-label mb-1">เวลาเริ่มต้น</label>
                                                         <input name="start_time_filter" id="start_time_filter" type="time"
-                                                            class="form-control p_search" value="10:00">
+                                                            class="form-control p_search" value="{{ \App\Support\AdminBusinessDay::START_TIME }}">
                                                     </div>
 
                                                     {{-- ถึงวันที่ --}}
@@ -140,12 +140,12 @@
                                                         <input name="end_date" id="end_date" type="text"
                                                             class="form-control p_search search_date"
                                                             style="min-width:120px;"
-                                                            value="{{ now()->hour >= 10 ? now()->addDay()->format('d/m/Y') : now()->format('d/m/Y') }}">
+                                                            value="{{ \App\Support\AdminBusinessDay::currentRange()[1]->format('d/m/Y') }}">
                                                     </div>
                                                     <div class="col-auto">
                                                         <label class="form-label mb-1">เวลาสิ้นสุด</label>
                                                         <input name="end_time_filter" id="end_time_filter" type="time"
-                                                            class="form-control p_search" value="04:01">
+                                                            class="form-control p_search" value="{{ \App\Support\AdminBusinessDay::END_TIME }}">
                                                     </div>
 
                                                     {{-- Divider --}}

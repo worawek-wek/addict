@@ -145,7 +145,7 @@ class UserController extends Controller
             $results = $results->Where('ref_position_id', $request->ref_position_id);
         }
 
-        $limit = 15;
+        $limit = 100;
         if (@$request['limit']) {
             $limit = $request['limit'];
         }

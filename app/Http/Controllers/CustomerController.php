@@ -74,7 +74,7 @@ class CustomerController extends Controller
         }
 
         // ✅ Limit
-        $limit = $request->limit ?? 15;
+        $limit = $request->limit ?? 100;
 
         $results = $results->paginate($limit);
 

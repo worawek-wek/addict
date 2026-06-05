@@ -10,6 +10,7 @@ use App\Models\OrderHasProduct;
 use App\Models\SalesCommissionTier;
 use App\Models\User;
 use App\Models\Branch;
+use App\Support\AdminBusinessDay;
 use Exception;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -65,32 +66,31 @@ class CommissionController extends Controller
         $end = $request->input('end');
         $today = now();
         if ($range === 'custom' && $start && $end) {
-            $startDate = date('Y-m-d', strtotime($start));
-            $endDate = date('Y-m-d', strtotime($end));
+            [$startRange, $endRange] = AdminBusinessDay::rangeFromRequest(new Request([
+                'start_date' => $start,
+                'end_date' => $end,
+            ]));
         } elseif ($range === 'today' || !$request->has('range')) {
-            $startDate = $today->format('Y-m-d');
-            $endDate = $today->format('Y-m-d');
+            [$startRange, $endRange] = AdminBusinessDay::currentRange();
         } elseif ($range === '1') {
-            $yesterday = $today->copy()->subDay();
-            $startDate = $yesterday->format('Y-m-d');
-            $endDate = $yesterday->format('Y-m-d');
+            [$startRange, $endRange] = AdminBusinessDay::singleDateRange($today->copy()->subDay()->format('Y-m-d'));
         } else {
             $days = in_array($range, ['7', '14', '30']) ? (int)$range : 1;
-            $startDate = $today->copy()->subDays($days - 1)->format('Y-m-d');
-            $endDate = $today->format('Y-m-d');
+            [$startRange, $endRange] = AdminBusinessDay::rangeForPresetDays($days);
         }
+        $sqlRange = AdminBusinessDay::sqlRange([$startRange, $endRange]);
+        $startDate = $startRange->toDateString();
+        $endDate = $endRange->toDateString();
 
         foreach ($users as $user) {
             $commission = \App\Models\CommissionsHistory::where('user_message_id', $user->id)
-                ->whereHas('order', function ($q) use ($startDate, $endDate) {
-                    $q->whereDate('booking_date', '>=', $startDate)
-                        ->whereDate('booking_date', '<=', $endDate);
+                ->whereHas('order', function ($q) use ($sqlRange) {
+                    $q->whereRaw("CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?", $sqlRange);
                 })
                 ->sum('commission_massage_amount');
             $cheer_charge = \App\Models\CommissionsHistory::where('user_message_id', $user->id)
-                ->whereHas('order', function ($q) use ($startDate, $endDate) {
-                    $q->whereDate('booking_date', '>=', $startDate)
-                        ->whereDate('booking_date', '<=', $endDate);
+                ->whereHas('order', function ($q) use ($sqlRange) {
+                    $q->whereRaw("CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?", $sqlRange);
                 })
                 ->sum('price_options_massage');
             $staffData[] = [
@@ -145,12 +145,10 @@ class CommissionController extends Controller
             $results = $results->where('ref_branch_id', $request->ref_branch_id);
         }
         if (request('start_date')) {
-            $data['start_date'] = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-
-            $data['end_date'] = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+            [$data['start_date'], $data['end_date']] = AdminBusinessDay::rangeFromRequest($request);
         }
 
-        $limit = 15;
+        $limit = AdminBusinessDay::DEFAULT_PER_PAGE;
         if (@$request['limit']) {
             $limit = $request['limit'];
         }
@@ -184,9 +182,7 @@ class CommissionController extends Controller
 /////////////////////////////////////////////////////////////////////////////////////////
 
         if (request('start_date')) {
-            $data['start_date'] = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-
-            $data['end_date'] = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+            [$data['start_date'], $data['end_date']] = AdminBusinessDay::rangeFromRequest($request);
         }
 
         $results = $results->get();
@@ -227,12 +223,10 @@ class CommissionController extends Controller
             $results = $results->where('ref_branch_id', $request->ref_branch_id);
         }
         if (request('start_date')) {
-            $data['start_date'] = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-
-            $data['end_date'] = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+            [$data['start_date'], $data['end_date']] = AdminBusinessDay::rangeFromRequest($request);
         }
 
-        $limit = 15;
+        $limit = AdminBusinessDay::DEFAULT_PER_PAGE;
         if (@$request['limit']) {
             $limit = $request['limit'];
         }
@@ -266,9 +260,7 @@ class CommissionController extends Controller
 /////////////////////////////////////////////////////////////////////////////////////////
 
         if (request('start_date')) {
-            $data['start_date'] = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-
-            $data['end_date'] = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+            [$data['start_date'], $data['end_date']] = AdminBusinessDay::rangeFromRequest($request);
         }
 
         $results = $results->get();
@@ -443,9 +435,7 @@ class CommissionController extends Controller
             }
 
             if (request('start_date')) {
-                $start_date = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-
-                $end_date = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
+                [$start_date, $end_date] = AdminBusinessDay::rangeFromRequest($request);
             }
 
             $results = $results->get();
@@ -568,22 +558,23 @@ class CommissionController extends Controller
         $today = now();
 
         if ($range === 'custom' && $start && $end) {
-            $startDate = date('Y-m-d', strtotime($start));
-            $endDate = date('Y-m-d', strtotime($end));
+            [$startRange, $endRange] = AdminBusinessDay::rangeFromRequest(new Request([
+                'start_date' => $start,
+                'end_date' => $end,
+            ]));
         } elseif ($range === '1') {
-            $yesterday = $today->copy()->subDay();
-            $startDate = $yesterday->format('Y-m-d');
-            $endDate = $yesterday->format('Y-m-d');
+            [$startRange, $endRange] = AdminBusinessDay::singleDateRange($today->copy()->subDay()->format('Y-m-d'));
         } else {
             $days = in_array($range, ['7', '14', '30']) ? (int)$range : 1;
-            $startDate = $today->copy()->subDays($days - 1)->format('Y-m-d');
-            $endDate = $today->format('Y-m-d');
+            [$startRange, $endRange] = AdminBusinessDay::rangeForPresetDays($days);
         }
+        $sqlRange = AdminBusinessDay::sqlRange([$startRange, $endRange]);
+        $startDate = $startRange->toDateString();
+        $endDate = $endRange->toDateString();
 
         $orders = \App\Models\Order::with(['customer', 'branch'])
             ->where('ref_seller_id', $userId)
-            ->whereDate('booking_date', '>=', $startDate)
-            ->whereDate('booking_date', '<=', $endDate)
+            ->whereRaw("CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?", $sqlRange)
             ->orderBy('booking_date', 'desc')
             ->get();
 
@@ -605,22 +596,23 @@ class CommissionController extends Controller
         $today = now();
 
         if ($range === 'custom' && $start && $end) {
-            $startDate = date('Y-m-d', strtotime($start));
-            $endDate = date('Y-m-d', strtotime($end));
+            [$startRange, $endRange] = AdminBusinessDay::rangeFromRequest(new Request([
+                'start_date' => $start,
+                'end_date' => $end,
+            ]));
         } elseif ($range === '1') {
-            $yesterday = $today->copy()->subDay();
-            $startDate = $yesterday->format('Y-m-d');
-            $endDate = $yesterday->format('Y-m-d');
+            [$startRange, $endRange] = AdminBusinessDay::singleDateRange($today->copy()->subDay()->format('Y-m-d'));
         } else {
             $days = in_array($range, ['7', '14', '30']) ? (int)$range : 1;
-            $startDate = $today->copy()->subDays($days - 1)->format('Y-m-d');
-            $endDate = $today->format('Y-m-d');
+            [$startRange, $endRange] = AdminBusinessDay::rangeForPresetDays($days);
         }
+        $sqlRange = AdminBusinessDay::sqlRange([$startRange, $endRange]);
+        $startDate = $startRange->toDateString();
+        $endDate = $endRange->toDateString();
 
         $orders = \App\Models\Order::with(['customer', 'branch'])
             ->where('ref_user_id', $userId)
-            ->whereDate('booking_date', '>=', $startDate)
-            ->whereDate('booking_date', '<=', $endDate)
+            ->whereRaw("CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?", $sqlRange)
             ->orderBy('booking_date', 'desc')
             ->get();
 

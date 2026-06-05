@@ -1,6 +1,42 @@
 @php
     $grouped = $orderRooms->getCollection()->groupBy('ref_seller_id');
     $globalIndex = ($orderRooms->currentPage() - 1) * $orderRooms->perPage();
+    $formatDuration = function ($order) {
+        $minutes = (int) ($order->duration_minutes ?? 0);
+
+        if ($minutes <= 0 && preg_match('/(\d+)/', $order->course->name ?? '', $matches)) {
+            $minutes = (int) $matches[1];
+        }
+
+        if ($minutes <= 0 && $order->start_time && $order->end_time) {
+            $start = \Carbon\Carbon::parse(($order->booking_date ?? now()->toDateString()) . ' ' . $order->start_time);
+            $end = \Carbon\Carbon::parse(($order->booking_date ?? now()->toDateString()) . ' ' . $order->end_time);
+
+            if ($end->lessThan($start)) {
+                $end->addDay();
+            }
+
+            $minutes = $start->diffInMinutes($end);
+        }
+
+        if ($minutes <= 0) {
+            return '-';
+        }
+
+        $hours = intdiv($minutes, 60);
+        $remainingMinutes = $minutes % 60;
+        $duration = '';
+
+        if ($hours > 0) {
+            $duration .= $hours . ' ชม. ';
+        }
+
+        if ($remainingMinutes > 0) {
+            $duration .= $remainingMinutes . ' นาที';
+        }
+
+        return trim($duration) ?: '-';
+    };
 @endphp
 
 @if ($orderRooms->isEmpty())
@@ -45,13 +81,7 @@
                     @php
                         $globalIndex++;
                         $isCancelled = $order->ref_status_id == 4;
-                        $start   = \Carbon\Carbon::parse($order->start_time);
-                        $end     = \Carbon\Carbon::parse($order->end_time);
-                        $diff    = $start->diff($end);
-                        $durStr  = '';
-                        if ($diff->h > 0) $durStr .= $diff->h . ' ชม. ';
-                        if ($diff->i > 0) $durStr .= $diff->i . ' นาที';
-                        $durStr  = trim($durStr) ?: '-';
+                        $durStr = $formatDuration($order);
                         $netPrice = $order->total_price - ($order->addons_sum_price ?? 0) - ($order->products_sum_price ?? 0);
                     @endphp
                     <tr @if($isCancelled) class="text-muted" style="text-decoration:line-through;" @endif>

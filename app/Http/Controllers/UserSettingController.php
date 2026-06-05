@@ -94,7 +94,7 @@ class UserSettingController extends Controller
         if(@$request->search){
             $results = $results->Where('name','LIKE','%'.$request->search.'%');
         }
-        $limit = 15;
+        $limit = 100;
         if(@$request['limit']){
             $limit = $request['limit'];
         }

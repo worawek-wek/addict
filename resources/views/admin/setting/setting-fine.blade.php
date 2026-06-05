@@ -114,7 +114,7 @@
                                                     <option value="25">25</option>
                                                     <option value="50">50</option>
                                                     <option value="75">75</option>
-                                                    <option value="100">100</option>
+                                                    <option value="100" selected>100</option>
                                                 </select>
                                                 <ul class="nav nav-pills" id="pills-tablayout" role="tablist">
                                                     <li class="nav-item me-1" role="presentation">

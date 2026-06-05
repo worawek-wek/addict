@@ -621,8 +621,13 @@
                                                 $coursePrefix = function ($item) {
                                                     $name = trim($item->name);
                                                     $name = preg_replace('/^[\s\(\[]+/u', '', $name);
+                                                    $name = preg_replace('/\s+/u', ' ', $name);
 
-                                                    if (preg_match('/^[^\s\)\]]+/u', $name, $match)) {
+                                                    if (preg_match('/^([^\d\(\)\[\]]*?[A-Za-zก-ฮ]+)[\s\-_:]*(?:\d{2,3})?\b/u', $name, $match)) {
+                                                        return mb_strtoupper(trim($match[1]), 'UTF-8');
+                                                    }
+
+                                                    if (preg_match('/^([^\d\)\]]+)/u', $name, $match)) {
                                                         return mb_strtoupper($match[0], 'UTF-8');
                                                     }
 

@@ -9,7 +9,7 @@ use App\Models\Room;
 
 class RoomGroupController extends Controller
 {
-    protected $paginate_default = 10;
+    protected $paginate_default = 100;
     protected $page_url = '/admin/room-groups';
 
     public function index()

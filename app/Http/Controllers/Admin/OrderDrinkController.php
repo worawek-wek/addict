@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\OrderStatus;
 use App\Models\OrderHasDrink;
 use App\Models\StockReadyForSale;
+use App\Support\AdminBusinessDay;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,7 @@ class OrderDrinkController extends Controller
     public function index()
     {
         // โหลดหน้าแรกพร้อมข้อมูลเริ่มต้น
-        $limit = request()->limit ?? 10;
+        $limit = AdminBusinessDay::defaultPerPage(request()->limit);
         $orderDrinks = $this->getOrderDrinks($limit);
         $user = Auth::user(); // user ที่ login อยู่
 
@@ -38,7 +39,7 @@ class OrderDrinkController extends Controller
     public function datatable(Request $request)
     {
 
-        $limit = $request->limit ?? 10;
+        $limit = AdminBusinessDay::defaultPerPage($request->limit);
         $orderDrinks = $this->getOrderDrinks($limit);
 
         $user = Auth::user();
@@ -100,18 +101,16 @@ class OrderDrinkController extends Controller
 
         // filter by booking_date (date_range, start_date, end_date)
         $dateRange = request('date_range');
-        $startDate = request('start_date');
-        $endDate = request('end_date');
         if ($dateRange && $dateRange !== 'custom') {
             // 1, 7, 14, 30 days
             $days = intval($dateRange);
             if ($days > 0) {
-                $from = Carbon::today()->subDays($days - 1)->format('Y-m-d');
-                $to = Carbon::today()->format('Y-m-d');
-                $query->whereBetween('booking_date', [$from, $to]);
+                $range = AdminBusinessDay::sqlRange(AdminBusinessDay::rangeForPresetDays($days));
+                $query->whereRaw("CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?", $range);
             }
-        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
-            $query->whereBetween('booking_date', [$startDate, $endDate]);
+        } elseif ($dateRange === 'custom' && request('start_date')) {
+            $range = AdminBusinessDay::sqlRange(AdminBusinessDay::rangeFromRequest(request()));
+            $query->whereRaw("CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?", $range);
         }
 
         $orderDrinks = $query->paginate($limit);

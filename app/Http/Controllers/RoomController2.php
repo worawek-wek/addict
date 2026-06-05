@@ -149,7 +149,7 @@ class RoomController extends Controller
             $results = $results->Where('room_for_rents.ref_floor_id', $request->floor);
         }
 
-        $limit = 15;
+        $limit = 100;
         if(@$request['limit']){
             $limit = $request['limit'];
         }

@@ -190,7 +190,7 @@
                 @endforeach
             </select>
         </div> --}}
-        @if ($orderRoom->ref_status_id != 3 )
+        @if ($orderRoom->ref_status_id != 3 && ($orderRoom->can_manage ?? false))
 
         <div class="bg-white p-3 rounded-3 shadow-sm">
             <div align="center">
@@ -217,6 +217,10 @@
                     <option value="TrueMoney Wallet / LINE Pay (E-Wallet)" {{ $orderRoom->payment_method == 'TrueMoney Wallet / LINE Pay (E-Wallet)' ? 'selected' : '' }}>TrueMoney Wallet / LINE Pay (E-Wallet)</option>
                 </select>
             </form> --}}
+        </div>
+        @elseif (!($orderRoom->can_manage ?? false))
+        <div class="bg-white p-3 rounded-3 shadow-sm text-center text-muted">
+            รายการนี้ดูและพิมพ์ใบเสร็จได้เท่านั้น
         </div>
         @endif
     </div>

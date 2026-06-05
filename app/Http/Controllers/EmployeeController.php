@@ -41,7 +41,7 @@ class EmployeeController extends Controller
                                 });
         }
 
-        $limit = 15;
+        $limit = 100;
         if(@$request['limit']){
             $limit = $request['limit'];
         }

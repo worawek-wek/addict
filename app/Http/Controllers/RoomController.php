@@ -87,7 +87,7 @@ class RoomController extends Controller
             $results = $results->where('ref_branch_id', $request->ref_branch_id);
         }
 
-        $limit = $request->limit ?? 15;
+        $limit = $request->limit ?? 100;
         $results = $results->paginate($limit);
 
         $data['list_data'] = $results->appends(request()->query());

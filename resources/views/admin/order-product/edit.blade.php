@@ -721,6 +721,32 @@
         // ===== Init on page load =====
         updateCustomerTypeUI();
         calculate();
+
+        function printReceiptAndRedirect(printUrl) {
+            const redirectUrl = '{{ route('order-products.index') }}';
+            const iframe = document.createElement('iframe');
+            let redirected = false;
+
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+
+            const redirectOnce = () => {
+                if (redirected) return;
+                redirected = true;
+                window.location.href = redirectUrl;
+            };
+
+            iframe.onload = function() {
+                const printWindow = iframe.contentWindow;
+                printWindow.focus();
+                printWindow.onafterprint = redirectOnce;
+                printWindow.print();
+                setTimeout(redirectOnce, 4000);
+            };
+
+            iframe.src = printUrl;
+        }
+
         function saveChanges() {
             const saleType = document.querySelector('input[name="customer_type"]:checked')?.value || '2';
             const paymentStatus = document.querySelector('input[name="payment_status"]:checked')?.value ?? '0';
@@ -777,6 +803,19 @@
                     .then(r => r.json())
                     .then(data => {
                         if (data.success) {
+                            if (data.should_print_receipt && data.print_url) {
+                                Swal.fire({
+                                    title: 'บันทึกเรียบร้อยแล้ว',
+                                    text: 'กำลังพิมพ์ใบเสร็จ',
+                                    icon: 'success',
+                                    timer: 800,
+                                    timerProgressBar: true,
+                                    showConfirmButton: false
+                                });
+                                printReceiptAndRedirect(data.print_url);
+                                return;
+                            }
+
                             Swal.fire({
                                 title: 'บันทึกเรียบร้อยแล้ว',
                                 icon: 'success',

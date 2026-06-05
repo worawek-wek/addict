@@ -15,6 +15,9 @@
     </thead>
     <tbody>
         @foreach ($orderRooms as $order)
+            @php
+                $canManage = $order->can_manage ?? false;
+            @endphp
             <tr>
                 <td>{{ $loop->iteration + (($orderRooms->currentPage() - 1) * $orderRooms->perPage()) }}</td>
                 <td>{{ $order->branch->name ?? '-' }}</td>
@@ -34,12 +37,15 @@
                             <ul class="dropdown-menu" aria-labelledby="actionDropdown{{ $order->id }}">
                                 <li><a class="dropdown-item" href="#" onclick="view({{ $order->id }}); return false;">ดู</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="printReceipt({{ $order->id }}); return false;">ปริ้นใบเสร็จ</a></li>
-                                @if ($order->ref_status_id != 4)
+                                @if ($order->ref_status_id != 4 && $canManage)
                                     <li><a class="dropdown-item text-danger" href="#" onclick="cancelOrder({{ $order->id }}); return false;">ยกเลิกการจอง</a></li>
+                                @endif
+                                @if (!$canManage)
+                                    <li><span class="dropdown-item text-muted">ดู/พิมพ์ได้เท่านั้น</span></li>
                                 @endif
                             </ul>
                         </div>
-                        @if (in_array($order->ref_status_id,[1,4]))
+                        @if (in_array($order->ref_status_id,[1,4]) && $canManage)
                             <a href="javascript:;"
                                 class="btn btn-xs rounded-pill btn-danger d-flex align-items-center gap-1 py-1"
                                 onclick='Delete({{ $order->id }})'

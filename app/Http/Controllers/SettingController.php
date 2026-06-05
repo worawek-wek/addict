@@ -58,7 +58,7 @@ class SettingController extends Controller
             $results = $results->Where('floors.id', $request->floor);
         }
 
-        $limit = 15;
+        $limit = 100;
         if(@$request['limit']){
             $limit = $request['limit'];
         }
@@ -140,7 +140,7 @@ class SettingController extends Controller
             $results = $results->Where('floors.id', $request->floor);
         }
 
-        $limit = 15;
+        $limit = 100;
         if(@$request['limit']){
             $limit = $request['limit'];
         }
@@ -423,7 +423,7 @@ class SettingController extends Controller
             $results = $results->Where('floors.id', $request->floor);
         }
 
-        $limit = 15;
+        $limit = 100;
         if(@$request['limit']){
             $limit = $request['limit'];
         }

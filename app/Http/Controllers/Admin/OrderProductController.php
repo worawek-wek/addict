@@ -13,6 +13,7 @@ use App\Models\OrderHasProduct;
 use App\Models\Product;
 use App\Models\StockReadyForSale;
 use App\Models\HistoryStock;
+use App\Support\AdminBusinessDay;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -20,46 +21,14 @@ use Illuminate\Support\Facades\DB;
 
 class OrderProductController extends Controller
 {
-    private const BUSINESS_DAY_START = '10:00';
-    private const BUSINESS_DAY_END = '04:01';
-
     private function currentBusinessDayRange(): array
     {
-        $now = Carbon::now();
-        $endToday = $now->copy()->setTime(4, 1, 59);
-
-        if ($now->lessThanOrEqualTo($endToday)) {
-            return [
-                $now->copy()->subDay()->setTime(10, 0, 0),
-                $endToday,
-            ];
-        }
-
-        return [
-            $now->copy()->setTime(10, 0, 0),
-            $now->copy()->addDay()->setTime(4, 1, 59),
-        ];
+        return AdminBusinessDay::currentRange();
     }
 
     private function isOrderInCurrentBusinessDay(Order $order): bool
     {
-        if ((int) $order->payment_status === 0) {
-            return true;
-        }
-
-        $orderDateTime = $order->paid_at
-            ? Carbon::parse($order->paid_at)
-            : (($order->booking_date && $order->start_time)
-                ? Carbon::parse($order->booking_date . ' ' . $order->start_time)
-                : null);
-
-        if (!$orderDateTime) {
-            return false;
-        }
-
-        [$start, $end] = $this->currentBusinessDayRange();
-
-        return $orderDateTime->between($start, $end, true);
+        return AdminBusinessDay::isOrderInCurrentRange($order, true);
     }
 
     private function rejectIfOrderIsLocked(Order $order)
@@ -76,26 +45,13 @@ class OrderProductController extends Controller
 
     private function productDateRangeFromRequest(): array
     {
-        $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-        $endDate = Carbon::createFromFormat('d/m/Y', request('end_date') ?: request('start_date'))->startOfDay();
-
-        [$sh, $sm] = explode(':', request('start_time_filter', self::BUSINESS_DAY_START));
-        [$eh, $em] = explode(':', request('end_time_filter', self::BUSINESS_DAY_END));
-
-        $startDate->setTime((int) $sh, (int) $sm, 0);
-        $endDate->setTime((int) $eh, (int) $em, 59);
-
-        if ($endDate->lessThanOrEqualTo($startDate)) {
-            $endDate->addDay();
-        }
-
-        return [$startDate, $endDate];
+        return AdminBusinessDay::rangeFromRequest(request());
     }
 
     public function index()
     {
         // โหลดหน้าแรกพร้อมข้อมูลเริ่มต้น
-        $limit = request()->limit ?? 10;
+        $limit = AdminBusinessDay::defaultPerPage(request()->limit);
         // $orderProducts = $this->getOrderProducts($limit);
         $user = Auth::user(); // user ที่ login อยู่
 
@@ -127,7 +83,7 @@ class OrderProductController extends Controller
     public function datatable(Request $request)
     {
 
-        $limit = $request->limit ?? 10;
+        $limit = AdminBusinessDay::defaultPerPage($request->limit);
         $result = $this->getOrderProducts($limit);
         $orderProducts = $result['orderProducts'];
         $check = $result['check'];
@@ -683,7 +639,12 @@ class OrderProductController extends Controller
 
             $order->save();
             DB::commit();
-            return response()->json(['success' => true, 'message' => 'บันทึกเรียบร้อย']);
+            return response()->json([
+                'success' => true,
+                'message' => 'บันทึกเรียบร้อย',
+                'should_print_receipt' => (int) $order->payment_status === 1,
+                'print_url' => route('order-products.slip', $order->id),
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()]);

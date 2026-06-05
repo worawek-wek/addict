@@ -105,7 +105,7 @@ class RoomTypeController extends Controller
         //     $results = $results->where('ref_room_id', $request->ref_room_id);
         // }
 
-        $limit = $request->limit ?? 15;
+        $limit = $request->limit ?? 100;
         $results = $results->paginate($limit);
 
         $data['list_data'] = $results->appends(request()->query());

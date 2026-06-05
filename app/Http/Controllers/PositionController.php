@@ -30,7 +30,7 @@ class PositionController extends Controller
         // if(@$request->brand_name){
         //     $results = $results->Where('brand_name','LIKE','%'.$request->brand_name.'%');
         // }
-        $limit = 15;
+        $limit = 100;
         if(@$request['limit']){
             $limit = $request['limit'];
         }

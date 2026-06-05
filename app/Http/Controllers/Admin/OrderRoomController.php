@@ -15,6 +15,7 @@ use App\Models\ProductType;
 use App\Models\HistoryStock;
 use App\Models\RoomType;
 use App\Models\StockReadyForSale;
+use App\Support\AdminBusinessDay;
 use Illuminate\Http\Request;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Carbon;
@@ -38,7 +39,7 @@ class OrderRoomController extends Controller
             ->get();
 
         // โหลดหน้าแรกพร้อมข้อมูลเริ่มต้น
-        $limit = request()->limit ?? 10;
+        $limit = AdminBusinessDay::defaultPerPage(request()->limit);
         // $orderRooms = $this->getOrderRooms($limit);
         $user = Auth::user(); // user ที่ login อยู่
 
@@ -54,7 +55,7 @@ class OrderRoomController extends Controller
 
     public function datatable(Request $request)
     {
-        $limit = $request->limit ?? 10;
+        $limit = AdminBusinessDay::defaultPerPage($request->limit);
         $childSelect = $request->childselect;
 
         $orderRooms = $this->getOrderRooms($limit, $childSelect);
@@ -69,6 +70,19 @@ class OrderRoomController extends Controller
 
         return view('admin.order-room.datatable', compact('orderRooms', 'branches'));
     }
+
+    private function rejectIfOrderIsLocked(Order $order)
+    {
+        if (AdminBusinessDay::isOrderInCurrentRange($order)) {
+            return null;
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'ไม่สามารถจัดการการจองของรอบวันก่อนหน้าได้',
+        ], 423);
+    }
+
     private function getOrderRooms($limit, $childSelect = null)
     {
         $now = Carbon::now()->format('Y-m-d H:i:s');
@@ -127,44 +141,27 @@ class OrderRoomController extends Controller
 
         // filter by booking_date (date_range, start_date, end_date)
         $dateRange = request('date_range');
-        $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-        $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
         if ($dateRange && $dateRange !== 'custom') {
             // 1, 7, 14, 30 days
             $days = intval($dateRange);
             if ($days > 0) {
-                $from = Carbon::today()->subDays($days - 1)->format('Y-m-d');
-                $to = Carbon::today()->format('Y-m-d');
-                $query->where(function ($q) use ($from, $to) {
-                                                                        $q->whereBetween('booking_date', [$from, $to])
-                                                                            ->orWhere('ref_status_id', 2);
-                                                                    });
+                [$startDate, $endDate] = AdminBusinessDay::rangeForPresetDays($days);
+                $range = AdminBusinessDay::sqlRange([$startDate, $endDate]);
+                $query->where(function ($q) use ($range) {
+                    $q->whereRaw("CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?", $range)
+                        ->orWhere('ref_status_id', 2);
+                });
             }
-        } elseif ($startDate && $endDate) {
-            
-            if (request('start_time_filter')) {
-                [$sh, $sm] = explode(':', request('start_time_filter'));
-                $startDate->setTime((int)$sh, (int)$sm, 0);
-            }
-            if (request('end_time_filter')) {
-                [$eh, $em] = explode(':', request('end_time_filter'));
-                $endDate->setTime((int)$eh, (int)$em, 59);
-            }
-            // return date('d/m/y H:i:s', strtotime($startDate));
+        } else {
+            [$startDate, $endDate] = AdminBusinessDay::rangeFromRequest(request());
             $query->where(function ($q) use ($startDate, $endDate) {
-                                                                        $q->whereRaw(
-                                                                            "CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?",
-                                                                            [
-                                                                                $startDate->format('Y-m-d H:i:s'),
-                                                                                $endDate->format('Y-m-d H:i:s')
-                                                                            ]
-                                                                        )
-                                                                        ->orWhere('ref_status_id', 2);
-                                                                    });
+                $q->whereRaw(
+                    "CONCAT(booking_date, ' ', start_time) BETWEEN ? AND ?",
+                    AdminBusinessDay::sqlRange([$startDate, $endDate])
+                )->orWhere('ref_status_id', 2);
+            });
         }
         
-// http://127.0.0.1:9800/admin/order-rooms/datatable?branch_id=1&date_range=&start_date=05%2F05%2F2026&start_time_filter=10%3A00&end_date=06%2F05%2F2026&end_time_filter=04%3A01&childselect=&limit=25
-// http://127.0.0.1:9800/admin/order-rooms/datatable?branch_id=1&date_range=custom&start_date=01%2F05%2F2026&start_time_filter=10%3A00&end_date=06%2F05%2F2026&end_time_filter=04%3A01&childselect=&limit=25
         $orderRooms = $query->paginate($limit);
 
         // กำหนด badge และ label
@@ -173,6 +170,7 @@ class OrderRoomController extends Controller
         foreach ($orderRooms as $order) {
             $startDateTime = Carbon::parse($order->booking_date . ' ' . $order->start_time);
             $endDateTime   = Carbon::parse($order->booking_date . ' ' . $order->end_time);
+            $order->can_manage = AdminBusinessDay::isOrderInCurrentRange($order);
 
             if (!empty($order->payment_method)) {
                 $order->badge_class = 'bg-info';
@@ -226,6 +224,7 @@ class OrderRoomController extends Controller
 
         $isOngoing  = $now->between($startDateTime, $endDateTime);
         $isOvertime = $now->greaterThan($endDateTime);
+        $orderRoom->can_manage = AdminBusinessDay::isOrderInCurrentRange($orderRoom);
 
         if (!empty($orderRoom->payment_method)) {
             $orderRoom->badge_class = 'bg-info';
@@ -258,6 +257,10 @@ class OrderRoomController extends Controller
         ]);
 
         $order = Order::findOrFail($id);
+        if ($locked = $this->rejectIfOrderIsLocked($order)) {
+            return $locked;
+        }
+
         $order->ref_status_id = $request->status_id;
         $order->save();
 
@@ -538,6 +541,10 @@ class OrderRoomController extends Controller
         ]);
 
         $order = Order::findOrFail($id);
+        if ($locked = $this->rejectIfOrderIsLocked($order)) {
+            return $locked;
+        }
+
         $order->payment_method = $request->payment_method;
 
         // --- คำนวณค่าคอมมิชชั่นพนักงานนวด ---
@@ -655,7 +662,12 @@ class OrderRoomController extends Controller
     public function destroy($id)
     {
         try {
-            Order::destroy($id);
+            $order = Order::findOrFail($id);
+            if ($locked = $this->rejectIfOrderIsLocked($order)) {
+                return $locked;
+            }
+
+            $order->delete();
             DB::commit();
             return true;
         } catch (QueryException $err) {

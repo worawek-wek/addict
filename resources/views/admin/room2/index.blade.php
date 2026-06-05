@@ -251,8 +251,8 @@
                                                 <select onchange='loadData("{{$page_url}}/datatable")' name="limit" class="form-select ms-2 me-2 p_search" style="width:100px">
                                                     <option value="5">5</option>
                                                     <option value="25">25</option>
-                                                    <option value="50" selected >50</option>
-                                                    <option value="100">100</option>
+                                                    <option value="50">50</option>
+                                                    <option value="100" selected>100</option>
                                                 </select>
                                                 <ul class="nav nav-pills" id="pills-tablayout" role="tablist">
                                                     <li class="nav-item me-1" role="presentation">

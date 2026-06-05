@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\OrderStatus;
 use App\Models\Product;
 use App\Models\OrderHasProduct;
+use App\Support\AdminBusinessDay;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -63,7 +64,7 @@ class ReportController extends Controller
     public function stock_history_datatable(Request $request)
     {
 
-        $limit = $request->limit ?? 10;
+        $limit = AdminBusinessDay::defaultPerPage($request->limit);
         $stock_history = $this->getStockProductDatatable($limit, $request);
         // return optional($stock_history[0]->history_stocks->first())->stock_after_quantity;
         return view('admin.report.report-stock-history-datatable', compact('stock_history'));
@@ -150,24 +151,7 @@ class ReportController extends Controller
 
     private function stockHistoryDateRange(Request $request): array
     {
-        if (!$request->filled('start_date')) {
-            $startDate = now()->hour >= 10 ? now()->startOfDay() : now()->subDay()->startOfDay();
-            $endDate = now()->hour >= 10 ? now()->addDay()->endOfDay() : now()->endOfDay();
-        } else {
-            $startDate = Carbon::createFromFormat('d/m/Y', $request->start_date)->startOfDay();
-            $endDate = Carbon::createFromFormat('d/m/Y', $request->end_date ?: $request->start_date)->endOfDay();
-        }
-
-        if ($request->filled('start_time_filter')) {
-            [$sh, $sm] = explode(':', $request->start_time_filter);
-            $startDate->setTime((int)$sh, (int)$sm, 0);
-        }
-        if ($request->filled('end_time_filter')) {
-            [$eh, $em] = explode(':', $request->end_time_filter);
-            $endDate->setTime((int)$eh, (int)$em, 59);
-        }
-
-        return [$startDate, $endDate];
+        return AdminBusinessDay::rangeFromRequest($request);
     }
 
     public function stock_history_pdf(Request $request)
@@ -205,7 +189,7 @@ class ReportController extends Controller
     public function coupon_report_datatable(Request $request)
     {
 
-        $limit = $request->limit ?? 10;
+        $limit = AdminBusinessDay::defaultPerPage($request->limit);
         $orderRooms = $this->CRgetOrderRooms($limit);
         $orderRooms->setCollection(
             $orderRooms->getCollection()->sortBy('created_at')->values()
@@ -284,19 +268,7 @@ class ReportController extends Controller
         }
 
         if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
-            if (request('start_time_filter')) {
-                [$sh, $sm] = explode(':', request('start_time_filter'));
-                $startDate->setTime((int)$sh, (int)$sm, 0);
-            }
-            if (request('end_time_filter')) {
-                [$eh, $em] = explode(':', request('end_time_filter'));
-                $endDate->setTime((int)$eh, (int)$em, 59);
-            }
-            if ($endDate->lessThan($startDate)) {
-                $endDate->addDay();
-            }
+            [$startDate, $endDate] = AdminBusinessDay::rangeFromRequest(request());
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -391,19 +363,7 @@ class ReportController extends Controller
         }
 
         if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
-            if (request('start_time_filter')) {
-                [$sh, $sm] = explode(':', request('start_time_filter'));
-                $startDate->setTime((int)$sh, (int)$sm, 0);
-            }
-            if (request('end_time_filter')) {
-                [$eh, $em] = explode(':', request('end_time_filter'));
-                $endDate->setTime((int)$eh, (int)$em, 59);
-            }
-            if ($endDate->lessThan($startDate)) {
-                $endDate->addDay();
-            }
+            [$startDate, $endDate] = AdminBusinessDay::rangeFromRequest(request());
             $orderRooms->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -447,7 +407,7 @@ class ReportController extends Controller
     public function drink_com_datatable(Request $request)
     {
 
-        $limit = $request->limit ?? 10;
+        $limit = AdminBusinessDay::defaultPerPage($request->limit);
         $orderRooms = $this->DCgetOrderRooms($limit);
 
         $user = Auth::user();
@@ -517,12 +477,7 @@ class ReportController extends Controller
         }
 
         if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
-                ->startOfDay();
-
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
-                ->endOfDay();
-
+            [$startDate, $endDate] = AdminBusinessDay::rangeFromRequest(request());
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -613,12 +568,7 @@ class ReportController extends Controller
         }
 
         if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))
-                ->startOfDay();
-
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))
-                ->endOfDay();
-
+            [$startDate, $endDate] = AdminBusinessDay::rangeFromRequest(request());
             $orderRooms->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -651,7 +601,7 @@ class ReportController extends Controller
     public function oversee_employee_datatable(Request $request)
     {
 
-        $limit = $request->limit ?? 10;
+        $limit = AdminBusinessDay::defaultPerPage($request->limit);
         $orderRooms = $this->OEgetOrderRooms($limit);
 
 
@@ -717,16 +667,7 @@ class ReportController extends Controller
         }
 
         if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
-            if (request('start_time_filter')) {
-                [$sh, $sm] = explode(':', request('start_time_filter'));
-                $startDate->setTime((int)$sh, (int)$sm, 0);
-            }
-            if (request('end_time_filter')) {
-                [$eh, $em] = explode(':', request('end_time_filter'));
-                $endDate->setTime((int)$eh, (int)$em, 59);
-            }
+            [$startDate, $endDate] = AdminBusinessDay::rangeFromRequest(request());
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -815,16 +756,7 @@ class ReportController extends Controller
         }
 
         if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
-            if (request('start_time_filter')) {
-                [$sh, $sm] = explode(':', request('start_time_filter'));
-                $startDate->setTime((int)$sh, (int)$sm, 0);
-            }
-            if (request('end_time_filter')) {
-                [$eh, $em] = explode(':', request('end_time_filter'));
-                $endDate->setTime((int)$eh, (int)$em, 59);
-            }
+            [$startDate, $endDate] = AdminBusinessDay::rangeFromRequest(request());
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
         $data['orderRooms'] = $query->get();
@@ -861,7 +793,7 @@ class ReportController extends Controller
     }
     public function monthly_sale_datatable(Request $request)
     {
-        $limit = $request->limit ?? 10;
+        $limit = AdminBusinessDay::defaultPerPage($request->limit);
         $orderRooms = $this->getOrderRooms($limit);
 
         $user = Auth::user();
@@ -986,16 +918,7 @@ class ReportController extends Controller
         }
 
         if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
-            if (request('start_time_filter')) {
-                [$sh, $sm] = explode(':', request('start_time_filter'));
-                $startDate->setTime((int)$sh, (int)$sm, 0);
-            }
-            if (request('end_time_filter')) {
-                [$eh, $em] = explode(':', request('end_time_filter'));
-                $endDate->setTime((int)$eh, (int)$em, 59);
-            }
+            [$startDate, $endDate] = AdminBusinessDay::rangeFromRequest(request());
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -1101,16 +1024,7 @@ class ReportController extends Controller
         }
 
         if (request('start_date')) {
-            $startDate = Carbon::createFromFormat('d/m/Y', request('start_date'))->startOfDay();
-            $endDate   = Carbon::createFromFormat('d/m/Y', request('end_date'))->endOfDay();
-            if (request('start_time_filter')) {
-                [$sh, $sm] = explode(':', request('start_time_filter'));
-                $startDate->setTime((int)$sh, (int)$sm, 0);
-            }
-            if (request('end_time_filter')) {
-                [$eh, $em] = explode(':', request('end_time_filter'));
-                $endDate->setTime((int)$eh, (int)$em, 59);
-            }
+            [$startDate, $endDate] = AdminBusinessDay::rangeFromRequest(request());
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -1133,8 +1047,8 @@ class ReportController extends Controller
         $data['summary_receive_price_after_discount'] = $nonCancelledOrders->sum('total_price');
         $data['report_start_date'] = request('start_date') ?? date('d/m/Y');
         $data['report_end_date']   = request('end_date')   ?? date('d/m/Y');
-        $data['report_start_time'] = request('start_time_filter') ?? '00:00';
-        $data['report_end_time']   = request('end_time_filter')   ?? '23:59';
+        $data['report_start_time'] = request('start_time_filter') ?? AdminBusinessDay::START_TIME;
+        $data['report_end_time']   = request('end_time_filter')   ?? AdminBusinessDay::END_TIME;
         $data['summary_type_payment_cash'] = $nonCancelledOrders->where('payment_method', 'cash')->sum('total_price');
         $data['summary_type_payment_credit'] = $nonCancelledOrders->where('payment_method', 'credit_card')->sum('total_price');
         $data['summary_type_payment_transfer'] = $nonCancelledOrders->where('payment_method', 'qr_code')->sum('total_price');

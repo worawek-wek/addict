@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Drink;
 use App\Models\DrinkStockReadyForSale;
 use App\Models\DrinkCardStocks;
+use App\Support\AdminBusinessDay;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
@@ -57,7 +58,7 @@ class DrinkController extends Controller
         }
         // ถ้าไม่ส่ง ref_branch_id หรือเป็น all → ข้าม ไม่ filter
 
-        $limit = $request->limit ?? 15;
+        $limit = $request->limit ?? AdminBusinessDay::DEFAULT_PER_PAGE;
 
         $results = $results->paginate($limit);
 
@@ -136,8 +137,8 @@ class DrinkController extends Controller
         }
         
         if (@$request->created_at) {
-            $created_at = Carbon::createFromFormat('d/m/Y', $request->created_at)->format('Y-m-d');
-            $results = $results->WhereDate('drink_card_stocks.created_at', $created_at);
+            [$startDate, $endDate] = AdminBusinessDay::singleDateRange($request->created_at);
+            $results = $results->whereBetween('drink_card_stocks.created_at', [$startDate, $endDate]);
         }
 
         if (request()->filled('search')) {
@@ -155,7 +156,7 @@ class DrinkController extends Controller
         // if(@$request->brand_name){
         //     $results = $results->Where('brand_name','LIKE','%'.$request->brand_name.'%');
         // }
-        $limit = 15;
+        $limit = 100;
         if (@$request['limit']) {
             $limit = $request['limit'];
         }

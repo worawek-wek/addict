@@ -108,9 +108,9 @@
                                                                 <option value="7">7</option>
                                                                 <option value="10">10</option>
                                                                 <option value="20">20</option>
-                                                                <option value="50" selected>50</option>
+                                                                <option value="50">50</option>
                                                                 <option value="70">70</option>
-                                                                <option value="100">100</option>
+                                                                <option value="100" selected>100</option>
                                                             </select>
                                                         </label>
                                                     </div>
@@ -124,13 +124,13 @@
                                                             class="dataTables_filter mx-n2 me-2">
                                                             <input name="start_date" id="start_date" type="text"
                                                                     class="form-control p_search search_date"
-                                                                    value="{{ now()->hour >= 10 ? now()->format('d/m/Y') : now()->subDay()->format('d/m/Y') }}">
+                                                                    value="{{ \App\Support\AdminBusinessDay::currentRange()[0]->format('d/m/Y') }}">
 
                                                         </div>
                                                         <div class="dataTables_filter mx-n2 me-1">
                                                             <input name="start_time_filter" id="start_time_filter"
                                                                 type="time" class="form-control p_search"
-                                                                value="10:00">
+                                                                value="{{ \App\Support\AdminBusinessDay::START_TIME }}">
                                                         </div>
                                                         <label class="me-3">ถึงวันที่:</label>
                                                         <div
@@ -139,13 +139,13 @@
                                                                 class="dataTables_filter mx-n2 me-2">
                                                                 <input name="end_date" id="end_date" type="text"
                                                                         class="form-control p_search search_date"
-                                                                        value="{{ now()->hour >= 10 ? now()->addDay()->format('d/m/Y') : now()->format('d/m/Y') }}">
+                                                                        value="{{ \App\Support\AdminBusinessDay::currentRange()[1]->format('d/m/Y') }}">
 
                                                             </div>
                                                             <div class="dataTables_filter mx-n2 me-1">
                                                                 <input name="end_time_filter" id="end_time_filter"
                                                                     type="time" class="form-control p_search"
-                                                                    value="04:01">
+                                                                    value="{{ \App\Support\AdminBusinessDay::END_TIME }}">
                                                             </div>
                                                             {{-- <div class="d-flex align-items-baseline ms-1 me-3">
                                                                 <label class="me-2">User</label>
