@@ -558,6 +558,39 @@ class OrderProductController extends Controller
 
             }
 
+            $requestedQtyByProduct = [];
+            foreach ($items as $item) {
+                $productId = $item['product_id'] ?? null;
+                if (!$productId) {
+                    continue;
+                }
+
+                $requestedQtyByProduct[$productId] = ($requestedQtyByProduct[$productId] ?? 0)
+                    + (int) ($item['qty'] ?? $item['quantity'] ?? 1);
+            }
+
+            foreach ($requestedQtyByProduct as $productId => $quantity) {
+                if ($quantity <= 0) {
+                    continue;
+                }
+
+                $product = Product::find($productId);
+                if (!$product) {
+                    throw new \Exception("ไม่พบสินค้า ID: " . $productId);
+                }
+
+                $stock = StockReadyForSale::where('ref_product_id', $productId)
+                    ->where('remain', '>', 0)
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$stock || $stock->remain < $quantity) {
+                    $remain = $stock->remain ?? 0;
+                    throw new \Exception("{$product->name} สต็อกพร้อมขายไม่พอ (lot ที่จะตัดเหลือ {$remain}, ต้องการ {$quantity}) กรุณาเบิกสินค้าเข้าพร้อมขายก่อน");
+                }
+            }
+
             //clear old items
             $order->products()->delete();
 
@@ -590,10 +623,17 @@ class OrderProductController extends Controller
                         'cost'           => 0.00,
                     ]);
                     // Decrement stock for the newly added item
-                    StockReadyForSale::where('ref_product_id', $product->id)
-                                        ->orderByDesc('id')
-                                        ->limit(1)
-                                        ->decrement('remain', $quantity);
+                    $stock = StockReadyForSale::where('ref_product_id', $product->id)
+                        ->where('remain', '>', 0)
+                        ->orderBy('id')
+                        ->lockForUpdate()
+                        ->first();
+                    if (!$stock || $stock->remain < $quantity) {
+                        $remain = $stock->remain ?? 0;
+                        throw new \Exception("{$product->name} สต็อกพร้อมขายไม่พอ (lot ที่จะตัดเหลือ {$remain}, ต้องการ {$quantity}) กรุณาเบิกสินค้าเข้าพร้อมขายก่อน");
+                    }
+                    $stock->remain -= $quantity;
+                    $stock->save();
                     $order->total_price += $totalPrice;
 
                 // ดึง สินค้า หลัง เพิ่มสต็อก {

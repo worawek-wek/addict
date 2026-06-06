@@ -414,7 +414,7 @@
                                                 <!-- ชำระแล้ว -->
                                                 <div class="col-md-6">
                                                     <input type="radio" class="btn-check" name="payment_status"
-                                                        id="status-paid" value="1" checked>
+                                                        id="status-paid" value="1">
 
                                                     <label class="card payment-card text-center p-3" for="status-paid">
                                                         <i class="bi bi-check-circle-fill fs-1 text-success"></i>
@@ -425,7 +425,7 @@
                                                 <!-- ค้างชำระ -->
                                                 <div class="col-md-6">
                                                     <input type="radio" class="btn-check" name="payment_status"
-                                                        id="status-pending" value="0">
+                                                        id="status-pending" value="0" checked>
 
                                                     <label class="card payment-card text-center p-3"
                                                         for="status-pending">
@@ -444,7 +444,7 @@
                                                 <!-- เงินสด -->
                                                 <div class="col-md-6">
                                                     <input type="radio" class="btn-check payment-method"
-                                                        name="payment_method" id="pay-cash" value="cash" checked>
+                                                        name="payment_method" id="pay-cash" value="cash">
                                                     <label class="card payment-card text-center p-3" for="pay-cash">
                                                         <i class="bi bi-cash-coin fs-1 text-success"></i>
                                                         <div class="mt-2 fw-bold">เงินสด</div>
@@ -754,10 +754,12 @@
                                         location.reload();
                                     }
                                 });
+                            } else {
+                                Swal.fire('เกิดข้อผิดพลาด', response.message || '', 'error');
                             }
                         },
                         error: function(error) {
-                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                            Swal.fire('เกิดข้อผิดพลาด', error.responseJSON?.message || '', 'error');
                             console.error('เกิดข้อผิดพลาด:', error);
                         }
                     });

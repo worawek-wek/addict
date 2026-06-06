@@ -733,7 +733,7 @@
                             }
                         },
                         error: function(error) {
-                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                            Swal.fire('เกิดข้อผิดพลาด', error.responseJSON?.message || '', 'error');
                             console.error('เกิดข้อผิดพลาด:', error);
                         }
                     });

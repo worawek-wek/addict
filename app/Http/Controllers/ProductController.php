@@ -322,19 +322,24 @@ class ProductController extends Controller
             $product = Product::find($request->ref_product_id);
             $main_stock_remain = $product->total_remain ?? 0;
             $ready_for_sale_remain = $product->ready_for_sale_total_remain ?? 0;
+            $withdrawQty = (int) $request->qty;
 
 //////////////////////////////////////////////////
 
-            $card_stocks = CardStocks::find($request->ref_lot_id);
-            $card_stocks->remain = $card_stocks->remain-$request->qty;
+            $card_stocks = CardStocks::lockForUpdate()->find($request->ref_lot_id);
+            if (!$card_stocks || $card_stocks->remain < $withdrawQty) {
+                throw new Exception('สต็อกหลักไม่พอสำหรับเบิกสินค้า');
+            }
+
+            $card_stocks->remain = $card_stocks->remain - $withdrawQty;
             $card_stocks->save();
 
-            $product = new StockReadyForSale;
-            $product->ref_product_id = $request->ref_product_id;
-            $product->ref_lot_id = $request->ref_lot_id;
-            $product->qty = $request->qty;
-            $product->remain = $request->qty;
-            $product->save();
+            $readyStock = new StockReadyForSale;
+            $readyStock->ref_product_id = $request->ref_product_id;
+            $readyStock->ref_lot_id = $request->ref_lot_id;
+            $readyStock->qty = $withdrawQty;
+            $readyStock->remain = $withdrawQty;
+            $readyStock->save();
             
 //////////////////////////////////////////////////
 
@@ -348,7 +353,7 @@ class ProductController extends Controller
                 $history_stock->quantity = 0; // จำนวนที่เคลื่อนไหว
                 $history_stock->stock_before_quantity = $main_stock_remain; // จำนวน ก่อน ตัดสต็อก
                 $history_stock->stock_after_quantity = $new_main_stock_remain; // จำนวน หลัง ตัดสต็อก
-                $history_stock->withdraw_quantity = $request->qty; // จำนวน ก่อน ตัดสต็อก 
+                $history_stock->withdraw_quantity = $withdrawQty; // จำนวน ก่อน ตัดสต็อก
                 $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
                 $history_stock->stock_ready_for_sale_before_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
                 $history_stock->quantity_type = 0; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
@@ -364,6 +369,12 @@ class ProductController extends Controller
                 'message' => 'บันทึกไม่สำเร็จ',
                 'error'   => $err->getMessage()
             ], 500);
+        } catch (Exception $err) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $err->getMessage(),
+            ], 422);
         }
         //
     }

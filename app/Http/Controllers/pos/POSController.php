@@ -451,6 +451,32 @@ class POSController extends Controller
         //     }
         // return $request->input('type');
         $mama_id = $request->input('mama_id');
+
+        foreach ($request->qty ?? [] as $id => $q) {
+            $q = (int) $q;
+            if ($q <= 0) {
+                continue;
+            }
+
+            $product = Product::find($id);
+            if (!$product) {
+                continue;
+            }
+
+            $stock = StockReadyForSale::where('ref_product_id', $id)
+                ->where('remain', '>', 0)
+                ->orderBy('id')
+                ->first();
+
+            if (!$stock || $stock->remain < $q) {
+                $remain = $stock->remain ?? 0;
+                return response()->json([
+                    'status' => false,
+                    'message' => "{$product->name} สต็อกพร้อมขายไม่พอ (lot ที่จะตัดเหลือ {$remain}, ต้องการ {$q}) กรุณาเบิกสินค้าเข้าพร้อมขายก่อน",
+                ], 422);
+            }
+        }
+
         $order = Order::createWithGeneratedOrderNumber([
             'type'      => $request->input('type') ?? 1,
             'ref_branch_id'      => Auth::user()->ref_branch_id,
@@ -591,6 +617,7 @@ class POSController extends Controller
         $grouped_products = [];
         if (!empty($request->qty)) {
             foreach ($request->qty as $id => $q) {
+                $q = (int) $q;
                 if ($q == 0 || $q == null) {
                     continue;
                 }
@@ -605,8 +632,17 @@ class POSController extends Controller
                 $price = $customerType == 1 ? $product->price_staff : $product->price;
 
                 $stock = StockReadyForSale::where('ref_product_id', $id)
-                    ->where('remain', '!=', 0)
+                    ->where('remain', '>', 0)
+                    ->orderBy('id')
                     ->first();
+
+                if (!$stock || $stock->remain < $q) {
+                    $remain = $stock->remain ?? 0;
+                    return response()->json([
+                        'status' => false,
+                        'message' => "{$product->name} สต็อกพร้อมขายไม่พอ (lot ที่จะตัดเหลือ {$remain}, ต้องการ {$q}) กรุณาเบิกสินค้าเข้าพร้อมขายก่อน",
+                    ], 422);
+                }
 
                 $product_cost = 0;
                 if ($stock) {
@@ -615,8 +651,7 @@ class POSController extends Controller
                         $product_cost = $main_stock->cost_price / $main_stock->quantity;
                     }
 
-                    $newRemain = max(0, $stock->remain - $q);
-                    $stock->remain = $newRemain;
+                    $stock->remain -= $q;
                     $stock->save();
                 }
 

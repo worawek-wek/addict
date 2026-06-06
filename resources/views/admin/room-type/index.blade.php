@@ -221,20 +221,20 @@
                         @foreach ($course as $course_item)
                             <div class="col-sm-4 course-item course{{$course_item->ref_branch_id}}">
                                 <label class="form-label">{{ $course_item->name }} *</label>
-                                <input name="course[{{$course_item->id}}][price]" type="number" class="form-control"
-                                    placeholder="{{ $course_item->name }}" required />
+                                <input name="course[{{$course_item->id}}][price]" type="number" step="any" class="form-control"
+                                    placeholder="{{ $course_item->name }}" value="0.00" required />
                             </div>
 
                             <div class="col-sm-4 course-item course{{$course_item->ref_branch_id}}">
                                 <label class="form-label">ค่ามือ</label>
-                                <input name="course[{{$course_item->id}}][commission]" type="number" class="form-control"
-                                    placeholder="ค่ามือ" />
+                                <input name="course[{{$course_item->id}}][commission]" type="number" step="any" class="form-control"
+                                    placeholder="ค่ามือ" value="0.00" />
                             </div>
 
                             <div class="col-sm-4 course-item course{{$course_item->ref_branch_id}}">
                                 <label class="form-label">คูปอง</label>
-                                <input name="course[{{$course_item->id}}][coupon]" type="number" class="form-control"
-                                    placeholder="คูปอง" />
+                                <input name="course[{{$course_item->id}}][coupon]" type="number" step="any" class="form-control"
+                                    placeholder="คูปอง" value="0.00" />
                             </div>
                         @endforeach
 
