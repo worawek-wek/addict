@@ -1,4 +1,6 @@
 {{-- {{dd($list_data['to'])}} --}}
+@include('admin.report.partials.selected-date-range')
+
 <table class="datatables-basic table dataTable no-footer dtr-column" id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info">
     <thead class="border-top">
         <tr class=" table-info">

@@ -296,39 +296,22 @@
     });
 
     function finishService() {
-        Swal.fire({
-            title: 'ยืนยันการเปลี่ยนสถานะ?',
-            text: "คุณแน่ใจหรือไม่ที่ Check Out",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'ใช่, เปลี่ยนเลย',
-            cancelButtonText: 'ยกเลิก'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                fetch(`/admin/order-rooms/{{ $orderRoom->id }}/status`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        status_id: 3
-                    })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire('สำเร็จ!', "สถานะถูกเปลี่ยนเป็น " + data.status, 'success')
-                            .then(() => location.reload());
-                    } else {
-                        Swal.fire('ผิดพลาด!', data.message || 'ไม่สามารถเปลี่ยนสถานะได้', 'error');
-                        selectEl.value = originalStatusId;
-                    }
-                });
+        fetch(`/admin/order-rooms/{{ $orderRoom->id }}/status`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                status_id: 3
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
             } else {
-                selectEl.value = originalStatusId;
+                alert(data.message || 'ไม่สามารถเปลี่ยนสถานะได้');
             }
         });
     }

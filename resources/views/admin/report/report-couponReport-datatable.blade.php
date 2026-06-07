@@ -3,7 +3,34 @@
     $globalIndex = ($orderRooms->currentPage() - 1) * $orderRooms->perPage();
     $grandCommission = 0;
     $grandCount = 0;
+    $formatCourseDuration = function ($course) {
+        $minutes = (int) ($course->minute ?? 0);
+
+        if ($minutes <= 0 && preg_match('/(\d+)/', $course->name ?? '', $matches)) {
+            $minutes = (int) $matches[1];
+        }
+
+        if ($minutes <= 0) {
+            return '-';
+        }
+
+        $hours = intdiv($minutes, 60);
+        $remainingMinutes = $minutes % 60;
+        $parts = [];
+
+        if ($hours > 0) {
+            $parts[] = $hours . ' ชม.';
+        }
+
+        if ($remainingMinutes > 0) {
+            $parts[] = $remainingMinutes . ' นาที';
+        }
+
+        return implode(' ', $parts);
+    };
 @endphp
+
+@include('admin.report.partials.selected-date-range')
 
 @if ($orderRooms->isEmpty())
     <div class="text-center py-4">ไม่มีข้อมูล</div>
@@ -31,7 +58,7 @@
                     <th style="width:9%;">วันที่</th>
                     <th style="width:7%;">เวลา</th>
                     <th style="width:30%;">ชื่อพนักงาน + คอร์ส</th>
-                    <th style="width:8%;">ชม.</th>
+                    <th style="width:8%;">เวลาคอร์ส</th>
                     <th style="width:10%; text-align:right;">คอมมิชชั่น</th>
                     <th style="width:20%;">ชื่อผู้ดูแล</th>
                 </tr>
@@ -56,13 +83,7 @@
 
                         $groupCommission += $commission;
 
-                        $start  = \Carbon\Carbon::parse($order->start_time);
-                        $end    = \Carbon\Carbon::parse($order->end_time);
-                        $diff   = $start->diff($end);
-                        $durStr = '';
-                        if ($diff->h > 0) $durStr .= $diff->h . ' ชม. ';
-                        if ($diff->i > 0) $durStr .= $diff->i . ' นาที';
-                        $durStr = trim($durStr) ?: '-';
+                        $durStr = $formatCourseDuration($order->course);
                     @endphp
                     <tr>
                         <td>{{ $globalIndex }}</td>

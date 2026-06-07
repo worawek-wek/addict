@@ -48,6 +48,100 @@ class OrderProductController extends Controller
         return AdminBusinessDay::rangeFromRequest(request());
     }
 
+    private function restoreProductReadyStock(int $productId, int $quantity): void
+    {
+        if ($quantity <= 0) {
+            return;
+        }
+
+        $product = Product::find($productId);
+        if (!$product) {
+            throw new \Exception("ไม่พบสินค้า ID: " . $productId);
+        }
+
+        $mainStockRemain = $product->total_remain ?? 0;
+        $readyForSaleRemain = $product->ready_for_sale_total_remain ?? 0;
+
+        $stock = StockReadyForSale::where('ref_product_id', $productId)
+            ->orderByDesc('id')
+            ->lockForUpdate()
+            ->first();
+
+        if (!$stock) {
+            throw new \Exception("ไม่พบสต็อกพร้อมขายของสินค้า: {$product->name}");
+        }
+
+        $stock->remain += $quantity;
+        $stock->save();
+
+        $newProduct = Product::find($productId);
+        $newMainStockRemain = $newProduct->total_remain ?? 0;
+        $newReadyForSaleRemain = $newProduct->ready_for_sale_total_remain ?? 0;
+
+        $historyStock = new HistoryStock;
+        $historyStock->ref_product_id = $productId;
+        $historyStock->quantity = 0 - $quantity;
+        $historyStock->stock_before_quantity = $mainStockRemain;
+        $historyStock->stock_after_quantity = $newMainStockRemain;
+        $historyStock->stock_ready_for_sale_before_quantity = $readyForSaleRemain;
+        $historyStock->stock_ready_for_sale_after_quantity = $newReadyForSaleRemain;
+        $historyStock->quantity_type = 0;
+        $historyStock->withdraw_quantity = 0;
+        $historyStock->save();
+    }
+
+    private function assertProductReadyStockEnough(Product $product, int $quantity): void
+    {
+        if ($quantity <= 0) {
+            return;
+        }
+
+        $readyRemain = (int) StockReadyForSale::where('ref_product_id', $product->id)->sum('remain');
+
+        if ($readyRemain < $quantity) {
+            throw new \Exception("{$product->name} สต็อกพร้อมขายไม่พอ (คงเหลือ {$readyRemain}, ต้องการ {$quantity}) กรุณาเบิกสินค้าเข้าพร้อมขายก่อน");
+        }
+    }
+
+    private function decreaseProductReadyStock(Product $product, int $quantity): void
+    {
+        if ($quantity <= 0) {
+            return;
+        }
+
+        $stocks = StockReadyForSale::where('ref_product_id', $product->id)
+            ->where('remain', '>', 0)
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
+
+        $readyRemain = (int) $stocks->sum('remain');
+        if ($readyRemain < $quantity) {
+            throw new \Exception("{$product->name} สต็อกพร้อมขายไม่พอ (คงเหลือ {$readyRemain}, ต้องการ {$quantity}) กรุณาเบิกสินค้าเข้าพร้อมขายก่อน");
+        }
+
+        $remaining = $quantity;
+        foreach ($stocks as $stock) {
+            if ($remaining <= 0) {
+                break;
+            }
+
+            $deductQty = min($remaining, (int) $stock->remain);
+            if ($deductQty <= 0) {
+                continue;
+            }
+
+            $stock->remain -= $deductQty;
+            $stock->save();
+
+            $remaining -= $deductQty;
+        }
+
+        if ($remaining > 0) {
+            throw new \Exception("{$product->name} สต็อกพร้อมขายไม่พอ (คงเหลือ {$readyRemain}, ต้องการ {$quantity}) กรุณาเบิกสินค้าเข้าพร้อมขายก่อน");
+        }
+    }
+
     public function index()
     {
         // โหลดหน้าแรกพร้อมข้อมูลเริ่มต้น
@@ -212,61 +306,43 @@ class OrderProductController extends Controller
             'status_id' => 'required|exists:order_status,id'
         ]);
 
-        $order = Order::findOrFail($id);
-        if ($locked = $this->rejectIfOrderIsLocked($order)) {
-            return $locked;
-        }
+        try {
+            DB::beginTransaction();
 
-        $isCancelling = (int) $request->ref_status_id === 4 && (int) $order->ref_status_id !== 4;
-
-        $order->payment_status = $request->status_id;
-        $order->ref_status_id = $request->ref_status_id;
-        if ((int) $request->status_id === 1 && !$order->paid_at) {
-            $order->paid_at = now();
-        }
-        $order->save();
-
-        
-        if ($isCancelling) {
-            foreach ($order->products as $product) {
-
-            // ดึง สินค้า ก่อน เพิ่มสต็อก {
-                $old_product = Product::find($product->ref_product_id); // ดึง สินค้า ก่อน เพิ่มสต็อก
-                $main_stock_remain = $old_product->total_remain ?? 0;
-                $ready_for_sale_remain = $old_product->ready_for_sale_total_remain ?? 0;
-            // ดึง สินค้า ก่อน เพิ่มสต็อก }
-            
-                StockReadyForSale::where('ref_product_id', $product->ref_product_id)
-                    ->orderByDesc('id')
-                    ->limit(1)
-                    ->increment('remain', $product->quantity);
-
-            // ดึง สินค้า หลัง เพิ่มสต็อก {
-                $new_product = Product::find($product->ref_product_id);
-                $new_main_stock_remain = $new_product->total_remain ?? 0;
-                $new_ready_for_sale_remain = $new_product->ready_for_sale_total_remain ?? 0;
-            // ดึง สินค้า หลัง เพิ่มสต็อก }
-
-            // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> คืนสต็อกขาย {
-                $history_stock = new HistoryStock;
-                $history_stock->ref_product_id = $product->ref_product_id; // id สินค้า
-                $history_stock->quantity = $product->quantity; // จำนวนที่เคลื่อนไหว
-                $history_stock->stock_before_quantity = $main_stock_remain; // จำนวน ก่อน ตัดสต็อก
-                $history_stock->stock_after_quantity = $new_main_stock_remain; // จำนวน หลัง ตัดสต็อก
-                $history_stock->stock_ready_for_sale_before_quantity = $ready_for_sale_remain; // จำนวน ก่อน ตัดสต็อก
-                $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
-                $history_stock->quantity_type = 1; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
-                $history_stock->withdraw_quantity = 0;
-                $history_stock->save();
-            // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> คืนสต็อกขาย }
+            $order = Order::lockForUpdate()->findOrFail($id);
+            if ($locked = $this->rejectIfOrderIsLocked($order)) {
+                DB::rollBack();
+                return $locked;
             }
-        }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'อัปเดตสถานะเรียบร้อยแล้ว',
-            'status'  => $order->status->name
-        ]);
+            $isCancelling = (int) $request->ref_status_id === 4 && (int) $order->ref_status_id !== 4;
+
+            $order->payment_status = $request->status_id;
+            $order->ref_status_id = $request->ref_status_id;
+            if ((int) $request->status_id === 1 && !$order->paid_at) {
+                $order->paid_at = now();
+            }
+            $order->save();
+
+            if ($isCancelling) {
+                foreach ($order->products as $product) {
+                    $this->restoreProductReadyStock($product->ref_product_id, (int) $product->quantity);
+                }
+            }
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'อัปเดตสถานะเรียบร้อยแล้ว',
+                'status'  => $order->status->name
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage(),
+            ], 500);
+        }
     }
     public function pdf(Request $request, $daily_sales_closure_id = null)
     {
@@ -525,37 +601,7 @@ class OrderProductController extends Controller
 
             // Restore stock for all existing order items before deleting them
             foreach ($order->products as $oldItem) {
-
-            // ดึง สินค้า ก่อน เพิ่มสต็อก {
-                $old_product = Product::find($oldItem->ref_product_id); // ดึง สินค้า ก่อน เพิ่มสต็อก
-                $main_stock_remain = $old_product->total_remain ?? 0;
-                $ready_for_sale_remain = $old_product->ready_for_sale_total_remain ?? 0;
-            // ดึง สินค้า ก่อน เพิ่มสต็อก }
-
-                StockReadyForSale::where('ref_product_id', $oldItem->ref_product_id)
-                                    ->orderByDesc('id')
-                                    ->limit(1)
-                                    ->increment('remain', $oldItem->quantity);
-
-            // ดึง สินค้า หลัง เพิ่มสต็อก {
-                $new_product = Product::find($oldItem->ref_product_id);
-                $new_main_stock_remain = $new_product->total_remain ?? 0;
-                $new_ready_for_sale_remain = $new_product->ready_for_sale_total_remain ?? 0;
-            // ดึง สินค้า หลัง เพิ่มสต็อก }
-
-            // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> คืนสต็อกขาย {
-                $history_stock = new HistoryStock;
-                $history_stock->ref_product_id = $oldItem->ref_product_id; // id สินค้า
-                $history_stock->quantity = 0-$oldItem->quantity; // จำนวนที่เคลื่อนไหว
-                $history_stock->stock_before_quantity = $new_main_stock_remain; // จำนวน ก่อน ตัดสต็อก
-                $history_stock->stock_after_quantity = $new_main_stock_remain; // จำนวน หลัง ตัดสต็อก
-                $history_stock->stock_ready_for_sale_before_quantity = $ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
-                $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
-                $history_stock->quantity_type = 0; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
-                $history_stock->withdraw_quantity = 0;
-                $history_stock->save();
-            // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> คืนสต็อกขาย }
-
+                $this->restoreProductReadyStock($oldItem->ref_product_id, (int) $oldItem->quantity);
             }
 
             $requestedQtyByProduct = [];
@@ -579,16 +625,7 @@ class OrderProductController extends Controller
                     throw new \Exception("ไม่พบสินค้า ID: " . $productId);
                 }
 
-                $stock = StockReadyForSale::where('ref_product_id', $productId)
-                    ->where('remain', '>', 0)
-                    ->orderBy('id')
-                    ->lockForUpdate()
-                    ->first();
-
-                if (!$stock || $stock->remain < $quantity) {
-                    $remain = $stock->remain ?? 0;
-                    throw new \Exception("{$product->name} สต็อกพร้อมขายไม่พอ (lot ที่จะตัดเหลือ {$remain}, ต้องการ {$quantity}) กรุณาเบิกสินค้าเข้าพร้อมขายก่อน");
-                }
+                $this->assertProductReadyStockEnough($product, $quantity);
             }
 
             //clear old items
@@ -622,18 +659,8 @@ class OrderProductController extends Controller
                         'total_price'    => $totalPrice,
                         'cost'           => 0.00,
                     ]);
-                    // Decrement stock for the newly added item
-                    $stock = StockReadyForSale::where('ref_product_id', $product->id)
-                        ->where('remain', '>', 0)
-                        ->orderBy('id')
-                        ->lockForUpdate()
-                        ->first();
-                    if (!$stock || $stock->remain < $quantity) {
-                        $remain = $stock->remain ?? 0;
-                        throw new \Exception("{$product->name} สต็อกพร้อมขายไม่พอ (lot ที่จะตัดเหลือ {$remain}, ต้องการ {$quantity}) กรุณาเบิกสินค้าเข้าพร้อมขายก่อน");
-                    }
-                    $stock->remain -= $quantity;
-                    $stock->save();
+                    // Decrement ready stock across available ready-for-sale rows.
+                    $this->decreaseProductReadyStock($product, $quantity);
                     $order->total_price += $totalPrice;
 
                 // ดึง สินค้า หลัง เพิ่มสต็อก {
@@ -693,21 +720,33 @@ class OrderProductController extends Controller
 
     public function removeProduct(Request $request, $id, $productId)
     {
-        $order = Order::findOrFail($id);
-        if ($locked = $this->rejectIfOrderIsLocked($order)) {
-            return $locked;
-        }
+        try {
+            DB::beginTransaction();
 
-        $row = $order->products()->where('ref_product_id', $productId)->first();
-        if ($row) {
-            StockReadyForSale::where('ref_product_id', $productId)
-                ->orderByDesc('id')->limit(1)->increment('remain', $row->quantity);
-            $row->delete();
-            $total = $order->products()->sum(DB::raw('price * quantity'));
-            $order->total_price = $total;
-            $order->save();
+            $order = Order::lockForUpdate()->findOrFail($id);
+            if ($locked = $this->rejectIfOrderIsLocked($order)) {
+                DB::rollBack();
+                return $locked;
+            }
+
+            $row = $order->products()->where('ref_product_id', $productId)->first();
+            if ($row) {
+                $this->restoreProductReadyStock($productId, (int) $row->quantity);
+                $row->delete();
+                $total = $order->products()->sum(DB::raw('price * quantity'));
+                $order->total_price = $total;
+                $order->save();
+            }
+
+            DB::commit();
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage(),
+            ], 500);
         }
-        return response()->json(['success' => true]);
     }
     public function updatePaymentMethod(Request $request, $id)
     {

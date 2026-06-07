@@ -149,7 +149,7 @@
                                                                     class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
                                                                     tabindex="0" aria-controls="DataTables_Table_0"
                                                                     type="button" onclick="printPdf()"
-                                                                    id ='printPdfButton' {{-- onclick="window.open('/admin/report/coupon-report/pdf', '_blank');" --}}>
+                                                                    id ='printPdfButton' {{-- onclick="window.open('/admin/report/drink-com/pdf', '_blank');" --}}>
                                                                     <span>
                                                                         <i class="ti ti-file-upload me-0 me-sm-1"></i>
                                                                         <span class="d-none d-sm-inline-block">พิมพ์
@@ -223,7 +223,7 @@
         let queryString = $.param(searchData);
 
         window.open(
-            '/admin/report/coupon-report/pdf?' + queryString,
+            '/admin/report/drink-com/pdf?' + queryString,
             '_blank'
         );
     }

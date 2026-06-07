@@ -83,6 +83,48 @@ class OrderRoomController extends Controller
         ], 423);
     }
 
+    private function restoreProductReadyStock(int $productId, int $quantity): void
+    {
+        if ($quantity <= 0) {
+            return;
+        }
+
+        $product = Product::find($productId);
+        if (!$product) {
+            throw new \Exception("ไม่พบสินค้า ID: " . $productId);
+        }
+
+        $mainStockRemain = $product->total_remain ?? 0;
+        $readyForSaleRemain = $product->ready_for_sale_total_remain ?? 0;
+
+        $stock = StockReadyForSale::where('ref_product_id', $productId)
+            ->orderByDesc('id')
+            ->lockForUpdate()
+            ->first();
+
+        if (!$stock) {
+            throw new \Exception("ไม่พบสต็อกพร้อมขายของสินค้า: {$product->name}");
+        }
+
+        $stock->remain += $quantity;
+        $stock->save();
+
+        $newProduct = Product::find($productId);
+        $newMainStockRemain = $newProduct->total_remain ?? 0;
+        $newReadyForSaleRemain = $newProduct->ready_for_sale_total_remain ?? 0;
+
+        $historyStock = new HistoryStock;
+        $historyStock->ref_product_id = $productId;
+        $historyStock->quantity = 0 - $quantity;
+        $historyStock->stock_before_quantity = $mainStockRemain;
+        $historyStock->stock_after_quantity = $newMainStockRemain;
+        $historyStock->stock_ready_for_sale_before_quantity = $readyForSaleRemain;
+        $historyStock->stock_ready_for_sale_after_quantity = $newReadyForSaleRemain;
+        $historyStock->quantity_type = 0;
+        $historyStock->withdraw_quantity = 0;
+        $historyStock->save();
+    }
+
     private function getOrderRooms($limit, $childSelect = null)
     {
         $now = Carbon::now()->format('Y-m-d H:i:s');
@@ -256,54 +298,39 @@ class OrderRoomController extends Controller
             'status_id' => 'required|exists:order_status,id'
         ]);
 
-        $order = Order::findOrFail($id);
-        if ($locked = $this->rejectIfOrderIsLocked($order)) {
-            return $locked;
-        }
+        try {
+            DB::beginTransaction();
 
-        $order->ref_status_id = $request->status_id;
-        $order->save();
-
-        if ($request->status_id == 4) {
-            foreach ($order->products as $product) {
-
-            // ดึง สินค้า ก่อน เพิ่มสต็อก {
-                $old_product = Product::find($product->ref_product_id); // ดึง สินค้า ก่อน เพิ่มสต็อก
-                $main_stock_remain = $old_product->total_remain ?? 0;
-                $ready_for_sale_remain = $old_product->ready_for_sale_total_remain ?? 0;
-            // ดึง สินค้า ก่อน เพิ่มสต็อก }
-            
-                StockReadyForSale::where('ref_product_id', $product->ref_product_id)
-                    ->orderByDesc('id')
-                    ->limit(1)
-                    ->increment('remain', $product->quantity);
-
-            // ดึง สินค้า หลัง เพิ่มสต็อก {
-                $new_product = Product::find($product->ref_product_id);
-                $new_main_stock_remain = $new_product->total_remain ?? 0;
-                $new_ready_for_sale_remain = $new_product->ready_for_sale_total_remain ?? 0;
-            // ดึง สินค้า หลัง เพิ่มสต็อก }
-
-            // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> คืนสต็อกขาย {
-                $history_stock = new HistoryStock;
-                $history_stock->ref_product_id = $product->ref_product_id; // id สินค้า
-                $history_stock->quantity = 0-$product->quantity; // จำนวนที่เคลื่อนไหว
-                $history_stock->stock_before_quantity = $new_main_stock_remain; // จำนวน ก่อน ตัดสต็อก
-                $history_stock->stock_after_quantity = $new_main_stock_remain; // จำนวน หลัง ตัดสต็อก
-                $history_stock->stock_ready_for_sale_before_quantity = $ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
-                $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
-                $history_stock->quantity_type = 0; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
-                $history_stock->withdraw_quantity = 0;
-                $history_stock->save();
-            // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> คืนสต็อกขาย }
+            $order = Order::lockForUpdate()->findOrFail($id);
+            if ($locked = $this->rejectIfOrderIsLocked($order)) {
+                DB::rollBack();
+                return $locked;
             }
-        }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'อัปเดตสถานะเรียบร้อยแล้ว',
-            'status'  => $order->status->name
-        ]);
+            $isCancelling = (int) $request->status_id === 4 && (int) $order->ref_status_id !== 4;
+
+            $order->ref_status_id = $request->status_id;
+            $order->save();
+
+            if ($isCancelling) {
+                foreach ($order->products as $product) {
+                    $this->restoreProductReadyStock($product->ref_product_id, (int) $product->quantity);
+                }
+            }
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'อัปเดตสถานะเรียบร้อยแล้ว',
+                'status'  => $order->status->name
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function getslip(Request $request, $id)

@@ -27,7 +27,7 @@
             <th class="text-center">วันที่</th>
             <th class="text-center">เวลา</th>
             <th class="text-center">ชื่อพนักงาน + คอร์ส</th>
-            <th class="text-center">ชม.</th>
+            <th class="text-center">เวลาคอร์ส</th>
             <th class="text-center">รวมเงิน</th>
             <th class="text-center">ชื่อผู้ดูแล</th>
         </tr>
@@ -39,6 +39,31 @@
             $grandTotal = 0;
             $grandCommission = 0;
             $grandNet = 0;
+            $formatCourseDuration = function ($course) {
+                $minutes = (int) ($course->minute ?? 0);
+
+                if ($minutes <= 0 && preg_match('/(\d+)/', $course->name ?? '', $matches)) {
+                    $minutes = (int) $matches[1];
+                }
+
+                if ($minutes <= 0) {
+                    return '-';
+                }
+
+                $hours = intdiv($minutes, 60);
+                $remainingMinutes = $minutes % 60;
+                $parts = [];
+
+                if ($hours > 0) {
+                    $parts[] = $hours . ' ชม.';
+                }
+
+                if ($remainingMinutes > 0) {
+                    $parts[] = $remainingMinutes . ' นาที';
+                }
+
+                return implode(' ', $parts);
+            };
         @endphp
 
         @if ($orderRooms->isEmpty())
@@ -84,17 +109,7 @@
                         $groupTotal += $order->total_price;
                         $groupCommission += $commission;
 
-                        $start = \Carbon\Carbon::parse($order->start_time);
-                        $end = \Carbon\Carbon::parse($order->end_time);
-                        $diff = $start->diff($end);
-                        $durStr = '';
-                        if ($diff->h > 0) {
-                            $durStr .= $diff->h . ' ชม. ';
-                        }
-                        if ($diff->i > 0) {
-                            $durStr .= $diff->i . ' นาที';
-                        }
-                        $durStr = trim($durStr) ?: '-';
+                        $durStr = $formatCourseDuration($order->course);
                     @endphp
                     <tr>
                         <td>{{ $globalIndex }}</td>

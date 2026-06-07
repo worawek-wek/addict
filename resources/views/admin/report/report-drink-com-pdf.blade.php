@@ -17,7 +17,7 @@
         font-weight: bold;
     }
 </style>
-<span style="font-size: 12px; font-weight: bold;">รายงานคูปองพนักงาน วันที่ {{ $report_start_date }} -
+<span style="font-size: 12px; font-weight: bold;">รายงานค่าดื่มพนักงาน วันที่ {{ $report_start_date }} -
     {{ $report_end_date }} , พิมพ์เมื่อ {{ date('d/m/Y H:i') }}</span>
 
 <table class="table table-striped">

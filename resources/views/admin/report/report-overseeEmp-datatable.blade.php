@@ -39,6 +39,8 @@
     };
 @endphp
 
+@include('admin.report.partials.selected-date-range')
+
 @if ($orderRooms->isEmpty())
     <div class="text-center py-4">ไม่มีข้อมูล</div>
 @else

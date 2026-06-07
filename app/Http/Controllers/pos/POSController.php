@@ -31,6 +31,70 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class POSController extends Controller
 {
+    private function assertProductReadyStockEnough(Product $product, int $quantity): void
+    {
+        if ($quantity <= 0) {
+            return;
+        }
+
+        $readyRemain = (int) StockReadyForSale::where('ref_product_id', $product->id)->sum('remain');
+
+        if ($readyRemain < $quantity) {
+            throw new \Exception("{$product->name} สต็อกพร้อมขายไม่พอ (คงเหลือ {$readyRemain}, ต้องการ {$quantity}) กรุณาเบิกสินค้าเข้าพร้อมขายก่อน");
+        }
+    }
+
+    private function decreaseProductReadyStock(Product $product, int $quantity): float
+    {
+        if ($quantity <= 0) {
+            return 0;
+        }
+
+        return DB::transaction(function () use ($product, $quantity) {
+            $stocks = StockReadyForSale::where('ref_product_id', $product->id)
+                ->where('remain', '>', 0)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
+            $readyRemain = (int) $stocks->sum('remain');
+            if ($readyRemain < $quantity) {
+                throw new \Exception("{$product->name} สต็อกพร้อมขายไม่พอ (คงเหลือ {$readyRemain}, ต้องการ {$quantity}) กรุณาเบิกสินค้าเข้าพร้อมขายก่อน");
+            }
+
+            $remaining = $quantity;
+            $totalCost = 0;
+
+            foreach ($stocks as $stock) {
+                if ($remaining <= 0) {
+                    break;
+                }
+
+                $deductQty = min($remaining, (int) $stock->remain);
+                if ($deductQty <= 0) {
+                    continue;
+                }
+
+                $mainStock = CardStocks::find($stock->ref_lot_id);
+                if ($mainStock && $mainStock->quantity > 0) {
+                    $unitCost = $mainStock->cost_price / $mainStock->quantity;
+                    $totalCost += $unitCost * $deductQty;
+                }
+
+                $stock->remain -= $deductQty;
+                $stock->save();
+
+                $remaining -= $deductQty;
+            }
+
+            if ($remaining > 0) {
+                throw new \Exception("{$product->name} สต็อกพร้อมขายไม่พอ (คงเหลือ {$readyRemain}, ต้องการ {$quantity}) กรุณาเบิกสินค้าเข้าพร้อมขายก่อน");
+            }
+
+            return $quantity > 0 ? $totalCost / $quantity : 0;
+        });
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -463,16 +527,12 @@ class POSController extends Controller
                 continue;
             }
 
-            $stock = StockReadyForSale::where('ref_product_id', $id)
-                ->where('remain', '>', 0)
-                ->orderBy('id')
-                ->first();
-
-            if (!$stock || $stock->remain < $q) {
-                $remain = $stock->remain ?? 0;
+            try {
+                $this->assertProductReadyStockEnough($product, $q);
+            } catch (\Exception $e) {
                 return response()->json([
                     'status' => false,
-                    'message' => "{$product->name} สต็อกพร้อมขายไม่พอ (lot ที่จะตัดเหลือ {$remain}, ต้องการ {$q}) กรุณาเบิกสินค้าเข้าพร้อมขายก่อน",
+                    'message' => $e->getMessage(),
                 ], 422);
             }
         }
@@ -623,36 +683,21 @@ class POSController extends Controller
                 }
 
                 $product = Product::find($id);
+                if (!$product) continue;
+
                 $main_stock_remain = $product->total_remain ?? 0;
                 $ready_for_sale_remain = $product->ready_for_sale_total_remain ?? 0;
                 // StockReadyForSale::where('ref_product_id', $row->id)->sum('remain')
                 // return $main_stock_remain + $ready_for_sale_remain;
-                if (!$product) continue;
-
                 $price = $customerType == 1 ? $product->price_staff : $product->price;
 
-                $stock = StockReadyForSale::where('ref_product_id', $id)
-                    ->where('remain', '>', 0)
-                    ->orderBy('id')
-                    ->first();
-
-                if (!$stock || $stock->remain < $q) {
-                    $remain = $stock->remain ?? 0;
+                try {
+                    $product_cost = $this->decreaseProductReadyStock($product, $q);
+                } catch (\Exception $e) {
                     return response()->json([
                         'status' => false,
-                        'message' => "{$product->name} สต็อกพร้อมขายไม่พอ (lot ที่จะตัดเหลือ {$remain}, ต้องการ {$q}) กรุณาเบิกสินค้าเข้าพร้อมขายก่อน",
+                        'message' => $e->getMessage(),
                     ], 422);
-                }
-
-                $product_cost = 0;
-                if ($stock) {
-                    $main_stock = CardStocks::find($stock->ref_lot_id);
-                    if ($main_stock && $main_stock->quantity > 0) {
-                        $product_cost = $main_stock->cost_price / $main_stock->quantity;
-                    }
-
-                    $stock->remain -= $q;
-                    $stock->save();
                 }
 
                 $new_product = Product::find($id);

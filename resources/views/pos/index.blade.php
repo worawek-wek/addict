@@ -395,7 +395,9 @@
     }
 
     .pos-room-page .pos-product-card .product-stock {
-        font-size: 10px;
+        color: #4b5563 !important;
+        font-size: 12px;
+        font-weight: 700;
         margin-bottom: .25rem !important;
     }
 
