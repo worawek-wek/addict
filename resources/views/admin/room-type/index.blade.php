@@ -387,11 +387,11 @@
         });
     }
 
-    function changeFrontStatus(id, v, element) {
+    function changeOnlineBooking(id, v, element) {
         $(element).prop('checked', v === 1 ? false : true);
         Swal.fire({
             title: 'ยืนยันการดำเนินการ?',
-            text: 'คุณต้องการเปลี่ยนสถานะหรือไม่?',
+            text: 'คุณต้องการเปลี่ยนการแสดงใน Online Booking หรือไม่?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'ตกลง',
@@ -400,12 +400,12 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: '{{ $page_url }}/change-status/' + id,
+                    url: '{{ $page_url }}/change-online-booking/' + id,
                     type: 'POST',
                     data: { ref_front_status_id: v, _token: "{{ csrf_token() }}" },
                     success: function (response) {
                         if (response == true) {
-                            Swal.fire('เปลี่ยนสถานะเรียบร้อยแล้ว', '', 'success');
+                            Swal.fire('เปลี่ยน Online Booking เรียบร้อยแล้ว', '', 'success');
                             loadData(page);
                         }
                     },

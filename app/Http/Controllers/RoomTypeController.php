@@ -9,6 +9,7 @@ use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\Course;
 use App\Models\RoomTypeHasCourse;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -49,9 +50,6 @@ class RoomTypeController extends Controller
             if(@$request->has("ref_status_id")){
                 $room_type->ref_status_id = $request->ref_status_id;
             }
-            if(@$request->has("ref_front_status_id")){
-                $room_type->ref_front_status_id = $request->ref_front_status_id;
-            }
             $room_type->save();
 
             DB::commit();
@@ -60,6 +58,21 @@ class RoomTypeController extends Controller
             DB::rollBack();
         }
     }
+
+    public function change_online_booking(Request $request, $id)
+    {
+        try {
+            $room_type = RoomType::find($id);
+            $room_type->ref_front_status_id = $request->ref_front_status_id ? 1 : 0;
+            $room_type->save();
+
+            DB::commit();
+            return true;
+        } catch (QueryException $err) {
+            DB::rollBack();
+        }
+    }
+
     public function update_sort(Request $request, $id)
     {
         try {

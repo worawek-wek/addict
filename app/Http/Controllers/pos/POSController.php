@@ -31,6 +31,22 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class POSController extends Controller
 {
+    private function invalidReceptionResponse(Request $request)
+    {
+        $receptionId = $request->input('reception_id');
+
+        if ($receptionId && User::whereKey($receptionId)
+            ->where('ref_branch_id', Auth::user()->ref_branch_id)
+            ->exists()) {
+            return null;
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'กรุณาสแกนหรือเลือกพนักงานขายให้ถูกต้อง',
+        ], 422);
+    }
+
     private function assertProductReadyStockEnough(Product $product, int $quantity): void
     {
         if ($quantity <= 0) {
@@ -467,6 +483,10 @@ class POSController extends Controller
         $request->validate([
             'payment_method' => 'nullable|in:cash,credit_card,alipay,qr_code,promptpay,wechat,ewallet',
         ]);
+
+        if ($invalidReceptionResponse = $this->invalidReceptionResponse($request)) {
+            return $invalidReceptionResponse;
+        }
 
         $payment_met = $request->input('payment_method');
         // // return 123;
@@ -1450,6 +1470,14 @@ $slip .= "
 
     public function drink_checkout(Request $request)
     {
+        $request->validate([
+            'payment_method' => 'nullable|in:cash,credit_card,alipay,qr_code,promptpay,wechat,ewallet',
+        ]);
+
+        if ($invalidReceptionResponse = $this->invalidReceptionResponse($request)) {
+            return $invalidReceptionResponse;
+        }
+
         $mama_id = $request->input('mama_id');
         $order = Order::createWithGeneratedOrderNumber([
             'type'      => 3,

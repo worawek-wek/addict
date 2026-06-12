@@ -423,6 +423,7 @@ Route::prefix('admin')->group(function () {
             Route::get('room-type/datatable', 'datatable')->name('room-type.datatable');
             Route::post('room-type/update-sort/{id}', 'update_sort')->name('room.update-sort');
             Route::post('room-type/change-status/{id}', 'change_status')->name('room.change-status');
+            Route::post('room-type/change-online-booking/{id}', 'change_online_booking')->name('room-type.change-online-booking');
             Route::post('room-type', 'store')->name('room-type.insert');
             Route::get('room-type/{id}', 'edit')->name('room-type');
             Route::post('room-type/{id}', 'update')->name('room-type.update');

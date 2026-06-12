@@ -14,6 +14,7 @@
             {{-- <th class="text-center">ห้อง</th> --}}
             {{-- <th class="text-center">สาขา</th> --}}
             <th class="text-center">หมายเหตุ</th>
+            <th class="text-center">Online Booking</th>
             <th class="text-center">ดำเนินการ</th>
         </tr>
     </thead>
@@ -24,18 +25,19 @@
                 <td class="text-center" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance" onclick="view({{ $row->id }})">{{ $row->name }}</td>
                 <td class="text-center" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance" onclick="view({{ $row->id }})">{{ $row->remark }}</td>
                 <td class="text-center">
+                    <label class="switch switch-primary mb-0">
+                        <input type="checkbox" class="switch-input"
+                            onchange="changeOnlineBooking({{ $row->id }}, this.checked ? 1 : 0, this)"
+                            @if ($row->ref_front_status_id == 1) checked @endif
+                        />
+                        <span class="switch-toggle-slider">
+                            <span class="switch-on"><i class="ti ti-check"></i></span>
+                            <span class="switch-off"><i class="ti ti-x"></i></span>
+                        </span>
+                    </label>
+                </td>
+                <td class="text-center">
                     <div class="d-flex justify-content-center align-items-center gap-3">
-                        <!-- Toggle Switch -->
-                        <label class="switch switch-info mb-0 me-4">
-                            <input type="checkbox" class="switch-input"
-                                onchange="changeFrontStatus({{ $row->id }}, this.checked ? 1 : 0, this)"
-                                @if ($row->ref_front_status_id == 1) checked @endif
-                            />
-                            <span class="switch-toggle-slider">
-                                <span class="switch-on"><i class="ti ti-check"></i></span>
-                                <span class="switch-off"><i class="ti ti-x"></i></span>
-                            </span>
-                        </label>
                         <label class="switch switch-success mb-0 mx-2 me-3">
                             <input type="checkbox" class="switch-input"
                                 onchange="changeStatus({{ $row->id }}, this.checked ? 1 : 0, this)"
