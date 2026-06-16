@@ -38,6 +38,16 @@
     </thead>
     <tbody style="font-size: small;">
         @foreach ($stock_history as $key => $row)
+        @php
+            $mainStockClosing = optional($row->historyStocksLatest)->stock_after_quantity ?? $row->total_remain;
+            $readyStockClosing = optional($row->historyStocksLatest)->stock_ready_for_sale_after_quantity ?? $row->ready_for_sale_total_remain;
+            $quantityIncrease = $row->quantity_increase ?? 0;
+            $quantityExport = $row->quantity_export ?? 0;
+            $quantityDecrease = $row->quantity_decrease ?? 0;
+            $withdrawQuantity = $row->total_withdraw_quantity ?? 0;
+            $mainStockOpening = $mainStockClosing - $quantityIncrease + $quantityExport + $withdrawQuantity;
+            $readyStockOpening = $readyStockClosing - $withdrawQuantity + $quantityDecrease;
+        @endphp
         <tr class="odd">
             <td class="text-center">
                 {{ $stock_history->firstItem()+$key }}
@@ -46,31 +56,28 @@
                 {{ $row->name }}
             </td>
             <td class="text-center">
-                {{-- {{ $row->firstOrderOfDay->stock_before_quantity ?? $row->total_remain + $row->ready_for_sale_total_remain }} --}}
-                {{ optional($row->historyStocksOldest)->stock_before_quantity ?? $row->total_remain }}
+                {{ $mainStockOpening }}
             </td>
             <td class="text-center">
-                {{ $row->quantity_increase ?? 0 }}
+                {{ $quantityIncrease }}
             </td>
             <td class="text-center">
-                {{ $row->total_withdraw_quantity ?? 0 }}
+                {{ $withdrawQuantity }}
             </td>
             <td class="text-center">
-                {{ optional($row->historyStocksMaxReady)->stock_ready_for_sale_before_quantity ?? $row->ready_for_sale_total_remain }}
-                {{-- {{ $row->total_withdraw_quantity ?? 0 }} --}}
+                {{ $readyStockOpening }}
             </td>
             <td class="text-center">
-                {{ 0-$row->quantity_decrease ?? 0 }}
+                {{ 0 - $quantityDecrease }}
             </td>
             <td class="text-center">
-                {{ optional($row->historyStocksLatest)->stock_ready_for_sale_after_quantity ?? $row->ready_for_sale_total_remain }}
+                {{ $readyStockClosing }}
             </td>      
             <td class="text-center">
-                {{ 0-$row->quantity_export ?? 0 }}
+                {{ 0 - $quantityExport }}
             </td>
             <td class="text-center">
-                {{ optional($row->historyStocksLatest)->stock_after_quantity ?? $row->total_remain }}
-                {{-- {{ $row->lastOrderOfDay->stock_after_quantity ?? $row->total_remain + $row->ready_for_sale_total_remain }} --}}
+                {{ $mainStockClosing }}
             </td>     
         </tr>
         @endforeach

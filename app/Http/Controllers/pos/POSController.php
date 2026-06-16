@@ -31,6 +31,16 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class POSController extends Controller
 {
+    private function findActiveRoomOrder(int $roomId): ?Order
+    {
+        return Order::where('ref_room_id', $roomId)
+            ->where('ref_status_id', 2)
+            ->where('type', 1)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->first();
+    }
+
     private function invalidReceptionResponse(Request $request)
     {
         $receptionId = $request->input('reception_id');
@@ -120,12 +130,7 @@ class POSController extends Controller
     {
         $room = Room::find($room_id);
 
-        $activeOrder = Order::where('ref_room_id', $room->id)
-                            ->where('ref_status_id', 2)
-                            ->whereDate('booking_date', today())
-                            ->whereTime('start_time', '<=', now())
-                            ->whereTime('end_time', '>=', now())
-                            ->first();
+        $activeOrder = $this->findActiveRoomOrder($room->id);
 
         $room->is_busy = (bool) $activeOrder;
 

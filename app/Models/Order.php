@@ -12,6 +12,8 @@ class Order extends Model
     // use HasFactory;
     public const ORDER_NUMBER_COURSE = 'M';
     public const ORDER_NUMBER_PRODUCT = 'P';
+    private const BUSINESS_DAY_START_HOUR = 10;
+    private const BUSINESS_DAY_START_MINUTE = 1;
 
      protected $fillable = [
         'type',
@@ -46,9 +48,12 @@ class Order extends Model
     {
         $date = $date ? Carbon::parse($date) : now();
         $suffix = strtoupper($suffix);
+        $businessDate = static::resolveBusinessDate($date);
 
-        return $date->format('dmY')
-            . str_pad(static::nextOrderSequenceForYear($date), 7, '0', STR_PAD_LEFT)
+        return $businessDate->format('dmY')
+            . '/'
+            . static::nextOrderSequenceForBusinessDay($date)
+            . '-'
             . $suffix;
     }
 
@@ -61,32 +66,28 @@ class Order extends Model
         });
     }
 
-    protected static function nextOrderSequenceForYear(Carbon $date): int
+    protected static function nextOrderSequenceForBusinessDay(Carbon $date): int
     {
-        $yearStart = $date->copy()->startOfYear();
-        $yearEnd = $date->copy()->endOfYear();
+        [$businessDate, $windowStart, $windowEnd] = static::resolveBusinessDayWindow($date);
+        $prefix = $businessDate->format('dmY') . '/';
 
         $countBasedSequence = static::query()
-            ->where(function ($query) use ($yearStart, $yearEnd) {
-                $query->whereBetween('created_at', [$yearStart, $yearEnd])
-                    ->orWhere(function ($query) use ($yearStart, $yearEnd) {
+            ->where(function ($query) use ($windowStart, $windowEnd, $businessDate) {
+                $query->whereBetween('created_at', [$windowStart, $windowEnd])
+                    ->orWhere(function ($query) use ($businessDate) {
                         $query->whereNull('created_at')
-                            ->whereBetween('booking_date', [
-                                $yearStart->toDateString(),
-                                $yearEnd->toDateString(),
-                            ]);
+                            ->whereDate('booking_date', $businessDate->toDateString());
                     });
             })
             ->lockForUpdate()
             ->count() + 1;
 
-        $year = $date->format('Y');
         $maxFormattedSequence = static::query()
-            ->where('order_number', 'like', '____' . $year . '_______%')
+            ->where('order_number', 'like', $prefix . '%')
             ->lockForUpdate()
             ->pluck('order_number')
-            ->reduce(function ($max, $orderNumber) use ($year) {
-                if (preg_match('/^\d{4}' . preg_quote($year, '/') . '(\d{7})[MP]$/', $orderNumber, $matches)) {
+            ->reduce(function ($max, $orderNumber) use ($prefix) {
+                if (preg_match('/^' . preg_quote($prefix, '/') . '(\d+)-[A-Z]+$/', $orderNumber, $matches)) {
                     return max($max, (int) $matches[1]);
                 }
 
@@ -94,6 +95,28 @@ class Order extends Model
             }, 0);
 
         return max($countBasedSequence, $maxFormattedSequence + 1);
+    }
+
+    protected static function resolveBusinessDate(Carbon $date): Carbon
+    {
+        [$businessDate] = static::resolveBusinessDayWindow($date);
+
+        return $businessDate;
+    }
+
+    protected static function resolveBusinessDayWindow(Carbon $date): array
+    {
+        $businessDate = $date->copy();
+        $businessDayStart = $date->copy()->setTime(self::BUSINESS_DAY_START_HOUR, self::BUSINESS_DAY_START_MINUTE, 0);
+
+        if ($date->lt($businessDayStart)) {
+            $businessDate->subDay();
+        }
+
+        $windowStart = $businessDate->copy()->setTime(self::BUSINESS_DAY_START_HOUR, self::BUSINESS_DAY_START_MINUTE, 0);
+        $windowEnd = $windowStart->copy()->addDay()->subSecond();
+
+        return [$businessDate->startOfDay(), $windowStart, $windowEnd];
     }
 
     public function branch()

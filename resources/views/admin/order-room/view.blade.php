@@ -190,7 +190,7 @@
                 @endforeach
             </select>
         </div> --}}
-        @if ($orderRoom->ref_status_id != 3 && ($orderRoom->can_manage ?? false))
+        @if ($orderRoom->ref_status_id == 2 || ($orderRoom->ref_status_id != 3 && ($orderRoom->can_manage ?? false)))
 
         <div class="bg-white p-3 rounded-3 shadow-sm">
             <div align="center">

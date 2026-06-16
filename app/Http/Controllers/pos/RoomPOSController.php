@@ -10,6 +10,16 @@ use Illuminate\Http\Request;
 
 class RoomPOSController extends Controller
 {
+    private function findActiveRoomOrder(int $roomId): ?Order
+    {
+        return Order::where('ref_room_id', $roomId)
+            ->where('ref_status_id', 2)
+            ->where('type', 1)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->first();
+    }
+
     public function index()
     {
     
@@ -22,13 +32,7 @@ class RoomPOSController extends Controller
             ->where('ref_status_id', 1)
             ->get()
             ->map(function ($room) {
-                $activeOrder = Order::where('ref_room_id', $room->id)
-                    ->where('ref_status_id', 2) // 2 = กำลังใช้งาน
-                    ->where('type', 1) // 2 = กำลังใช้งาน
-                    // ->whereDate('booking_date', Carbon::today())
-                    // ->whereTime('start_time', '<=', Carbon::now()->format('H:i:s'))
-                    // ->whereTime('end_time', '>=', Carbon::now()->format('H:i:s'))
-                    ->first();
+                $activeOrder = $this->findActiveRoomOrder($room->id);
 
                 $room->is_busy = $activeOrder ? true : false;
                 if ($activeOrder) {
@@ -63,9 +67,10 @@ class RoomPOSController extends Controller
     {
         $orders = Order::with('customer')
             ->where('ref_room_id', $roomId)
-            ->whereDate('booking_date', Carbon::today())
-            ->whereTime('start_time', '<=', Carbon::now()->format('H:i:s'))
-            ->whereTime('end_time', '>=', Carbon::now()->format('H:i:s'))
+            ->where('ref_status_id', 2)
+            ->where('type', 1)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->get();
 
         $customers = $orders->map(function ($order) {

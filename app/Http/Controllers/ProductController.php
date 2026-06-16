@@ -353,9 +353,9 @@ class ProductController extends Controller
                 $history_stock->quantity = 0; // จำนวนที่เคลื่อนไหว
                 $history_stock->stock_before_quantity = $main_stock_remain; // จำนวน ก่อน ตัดสต็อก
                 $history_stock->stock_after_quantity = $new_main_stock_remain; // จำนวน หลัง ตัดสต็อก
-                $history_stock->withdraw_quantity = $withdrawQty; // จำนวน ก่อน ตัดสต็อก
-                $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
-                $history_stock->stock_ready_for_sale_before_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+                $history_stock->withdraw_quantity = $withdrawQty; // จำนวนที่เบิกเข้าพร้อมขาย
+                $history_stock->stock_ready_for_sale_before_quantity = $ready_for_sale_remain; // จำนวนพร้อมขายก่อนเบิก
+                $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวนพร้อมขายหลังเบิก
                 $history_stock->quantity_type = 0; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
                 $history_stock->save();
 

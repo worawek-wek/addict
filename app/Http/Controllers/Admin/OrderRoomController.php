@@ -203,7 +203,7 @@ class OrderRoomController extends Controller
                 )->orWhere('ref_status_id', 2);
             });
         }
-        
+
         $orderRooms = $query->paginate($limit);
 
         // กำหนด badge และ label
@@ -302,7 +302,9 @@ class OrderRoomController extends Controller
             DB::beginTransaction();
 
             $order = Order::lockForUpdate()->findOrFail($id);
-            if ($locked = $this->rejectIfOrderIsLocked($order)) {
+            $isManualCheckout = (int) $request->status_id === 3 && (int) $order->ref_status_id === 2;
+
+            if (!$isManualCheckout && ($locked = $this->rejectIfOrderIsLocked($order))) {
                 DB::rollBack();
                 return $locked;
             }
