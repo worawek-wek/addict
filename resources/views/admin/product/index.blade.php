@@ -43,6 +43,19 @@
         border-top: 65px solid #54BAB9;
         border-right: 65px solid transparent;
     }
+
+    .product-image-uploader {
+        max-width: 220px;
+        margin: 0 auto;
+    }
+
+    .product-image-preview {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 6px;
+        background: #f3f4f6;
+    }
 </style>
 
 
@@ -81,7 +94,7 @@
                                             <div class="col-sm-3">
                                                 <select name="ref_branch_id" class="form-select p_search"
                                                     onchange='loadData("{{ $page_url }}/datatable")' required>
-                                                    @if (Auth::user()->work_status == 3)
+                                                    @if (Auth::id() == 1)
                                                         <option value="">ทั้งหมด</option>
                                                     @endif
                                                     @foreach ($branch as $bra)
@@ -211,6 +224,22 @@
                     @csrf
                     <div class="modal-body">
                         <div class="row g-3 p-4">
+
+                            <div class="col-sm-12">
+                                <div class="product-image-uploader">
+                                    <div class="border-2 border-dashed shadow-sm rounded-md p-3">
+                                        <div class="position-relative cursor-pointer mx-auto">
+                                            <img class="product-image-preview imagePreview" alt="Product image preview"
+                                                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='160' viewBox='0 0 220 160'%3E%3Crect width='220' height='160' fill='%23f3f4f6'/%3E%3Cpath d='M79 102l22-25 17 19 11-13 25 30H66z' fill='%23cbd5e1'/%3E%3Ccircle cx='141' cy='53' r='13' fill='%23cbd5e1'/%3E%3C/svg%3E">
+                                        </div>
+                                        <div class="mx-auto cursor-pointer position-relative mt-3">
+                                            <button type="button" class="btn btn-primary w-100">รูปภาพ</button>
+                                            <input type="file" class="w-100 h-100 top-0 start-0 position-absolute opacity-0"
+                                                name="image_name" accept="image/*" onchange="imgChange(this)">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="col-sm-12">
 
@@ -472,6 +501,40 @@
     <script>
         let select2Product = null;
         let select2Stock = null;
+
+        function imgChange(input) {
+            const file = input.files && input.files[0];
+            const form = input.closest('form');
+            const preview = form ? form.querySelector('.imagePreview') : null;
+
+            if (!file || !preview) {
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                input.value = '';
+                Swal.fire('เกิดข้อผิดพลาด', 'กรุณาเลือกไฟล์รูปภาพเท่านั้น', 'error');
+                return;
+            }
+
+            preview.src = URL.createObjectURL(file);
+        }
+
+        function ajaxErrorMessage(error) {
+            if (error.responseJSON?.message) {
+                return error.responseJSON.message;
+            }
+
+            if (error.responseJSON?.errors) {
+                return Object.values(error.responseJSON.errors).flat().join('<br>');
+            }
+
+            if (error.responseText) {
+                return error.responseText;
+            }
+
+            return 'ไม่พบรายละเอียดข้อผิดพลาด';
+        }
 
         select2Product = new TomSelect("#select2Product", {
             create: false,
@@ -779,7 +842,12 @@
                             }
                         },
                         error: function(error) {
-                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                            Swal.fire({
+                                title: 'เกิดข้อผิดพลาด',
+                                html: ajaxErrorMessage(error),
+                                icon: 'error',
+                                width: 800
+                            });
                             console.error('เกิดข้อผิดพลาด:', error);
                         }
                     });

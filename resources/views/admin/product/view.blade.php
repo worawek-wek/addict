@@ -1,11 +1,3 @@
-<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-
-<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css"
-    rel="stylesheet" />
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 <style>
     .select2-container {
         z-index: 9999;
@@ -16,7 +8,25 @@
         z-index: 9999 !important;
         /* ปรับ z-index ให้สูงกว่า modal อื่น */
     }
+
+    .product-image-uploader {
+        max-width: 220px;
+        margin: 0 auto;
+    }
+
+    .product-image-preview {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 6px;
+        background: #f3f4f6;
+    }
 </style>
+@php
+    $productImagePath = $product->image
+        ? asset($product->image)
+        : "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='160' viewBox='0 0 220 160'%3E%3Crect width='220' height='160' fill='%23f3f4f6'/%3E%3Cpath d='M79 102l22-25 17 19 11-13 25 30H66z' fill='%23cbd5e1'/%3E%3Ccircle cx='141' cy='53' r='13' fill='%23cbd5e1'/%3E%3C/svg%3E";
+@endphp
 <div class="modal-content rounded-0">
     <div class="modal-header rounded-0">
         <span class="modal-title">
@@ -107,7 +117,11 @@
                                             </li>
                                         </ul>
                                     </div>
-                                    <div class="col-sm-5" align="right">
+                                    <div class="col-sm-3 text-center">
+                                        <img src="{{ $productImagePath }}" alt="{{ $product->name }}"
+                                            class="product-image-preview mb-3">
+                                    </div>
+                                    <div class="col-sm-4" align="right">
                                             {!! QrCode::size(200)->generate(url('/pos/product/'.$product->id)) !!}
                                     </div>
 
@@ -123,6 +137,23 @@
                                     @csrf
 
                                     <div class="row g-3 p-4">
+                                        <div class="col-sm-12">
+                                            <div class="product-image-uploader">
+                                                <div class="border-2 border-dashed shadow-sm rounded-md p-3">
+                                                    <div class="position-relative cursor-pointer mx-auto">
+                                                        <img class="product-image-preview imagePreview"
+                                                            alt="Product image preview"
+                                                            src="{{ $productImagePath }}">
+                                                    </div>
+                                                    <div class="mx-auto cursor-pointer position-relative mt-3">
+                                                        <button type="button" class="btn btn-primary w-100">รูปภาพ</button>
+                                                        <input type="file"
+                                                            class="w-100 h-100 top-0 start-0 position-absolute opacity-0"
+                                                            name="image_name" accept="image/*" onchange="imgChange(this)">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="col-sm-12">
                                             <label for="" class="form-label">สาขา</label><span
                                                 class="text-danger"> *</span><br>
@@ -239,6 +270,22 @@
     </div>
 </div>
 <script>
+    function productAjaxErrorMessage(error) {
+        if (error.responseJSON?.message) {
+            return error.responseJSON.message;
+        }
+
+        if (error.responseJSON?.errors) {
+            return Object.values(error.responseJSON.errors).flat().join('<br>');
+        }
+
+        if (error.responseText) {
+            return error.responseText;
+        }
+
+        return 'ไม่พบรายละเอียดข้อผิดพลาด';
+    }
+
     $('#edit_product').on('submit', function(event) {
         event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
         if (!this.checkValidity()) {
@@ -277,7 +324,12 @@
                         }
                     },
                     error: function(error) {
-                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                        Swal.fire({
+                            title: 'เกิดข้อผิดพลาด',
+                            html: productAjaxErrorMessage(error),
+                            icon: 'error',
+                            width: 800
+                        });
                         console.error('เกิดข้อผิดพลาด:', error);
                     }
                 });
@@ -287,15 +339,4 @@
         });
     });
 
-    $(document).ready(function() {
-        $('#select2Position2').select2({
-            placeholder: 'เลือกตำแหน่ง',
-            allowClear: true
-        });
-    });
-    $('#bs-datepicker-format2').datepicker({
-        format: 'dd/mm/yyyy', // กำหนดรูปแบบวันที่
-        autoclose: true, // ปิด datepicker เมื่อเลือกวันที่
-        todayHighlight: true // ไฮไลต์วันที่ปัจจุบัน
-    });
 </script>

@@ -181,16 +181,24 @@
     }
 
     .pos-product-card {
-        min-height: 118px;
+        min-height: 150px;
         border-radius: 6px;
     }
 
     .pos-product-icon {
         padding-top: .3rem !important;
+        min-height: 78px;
     }
 
     .pos-product-icon i {
         font-size: 1.6rem !important;
+    }
+
+    .pos-product-img {
+        width: 78px;
+        height: 78px;
+        object-fit: cover;
+        border-radius: 8px;
     }
 
     .pos-product-card .card-body {

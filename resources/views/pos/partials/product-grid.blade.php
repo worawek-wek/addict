@@ -8,7 +8,11 @@
     <div class="col">
         <div class="card border-0 shadow-sm pos-product-card {{ $inStock ? '' : 'opacity-50' }}">
             <div class="d-flex justify-content-center align-items-center pt-2 pos-product-icon">
-                <i class="bi bi-cup-straw" style="font-size:3rem; color:#5e2a5f;"></i>
+                @if ($product->image)
+                    <img class="pos-product-img" src="{{ asset($product->image) }}" alt="{{ $product->name }}">
+                @else
+                    <i class="bi bi-cup-straw" style="font-size:3rem; color:#5e2a5f;"></i>
+                @endif
             </div>
             <div class="card-body text-center">
                 <h6 class="card-title text-truncate mb-1" title="{{ $product->name }}">{{ $product->name }}</h6>

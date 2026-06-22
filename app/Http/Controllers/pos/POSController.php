@@ -415,7 +415,7 @@ class POSController extends Controller
                 'name'  => $product->name,
                 'price' => $product->price,
                 'qty'   => 1,
-                'image' => $product->image ?? 'https://via.placeholder.com/150',
+                'image' => $product->image ? asset($product->image) : 'https://via.placeholder.com/150',
             ];
         }
 

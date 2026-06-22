@@ -14,6 +14,7 @@ use App\Models\HistoryStock;
 use App\Support\AdminBusinessDay;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
 use Carbon\Carbon;
 use Exception;
@@ -22,6 +23,89 @@ DB::beginTransaction();
 
 class ProductController extends Controller
 {
+    private const PRODUCT_IMAGE_DIR = 'product_img';
+
+    private function isProductSuperAdmin(): bool
+    {
+        return (int) Auth::id() === 1;
+    }
+
+    private function branchQueryForUser()
+    {
+        $query = Branch::orderBy('name');
+
+        if (!$this->isProductSuperAdmin()) {
+            $query->where('id', Auth::user()->ref_branch_id);
+        }
+
+        return $query;
+    }
+
+    private function productQueryForUser()
+    {
+        $query = Product::query();
+
+        if (!$this->isProductSuperAdmin()) {
+            $query->where('ref_branch_id', Auth::user()->ref_branch_id);
+        }
+
+        return $query;
+    }
+
+    private function productTypeQueryForUser()
+    {
+        $query = ProductType::query();
+
+        if (!$this->isProductSuperAdmin()) {
+            $query->where('ref_branch_id', Auth::user()->ref_branch_id);
+        }
+
+        return $query;
+    }
+
+    private function resolveProductBranchId(Request $request, ?Product $product = null): int
+    {
+        if ($this->isProductSuperAdmin() && $request->filled('ref_branch_id')) {
+            return (int) $request->ref_branch_id;
+        }
+
+        return (int) (Auth::user()->ref_branch_id ?? $product?->ref_branch_id);
+    }
+
+    private function saveProductImage(Request $request): ?string
+    {
+        $file = $request->file('image_name');
+        if (!$file || !$file->isValid()) {
+            return null;
+        }
+
+        $request->validate([
+            'image_name' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
+        ]);
+
+        $directory = public_path(self::PRODUCT_IMAGE_DIR);
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $filename = uniqid('product_', true) . '_' . mt_rand(1000, 9999) . '.' . $file->getClientOriginalExtension();
+        $file->move($directory, $filename);
+
+        return self::PRODUCT_IMAGE_DIR . '/' . $filename;
+    }
+
+    private function deleteProductImage(?string $imagePath): void
+    {
+        if (!$imagePath) {
+            return;
+        }
+
+        $fullPath = public_path($imagePath);
+        if (is_file($fullPath)) {
+            unlink($fullPath);
+        }
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -31,23 +115,15 @@ class ProductController extends Controller
     {
         $data['page_url'] = 'admin/product';
         $data['page'] = 'สินค้า';
-        $user = Auth::user();
-        $data['product'] = Product::with('producttype')->get();
-        $data['producttype'] = ProductType::all();
-
-        // if ($user->work_status == 3) {
-            // super admin เห็นทุก branch
-            $data['branch'] = Branch::orderBy('name')->get();
-        // } else {
-        //     // เห็นเฉพาะสาขาของตัวเอง
-        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        // }
+        $data['product'] = $this->productQueryForUser()->with('producttype')->get();
+        $data['producttype'] = $this->productTypeQueryForUser()->orderBy('name')->get();
+        $data['branch'] = $this->branchQueryForUser()->get();
         return view('admin/product/index', $data);
     }
 
     public function datatable(Request $request)
     {
-        $results = Product::orderBy('name');
+        $results = $this->productQueryForUser()->orderBy('name');
         if (!empty($request->search)) {
             $results->where(function ($q) use ($request) {
                 $q->where('name', 'LIKE', "%{$request->search}%")
@@ -58,7 +134,7 @@ class ProductController extends Controller
         }
 
         // 🔎 ถ้ามีเลือกสาขา และไม่ใช่ all → filter
-        if ($request->filled('ref_branch_id') && $request->ref_branch_id !== 'all') {
+        if ($this->isProductSuperAdmin() && $request->filled('ref_branch_id') && $request->ref_branch_id !== 'all') {
             $results = $results->where('ref_branch_id', $request->ref_branch_id);
         }
         // ถ้าไม่ส่ง ref_branch_id หรือเป็น all → ข้าม ไม่ filter
@@ -290,9 +366,10 @@ class ProductController extends Controller
     {
         try {
             $lastSort = Product::lockForUpdate()->max('sort') ?? 0;
+            $imagePath = $this->saveProductImage($request);
 
             $product = new Product;
-            $product->ref_branch_id = $request->ref_branch_id ?: Auth::user()->ref_branch_id;
+            $product->ref_branch_id = $this->resolveProductBranchId($request);
             $product->type_id = $request->producttype;
             $product->name = $request->name;
             $product->price = $request->price;
@@ -302,6 +379,7 @@ class ProductController extends Controller
             $product->remark = $request->remark;
             $product->minimum = $request->minimum;
             $product->sort  =  $lastSort + 1;
+            $product->image = $imagePath;
             $product->save();
 
             DB::commit();
@@ -531,16 +609,8 @@ class ProductController extends Controller
     {
 
         $data['page_url'] = 'admin/product';
-        $data['product'] = Product::find($id);
-        $user = Auth::user();
-
-        // if ($user->work_status == 3) {
-            // super admin เห็นทุก branch
-            $data['branch'] = Branch::orderBy('name')->get();
-        // } else {
-        //     // เห็นเฉพาะสาขาของตัวเอง
-        //     $data['branch'] = Branch::where('id', $user->ref_branch_id)->get();
-        // }        // $data['title'] = 'Profile';
+        $data['product'] = $this->productQueryForUser()->findOrFail($id);
+        $data['branch'] = $this->branchQueryForUser()->get();
         return view('admin/product/view', $data);
     }
 
@@ -578,8 +648,10 @@ class ProductController extends Controller
     {
         //
         try {
-            $product = Product::find($id);
-            $product->ref_branch_id = $request->ref_branch_id;
+            $product = $this->productQueryForUser()->findOrFail($id);
+            $newImagePath = $this->saveProductImage($request);
+
+            $product->ref_branch_id = $this->resolveProductBranchId($request, $product);
             $product->name = $request->name;
             // $product->type_id = $request->producttype;
             $product->price = $request->price;
@@ -589,6 +661,10 @@ class ProductController extends Controller
             // $product->stock = $request->stock;
             $product->remark = $request->remark;
             $product->minimum = $request->minimum;
+            if ($newImagePath) {
+                $this->deleteProductImage($product->image);
+                $product->image = $newImagePath;
+            }
             $product->save();
 
             DB::commit();
@@ -608,7 +684,9 @@ class ProductController extends Controller
     public function destroy($id)
     {
         try {
-            Product::destroy($id);
+            $product = $this->productQueryForUser()->findOrFail($id);
+            $this->deleteProductImage($product->image);
+            $product->delete();
             DB::commit();
             return true;
         } catch (QueryException $err) {
@@ -622,7 +700,7 @@ class ProductController extends Controller
     // ==========================================
     public function getAllProductTypes()
     {
-        $productTypes = ProductType::orderBy('id', 'desc')->with('branch')->get();
+        $productTypes = $this->productTypeQueryForUser()->orderBy('id', 'desc')->with('branch')->get();
         return response()->json($productTypes);
     }
 
@@ -639,7 +717,7 @@ class ProductController extends Controller
         try {
             $save = [
                 'name'       => $request->name,
-                'ref_branch_id'       => $request->ref_branch_id,
+                'ref_branch_id'       => $this->resolveProductBranchId($request),
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
             ];
@@ -676,7 +754,7 @@ class ProductController extends Controller
     public function updateProductType(Request $request, $id)
     {
         try {
-            $productType = ProductType::findOrFail($id);
+            $productType = $this->productTypeQueryForUser()->findOrFail($id);
             $productType->update([
                 'name' => $request->name
             ]);
@@ -691,7 +769,7 @@ class ProductController extends Controller
     public function deleteProductType($id)
     {
         try {
-            $productType = ProductType::findOrFail($id);
+            $productType = $this->productTypeQueryForUser()->findOrFail($id);
             $productCount = Product::where('type_id', $id)->count();
 
             if ($productCount > 0) {

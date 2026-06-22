@@ -15,6 +15,9 @@
                     ชื่อสินค้า
                 </th>
                 <th class="text-center">
+                    รูปภาพ
+                </th>
+                <th class="text-center">
                     ราคา(ลูกค้า)
                 </th>
                 <th class="text-center">
@@ -58,6 +61,17 @@
                 </td>
                 <td class="text-center" {!! $view !!}>
                     {{ $row->name }}
+                </td>
+                <td class="text-center" {!! $view !!}>
+                    @if ($row->image)
+                        <img src="{{ asset($row->image) }}" alt="{{ $row->name }}"
+                            style="width: 54px; height: 54px; object-fit: cover; border-radius: 6px;">
+                    @else
+                        <div class="d-inline-flex align-items-center justify-content-center bg-light"
+                            style="width: 54px; height: 54px; border-radius: 6px;">
+                            <i class="ti ti-photo text-muted"></i>
+                        </div>
+                    @endif
                 </td>
                 <td class="text-center" {!! $view !!}>
                     {{ $row->price }}
