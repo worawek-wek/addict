@@ -12,6 +12,7 @@ use App\Models\OrderStatus;
 use App\Models\OrderHasDrink;
 use App\Models\StockReadyForSale;
 use App\Support\AdminBusinessDay;
+use App\Support\CourseCommissionCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -383,43 +384,8 @@ class OrderDrinkController extends Controller
                 }
             }
         }
-        // 2. คำนวณจาก service_duration (ถ้ามี addon_options จะไม่รวมกับ $commission_value)
-        if ($order->user && $order->service_laundry_cost) {
-            $duration = null;
-            switch ($order->service_laundry_cost) {
-                case 'forty_minutes': $duration = 40; break;
-                case 'sixty_minutes': $duration = 60; break;
-                case 'ninety_minutes': $duration = 90; break;
-            }
-            if ($duration) {
-                $commission = \App\Models\MassageCommission::where('ref_user_id', $order->user->id)
-                    ->where('service_duration', $duration)
-                    ->where('ref_branch_id', $order->ref_branch_id)
-                    ->first();
-                // ถ้าไม่เจอ ให้ใช้ค่าเริ่มต้น (ref_user_id = null)
-                if (!$commission) {
-                    $commission = \App\Models\MassageCommission::whereNull('ref_user_id')
-                        ->where('service_duration', $duration)
-                        ->where('ref_branch_id', $order->ref_branch_id)
-                        ->first();
-                }
-                if ($commission) {
-                    if ($commission->commission_amount) {
-                        $commission_value += $commission->commission_amount;
-                    } elseif ($commission->commission_percent) {
-                        $room_price = 0;
-                        if ($order->room) {
-                            if ($duration == 40) $room_price = $order->room->forty_minutes;
-                            if ($duration == 60) $room_price = $order->room->sixty_minutes;
-                            if ($duration == 90) $room_price = $order->room->ninety_minutes;
-                        }
-                        $staff_salary = $order->user->salary ?? 0;
-                        $commission_base = $room_price + $staff_salary;
-                        $commission_value += ($commission->commission_percent / 100) * $commission_base;
-                    }
-                }
-            }
-        }
+        // 2. คำนวณค่ามือจาก Course เท่านั้น: ราย user ก่อน, ถ้าไม่มีหรือเป็น 0 ใช้ค่าหลัก
+        $commission_value = CourseCommissionCalculator::commissionForOrder($order);
 
         // --- คำนวณ CheerCharge สำหรับ sales ---
         $price_options_sales = 0;

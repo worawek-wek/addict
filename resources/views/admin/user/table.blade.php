@@ -38,7 +38,12 @@
                     {{ $list_data->firstItem()+$key }}
                 </td>
                 <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                    <img src="/upload/user/{{ $row->image_name }}" alt="" width="55px" onerror="this.onerror=null;this.src='/not-found-image.png';">
+                    @php
+                        $imagePath = $row->image_name && file_exists(public_path('upload/user/' . $row->image_name))
+                            ? asset('upload/user/' . $row->image_name)
+                            : asset('not-found-image.png');
+                    @endphp
+                    <img src="{{ $imagePath }}" alt="" width="55px">
                 </td>
                 <td class="text-center" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     <b>{{ $row->name }}</b><br>

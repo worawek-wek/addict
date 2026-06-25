@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Position;
 use App\Models\Branch;
 use App\Models\RoomGroupModel;
+use App\Models\RoomType;
 use App\Models\RoomTypeHasCourse;
 use App\Models\Course;
 use App\Models\Room;
@@ -303,11 +304,21 @@ class UserController extends Controller
     {
         $data['page_url'] = 'admin/user';
         $data['position'] = Position::get();
-        $data['course'] = Course::get();
         $data['user'] = User::find($id);
-        $data['all_room'] = Room::with(['room_type.user_has_room_type_commission' => function ($q) use ($id) {
+        $branchId = $data['user']->ref_branch_id ?? null;
+        $data['course'] = Course::when($branchId, function ($query) use ($branchId) {
+                                            $query->where('ref_branch_id', $branchId);
+                                        })
+                                        ->orderBy('sort')
+                                        ->get();
+        $data['all_room_type'] = RoomType::with(['room', 'user_has_room_type_commission' => function ($q) use ($id) {
                                             $q->where('ref_user_id', $id);
-                                        }])->get();
+                                        }])
+                                        ->when($branchId, function ($query) use ($branchId) {
+                                            $query->where('ref_branch_id', $branchId);
+                                        })
+                                        ->orderBy('name')
+                                        ->get();
         $user = Auth::user();
 
         // if ($user->work_status == 3) {
@@ -325,6 +336,7 @@ class UserController extends Controller
                                             'price',
                                             'coupon'
                                         )
+                                        ->where('ref_user_id', $id)
                                         ->get()
                                         ->mapWithKeys(fn ($i) => [
                                             "{$i->ref_room_type_id}_{$i->ref_course_id}" => [
@@ -338,6 +350,11 @@ class UserController extends Controller
                                             'ref_course_id',
                                             'price'
                                         )
+                                        ->when($branchId, function ($query) use ($branchId) {
+                                            $query->whereHas('room_type', function ($roomTypeQuery) use ($branchId) {
+                                                $roomTypeQuery->where('ref_branch_id', $branchId);
+                                            });
+                                        })
                                         ->get()
                                         ->mapWithKeys(fn ($i) => [
                                             "{$i->ref_room_type_id}_{$i->ref_course_id}" => $i->price

@@ -1,6 +1,3 @@
-<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
-
 <div class="modal-content rounded-0">
   <div class="modal-header rounded-0">
     <span class="modal-title">
@@ -87,43 +84,38 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($all_room as $room)
-                                @foreach ($room->room_type as $type)
-                                  @foreach ($course as $course_item)
-                                  {{-- @foreach ($type->user_has_room_type_commission as $has_item) --}}
-
-                                    <tr>
-                                        <td class="px-3 fw-medium">
-                                            {{ $room->name }} → <span class="text-primary">
-                                              {{ $type->name }}</span> → <span class="text-warning fw-normal">
-                                                {{ $course_item->name }}</span>
+                            @forelse ($all_room_type as $type)
+                                @foreach ($course as $course_item)
+                                <tr>
+                                    <td class="px-3 fw-medium">
+                                        {{ $type->room->name ?? 'ประเภทห้อง' }} → <span class="text-primary">
+                                          {{ $type->name }}</span> → <span class="text-warning fw-normal">
+                                            {{ $course_item->name }}</span>
+                                    </td>
+                                    <td class="text-end course-price">
+                                        {{ number_format($room_type_has_course[$type->id."_".$course_item->id] ?? 0) }}
+                                    </td>
+                                    @if (@$user_has_room_type_commission[$type->id."_".$course_item->id])
+                                        <td class="text-end">
+                                            <input name="update[{{ $user_has_room_type_commission[$type->id."_".$course_item->id]['id'] }}][price]" type="number" inputmode="numeric" pattern="[0-9]*" class="form-control commission-room-input commission-price text-end" value="{{ (int) (@$user_has_room_type_commission[$type->id."_".$course_item->id]['price'] ?? 0) }}">
                                         </td>
-                                        <td class="text-end course-price">
-                                            {{ number_format($room_type_has_course[$type->id."_".$course_item->id] ?? 0) }}
+                                        <td class="text-end">
+                                            <input name="update[{{ $user_has_room_type_commission[$type->id."_".$course_item->id]['id'] }}][coupon]" type="number" inputmode="numeric" pattern="[0-9]*" class="form-control commission-room-input commission-coupon text-end" value="{{ (int) (@$user_has_room_type_commission[$type->id."_".$course_item->id]['coupon'] ?? 0) }}">
                                         </td>
-                                        @if (@$user_has_room_type_commission[$type->id."_".$course_item->id])
-                                            <td class="text-end">
-                                                <input name="update[{{ $user_has_room_type_commission[$type->id."_".$course_item->id]['id'] }}][price]" type="number" inputmode="numeric" pattern="[0-9]*" class="form-control commission-room-input commission-price text-end" value="{{ (int) (@$user_has_room_type_commission[$type->id."_".$course_item->id]['price'] ?? 0) }}">
-                                            </td>
-                                            <td class="text-end">
-                                                <input name="update[{{ $user_has_room_type_commission[$type->id."_".$course_item->id]['id'] }}][coupon]" type="number" inputmode="numeric" pattern="[0-9]*" class="form-control commission-room-input commission-coupon text-end" value="{{ (int) (@$user_has_room_type_commission[$type->id."_".$course_item->id]['coupon'] ?? 0) }}">
-                                            </td>
-                                        @else
-                                            <td class="text-end">
-                                              <input name="insert[{{$type->id}}][{{ $course_item->id }}][price]" type="number" class="form-control commission-room-input commission-price text-end" value="0">
-                                            </td>
-                                            <td class="text-end">
-                                              <input name="insert[{{$type->id}}][{{ $course_item->id }}][coupon]" type="number" class="form-control commission-room-input commission-coupon text-end" value="0">
-                                            </td>
-                                        @endif
-                                        <td class="text-end net-price"></td>
-                                    </tr>
-
-                                  @endforeach
+                                    @else
+                                        <td class="text-end">
+                                          <input name="insert[{{$type->id}}][{{ $course_item->id }}][price]" type="number" class="form-control commission-room-input commission-price text-end" value="0">
+                                        </td>
+                                        <td class="text-end">
+                                          <input name="insert[{{$type->id}}][{{ $course_item->id }}][coupon]" type="number" class="form-control commission-room-input commission-coupon text-end" value="0">
+                                        </td>
+                                    @endif
+                                    <td class="text-end net-price"></td>
+                                </tr>
                                 @endforeach
                             @empty
                                 <tr>
-                                    <td colspan="4" class="text-center text-muted py-4">ไม่พบข้อมูล</td>
+                                    <td colspan="5" class="text-center text-muted py-4">ไม่พบข้อมูล</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -142,17 +134,6 @@
     </div>
   </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script>
-  setTimeout(() => {
-    new TomSelect("#select2EditPosition", {
-                        create: false,
-                        maxItems: 1,
-                        allowEmptyOption: true,
-                        sortField: { field: "text", direction: "asc" }
-                    });
-  }, 1000);
-</script>
 <script>
   // preview image
   function handleFileInput(fileInputId, previewId) {

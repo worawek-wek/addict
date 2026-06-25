@@ -195,7 +195,8 @@
         @endphp
         @if ($clockInBranchId)
             <li class="menu-item">
-                <a href="{{ url('admin/' . $clockInBranchId . '/clock-in') }}" class="menu-link" target="_blank" rel="noopener noreferrer">
+                <a href="{{ url('admin/' . $clockInBranchId . '/clock-in') }}" class="menu-link" target="_blank"
+                    rel="noopener noreferrer">
                     <i class="menu-icon tf-icons ti ti-clock-hour-4"></i>
                     <div data-i18n="แตะบัตรเข้างาน">แตะบัตรเข้างาน</div>
                 </a>
@@ -311,7 +312,7 @@
                             <div data-i18n="ขายดื่ม">ขายดื่ม</div>
                         </a>
                     </li>
-                    {{-- 
+                    {{--
                     <li class="menu-item">
                         <a href="/admin/commission/view-sales" class="menu-link">
                             <i class="menu-icon tf-icons ti ti-user-dollar"></i>
@@ -416,17 +417,11 @@
                 </li> --}}
             </ul>
         </li>
-        <li class="menu-item">
-            <a href="/admin/{{ session('branch_id') }}/clock-in" class="menu-link">
-                <i class="menu-icon tf-icons ti ti-scan"></i>
-                <div data-i18n="แตะบัตรเข้างาน">แตะบัตรเข้างาน</div>
-            </a>
-        </li>
     </ul>
 </aside>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         const currentUrl = window.location.pathname;
         const links = document.querySelectorAll(".menu-link");
 

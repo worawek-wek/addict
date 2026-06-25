@@ -1,6 +1,3 @@
-<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
-
 <div class="modal-content rounded-0">
   <div class="modal-header rounded-0">
     <span class="modal-title">
@@ -133,17 +130,6 @@
     </div>
   </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script>
-  setTimeout(() => {
-    new TomSelect("#select2EditPosition", {
-                        create: false,
-                        maxItems: 1,
-                        allowEmptyOption: true,
-                        sortField: { field: "text", direction: "asc" }
-                    });
-  }, 1000);
-</script>
 <script>
   // preview image
   function handleFileInput(fileInputId, previewId) {
