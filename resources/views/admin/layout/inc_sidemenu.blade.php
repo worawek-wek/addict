@@ -405,6 +405,12 @@
                 </li> --}}
             </ul>
         </li>
+        <li class="menu-item">
+            <a href="/admin/{{ session('branch_id') }}/clock-in" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-scan"></i>
+                <div data-i18n="แตะบัตรเข้างาน">แตะบัตรเข้างาน</div>
+            </a>
+        </li>
     </ul>
 </aside>
 
