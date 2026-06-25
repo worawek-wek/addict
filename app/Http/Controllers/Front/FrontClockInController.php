@@ -22,14 +22,32 @@ DB::beginTransaction();
 
 class FrontClockInController extends Controller
 {
+    private function normalizeCardCode($value): string
+    {
+        $value = preg_replace('/[\x00-\x1F\x7F]/u', '', trim((string) $value));
+
+        return strtr($value, [
+            'ๅ' => '1',
+            '/' => '2',
+            '-' => '3',
+            'ภ' => '4',
+            'ถ' => '5',
+            'ุ' => '6',
+            'ึ' => '7',
+            'ค' => '8',
+            'ต' => '9',
+            'จ' => '0',
+        ]);
+    }
+
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request, $id = null)
+    public function index(Request $request, $branch = null)
     {
-        
+
         // $user = User::find(2);
         // $user->name = "1";
         // $user->save();
@@ -39,14 +57,21 @@ class FrontClockInController extends Controller
         //     session(["branch_id" => $id]);
         //     return redirect('clock-in');
         // }
-        $data['page_url'] = 'clock-in';
+        $branchModel = Branch::findOrFail($branch);
+        $data['branch'] = $branchModel;
+        $data['page_url'] = url("admin/{$branchModel->id}/clock-in");
 
         return view('clock-in/index', $data);
     }
     public function clock_in(Request $request, $branch = null)
     {
         try{
-            $userCode = preg_replace('/[\x00-\x1F\x7F]/u', '', trim((string) $request->user_code));
+            $branchModel = Branch::find($branch);
+            if (!$branchModel) {
+                return "เข้างานผิดพลาด ไม่พบสาขา";
+            }
+
+            $userCode = $this->normalizeCardCode($request->user_code);
             $matchedUsers = User::where(function ($q) use ($userCode) {
                 $q->where('user_code', $userCode)
                     ->orWhere('user_id', $userCode);
@@ -56,22 +81,24 @@ class FrontClockInController extends Controller
                 return "เข้างานผิดพลาด ไม่พบพนักงาน";
             }
 
-            $find = $branch
-                ? (clone $matchedUsers)->where('ref_branch_id', $branch)->first()
-                : $matchedUsers->first();
+            $find = (clone $matchedUsers)->where('ref_branch_id', $branchModel->id)->first();
 
             if(!$find){
-                if ($branch && (clone $matchedUsers)->where('ref_branch_id', '!=', $branch)->exists()) {
-                    return "เข้างานผิดพลาด พบพนักงานนี้ แต่อยู่คนละสาขา";
+                if ((clone $matchedUsers)->where('ref_branch_id', '!=', $branchModel->id)->exists()) {
+                    return "เข้างานผิดพลาด พนักงานไม่อยู่สาขานี้";
                 }
 
                 return "เข้างานผิดพลาด ไม่พบพนักงาน";
             }
             $user = User::find($find->id);
+            if ((int) $user->work_status === 1) {
+                return "รหัส $userCode วันนี้ได้เข้างานแล้ว";
+            }
+
             $user->work_status = 1;
             $user->ref_status_id = 1;
             $user->save();
-        
+
             DB::commit();
 
             return "คุณ $user->nickname เข้างานสำเร็จ";
@@ -88,7 +115,7 @@ class FrontClockInController extends Controller
                                 ->join('rooms', 'room_for_rents.ref_room_id', '=', 'rooms.id')
                                 ->Where('rent_bills.ref_status_id', 3)
                                 ->select('rent_bills.*', 'renters.prefix' , DB::raw('CONCAT(renters.name, " ", COALESCE(renters.surname, "")) as renter_name'), 'rooms.name as room_name', 'rooms.rent');
-        
+
         if(@$request->search){
             $results = $results->Where(function ($query) use ($request) {
                                     $query->whereRaw("CONCAT(renters.prefix ,' ' , renters.name, ' ', renters.surname) LIKE ?", ["%{$request->search}%"])
@@ -131,7 +158,7 @@ class FrontClockInController extends Controller
 
         return view('admin/dashboard/invoice', $data);
     }
-    
+
     public function ChangeDateToTH($date)
     {
         ////////////////////// แปลงรูปแบบวันเกิดเป็น ไทย
@@ -144,8 +171,8 @@ class FrontClockInController extends Controller
 
         // แปลงวันที่เป็นรูปแบบไทย
         $thaiDate = $date->formatLocalized('%e %B ' . $buddhistYear);
-        
-        $monthTH = [ 
+
+        $monthTH = [
                 "01" => "มกราคม",
                 "02" => "กุมภาพันธ์",
                 "03" => "มีนาคม",
@@ -159,7 +186,7 @@ class FrontClockInController extends Controller
                 "11" => "พฤศจิกายน",
                 "12" => "ธันวาคม"
         ];
-        $monthEN = [    
+        $monthEN = [
                 "01" => "January",
                 "02" => "February",
                 "03" => "March",

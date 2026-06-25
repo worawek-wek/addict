@@ -190,6 +190,17 @@
                 <div data-i18n="ยานพาหนะ">ยานพาหนะ</div>
             </a>
         </li> --}}
+        @php
+            $clockInBranchId = optional(auth()->user())->ref_branch_id ?: \App\Models\Branch::query()->value('id');
+        @endphp
+        @if ($clockInBranchId)
+            <li class="menu-item">
+                <a href="{{ url('admin/' . $clockInBranchId . '/clock-in') }}" class="menu-link" target="_blank" rel="noopener noreferrer">
+                    <i class="menu-icon tf-icons ti ti-clock-hour-4"></i>
+                    <div data-i18n="แตะบัตรเข้างาน">แตะบัตรเข้างาน</div>
+                </a>
+            </li>
+        @endif
         <li class="menu-item">
             <a href="/pos/room" class="menu-link" target="_blank" rel="noopener noreferrer">
                 <i class="menu-icon tf-icons ti ti-shopping-cart"></i>
@@ -441,4 +452,3 @@
         }
     });
 </script>
-

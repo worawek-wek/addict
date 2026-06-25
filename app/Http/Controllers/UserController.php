@@ -525,12 +525,16 @@ class UserController extends Controller
 
             if (!$find) {
                 if ($branchId && (clone $matchedUsers)->where('ref_branch_id', '!=', $branchId)->exists()) {
-                    return "เข้างานผิดพลาด พบพนักงานนี้ แต่อยู่คนละสาขา";
+                    return "เข้างานผิดพลาด พนักงานไม่อยู่สาขานี้";
                 }
 
                 return "เข้างานผิดพลาด ไม่พบพนักงาน";
             }
             $user = User::find($find->id);
+            if ((int) $user->work_status === 1) {
+                return "รหัส $userCode วันนี้ได้เข้างานแล้ว";
+            }
+
             $user->work_status = 1;
             $user->save();
 

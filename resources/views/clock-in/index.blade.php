@@ -633,14 +633,19 @@
                         แตะบัตรเข้างาน
                         <span class="text-primary fw-medium text-nowrap">เพื่อเข้างาน</span>.
                       </h3>
+                      <div class="badge bg-label-primary mb-3">
+                        สาขา: {{ $branch->name ?? $branch->branch_name ?? '-' }}
+                      </div>
                       {{-- <p class="mb-3">
                         ค้นหาชื่อน้อง ๆ หรือ สาขา ได้เลย
                       </p> --}}
                       <form id="clockin">
                         @csrf
+                        <input type="hidden" name="branch_id" value="{{ $branch->id }}">
                         <div class="d-flex align-items-center justify-content-between app-academy-md-80">
                           <input name="user_code" type="password" id="ClockIn" placeholder="แสกนบัตรพนักงาน" class="form-control me-2"/>
                         </div>
+                        <div id="clockInMessage" class="alert d-none mt-3 mb-0 w-100 text-center fw-semibold" role="alert"></div>
                         {{-- <button type="submit" class="btn btn-primary mt-2" onclick="focusInput()">คลิ๊กที่นี่เมื่อแตะบัตรไม่ได้</button> --}}
                       </form>
                       </div>
@@ -716,33 +721,56 @@
           document.getElementById("ClockIn").focus();
           let speech = new SpeechSynthesisUtterance("คุณสามารถแตะบัตรเพื่อเข้างาน");
           speech.lang = "th-TH"; // ตั้งค่าเป็นภาษาไทย
+          speech.voice = getThaiVoice();
           speech.volume = 1; // ระดับเสียง (0-1)
           speech.rate = 1; // ความเร็วพูด (0.1-10)
           speech.pitch = 1; // ระดับเสียงสูงต่ำ (0-2)
           window.speechSynthesis.speak(speech);
       }
+      function normalizeCardCode(text) {
+          return (text || '')
+              .replaceAll("ๅ", "1")
+              .replaceAll("/", "2")
+              .replaceAll("-", "3")
+              .replaceAll("ภ", "4")
+              .replaceAll("ถ", "5")
+              .replaceAll("ุ", "6")
+              .replaceAll("ึ", "7")
+              .replaceAll("ค", "8")
+              .replaceAll("ต", "9")
+              .replaceAll("จ", "0")
+              .trim();
+      }
+      function getThaiVoice() {
+          return window.speechSynthesis
+              .getVoices()
+              .find((voice) => voice.lang && voice.lang.toLowerCase().startsWith('th')) || null;
+      }
+      window.speechSynthesis.onvoiceschanged = function() {
+          getThaiVoice();
+      };
       function speakText(text) {
-        
-        // console.log(123);
-          // let text = "Hello World";
-          let newText = text.replaceAll("ๅ", "1");
-          newText = newText.replaceAll("/", "2");
-          newText = newText.replaceAll("-", "3");
-          newText = newText.replaceAll("ภ", "4");
-          newText = newText.replaceAll("ถ", "5");
-          newText = newText.replaceAll("ุ", "6");
-          newText = newText.replaceAll("ึ", "7");
-          newText = newText.replaceAll("ค", "8");
-          newText = newText.replaceAll("ต", "9");
-          newText = newText.replaceAll("จ", "0");
-          console.log(newText);
-
+          window.speechSynthesis.cancel();
           let speech = new SpeechSynthesisUtterance(text);
           speech.lang = "th-TH"; // ตั้งค่าเป็นภาษาไทย
+          speech.voice = getThaiVoice();
           speech.volume = 1; // ระดับเสียง (0-1)
-          speech.rate = 0.4; // ความเร็วพูด (0.1-10)
+          speech.rate = 0.8; // ความเร็วพูด (0.1-10)
           speech.pitch = 1; // ระดับเสียงสูงต่ำ (0-2)
           window.speechSynthesis.speak(speech);
+      }
+      function showClockInMessage(message) {
+          const messageBox = document.getElementById("clockInMessage");
+          messageBox.textContent = message;
+          messageBox.className = "alert mt-3 mb-0 w-100 text-center fw-semibold";
+
+          if (message.includes("สำเร็จ")) {
+              messageBox.classList.add("alert-success");
+          } else if (message.includes("วันนี้ได้เข้างานแล้ว")) {
+              messageBox.classList.add("alert-warning");
+          } else {
+              messageBox.classList.add("alert-danger");
+          }
       }
       $('#clockin').on('submit', function(event) {
             event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
@@ -751,17 +779,26 @@
                 this.reportValidity();
                 return console.log('ฟอร์มไม่ถูกต้อง');
             }
+            const input = document.getElementById("ClockIn");
+            input.value = normalizeCardCode(input.value);
             $.ajax({
                 url: '{{$page_url}}', // เปลี่ยน URL เป็นจุดหมายที่ต้องการ
                 type: 'POST',
                 data: $(this).serialize(),
                 success: function(response) {
-                    document.getElementById("ClockIn").value = '';
+                    console.log('Clock-in branch {{ $branch->id }} response:', response);
+                    input.value = '';
+                    input.focus();
+                    showClockInMessage(response);
                     speakText(response);
                 },
                 error: function(error) {
-                    Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    const message = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+                    Swal.fire(message, '', 'error');
                     console.error('เกิดข้อผิดพลาด:', error);
+                    input.value = '';
+                    input.focus();
+                    showClockInMessage(message);
                 }
             });
         });
