@@ -137,11 +137,6 @@ Route::middleware('auth:customer')->group(function () {
         Route::get('check-availability/{branchId}', 'checkAvailability')->name('check-availability');
         Route::get('check-room-availability/{branchId}', 'checkRoomAvailability')->name('check-room-availability');
     });
-
-    Route::controller(FrontClockInController::class)->group(function () {
-        Route::get('{branch}/clock-in', 'index')->name('clock-in');
-        Route::post('{branch}/clock-in', 'clock_in')->name('clock-in');
-    });
 });
 
 Route::get('dark-mode-switcher', [DarkModeController::class, 'switch'])->name('dark-mode-switcher');
@@ -156,6 +151,13 @@ Route::prefix('admin')->group(function () {
     });
 
     Route::middleware('auth')->group(function () {
+        // แตะบัตรเข้างาน
+        Route::controller(FrontClockInController::class)->group(function () {
+            Route::get('{branch}/clock-in', 'index')->name('clock-in');
+            Route::post('{branch}/clock-in', 'clock_in')->name('clock-in');
+        });
+        // แตะบัตรเข้างาน
+
         // Massage Default Setting CRUD
         Route::controller(App\Http\Controllers\MassageDefaultSettingController::class)->group(function () {
             Route::get('massage-default-setting', 'index')->name('massage_default_setting.index');
