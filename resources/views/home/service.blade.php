@@ -613,7 +613,8 @@
             <!-- Content -->
       <form id="insert_service">
         @csrf
-        {{-- <input type="hidden" name="ref_user_id" value="{{ $user->id }}"> --}}
+        <input type="hidden" name="selected_user" id="selected_user" value="{{ $user->id }}">
+        <input type="hidden" name="ref_branch_id" id="ref_branch_id" value="{{ $branch_id }}">
             <div class="container-xxl flex-grow-1 container-p-y">
               <h4 class="pt-3 mb-0"><span class="text-muted fw-light">Addict /</span> น้อง{{ $user->nickname }}</h4>
               <div class="card g-3 mt-5">
@@ -670,7 +671,7 @@
                             @foreach ($rooms as $room)
                                 
                             <div class="form-check d-flex align-items-center mb-3">
-                              <input name="ref_room_id" class="form-check-input p_search" type="radio" id="defaultCheck111{{ $room->id }}" value="{{ $room->id }}" required onchange="loadData()"/>
+                              <input name="roomType" class="form-check-input p_search" type="radio" id="defaultCheck111{{ $room->id }}" value="{{ $room->id }}" required onchange="loadData()"/>
                               <label for="defaultCheck111{{ $room->id }}" class="form-check-label ms-3">
                                 <span class="mb-0 h6">{{ $room->name }}</span>
                               </label>
@@ -739,18 +740,18 @@
                         </div>
                         <div id="chapterTwo" class="accordion-collapse collapse show" data-bs-parent="#headingThree">
                           <div class="accordion-body py-3 border-top">
+                            @forelse ($course as $courseItem)
                             <div class="form-check d-flex align-items-center mb-3">
-                              <input name="service" class="form-check-input p_search" type="radio" id="defCheck1" checked="" value="sixty_minutes" onchange="loadData()" required/>
-                              <label for="defCheck1" class="form-check-label ms-3">
-                                <span class="mb-0 h6">60 นาที/บริการ &nbsp;</span>
+                              <input name="timeService" class="form-check-input p_search" type="radio" id="course{{ $courseItem->id }}" value="{{ $courseItem->id }}" onchange="loadData()" required {{ $loop->first ? 'checked' : '' }}/>
+                              <label for="course{{ $courseItem->id }}" class="form-check-label ms-3">
+                                <span class="mb-0 h6">{{ $courseItem->name }} &nbsp;</span>
                               </label>
                             </div>
-                            <div class="form-check d-flex align-items-center mb-3">
-                              <input name="service" class="form-check-input p_search" type="radio" id="defCheck2" value="ninety_minutes" onchange="loadData()" required/>
-                              <label for="defCheck2" class="form-check-label ms-3">
-                                <span class="mb-0 h6">90 นาที/บริการ &nbsp;</span>
-                              </label>
+                            @empty
+                            <div class="alert alert-warning mb-0">
+                              ยังไม่มี Time Period ที่เปิดให้จองออนไลน์
                             </div>
+                            @endforelse
                           </div>
                         </div>
                       </div>
@@ -888,6 +889,11 @@
     <script>
         var searchData = {};
         function loadData(){
+            searchData = {
+                selected_user: $('#selected_user').val(),
+                ref_branch_id: $('#ref_branch_id').val()
+            };
+
             // .p_search (ค่าปกติ)
             // 1. เก็บค่าจาก checkbox (p_search) แบบปกติ
             $('.p_search:checked').each(function() {

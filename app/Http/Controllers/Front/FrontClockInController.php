@@ -22,6 +22,8 @@ DB::beginTransaction();
 
 class FrontClockInController extends Controller
 {
+    private const MASSAGE_POSITION_ID = 2;
+
     private function normalizeCardCode($value): string
     {
         $value = preg_replace('/[\x00-\x1F\x7F]/u', '', trim((string) $value));
@@ -91,6 +93,10 @@ class FrontClockInController extends Controller
                 return "เข้างานผิดพลาด ไม่พบพนักงาน";
             }
             $user = User::find($find->id);
+            if ((int) $user->ref_position_id !== self::MASSAGE_POSITION_ID) {
+                return "เข้างานผิดพลาด ตำแหน่งไม่ถูกต้อง";
+            }
+
             if ((int) $user->work_status === 1) {
                 return "รหัส $userCode วันนี้ได้เข้างานแล้ว";
             }

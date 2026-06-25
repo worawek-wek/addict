@@ -46,6 +46,8 @@ class FrontHomeController extends Controller
         $data['user'] = User::where('ref_status_id', 1)
             ->where('ref_branch_id', 1)
             ->where('ref_status_id', 1)
+            ->where('ref_position_id', 2)
+            ->where('work_status', 1)
             ->get();
         $data['page_url'] = 'home';
         $data['rooms'] = Room::get();
@@ -65,11 +67,25 @@ class FrontHomeController extends Controller
     }
     public function service($branch = null, $id = null)
     {
+        $branchId = $branch ?? session('branch_id');
         $data['page_url'] = $branch . '/service';
-        $data['rooms'] = Room::get();
+        $data['rooms'] = RoomType::where('ref_front_status_id', 1)
+            ->when($branchId, function ($query) use ($branchId) {
+                $query->where('ref_branch_id', $branchId);
+            })
+            ->orderBy('name')
+            ->get();
         $data['products'] = Product::get();
+        $data['course'] = Course::where('ref_status_id', 1)
+            ->where('show_online_booking', 1)
+            ->when($branchId, function ($query) use ($branchId) {
+                $query->where('ref_branch_id', $branchId);
+            })
+            ->orderBy('sort')
+            ->get();
         $data['user'] = User::find($id);
         $data['id'] = $id;
+        $data['branch_id'] = $branchId;
         // $data['summary'] = $this->summary(session("branch_id"));
 
         return view('home/service', $data);
@@ -437,6 +453,7 @@ class FrontHomeController extends Controller
         $users = User::where('ref_status_id', 1)
             ->where('ref_branch_id', $branchId)
             ->where('ref_position_id', 2)
+            ->where('work_status', 1)
             ->get()
             ->map(function ($user) use ($bookingDate, $startTime, $endTime) {
                 $hasConflict = Order::where('ref_user_id', $user->id)

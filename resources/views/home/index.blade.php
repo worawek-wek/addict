@@ -655,7 +655,7 @@
                   <div class="card-header d-flex flex-wrap justify-content-between gap-3">
                     <div class="card-title mb-0 me-1">
                       <h5 class="mb-1">พนักงาน ของเรา</h5>
-                      <p class="text-muted mb-0">ทั้งหมด 6 คน</p>
+                      <p class="text-muted mb-0">ทั้งหมด {{ $user->count() }} คน</p>
                     </div>
                     <div class="d-flex justify-content-md-end align-items-center gap-3 flex-wrap">
                       <select id="select2_course_select" class="select2 form-select" data-placeholder="ทุกสาขา">
@@ -671,7 +671,7 @@
                   <div class="card-body">
                     <div class="row gy-4 mb-4">
                       {{-- ///////////////////////// --}}
-                      @foreach ($user as $row)
+                      @forelse ($user as $row)
                       <div class="col-sm-6 col-lg-3">
                         <div class="card p-2 h-100 shadow-none border">
                           <div class="rounded-2 text-center mb-3">
@@ -716,7 +716,13 @@
                           </div>
                         </div>
                       </div>
-                      @endforeach
+                      @empty
+                      <div class="col-12">
+                        <div class="alert alert-warning text-center mb-0">
+                          ยังไม่มีพนักงานนวดที่เข้างานในขณะนี้
+                        </div>
+                      </div>
+                      @endforelse
                     <nav aria-label="Page navigation" class="d-flex align-items-center justify-content-center">
                       <ul class="pagination">
                         <li class="page-item prev">

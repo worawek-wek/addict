@@ -24,6 +24,7 @@ DB::beginTransaction();
 
 class UserController extends Controller
 {
+    private const MASSAGE_POSITION_ID = 2;
 
     /**
      * Display a listing of the resource.
@@ -531,6 +532,10 @@ class UserController extends Controller
                 return "เข้างานผิดพลาด ไม่พบพนักงาน";
             }
             $user = User::find($find->id);
+            if ((int) $user->ref_position_id !== self::MASSAGE_POSITION_ID) {
+                return "เข้างานผิดพลาด ตำแหน่งไม่ถูกต้อง";
+            }
+
             if ((int) $user->work_status === 1) {
                 return "รหัส $userCode วันนี้ได้เข้างานแล้ว";
             }
