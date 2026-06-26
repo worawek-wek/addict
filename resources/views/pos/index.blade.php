@@ -240,14 +240,15 @@
     }
 
     .pos-room-page .label-pos {
-        font-size: 1rem;
+        font-size: 1.25rem;
+        font-weight: 800;
         margin: .35rem 0;
-        padding: .3rem .5rem !important;
+        padding: .45rem .65rem !important;
     }
 
     .pos-room-page .custom-option-content {
-        padding: .45rem !important;
-        min-height: 78px;
+        padding: .6rem !important;
+        min-height: 94px;
     }
 
     .pos-room-page .custom-option-content .form-check-input {
@@ -258,8 +259,8 @@
 
     .pos-room-page .custom-option-content svg {
         display: block;
-        width: 24px;
-        height: 24px;
+        width: 30px;
+        height: 30px;
         margin-left: auto !important;
         margin-right: auto !important;
         margin-bottom: .25rem !important;
@@ -267,10 +268,11 @@
 
     .pos-room-page .custom-option-header .h6 {
         display: block;
-        font-size: 12px;
+        font-size: 15px;
         line-height: 1.2;
         text-align: center;
         width: 100%;
+        font-weight: 800;
     }
 
     .pos-room-page .custom-option-header {
@@ -280,7 +282,7 @@
     }
 
     .pos-room-page .form-label {
-        font-size: 12px;
+        font-size: 14px;
         margin-bottom: .2rem;
     }
 
@@ -304,18 +306,18 @@
     }
 
     .pos-room-page .time-period-label {
-        min-height: 28px;
-        padding: .15rem .3rem !important;
-        font-size: 11px !important;
+        min-height: 42px;
+        padding: .35rem .45rem !important;
+        font-size: 14px !important;
         line-height: 1.15;
-        font-weight: 700;
+        font-weight: 800;
         white-space: normal;
     }
 
     .pos-room-page .time-period-empty {
         border: 1px dashed #d6d6d6;
         color: #777;
-        font-size: 12px;
+        font-size: 14px;
         padding: .45rem .6rem;
     }
 
@@ -329,20 +331,22 @@
     }
 
     .pos-room-page .btn-purple-check {
-        min-height: 46px;
-        padding: .3rem .4rem;
-        font-size: 11px;
+        min-height: 64px;
+        padding: .45rem .5rem;
+        font-size: 14px;
         line-height: 1.15;
+        font-weight: 800;
     }
 
     .pos-room-page .btn-purple-check svg {
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        height: 20px;
         margin-bottom: .15rem !important;
     }
 
     .pos-room-page .btn-purple-check small {
-        font-size: 10px;
+        font-size: 12px;
+        font-weight: 700;
     }
 
     .pos-room-page .pos-product-grid {
@@ -365,46 +369,47 @@
     }
 
     .pos-room-page .pos-product-card {
-        min-height: 150px;
+        min-height: 180px;
         border-radius: 6px;
     }
 
     .pos-room-page .pos-product-icon {
-        padding-top: .3rem !important;
+        padding-top: .55rem !important;
         padding-bottom: 0 !important;
-        min-height: 78px;
+        min-height: 92px;
     }
 
     .pos-room-page .pos-product-icon i {
-        font-size: 1.6rem !important;
+        font-size: 2.2rem !important;
     }
 
     .pos-room-page .pos-product-img {
-        width: 78px;
-        height: 78px;
+        width: 92px;
+        height: 92px;
         object-fit: cover;
         border-radius: 8px;
     }
 
     .pos-room-page .pos-product-card .card-body {
-        padding: .35rem .4rem .45rem;
+        padding: .45rem .5rem .55rem;
     }
 
     .pos-room-page .pos-product-card .card-title {
-        font-size: 12px;
+        font-size: 14px;
         line-height: 1.2;
         margin-bottom: .15rem !important;
+        font-weight: 800;
     }
 
     .pos-room-page .pos-product-card .product-price {
-        font-size: 11px;
+        font-size: 13px;
         line-height: 1.2;
         margin-bottom: .15rem !important;
     }
 
     .pos-room-page .pos-product-card .product-stock {
         color: #4b5563 !important;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 700;
         margin-bottom: .25rem !important;
     }
@@ -415,22 +420,22 @@
 
     .pos-room-page .pos-product-card .qty-minus,
     .pos-room-page .pos-product-card .qty-plus {
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
         padding: 0;
         line-height: 1;
     }
 
     .pos-room-page .pos-product-card .qty-input {
-        height: 24px;
-        max-width: 38px !important;
+        height: 28px;
+        max-width: 44px !important;
         padding: .1rem;
-        font-size: 11px;
+        font-size: 13px;
     }
 
     .pos-room-page .pos-product-card .btn-out-of-stock {
         padding: .2rem .35rem;
-        font-size: 10px !important;
+        font-size: 12px !important;
     }
 
     .pos-room-page .pos-invoice-panel {
@@ -609,6 +614,10 @@
                                                 $roomTypeIdsByCourse = [];
                                                 foreach ($room_type as $type) {
                                                     foreach ($type->room_type_has_course as $roomCourse) {
+                                                        if ((float) $roomCourse->price <= 0) {
+                                                            continue;
+                                                        }
+
                                                         $roomTypeIdsByCourse[$roomCourse->ref_course_id][] =
                                                             (string) $type->id;
                                                     }
@@ -1359,7 +1368,7 @@
                 .split(',')
                 .map(value => value.trim())
                 .filter(Boolean);
-            const shouldShow = roomTypeIds.length === 0 || roomTypeIds.includes(selectedRoomTypeId);
+            const shouldShow = roomTypeIds.includes(selectedRoomTypeId);
             const courseInput = option.querySelector('input[name="ref_course_id"]');
 
             option.classList.toggle('d-none', !shouldShow);

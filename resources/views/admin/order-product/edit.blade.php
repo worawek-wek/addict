@@ -138,9 +138,10 @@
     }
 
     .order-product-edit-page .label-pos {
-        font-size: 1rem;
+        font-size: 1.25rem;
+        font-weight: 800;
         margin-bottom: .5rem;
-        padding: .35rem .5rem !important;
+        padding: .45rem .65rem !important;
     }
 
     .order-product-edit-page .edit-product-grid {
@@ -163,36 +164,38 @@
     }
 
     .order-product-edit-page .product-card-btn {
-        min-height: 118px;
+        min-height: 152px;
         border-radius: 6px;
         padding: 0 !important;
     }
 
     .order-product-edit-page .edit-product-icon {
-        padding-top: .3rem !important;
+        padding-top: .55rem !important;
     }
 
     .order-product-edit-page .edit-product-icon i {
-        font-size: 1.6rem !important;
+        font-size: 2.2rem !important;
     }
 
     .order-product-edit-page .product-card-btn .card-body {
-        padding: .35rem .4rem .45rem !important;
+        padding: .45rem .5rem .55rem !important;
     }
 
     .order-product-edit-page .product-card-btn .card-title {
-        font-size: 12px;
+        font-size: 14px;
         line-height: 1.2;
         margin-bottom: .15rem !important;
+        font-weight: 800;
     }
 
     .order-product-edit-page .product-card-btn .product-price {
-        font-size: 11px;
+        font-size: 13px;
         line-height: 1.2;
     }
 
     .order-product-edit-page .product-card-btn .product-stock {
-        font-size: 10px;
+        font-size: 13px;
+        font-weight: 700;
         margin-bottom: .25rem !important;
     }
 
@@ -202,22 +205,22 @@
 
     .order-product-edit-page .product-card-btn .qty-minus,
     .order-product-edit-page .product-card-btn .qty-plus {
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
         padding: 0;
         line-height: 1;
     }
 
     .order-product-edit-page .product-card-btn .qty-input {
-        height: 24px;
-        max-width: 38px !important;
+        height: 28px;
+        max-width: 44px !important;
         padding: .1rem;
-        font-size: 11px;
+        font-size: 13px;
     }
 
     .order-product-edit-page .product-card-btn .btn-out-of-stock {
         padding: .2rem .35rem;
-        font-size: 10px !important;
+        font-size: 12px !important;
     }
 
     .order-product-edit-page .edit-invoice-panel {
