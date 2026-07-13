@@ -571,7 +571,8 @@
                             }
                         },
                         error: function(error) {
-                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                            const message = error.responseJSON?.message || 'เกิดข้อผิดพลาด';
+                            Swal.fire('เกิดข้อผิดพลาด', message, 'error');
                             console.error('เกิดข้อผิดพลาด:', error);
                         }
                     });
@@ -620,7 +621,8 @@
                             }
                         },
                         error: function(error) {
-                            Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                            const message = error.responseJSON?.message || 'เกิดข้อผิดพลาด';
+                            Swal.fire('เกิดข้อผิดพลาด', message, 'error');
                             console.error('เกิดข้อผิดพลาด:', error);
                         }
                     });

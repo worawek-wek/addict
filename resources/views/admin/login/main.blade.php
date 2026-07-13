@@ -76,27 +76,29 @@
         </div>
     </div>
 
-    @include('admin/layout/inc_js')
+    @include('admin/layout/inc_js', ['skipAdminMainJs' => true])
 
     @section('script')
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                function togglePassword() {
-                    var passwordField = document.getElementById('password');
-                    var eyeIcon = document.getElementById('eye-icon');
+            window.togglePassword = function() {
+                var passwordField = document.getElementById('password');
+                var eyeIcon = document.getElementById('eye-icon');
 
-                    // Toggle the type of the input field between password and text
-                    if (passwordField.type === "password") {
-                        passwordField.type = "text";
-                        eyeIcon.classList.remove("ti-eye-off");
-                        eyeIcon.classList.add("ti-eye");
-                    } else {
-                        passwordField.type = "password";
-                        eyeIcon.classList.remove("ti-eye");
-                        eyeIcon.classList.add("ti-eye-off");
-                    }
+                if (!passwordField || !eyeIcon) {
+                    return;
                 }
-            });
+
+                // Toggle the type of the input field between password and text
+                if (passwordField.type === "password") {
+                    passwordField.type = "text";
+                    eyeIcon.classList.remove("ti-eye-off");
+                    eyeIcon.classList.add("ti-eye");
+                } else {
+                    passwordField.type = "password";
+                    eyeIcon.classList.remove("ti-eye");
+                    eyeIcon.classList.add("ti-eye-off");
+                }
+            };
         </script>
         <script>
             (function() {

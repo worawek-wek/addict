@@ -22,6 +22,40 @@ use Illuminate\Support\Facades\DB;
 
 class OrderProductController extends Controller
 {
+    private function canViewAllBranches(): bool
+    {
+        return (int) Auth::id() === 1;
+    }
+
+    private function branchOptions()
+    {
+        if ($this->canViewAllBranches()) {
+            return Branch::orderBy('name')->get();
+        }
+
+        return Branch::where('id', Auth::user()->ref_branch_id)->orderBy('name')->get();
+    }
+
+    private function applyBranchScope($query): void
+    {
+        if ($this->canViewAllBranches()) {
+            if (request()->filled('branch_id') && request()->branch_id !== 'all') {
+                $query->where('ref_branch_id', request()->branch_id);
+            }
+
+            return;
+        }
+
+        $query->where('ref_branch_id', Auth::user()->ref_branch_id);
+    }
+
+    private function applyAccountScope($query, string $column = 'ref_account_id'): void
+    {
+        if (!$this->canViewAllBranches()) {
+            $query->where($column, Auth::id());
+        }
+    }
+
     private function currentBusinessDayRange(): array
     {
         return AdminBusinessDay::currentRange();
@@ -148,19 +182,14 @@ class OrderProductController extends Controller
         // โหลดหน้าแรกพร้อมข้อมูลเริ่มต้น
         $limit = AdminBusinessDay::defaultPerPage(request()->limit);
         // $orderProducts = $this->getOrderProducts($limit);
-        $user = Auth::user(); // user ที่ login อยู่
-
-        // if ($user->work_status == 3) {
-            // super admin เห็นทุกสาขา
-            $branches = Branch::orderBy('name')->get();
-        // } else {
-        //     // เห็นเฉพาะสาขาตัวเอง
-        //     $branches = Branch::where('id', $user->ref_branch_id)->get();
-        // }
+        $branches = $this->branchOptions();
+        $canViewAllBranches = $this->canViewAllBranches();
         
-        $rounds = DailySalesClosure::orderBy('id', 'DESC')->where('ref_account_id', Auth::id())->get();
+        $rounds = DailySalesClosure::orderBy('id', 'DESC')
+            ->when(!$canViewAllBranches, fn($q) => $q->where('ref_account_id', Auth::id()))
+            ->get();
 
-        return view('admin.order-product.index', compact('branches', 'rounds'));
+        return view('admin.order-product.index', compact('branches', 'rounds', 'canViewAllBranches'));
     }
 
     public function get_history_by_round($ref_daily_sales_closure_id)
@@ -183,13 +212,7 @@ class OrderProductController extends Controller
         $orderProducts = $result['orderProducts'];
         $check = $result['check'];
 
-        $user = Auth::user();
-
-        // if ($user->work_status == 3) {
-            $branches = Branch::orderBy('name')->get();
-        // } else {
-        //     $branches = Branch::where('id', $user->ref_branch_id)->get();
-        // }
+        $branches = $this->branchOptions();
         return view('admin.order-product.datatable', compact('orderProducts', 'branches', 'check'));
     }
 
@@ -198,7 +221,6 @@ class OrderProductController extends Controller
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         $query = Order::with(['branch', 'customer', 'user', 'room', 'status'])
-            ->where('ref_account_id', Auth::id())
             ->where('type', 2)
             ->select('orders.*')
             ->orderByRaw("
@@ -217,16 +239,8 @@ class OrderProductController extends Controller
             // ->whereNull('ref_daily_sales_closure_id')
             ->orderBy('start_time');
 
-        // ✅ filter เฉพาะสาขาของ user ที่ login
-        $userBranchId = Auth::user()->ref_branch_id ?? null;
-        if ($userBranchId) {
-            $query->where('ref_branch_id', $userBranchId);
-        }
-
-        // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
-        if (request()->filled('branch_id')) {
-            $query->where('ref_branch_id', request()->branch_id);
-        }
+        $this->applyAccountScope($query);
+        $this->applyBranchScope($query);
         // $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->where('ref_account_id', Auth::id())->first(); //////////////////////////
 
         // if (@$DailySalesClosure) { //////////////////////////
@@ -358,10 +372,12 @@ class OrderProductController extends Controller
         // }
             
         [$startDate, $endDate] = $this->productDateRangeFromRequest();
+        $canViewAllBranches = $this->canViewAllBranches();
+        $branchId = $request->branch_id;
 
         $product_employee = OrderHasProduct::join('products', 'order_has_products.ref_product_id', '=', 'products.id')
             ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id') // Join เพื่อดึงชื่อประเภท
-            ->whereHas('order', function ($query) use ($daily_sales_closure_id, $startDate, $endDate) {
+            ->whereHas('order', function ($query) use ($daily_sales_closure_id, $startDate, $endDate, $canViewAllBranches, $branchId) {
                 $query->where(function ($q) use ($startDate, $endDate) {
                     $q->whereRaw(
                         "COALESCE(paid_at, CONCAT(booking_date, ' ', start_time)) BETWEEN ? AND ?",
@@ -375,7 +391,9 @@ class OrderProductController extends Controller
                     ->where('customer_type', 1)
                     ->where('payment_status', 1)
                     ->where('type', 2)
-                    ->where('ref_account_id', Auth::id());
+                    ->when(!$canViewAllBranches, fn($q) => $q->where('ref_account_id', Auth::id()))
+                    ->when(!$canViewAllBranches, fn($q) => $q->where('ref_branch_id', Auth::user()->ref_branch_id))
+                    ->when($canViewAllBranches && $branchId && $branchId !== 'all', fn($q) => $q->where('ref_branch_id', $branchId));
             })
             ->groupBy('products.type_id', 'product_type.name')
             ->select(
@@ -389,7 +407,7 @@ class OrderProductController extends Controller
 
         $product_customer = OrderHasProduct::join('products', 'order_has_products.ref_product_id', '=', 'products.id')
             ->leftJoin('product_type', 'products.type_id', '=', 'product_type.id')
-            ->whereHas('order', function ($query) use ($daily_sales_closure_id, $startDate, $endDate) {
+            ->whereHas('order', function ($query) use ($daily_sales_closure_id, $startDate, $endDate, $canViewAllBranches, $branchId) {
                 $query->where(function ($q) use ($startDate, $endDate) {
                     $q->whereRaw(
                         "COALESCE(paid_at, CONCAT(booking_date, ' ', start_time)) BETWEEN ? AND ?",
@@ -403,7 +421,9 @@ class OrderProductController extends Controller
                     ->where('customer_type', 2)
                     ->where('payment_status', 1)
                     ->where('type', 2)
-                    ->where('ref_account_id', Auth::id());
+                    ->when(!$canViewAllBranches, fn($q) => $q->where('ref_account_id', Auth::id()))
+                    ->when(!$canViewAllBranches, fn($q) => $q->where('ref_branch_id', Auth::user()->ref_branch_id))
+                    ->when($canViewAllBranches && $branchId && $branchId !== 'all', fn($q) => $q->where('ref_branch_id', $branchId));
             })
             ->groupBy('products.type_id', 'product_type.name')
             ->select(
@@ -417,7 +437,9 @@ class OrderProductController extends Controller
 
         $payment_channel = Order::where('orders.payment_status', 1)
             ->where('orders.type', 2)
-            ->where('orders.ref_account_id', Auth::id())
+            ->when(!$canViewAllBranches, fn($q) => $q->where('orders.ref_account_id', Auth::id()))
+            ->when(!$canViewAllBranches, fn($q) => $q->where('orders.ref_branch_id', Auth::user()->ref_branch_id))
+            ->when($canViewAllBranches && $branchId && $branchId !== 'all', fn($q) => $q->where('orders.ref_branch_id', $branchId))
             ->groupBy('orders.payment_method')
             ->whereNotNull("orders.payment_method")
             ->join(

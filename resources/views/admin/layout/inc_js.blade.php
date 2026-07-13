@@ -29,10 +29,12 @@
 
     <script src="assets/js/extended-ui-sweetalert2.js"></script> --}}
 
-    <!-- Main JS -->
-    <script src="assets/js/main.js"></script>
+    @unless ($skipAdminMainJs ?? false)
+        <!-- Main JS -->
+        <script src="assets/js/main.js"></script>
 
-    <!-- Page JS -->
-    <!-- <script src="assets/js/dashboards-crm.js"></script> -->
-    <script src="assets/js/forms-selects.js"></script>
+        <!-- Page JS -->
+        <!-- <script src="assets/js/dashboards-crm.js"></script> -->
+        <script src="assets/js/forms-selects.js"></script>
+    @endunless
     {{-- <script src="assets/js/forms-pickers.js"></script> --}}

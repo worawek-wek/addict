@@ -225,8 +225,7 @@ class ProductController extends Controller
         $results = CardStocks::select('card_stocks.*', 'products.name as product_name', 'branchs.name as branch_name', 'card_stocks.cost_price')
                                 ->orderBy('card_stocks.id', 'DESC')
                                 ->leftjoin('products', 'card_stocks.ref_product_id', '=', 'products.id')
-                                ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id')
-                                ->where('card_stocks.remain', '>', 0);
+                                ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id');
 
         // if ($user->ref_position_id != 0) {
         //     // filter เฉพาะสาขาของตัวเอง
@@ -298,8 +297,7 @@ class ProductController extends Controller
         $results = CardStocks::select('card_stocks.*', 'products.name as product_name', 'branchs.name as branch_name', 'card_stocks.cost_price')
                                 ->orderBy('card_stocks.id', 'DESC')
                                 ->leftjoin('products', 'card_stocks.ref_product_id', '=', 'products.id')
-                                ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id')
-                                ->where('card_stocks.remain', '>', 0);
+                                ->leftjoin('branchs', 'products.ref_branch_id', '=', 'branchs.id');
 
         if ($user->ref_position_id != 0) {
             // filter เฉพาะสาขาของตัวเอง
@@ -476,9 +474,9 @@ class ProductController extends Controller
             $card_stocks->ref_product_id = $request->ref_product_id;
             $card_stocks->type = 1;
             $card_stocks->label = $request->label;
-            $card_stocks->stock_before_quantity = $main_stock_remain + $ready_for_sale_remain;
+            $card_stocks->stock_before_quantity = $main_stock_remain;
             $card_stocks->quantity = $request->quantity;
-            $card_stocks->stock_after_quantity = $main_stock_remain + $ready_for_sale_remain + $request->quantity;
+            $card_stocks->stock_after_quantity = $main_stock_remain + $request->quantity;
             $card_stocks->remain = $request->quantity;
             $card_stocks->remark = $request->remark;
             $card_stocks->cost_price = $request->cost_price;
@@ -497,7 +495,7 @@ class ProductController extends Controller
             $history_stock->quantity = $request->quantity; // จำนวนที่เคลื่อนไหว
             $history_stock->stock_before_quantity = $main_stock_remain; // จำนวน ก่อน ตัดสต็อก
             $history_stock->stock_after_quantity = $new_main_stock_remain; // จำนวน หลัง ตัดสต็อก
-            $history_stock->stock_ready_for_sale_before_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+            $history_stock->stock_ready_for_sale_before_quantity = $ready_for_sale_remain; // จำนวนพร้อมขายก่อนรับเข้า
             $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
             $history_stock->quantity_type = 1; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
             $history_stock->withdraw_quantity = 0;
@@ -514,25 +512,44 @@ class ProductController extends Controller
     public function export_stock_store(Request $request)
     {
         try {
+            DB::beginTransaction();
+            $exportQty = (int) $request->qty;
+
+            if ($exportQty <= 0) {
+                throw new Exception('จำนวนที่นำออกต้องมากกว่า 0');
+            }
+
         // ดึง สินค้า ก่อน ลดสต็อก {
-            $product = Product::find($request->ref_product_id); // ดึง สินค้า ก่อน ลดสต็อก
+            $product = Product::findOrFail($request->ref_product_id); // ดึง สินค้า ก่อน ลดสต็อก
             $main_stock_remain = $product->total_remain ?? 0;
             $ready_for_sale_remain = $product->ready_for_sale_total_remain ?? 0;
         // ดึง สินค้า ก่อน ลดสต็อก }
+
+            $card_stocks = CardStocks::lockForUpdate()
+                ->where('id', $request->ref_lot_id)
+                ->where('ref_product_id', $request->ref_product_id)
+                ->first();
+
+            if (!$card_stocks) {
+                throw new Exception('ไม่พบ Lot ของสินค้านี้');
+            }
+
+            if ((int) $card_stocks->remain < $exportQty) {
+                throw new Exception('สต็อกหลักไม่พอสำหรับนำสินค้าออก');
+            }
 
         // เพิ่มนำออกสินค้า {
             $export_stocks = new ExportStock;
             $export_stocks->ref_product_id = $request->ref_product_id;
             $export_stocks->ref_lot_id = $request->ref_lot_id;
-            $export_stocks->quantity = $request->qty;
+            $export_stocks->quantity = $exportQty;
             $export_stocks->remark = $request->remark;
             $export_stocks->save();
         // เพิ่มนำออกสินค้า }
 // return 123;
 
         // เพิ่มสต็อก {
-            $card_stocks = CardStocks::find($request->ref_lot_id);
-            $card_stocks->remain = $card_stocks->remain - $request->qty;
+            $card_stocks->remain = $card_stocks->remain - $exportQty;
             $card_stocks->save();
         // เพิ่มสต็อก }
         // ดึง สินค้า หลัง ลดสต็อก {
@@ -544,10 +561,10 @@ class ProductController extends Controller
         // เพิ่ม ประวัติ การเคลื่อนไหวสต็อก -> ตัดสต็อก {
             $history_stock = new HistoryStock;
             $history_stock->ref_product_id = $request->ref_product_id; // id สินค้า
-            $history_stock->quantity = $request->qty; // จำนวนที่เคลื่อนไหว
+            $history_stock->quantity = $exportQty; // จำนวนที่เคลื่อนไหว
             $history_stock->stock_before_quantity = $main_stock_remain; // จำนวน ก่อน ตัดสต็อก
             $history_stock->stock_after_quantity = $new_main_stock_remain; // จำนวน หลัง ตัดสต็อก
-            $history_stock->stock_ready_for_sale_before_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
+            $history_stock->stock_ready_for_sale_before_quantity = $ready_for_sale_remain; // จำนวนพร้อมขายก่อนนำออก
             $history_stock->stock_ready_for_sale_after_quantity = $new_ready_for_sale_remain; // จำนวน หลัง ตัดสต็อก
             $history_stock->quantity_type = 2; // 0 = ลด(ขาย) , 1 = เพิ่ม , 2 = ลด(นำออก)
             $history_stock->withdraw_quantity = 0;
@@ -558,6 +575,17 @@ class ProductController extends Controller
             return true;
         } catch (QueryException $err) {
             DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'บันทึกไม่สำเร็จ',
+                'error'   => $err->getMessage()
+            ], 500);
+        } catch (Exception $err) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $err->getMessage(),
+            ], 422);
         }
         //
     }

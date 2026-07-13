@@ -64,6 +64,15 @@
                             <input type="text" id="searchRoom" class="form-control" placeholder="Search room...">
                         </div>
 
+                        @if (!empty($canViewAllBranches))
+                            <select id="branchFilter" class="form-select" style="max-width:240px;">
+                                <option value="all">ทุกสาขา</option>
+                                @foreach ($branches as $branch)
+                                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                @endforeach
+                            </select>
+                        @endif
+
                         <!-- button -->
                         <a href="{{ url('pos/product') }}"
                             class="btn btn-warning d-flex align-items-center justify-content-center gap-2">
@@ -120,7 +129,9 @@
                                     <div style="grid-column: 1 / -1; margin: 0;"></div>
                                 @endif
 
-                                <div class="room-card" data-name="{{ $room->name }}">
+                                <div class="room-card"
+                                    data-name="{{ $room->name }} {{ $room->branch->name ?? '' }}"
+                                    data-branch="{{ $room->ref_branch_id }}">
 
                                     {{-- Timer --}}
                                     <div class="timer-box timer text-center mb-1"
@@ -161,6 +172,11 @@
                                         <div class="card-footer fw-bold {{ $room->is_busy ? 'bg-danger text-white' : 'bg-light text-dark' }} py-1 px-0"
                                             style="font-size: 0.68rem;">
                                             {{ $room->name }}
+                                            @if (!empty($canViewAllBranches))
+                                                <div style="font-size: 0.55rem; line-height: 1.1;">
+                                                    {{ $room->branch->name ?? '-' }}
+                                                </div>
+                                            @endif
                                         </div>
 
                                     </div>
@@ -230,14 +246,23 @@
     document.addEventListener('DOMContentLoaded', () => {
         const rooms = document.querySelectorAll('.room-card');
         const searchInput = document.getElementById('searchRoom');
+        const branchFilter = document.getElementById('branchFilter');
 
-        // ค้นหาห้อง
-        searchInput.addEventListener('input', () => {
+        function applyRoomFilters() {
             const q = searchInput.value.toLowerCase();
+            const branchId = branchFilter ? branchFilter.value : 'all';
+
             rooms.forEach(r => {
-                r.style.display = r.dataset.name.toLowerCase().includes(q) ? 'block' : 'none';
+                const matchSearch = r.dataset.name.toLowerCase().includes(q);
+                const matchBranch = branchId === 'all' || r.dataset.branch === branchId;
+                r.style.display = matchSearch && matchBranch ? 'block' : 'none';
             });
-        });
+        }
+
+        searchInput.addEventListener('input', applyRoomFilters);
+        if (branchFilter) {
+            branchFilter.addEventListener('change', applyRoomFilters);
+        }
     });
 </script>
 <script>

@@ -78,11 +78,11 @@
                                             <div class="col-sm-3">
                                                 <select name="ref_branch_id" class="form-select p_search"
                                                     onchange='loadData("{{ $page_url }}-datatable")' required>
-                                                    @if (Auth::user()->work_status == 3)
+                                                    @if ($canViewAllBranches ?? false)
                                                         <option value="">ทั้งหมด</option>
                                                     @endif
                                                     @foreach ($branch as $bra)
-                                                        <option value="{{ $bra->id }}" @if (Auth::user()->ref_branch_id == $bra->id) selected @endif>{{ $bra->name }}</option>
+                                                        <option value="{{ $bra->id }}" @if (!($canViewAllBranches ?? false) && Auth::user()->ref_branch_id == $bra->id) selected @endif>{{ $bra->name }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>

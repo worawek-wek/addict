@@ -49,9 +49,12 @@
                                                 <div class="col-sm-2 mb-2">
                                                     <select name="branch_id" class="form-select p_search"
                                                         onchange='loadData("{{ route('order-products.datatable') }}")'>
+                                                        @if ($canViewAllBranches ?? false)
+                                                            <option value="all" selected>ทุกสาขา</option>
+                                                        @endif
                                                         @foreach ($branches as $branch)
                                                             <option
-                                                                value="{{ $branch->id }}"@if (Auth::user()->ref_branch_id == $branch->id) selected @endif>
+                                                                value="{{ $branch->id }}"@if (!($canViewAllBranches ?? false) && Auth::user()->ref_branch_id == $branch->id) selected @endif>
                                                                 {{ $branch->name }}
                                                             </option>
                                                         @endforeach

@@ -1,0 +1,142 @@
+Commission Future Work - Mama Team Rank System
+
+Status:
+- Save for later discussion/implementation.
+- Do not implement yet.
+- User confirmed this part can be done later, but is not currently needed.
+
+Original question/request:
+Commission
+
+รายละเอียดระบบคอมมิชชั่นทีมมาม่า (Commission System)
+
+1. วัตถุประสงค์ของระบบ
+ต้องการให้ระบบสามารถคำนวณคอมมิชชั่นทีมมาม่า (ทีมเชียร์งาน) โดยใช้ระบบ Rank (ลำดับขั้น) ตามผลงานของแต่ละคน
+ระบบต้องสามารถคำนวณได้ 2 รูปแบบ คือ
+1) คำนวณจากยอดขาย (เปอร์เซ็นต์)
+2) คำนวณจากจำนวนรอบลูกค้า (จำนวนคน / จำนวนรอบ)
+โดยพนักงานแต่ละคนสามารถเลือกใช้ได้เพียง 1 ระบบ
+
+2. ระบบคอมมิชชั่นแบบเปอร์เซ็นต์ (Percentage Based)
+ใช้สำหรับมาม่าที่คิดคอมมิชชั่นจากยอดขายรวม
+ระบบต้องมี Rank 5 ระดับ ดังนี้
+Rank 1 = 1%
+Rank 2 = 1.5%
+Rank 3 = 2%
+Rank 4 = 2.5%
+Rank 5 = 3%
+
+วิธีการทำงาน
+- ระบบต้องรวมยอดขายสะสมของมาม่าแต่ละคน
+- เมื่อยอดขายถึงเงื่อนไขที่กำหนด ระบบต้องอัป Rank อัตโนมัติ
+- คอมมิชชั่นต้องคำนวณจากเปอร์เซ็นต์ของ Rank ปัจจุบัน
+
+ตัวอย่างการตั้งค่า
+- Rank 1 : ยอดขายขั้นต่ำกำหนดในระบบ = 1%
+- Rank 2 : ยอดขายขั้นต่ำกำหนดในระบบ = 1.5%
+- Rank 3 : ยอดขายขั้นต่ำกำหนดในระบบ = 2%
+- Rank 4 : ยอดขายขั้นต่ำกำหนดในระบบ = 2.5%
+- Rank 5 : ยอดขายขั้นต่ำกำหนดในระบบ = 3%
+
+ตัวเลขยอดขายขั้นต่ำของแต่ละ Rank ต้องสามารถตั้งค่าและแก้ไขได้ในระบบหลังบ้าน
+
+3. ระบบคอมมิชชั่นแบบจำนวนรอบ (Round Based)
+สำหรับมาม่าบางคน ต้องการคิดคอมมิชชั่นจากจำนวนลูกค้าที่ดูแล หรือจำนวนรอบ
+ระบบต้องนับจำนวนรอบสะสมของแต่ละคน และกำหนด Rank ตามจำนวนรอบ
+ตัวอย่างโครงสร้าง
+- Rank 1 : จำนวนรอบขั้นต่ำกำหนดในระบบ
+- Rank 2 : จำนวนรอบขั้นต่ำกำหนดในระบบ
+- Rank 3 : จำนวนรอบขั้นต่ำกำหนดในระบบ
+- Rank 4 : จำนวนรอบขั้นต่ำกำหนดในระบบ
+- Rank 5 : จำนวนรอบขั้นต่ำกำหนดในระบบ
+
+เมื่อจำนวนรอบถึงเงื่อนไขที่กำหนด ระบบต้องปรับ Rank อัตโนมัติ
+เงื่อนไขจำนวนรอบของแต่ละ Rank ต้องสามารถตั้งค่าและแก้ไขได้ในระบบหลังบ้าน
+
+4. การตั้งค่าพนักงาน (Staff Settings)
+ในข้อมูลพนักงานแต่ละคน ต้องมีช่องให้เลือกประเภทการคำนวณคอมมิชชั่น โดยเลือกได้เพียง 1 ระบบ คือ
+1) คิดจากยอดขาย (%)
+2) คิดจากจำนวนรอบ
+พนักงานแต่ละคนต้องไม่สามารถใช้ 2 ระบบพร้อมกันได้
+
+5. ข้อมูลที่ระบบต้องเก็บ
+ระบบต้องเก็บข้อมูลของมาม่าแต่ละคน ดังนี้
+- ชื่อพนักงาน
+- ประเภทการคำนวณคอมมิชชั่น
+- Rank ปัจจุบัน
+- ยอดขายสะสม
+- จำนวนรอบสะสม
+- คอมมิชชั่นที่ได้รับ
+- ข้อมูลรายเดือน
+- ประวัติย้อนหลังที่สามารถตรวจสอบได้
+
+6. Dashboard สรุปข้อมูล
+ต้องมีหน้าสรุปข้อมูลสำหรับผู้บริหารหรือแอดมิน โดยแสดงข้อมูลของมาม่าแต่ละคน ดังนี้
+- รายชื่อมาม่าทั้งหมด
+- จำนวนรอบของแต่ละคน
+- ยอดขายของแต่ละคน
+- Rank ปัจจุบัน
+- คอมมิชชั่นที่ต้องจ่าย
+
+ระบบควรสามารถดูข้อมูลได้ทั้ง
+- รายวัน
+- รายเดือน
+
+7. ระบบหลังบ้าน (Admin Panel)
+ผู้ดูแลระบบต้องสามารถจัดการข้อมูลได้เอง โดยไม่ต้องแก้ไขโปรแกรมใหม่ ได้แก่
+- เพิ่ม / ลบ / แก้ไข Rank
+- แก้ไขเปอร์เซ็นต์คอมมิชชั่น
+- แก้ไขเงื่อนไขยอดขายขั้นต่ำของแต่ละ Rank
+- แก้ไขเงื่อนไขจำนวนรอบขั้นต่ำของแต่ละ Rank
+- เปลี่ยนประเภทระบบของพนักงานแต่ละคน
+- ดูรายงานยอดขาย
+- ดูรายงานจำนวนรอบ
+- ดูรายงานคอมมิชชั่น
+
+8. การรีเซ็ตข้อมูล
+ระบบต้องสามารถรีเซ็ตข้อมูลยอดขายสะสมและจำนวนรอบสะสมทุกเดือนอัตโนมัติ เพื่อเริ่มรอบการคำนวณใหม่ของเดือนถัดไป
+แต่ต้องยังเก็บข้อมูลย้อนหลังของแต่ละเดือนไว้เพื่อให้สามารถตรวจสอบย้อนหลังได้
+
+9. รายงาน (Report)
+ระบบต้องมีรายงานสรุปเพื่อใช้ตรวจสอบย้อนหลังและสรุปยอด โดยควรมีอย่างน้อยดังนี้
+- รายงานยอดขายของมาม่าแต่ละคน
+- รายงานจำนวนรอบของมาม่าแต่ละคน
+- รายงานคอมมิชชั่นของมาม่าแต่ละคน
+- รายงานสรุปรายเดือน
+- รายงานย้อนหลังตามช่วงวันที่ที่เลือกดูได้
+
+หมายเหตุเพิ่มเติม
+- ระบบต้องรองรับการกำหนดเงื่อนไข Rank แยกกันระหว่างระบบยอดขายและระบบจำนวนรอบ
+- ระบบต้องแสดง Rank ปัจจุบันของแต่ละคนอย่างชัดเจน
+- ระบบต้องคำนวณคอมมิชชั่นอัตโนมัติตามเงื่อนไขที่ตั้งไว้
+- ระบบต้องใช้งานง่าย และผู้ดูแลสามารถแก้ไขค่าต่าง ๆ ได้จากหลังบ้าน
+
+Discussion summary:
+- This is a medium-to-large change, not a small adjustment to the existing sales commission page.
+- Current system has sales commission tiers and drink commission tiers, but does not yet support mama rank calculation by individual staff setting.
+- Recommended approach: do not overwrite the existing sales_commission_tiers behavior directly. Add a separate mama commission module/tables to avoid affecting existing sales/drink commission.
+
+Current code observations:
+- Route admin/sales-commission-tier currently uses SalesCommissionTierController and sales_commission_tiers.
+- Existing sales commission report uses CommissionController and filters users by ref_position_id = 1.
+- Existing calculation is based on OrderHasProduct rows with orders.ref_seller_id.
+- Existing tier lookup is sales amount range based, not rank based.
+- Existing system does not have a per-user field to choose between percentage-based and round-based mama commission.
+- Existing system does not have clear monthly mama rank snapshot/history for rank, accumulated sales, accumulated rounds, and commission paid.
+
+Implementation outline for future:
+- Add migration/table for mama commission rank settings.
+- Add migration/table or columns for staff commission calculation type.
+- Add monthly summary/history table for mama commission snapshots.
+- Add a central calculator/service for mama commission instead of calculating in Blade.
+- Add admin pages for rank setup by sales amount and round count.
+- Add staff setting UI to choose one calculation type per mama.
+- Add dashboard/report for daily/monthly/historical commission.
+- Decide exact sales base before implementation:
+  - orders.total_price
+  - order_has_products
+  - room/course only
+  - add-on
+  - drink
+  - whole bill
+

@@ -23,6 +23,19 @@ DB::beginTransaction();
 
 class ReportController extends Controller
 {
+    private function canViewAllBranches(): bool
+    {
+        return (int) Auth::id() === 1;
+    }
+
+    private function reportBranches()
+    {
+        if ($this->canViewAllBranches()) {
+            return Branch::orderBy('name')->get();
+        }
+
+        return Branch::where('id', Auth::user()->ref_branch_id)->orderBy('name')->get();
+    }
 
     public function view_overview(Request $request)
     {
@@ -53,7 +66,8 @@ class ReportController extends Controller
     {
         // return OrderHasProduct::get();
         $data['page_url'] = "admin/report/stock-history";
-        $data['branch'] = Branch::orderBy('name')->get();
+        $data['branch'] = $this->reportBranches();
+        $data['canViewAllBranches'] = $this->canViewAllBranches();
         // $data['employees'] = \App\Models\User::where('ref_branch_id', Auth::user()->ref_branch_id)
         //                                     ->where('ref_position_id', 2)
         //                                     ->orderBy('name')
@@ -67,7 +81,8 @@ class ReportController extends Controller
         $limit = AdminBusinessDay::defaultPerPage($request->limit);
         $stock_history = $this->getStockProductDatatable($limit, $request);
         // return optional($stock_history[0]->history_stocks->first())->stock_after_quantity;
-        return view('admin.report.report-stock-history-datatable', compact('stock_history'));
+        $canViewAllBranches = $this->canViewAllBranches();
+        return view('admin.report.report-stock-history-datatable', compact('stock_history', 'canViewAllBranches'));
     }
 
     private function getStockProductDatatable($limit, Request $request)
@@ -79,7 +94,7 @@ class ReportController extends Controller
 
     private function buildStockHistoryProductQuery(Request $request): array
     {
-        $query = Product::orderBy('id');
+        $query = Product::with('branch')->orderBy('id');
         // ->whereIn('ref_status_id', [2, 3])
         // ->orderBy('booking_date')
         // ->orderBy('start_time');
@@ -95,14 +110,19 @@ class ReportController extends Controller
         // }
         //////////////////////////////////////////////////////////////////////////////////
 
-        if ($request->filled('ref_branch_id')) {
-            // filter เฉพาะสาขาของตัวเอง
+        if ($this->canViewAllBranches() && $request->filled('ref_branch_id')) {
             $query->where('ref_branch_id', $request->ref_branch_id);
+        } elseif (!$this->canViewAllBranches()) {
+            $query->where('ref_branch_id', Auth::user()->ref_branch_id);
         }
         //////////////////////////////////////////////////////////////////////////////////
 
         [$startDate, $endDate] = $this->stockHistoryDateRange($request);
         if ($startDate && $endDate) {
+            $query->whereHas('history_stocks', function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('created_at', [$startDate, $endDate]);
+            });
+
             // return $endDate;
             $query->withSum([
                 'historyStocksDecrease as quantity_decrease' => function ($q) use ($startDate, $endDate) { // จำนวน ลด จาก ขายของ สต็อกขาย
@@ -660,9 +680,17 @@ class ReportController extends Controller
 
         // filter ค้นหา
         if (request()->filled('search')) {
-            $search = request()->search;
-            $query->whereHas('customer', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
+            $search = trim((string) request()->search);
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('customer', function ($customerQuery) use ($search) {
+                    $customerQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
+                })->orWhereHas('seller', function ($sellerQuery) use ($search) {
+                    $sellerQuery->where('user_code', 'like', "%{$search}%")
+                        ->orWhere('user_id', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%")
+                        ->orWhere('nickname', 'like', "%{$search}%");
+                });
             });
         }
 
@@ -749,9 +777,17 @@ class ReportController extends Controller
 
         // filter ค้นหา
         if (request()->filled('search')) {
-            $search = request()->search;
-            $query->whereHas('customer', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
+            $search = trim((string) request()->search);
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('customer', function ($customerQuery) use ($search) {
+                    $customerQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
+                })->orWhereHas('seller', function ($sellerQuery) use ($search) {
+                    $sellerQuery->where('user_code', 'like', "%{$search}%")
+                        ->orWhere('user_id', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%")
+                        ->orWhere('nickname', 'like', "%{$search}%");
+                });
             });
         }
 

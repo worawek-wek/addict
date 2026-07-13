@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\pos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\Order;
 use App\Models\Room;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class RoomPOSController extends Controller
 {
@@ -22,11 +24,17 @@ class RoomPOSController extends Controller
 
     public function index()
     {
-    
-
         $user = auth()->user();
-        $rooms = Room::orderBy('room_group_id')->orderByRaw('CAST(name AS UNSIGNED)')
-            ->when($user && $user->ref_position_id != 0, function($q) use ($user) {
+        $canViewAllBranches = $user && (int) $user->id === 1;
+        $branches = $canViewAllBranches
+            ? Branch::orderBy('name')->get()
+            : collect();
+
+        $rooms = Room::with('branch')
+            ->orderBy('ref_branch_id')
+            ->orderBy('room_group_id')
+            ->orderByRaw('CAST(name AS UNSIGNED)')
+            ->when($user && !$canViewAllBranches && $user->ref_position_id != 0, function($q) use ($user) {
                 $q->where('ref_branch_id', $user->ref_branch_id);
             })
             ->where('ref_status_id', 1)
@@ -58,13 +66,20 @@ class RoomPOSController extends Controller
                 return $room;
             });
 
-        return view('pos.room.index', compact('rooms'));
+        return view('pos.room.index', compact('rooms', 'branches', 'canViewAllBranches'));
     }
 
 
     // ✅ โหลดลูกค้าในห้อง
     public function getCustomers($roomId)
     {
+        $room = Room::findOrFail($roomId);
+        $user = Auth::user();
+
+        if ($user && (int) $user->id !== 1 && (int) $room->ref_branch_id !== (int) $user->ref_branch_id) {
+            abort(403);
+        }
+
         $orders = Order::with('customer')
             ->where('ref_room_id', $roomId)
             ->where('ref_status_id', 2)

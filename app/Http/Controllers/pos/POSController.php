@@ -128,7 +128,12 @@ class POSController extends Controller
      */
     public function index(Request $request, $room_id)
     {
-        $room = Room::find($room_id);
+        $room = Room::findOrFail($room_id);
+        $authUser = Auth::user();
+
+        if ($authUser && (int) $authUser->id !== 1 && (int) $room->ref_branch_id !== (int) $authUser->ref_branch_id) {
+            abort(403);
+        }
 
         $activeOrder = $this->findActiveRoomOrder($room->id);
 
@@ -153,7 +158,9 @@ class POSController extends Controller
         // ---------------- Products + Search ----------------
         $q = trim((string) $request->get('q', ''));
 
-        $branchId = Auth::user()->ref_branch_id ?? null;
+        $branchId = (int) ($authUser?->id ?? 0) === 1
+            ? ($room->ref_branch_id ?? null)
+            : ($authUser->ref_branch_id ?? null);
         $data['products'] = Product::with('latestStock')
             ->when($q !== '', fn($b) => $b->where('name', 'like', "%{$q}%"))
             ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
@@ -183,9 +190,7 @@ class POSController extends Controller
         $data['total'] = $subtotal - $discount + $tax;
         $data['room_id'] = $room_id;
 
-        // ---------------- Rooms (only by branch) ----------------
-        $branchId = Auth::user()->ref_branch_id ?? null;
-
+        // ---------------- Rooms (only by selected branch context) ----------------
         $rooms = Room::query()
             ->when($branchId, fn($b) => $b->where('ref_branch_id', $branchId))
             ->orderBy('id')

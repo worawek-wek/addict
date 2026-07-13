@@ -25,6 +25,33 @@ use Illuminate\Support\Facades\DB;
 
 class OrderRoomController extends Controller
 {
+    private function canViewAllBranches(): bool
+    {
+        return (int) Auth::id() === 1;
+    }
+
+    private function branchOptions()
+    {
+        if ($this->canViewAllBranches()) {
+            return Branch::orderBy('name')->get();
+        }
+
+        return Branch::where('id', Auth::user()->ref_branch_id)->orderBy('name')->get();
+    }
+
+    private function applyBranchScope($query): void
+    {
+        if ($this->canViewAllBranches()) {
+            if (request()->filled('branch_id') && request()->branch_id !== 'all') {
+                $query->where('ref_branch_id', request()->branch_id);
+            }
+
+            return;
+        }
+
+        $query->where('ref_branch_id', Auth::user()->ref_branch_id);
+    }
+
     public function index()
     {
         $getchild = Order::join('users', 'orders.ref_user_id', '=', 'users.id')
@@ -42,16 +69,10 @@ class OrderRoomController extends Controller
         // โหลดหน้าแรกพร้อมข้อมูลเริ่มต้น
         $limit = AdminBusinessDay::defaultPerPage(request()->limit);
         // $orderRooms = $this->getOrderRooms($limit);
-        $user = Auth::user(); // user ที่ login อยู่
+        $canViewAllBranches = $this->canViewAllBranches();
+        $branches = $this->branchOptions();
 
-        // if ($user->work_status == 3) {
-            // super admin เห็นทุกสาขา
-            $branches = Branch::orderBy('name')->get();
-        // } else {
-        //     // เห็นเฉพาะสาขาตัวเอง
-        //     $branches = Branch::where('id', $user->ref_branch_id)->get();
-        // }
-        return view('admin.order-room.index', compact('branches', 'getchild'));
+        return view('admin.order-room.index', compact('branches', 'getchild', 'canViewAllBranches'));
     }
 
     public function datatable(Request $request)
@@ -61,13 +82,7 @@ class OrderRoomController extends Controller
 
         $orderRooms = $this->getOrderRooms($limit, $childSelect);
 
-        $user = Auth::user();
-
-        // if ($user->work_status == 3) {
-            $branches = Branch::orderBy('name')->get();
-        // } else {
-        //     $branches = Branch::where('id', $user->ref_branch_id)->get();
-        // }
+        $branches = $this->branchOptions();
 
         return view('admin.order-room.datatable', compact('orderRooms', 'branches'));
     }
@@ -137,16 +152,7 @@ class OrderRoomController extends Controller
             ->orderBy('booking_date')
             ->orderBy('created_at', 'DESC');
 
-        // ✅ filter เฉพาะสาขาของ user ที่ login
-        $userBranchId = Auth::user()->ref_branch_id ?? null;
-        if ($userBranchId) {
-            $query->where('ref_branch_id', $userBranchId);
-        }
-
-        // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
-        if (request()->filled('branch_id')) {
-            $query->where('ref_branch_id', request()->branch_id);
-        }
+        $this->applyBranchScope($query);
 
         if (!empty($childSelect)) {
             $query->where('ref_user_id', $childSelect);

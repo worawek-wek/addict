@@ -63,6 +63,20 @@
         </thead>
         <tbody>
             @foreach ($list_data as $key => $row)
+            @php
+                $importHistory = \App\Models\HistoryStock::where('ref_product_id', $row->ref_product_id)
+                    ->where('quantity_type', 1)
+                    ->where('quantity', $row->quantity)
+                    ->whereBetween('created_at', [
+                        \Carbon\Carbon::parse($row->created_at)->copy()->subSeconds(10),
+                        \Carbon\Carbon::parse($row->created_at)->copy()->addSeconds(10),
+                    ])
+                    ->orderByRaw('ABS(TIMESTAMPDIFF(SECOND, created_at, ?))', [$row->created_at])
+                    ->first();
+
+                $stockBeforeQuantity = $importHistory->stock_before_quantity ?? $row->stock_before_quantity;
+                $stockAfterQuantity = $importHistory->stock_after_quantity ?? $row->stock_after_quantity;
+            @endphp
             <tr class="odd">
                 <td class="text-center">
                     {{ $key+1 }}
@@ -77,13 +91,13 @@
                     {{ $row->product_name }}
                 </td>
                 <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                    {{ $row->stock_before_quantity }}
+                    {{ $stockBeforeQuantity }}
                 </td>
                 <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->type == 1 ?$row->quantity:''; }}
                 </td>
                 <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
-                    {{ $row->stock_after_quantity }}
+                    {{ $stockAfterQuantity }}
                 </td>
                 {{-- <td class="text-center text-success" onclick="view({{ $row->id }})" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#insurance">
                     {{ $row->type == 2 ?$row->quantity:''; }}

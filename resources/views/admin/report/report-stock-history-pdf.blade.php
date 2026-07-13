@@ -36,6 +36,9 @@
         width: 9%;
     }
 </style>
+@php
+    $canViewAllBranches = (int) Auth::id() === 1;
+@endphp
 <span style="font-size: 13px; font-weight: bold;">รายงานสต็อกการ์ด(สินค้า) วันที่ {{ date('d/m/Y H:i น.', strtotime($startDate)) }} - {{ date('d/m/Y H:i น.', strtotime($endDate)) }} , พิมพ์เมื่อ {{ date('d/m/Y H:i น.') }}</span>
 
 {{-- {{dd($list_data['to'])}} --}}
@@ -43,6 +46,9 @@
     <colgroup>
         <col class="col-order">
         <col class="col-product">
+        @if ($canViewAllBranches)
+            <col class="col-number">
+        @endif
         <col class="col-number">
         <col class="col-number">
         <col class="col-number">
@@ -60,6 +66,11 @@
             <th class="text-center">
                 รายการ
             </th>
+            @if ($canViewAllBranches)
+                <th class="text-center">
+                    สาขา
+                </th>
+            @endif
             <th class="text-center">
                 สต็อกหลัก
             </th>
@@ -87,7 +98,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach ($stock_history as $key => $row)
+        @forelse ($stock_history as $key => $row)
         @php
             $mainStockClosing = optional($row->historyStocksLatest)->stock_after_quantity ?? $row->total_remain;
             $readyStockClosing = optional($row->historyStocksLatest)->stock_ready_for_sale_after_quantity ?? $row->ready_for_sale_total_remain;
@@ -105,6 +116,11 @@
             <td class="text-center">
                 {{ $row->name }}
             </td>
+            @if ($canViewAllBranches)
+                <td class="text-center">
+                    {{ $row->branch->name ?? '-' }}
+                </td>
+            @endif
             <td class="text-center">
                 {{ $mainStockOpening }}
             </td>
@@ -130,6 +146,10 @@
                 {{ $mainStockClosing }}
             </td>     
         </tr>
-        @endforeach
+        @empty
+            <tr>
+                <td colspan="{{ $canViewAllBranches ? 11 : 10 }}">ไม่มีข้อมูล</td>
+            </tr>
+        @endforelse
     </tbody>
 </table>

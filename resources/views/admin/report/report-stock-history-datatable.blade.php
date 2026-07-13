@@ -10,6 +10,11 @@
             <th class="text-center">
                 รายการ
             </th>
+            @if ($canViewAllBranches ?? false)
+                <th class="text-center">
+                    สาขา
+                </th>
+            @endif
             <th class="text-center">
                 สต็อกหลัก
             </th>
@@ -37,7 +42,7 @@
         </tr>
     </thead>
     <tbody style="font-size: small;">
-        @foreach ($stock_history as $key => $row)
+        @forelse ($stock_history as $key => $row)
         @php
             $mainStockClosing = optional($row->historyStocksLatest)->stock_after_quantity ?? $row->total_remain;
             $readyStockClosing = optional($row->historyStocksLatest)->stock_ready_for_sale_after_quantity ?? $row->ready_for_sale_total_remain;
@@ -55,6 +60,11 @@
             <td class="text-center">
                 {{ $row->name }}
             </td>
+            @if ($canViewAllBranches ?? false)
+                <td class="text-center">
+                    {{ $row->branch->name ?? '-' }}
+                </td>
+            @endif
             <td class="text-center">
                 {{ $mainStockOpening }}
             </td>
@@ -80,7 +90,11 @@
                 {{ $mainStockClosing }}
             </td>     
         </tr>
-        @endforeach
+        @empty
+            <tr>
+                <td class="text-center" colspan="{{ ($canViewAllBranches ?? false) ? 11 : 10 }}">ไม่มีข้อมูล</td>
+            </tr>
+        @endforelse
     </tbody>
 </table>
 <!-- END: Data List -->

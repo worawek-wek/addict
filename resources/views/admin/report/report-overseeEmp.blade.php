@@ -158,7 +158,7 @@
                                                         <label class="form-label mb-1">ค้นหา</label>
                                                         <input name="search" id="search_input" type="search"
                                                             class="form-control p_search"
-                                                            placeholder="ค้นหา..."
+                                                            placeholder="รหัส/ชื่อผู้ดูแล, ลูกค้า..."
                                                             style="min-width:160px;"
                                                             oninput="loadData(page)">
                                                     </div>
