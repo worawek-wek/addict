@@ -19,7 +19,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'work_status', 'email', 'password',
+        'name', 'work_status', 'email', 'password', 'commission_mode', 'drink_commission_mode',
     ];
 
     /**
@@ -52,6 +52,14 @@ class User extends Authenticatable
      *
      * @var array
      */
+
+    /**
+     * มาม่า/ทีมเชียร์ = พนักงานทุกตำแหน่งยกเว้นพนักงานนวด (position id = 2)
+     */
+    public function scopeMama($query)
+    {
+        return $query->where('ref_position_id', '!=', 2);
+    }
 
     public function position()
     {

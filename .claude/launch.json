@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "addict-app",
+      "runtimeExecutable": "/Applications/XAMPP/xamppfiles/bin/php",
+      "runtimeArgs": ["artisan", "serve", "--host=127.0.0.1", "--port=8001"],
+      "port": 8001,
+      "autoPort": false
+    },
+    {
+      "name": "addict-assets",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "watch"],
+      "port": 8080
+    }
+  ]
+}

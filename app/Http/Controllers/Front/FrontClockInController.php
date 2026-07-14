@@ -93,24 +93,50 @@ class FrontClockInController extends Controller
                 return "เข้างานผิดพลาด ไม่พบพนักงาน";
             }
             $user = User::find($find->id);
-            if ((int) $user->ref_position_id !== self::MASSAGE_POSITION_ID) {
-                return "เข้างานผิดพลาด ตำแหน่งไม่ถูกต้อง";
+
+            $today = Carbon::today()->toDateString();
+            $now = Carbon::now();
+
+            $attendance = \App\Models\WorkAttendance::where('ref_staff_id', $user->id)
+                ->where('work_date', $today)
+                ->first();
+
+            // แตะครั้งแรกของวัน = เข้างาน
+            if (!$attendance) {
+                \App\Models\WorkAttendance::create([
+                    'ref_staff_id' => $user->id,
+                    'ref_branch_id' => $user->ref_branch_id,
+                    'work_date' => $today,
+                    'check_in_at' => $now,
+                    'status' => 'working',
+                ]);
+                $user->work_status = 1;
+                $user->ref_status_id = 1;
+                $user->save();
+                DB::commit();
+
+                return "คุณ $user->nickname เข้างานสำเร็จ เวลา " . $now->format('H:i') . " น.";
             }
 
-            if ((int) $user->work_status === 1) {
-                return "รหัส $userCode วันนี้ได้เข้างานแล้ว";
+            // แตะครั้งที่สอง = ออก/ลา
+            if ($attendance->status === 'working') {
+                $attendance->check_out_at = $now;
+                $attendance->status = 'left';
+                $attendance->save();
+                $user->work_status = 0;
+                $user->save();
+                DB::commit();
+
+                return "คุณ $user->nickname ออกงาน เวลา " . $now->format('H:i') . " น.";
             }
 
-            $user->work_status = 1;
-            $user->ref_status_id = 1;
-            $user->save();
+            // แตะเพิ่มหลังออกแล้ว = วันนี้ลงเวลาครบแล้ว
+            return "รหัส $userCode วันนี้ลงเวลาครบแล้ว";
 
-            DB::commit();
-
-            return "คุณ $user->nickname เข้างานสำเร็จ";
-
-        } catch (QueryException $err) {
+        } catch (\Throwable $err) {
             DB::rollBack();
+
+            return "เข้างานผิดพลาด: " . $err->getMessage();
         }
     }
     public function datatable(Request $request)

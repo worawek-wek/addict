@@ -122,6 +122,22 @@
                              class="form-control" min="0" />
                     </div>
 
+                    <div class="col-sm-6 commission-mode-group" style="display: {{ $user->ref_position_id == 2 ? 'none' : 'block' }};">
+                      <label class="form-label">โหมดคิดคอมมิชชั่น นวด+สินค้า</label>
+                      <select name="commission_mode" class="form-select">
+                        <option value="sales" {{ ($user->commission_mode ?? 'sales') == 'sales' ? 'selected' : '' }}>คิดจากยอดขาย (%)</option>
+                        <option value="rounds" {{ ($user->commission_mode ?? 'sales') == 'rounds' ? 'selected' : '' }}>คิดจากจำนวนรอบ</option>
+                      </select>
+                    </div>
+
+                    <div class="col-sm-6 commission-mode-group" style="display: {{ $user->ref_position_id == 2 ? 'none' : 'block' }};">
+                      <label class="form-label">โหมดคิดคอมมิชชั่น ดื่ม</label>
+                      <select name="drink_commission_mode" class="form-select">
+                        <option value="sales" {{ ($user->drink_commission_mode ?? 'sales') == 'sales' ? 'selected' : '' }}>คิดจากยอดขาย (%)</option>
+                        <option value="rounds" {{ ($user->drink_commission_mode ?? 'sales') == 'rounds' ? 'selected' : '' }}>คิดจากจำนวนรอบ</option>
+                      </select>
+                    </div>
+
                     <div class="col-sm-10 mt-3">
                       <label>รูปภาพ</label>
                       <input type="file" name="image_name" class="form-control mb-2" id="image_name2">
@@ -270,8 +286,10 @@
     $('#select2EditPosition').on('change', function() {
       if ($(this).val() == '2') {
         $('#salary-input-group').show();
+        $('.commission-mode-group').hide();
       } else {
         $('#salary-input-group').hide();
+        $('.commission-mode-group').show();
       }
     });
   });

@@ -36,17 +36,25 @@
                     <tr class="table-info">
                         <th class="text-center" style="width: 10px;">#</th>
                         <th class="text-center">ชื่อพนักงาน</th>
-                        <th class="text-center">คอมมิชชั่นที่ได้รับ</th>
+                        <th class="text-center">โหมด</th>
                         <th class="text-center">ยอดขาย</th>
+                        <th class="text-center">จำนวนรอบ</th>
+                        <th class="text-center">Rank</th>
+                        <th class="text-center">เรต/เกณฑ์</th>
+                        <th class="text-center">คอมมิชชั่นที่ได้รับ</th>
                     </tr>
                 </thead>
                 <tbody id="commission-table-body">
                     @foreach($list_data as $i => $staff)
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
-                        <td class="text-center">{{ $staff->user->name }}{{ $staff->user->nickname ? ' (' . $staff->user->nickname . ')' : '' }}</td>
-                        <td class="text-center">{{ $staff->commission }}</td>
-                        <td class="text-center">{{ $staff->sales_received }}</td>
+                        <td class="text-center">{{ $staff->user->name ?? '-' }}{{ optional($staff->user)->nickname ? ' (' . $staff->user->nickname . ')' : '' }}</td>
+                        <td class="text-center">{{ ($staff->mode ?? null) === 'rounds' ? 'จำนวนรอบ' : 'ยอดขาย %' }}</td>
+                        <td class="text-end" style="padding-right:6%;">{{ number_format($staff->sales_received, 2) }}</td>
+                        <td class="text-center">{{ $staff->accumulated_rounds ?? '-' }}</td>
+                        <td class="text-center">{{ ($staff->rank_no ?? 0) > 0 ? 'Rank ' . $staff->rank_no : '-' }}</td>
+                        <td class="text-center">{{ $staff->commission_rate }}</td>
+                        <td class="text-end" style="padding-right:6%;">{{ number_format($staff->commission, 2) }} บาท</td>
                     </tr>
                     @endforeach
                 </tbody>

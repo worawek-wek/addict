@@ -44,9 +44,11 @@
                                                 </select>
                                             </div>
                                             <div class="col-sm-8 d-flex justify-content-end align-items-sm-center gap-2">
-                                                <a href="{{ route('sales_commission_tier.index') }}" class="btn btn-main">
-                                                    <i class="ti ti-currency-dollar"></i> จัดการค่าคอมมิชชั่น (ดื่ม)
+                                                @if (auth()->id() === 1)
+                                                <a href="{{ route('commission_ranks.index', ['category' => 'drink']) }}" class="btn btn-main">
+                                                    <i class="ti ti-stairs-up"></i> ตั้งค่าบันได Rank (ดื่ม)
                                                 </a>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
@@ -97,6 +99,10 @@
                                                             <div id="DataTables_Table_0_filter" class="dataTables_filter mx-n2 me-2">
                                                                 <input name="end_date" id="end_date" type="text" class="form-control p_search search_date" onchange='loadData("{{ $page_url }}/datatable")' value="{{ date('d/m/Y') }}">
                                                             </div>
+                                                        <div class="btn-group me-2 mb-2 mb-sm-0" role="group">
+                                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="setRange('today')">วันนี้</button>
+                                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="setRange('month')">เดือนนี้</button>
+                                                        </div>
                                                         <div class="dt-buttons btn-group flex-wrap d-flex mb-6 mb-sm-0">
                                                             <button
                                                                 class="btn btn-secondary add-new btn-primary me-2 ms-sm-0 waves-effect waves-light"
@@ -173,6 +179,15 @@
         // alert(page);
     }
 
+    function setRange(type){
+        var d = new Date();
+        function fmt(dt){ return ('0'+dt.getDate()).slice(-2)+'/'+('0'+(dt.getMonth()+1)).slice(-2)+'/'+dt.getFullYear(); }
+        var start = type === 'today' ? fmt(d) : fmt(new Date(d.getFullYear(), d.getMonth(), 1));
+        var end = fmt(d);
+        $('#start_date').val(start); $('#end_date').val(end);
+        try { $('#start_date').datepicker('setDate', start); $('#end_date').datepicker('setDate', end); } catch(e){}
+        loadData("{{ $page_url }}/datatable");
+    }
     function printPdf(){
 
         var searchData = {};

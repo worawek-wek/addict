@@ -3,34 +3,61 @@
         <tr class="table-info">
             <th class="text-center" style="width: 10px;">#</th>
             <th class="text-center">ชื่อพนักงาน</th>
-            <th class="text-center">จำนวนเงินคอมมิชชั่น</th>
             <th class="text-center">สาขา</th>
-            <th class="text-center">ชื่อตำแหน่ง</th>
-            {{-- <th class="text-center">ค่าเชียร์</th> --}}
-            {{-- <th class="text-center">ดู Order</th> --}}
+            <th class="text-center">โหมด</th>
+            <th class="text-center">ยอดขายสะสม</th>
+            <th class="text-center">จำนวนรอบ</th>
+            <th class="text-center">Rank</th>
+            <th class="text-center">เรต/เกณฑ์</th>
+            <th class="text-center">คอมมิชชั่น</th>
         </tr>
     </thead>
     <tbody id="commission-table-body">
-        @foreach($list_data as $i => $staff)
-        <tr>
-            <td class="text-center">{{ $i + 1 }}</td>
-            <td class="text-center">{{ $staff->name }}{{ $staff->nickname ? ' (' . $staff->nickname . ')' : '' }}</td>
+        @php $offset = (($list_data->currentPage() - 1) * $list_data->perPage()); @endphp
+        @foreach($rows as $i => $row)
             @php
-                $total_price = \App\Models\OrderHasProduct::whereHas('order', function ($query) use ($staff) {
-                                                            $query->where('ref_seller_id', $staff->id)
-                                                                    ->whereIn('type', [1, 2]);
-                                                        })
-                                                        ->whereBetween('created_at', [$start_date, $end_date])
-                                                        ->sum('price') ?? 0;
-                $sale_commission = \App\Models\SalesCommissionTier::where('type', 1)->where('min_sales_amount', '<=', $total_price)->where('max_sales_amount', '>=', $total_price)->first(); // ดึงการตั้งค่า คอมมิชชั่น ที่ตรงกับยอดขายรวม
-                if($sale_commission && $sale_commission->commission_by == 1){ // ถ้าเป็น เปอร์เซ็นต์
-                    $sale_commission->commission_price = $sale_commission->commission_rate*$total_price/100; // เปอร์เซ็นต์ * ยอดขายรวม / 100
-                }
+                $staff = $row['staff'];
+                $c = $row['c'];
+                $isRounds = $c['mode'] === 'rounds';
             @endphp
-            <td class="text-end" style="padding-right: 12%;">{{ number_format(@$sale_commission->commission_price ?? 0, 2) }} บาท</td>
-            <td class="text-center">{{ $staff->branch->name }}</td>
-            <td class="text-center">{{ $staff->position->position_name }}</td>
-        </tr>
+            <tr>
+                <td class="text-center">{{ $offset + $i + 1 }}</td>
+                <td class="text-center">{{ $staff->name }}{{ $staff->nickname ? ' (' . $staff->nickname . ')' : '' }}</td>
+                <td class="text-center">{{ optional($staff->branch)->name }}</td>
+                <td class="text-center">
+                    @if($isRounds)
+                        <span class="badge bg-label-info">จำนวนรอบ</span>
+                    @else
+                        <span class="badge bg-label-primary">ยอดขาย %</span>
+                    @endif
+                </td>
+                <td class="text-end" style="padding-right: 4%;">{{ number_format($c['accumulated_sales'], 2) }} บาท</td>
+                <td class="text-center">{{ number_format($c['accumulated_rounds']) }}</td>
+                <td class="text-center">
+                    @if($c['rank_no'] > 0)
+                        <span class="badge bg-label-success">Rank {{ $c['rank_no'] }}</span>
+                    @else
+                        <span class="badge bg-label-secondary">-</span>
+                    @endif
+                </td>
+                <td class="text-center">
+                    @if($c['rank_no'] > 0)
+                        @if($c['applied_payout_type'] === 'percent')
+                            {{ rtrim(rtrim(number_format($c['applied_rate'], 2), '0'), '.') }}%
+                        @elseif($c['applied_payout_type'] === 'fixed_per_round')
+                            {{ number_format($c['applied_fixed_amount'] ?? 0, 2) }} /รอบ
+                        @else
+                            {{ number_format($c['applied_fixed_amount'] ?? 0, 2) }} คงที่
+                        @endif
+                        <div class="text-muted" style="font-size:11px;">
+                            ตัดที่ {{ number_format($c['applied_min_threshold'], 2) }}{{ $isRounds ? ' รอบ' : '' }}
+                        </div>
+                    @else
+                        <span class="text-muted">-</span>
+                    @endif
+                </td>
+                <td class="text-end" style="padding-right: 6%;">{{ number_format($c['commission_amount'], 2) }} บาท</td>
+            </tr>
         @endforeach
     </tbody>
 </table>

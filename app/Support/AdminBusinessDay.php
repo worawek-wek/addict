@@ -67,6 +67,28 @@ class AdminBusinessDay
         return [$startDate, $endDate];
     }
 
+    /**
+     * ช่วงวันทำการของทั้งเดือน (ตามกติกา 10:01 ถึง 10:00)
+     * $ym รูปแบบ 'YYYY-MM' ไม่ระบุ = เดือนปัจจุบัน
+     * เริ่ม วันที่ 1 เวลา 10:01:00 ถึง วันที่ 1 ของเดือนถัดไป เวลา 10:00:59
+     */
+    public static function monthRange(?string $ym = null): array
+    {
+        $base = $ym
+            ? Carbon::createFromFormat('Y-m-d', $ym . '-01')->startOfMonth()
+            : Carbon::now()->startOfMonth();
+
+        $start = $base->copy()->setTime(10, 1, 0);
+        $end = $base->copy()->addMonthNoOverflow()->setTime(10, 0, 59);
+
+        return [$start, $end];
+    }
+
+    public static function currentPeriodYm(?Carbon $now = null): string
+    {
+        return ($now ? $now->copy() : Carbon::now())->format('Y-m');
+    }
+
     public static function singleDateRange($date): array
     {
         $start = self::parseDate($date)->setTime(10, 1, 0);

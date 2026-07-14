@@ -11,6 +11,7 @@ use App\Models\SalesCommissionTier;
 use App\Models\User;
 use App\Models\Branch;
 use App\Support\AdminBusinessDay;
+use App\Support\MamaCommissionCalculator;
 use Exception;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -121,6 +122,58 @@ class CommissionController extends Controller
         $page_url = "admin/commission/view-sales";
         return view('admin.commission.view_sales', compact('page_url', 'rounds', 'branch'));
     }
+
+    // Dashboard สรุปคอมมิชชั่นรวม (นวด+สินค้า + ดื่ม) รายวัน/รายเดือน
+    public function dashboard(Request $request)
+    {
+        $branch = Branch::orderBy('name')->get();
+        $page_url = 'admin/commission/dashboard';
+        return view('admin.commission.dashboard', compact('page_url', 'branch'));
+    }
+
+    public function dashboard_datatable(Request $request)
+    {
+        $period = $request->input('period', 'month');
+        if ($period === 'day') {
+            [$start, $end] = $request->filled('date')
+                ? AdminBusinessDay::singleDateRange($request->input('date'))
+                : AdminBusinessDay::currentRange();
+        } else {
+            [$start, $end] = AdminBusinessDay::monthRange($request->input('ym') ?: null);
+        }
+
+        $results = User::withTrashed()->mama()->orderBy('id');
+        if (request('name')) {
+            $results->Where(function ($query) use ($request) {
+                $query->where('name', 'LIKE', '%' . request('name') . '%')
+                    ->orWhere('nickname', 'LIKE', '%' . request('name') . '%');
+            });
+        }
+        if (@$request->ref_branch_id) {
+            $results->where('ref_branch_id', $request->ref_branch_id);
+        }
+
+        $rows = $results->get()->map(function ($staff) use ($start, $end) {
+            $service = MamaCommissionCalculator::computeForStaff($staff, $start, $end, 'service');
+            $drink = MamaCommissionCalculator::computeForStaff($staff, $start, $end, 'drink');
+            return [
+                'staff' => $staff,
+                'service' => $service,
+                'drink' => $drink,
+                'total' => $service['commission_amount'] + $drink['commission_amount'],
+            ];
+        });
+
+        $summary = [
+            'count' => $rows->count(),
+            'service' => $rows->sum(fn ($r) => $r['service']['commission_amount']),
+            'drink' => $rows->sum(fn ($r) => $r['drink']['commission_amount']),
+            'total' => $rows->sum('total'),
+        ];
+
+        return view('admin.commission.dashboard_table', compact('rows', 'summary', 'start', 'end', 'period'));
+    }
+
     public function get_history_by_round($round)
     {
         // $user = Auth::user();
@@ -131,8 +184,8 @@ class CommissionController extends Controller
     }
     public function view_sales_datatable(Request $request)
     {
-        // $user = Auth::user();
-        $results = User::withTrashed()->where('ref_position_id', 1)->orderBy('id');
+        // มาม่า/ทีมเชียร์ = ทุกตำแหน่งยกเว้นพนักงานนวด (position id = 2)
+        $results = User::withTrashed()->mama()->orderBy('id');
 
         if (request('name')) {
             $results->Where(function ($query) use ($request) {
@@ -144,9 +197,11 @@ class CommissionController extends Controller
         if (@$request->ref_branch_id) {
             $results = $results->where('ref_branch_id', $request->ref_branch_id);
         }
-        if (request('start_date')) {
-            [$data['start_date'], $data['end_date']] = AdminBusinessDay::rangeFromRequest($request);
-        }
+
+        // ช่วงเวลาสะสม (ปกติ = ช่วงเดือนจากตัวกรอง) ถ้าไม่ส่งมาใช้ค่าวันทำการปัจจุบัน
+        [$start, $end] = AdminBusinessDay::rangeFromRequest($request);
+        $data['start_date'] = $start;
+        $data['end_date'] = $end;
 
         $limit = AdminBusinessDay::DEFAULT_PER_PAGE;
         if (@$request['limit']) {
@@ -155,18 +210,24 @@ class CommissionController extends Controller
 
         $results = $results->paginate($limit);
 
-        $data['list_data'] = $results->appends(request()->query());
+        // คำนวณ rank/ยอด/รอบ/คอมฯ ต่อคน (เฉพาะหน้าที่แสดง)
+        $data['rows'] = $results->getCollection()->map(function ($staff) use ($start, $end) {
+            return [
+                'staff' => $staff,
+                'c' => MamaCommissionCalculator::computeForStaff($staff, $start, $end),
+            ];
+        });
+
         $data['query'] = request()->query();
         $data['query']['limit'] = $limit;
-
-        $data['page_url'] = 'admin/card_stock_report';
+        $data['page_url'] = 'admin/commission/view-sales';
         $data['list_data'] = $results;
         return view('admin.commission.view_sales_table', $data);
     }
     
     public function view_sales_pdf(Request $request)
     {
-        $results = User::withTrashed()->where('ref_position_id', 1)->orderBy('id');
+        $results = User::withTrashed()->mama()->orderBy('id');
 
         if (request('name')) {
             $results->Where(function ($query) use ($request) {
@@ -181,13 +242,17 @@ class CommissionController extends Controller
         }
 /////////////////////////////////////////////////////////////////////////////////////////
 
-        if (request('start_date')) {
-            [$data['start_date'], $data['end_date']] = AdminBusinessDay::rangeFromRequest($request);
-        }
+        [$start, $end] = AdminBusinessDay::rangeFromRequest($request);
+        $data['start_date'] = $start;
+        $data['end_date'] = $end;
 
-        $results = $results->get();
-        
-        $data['list_data'] = $results;
+        // คำนวณด้วยระบบ Rank เดียวกับหน้าจอ
+        $data['rows'] = $results->get()->map(function ($staff) use ($start, $end) {
+            return [
+                'staff' => $staff,
+                'c' => MamaCommissionCalculator::computeForStaff($staff, $start, $end),
+            ];
+        });
 
         $html = view('admin.commission.view_sales_pdf', $data,)->render();
 
@@ -209,8 +274,8 @@ class CommissionController extends Controller
     }
     public function drink_view_sales_datatable(Request $request)
     {
-        // $user = Auth::user();
-        $results = User::withTrashed()->where('ref_position_id', 1)->orderBy('id');
+        // มาม่า/ทีมเชียร์ = ทุกตำแหน่งยกเว้นพนักงานนวด
+        $results = User::withTrashed()->mama()->orderBy('id');
 
         if (request('name')) {
             $results->Where(function ($query) use ($request) {
@@ -222,9 +287,10 @@ class CommissionController extends Controller
         if (@$request->ref_branch_id) {
             $results = $results->where('ref_branch_id', $request->ref_branch_id);
         }
-        if (request('start_date')) {
-            [$data['start_date'], $data['end_date']] = AdminBusinessDay::rangeFromRequest($request);
-        }
+
+        [$start, $end] = AdminBusinessDay::rangeFromRequest($request);
+        $data['start_date'] = $start;
+        $data['end_date'] = $end;
 
         $limit = AdminBusinessDay::DEFAULT_PER_PAGE;
         if (@$request['limit']) {
@@ -233,18 +299,24 @@ class CommissionController extends Controller
 
         $results = $results->paginate($limit);
 
-        $data['list_data'] = $results->appends(request()->query());
+        // คำนวณด้วยระบบ Rank หมวด drink
+        $data['rows'] = $results->getCollection()->map(function ($staff) use ($start, $end) {
+            return [
+                'staff' => $staff,
+                'c' => MamaCommissionCalculator::computeForStaff($staff, $start, $end, 'drink'),
+            ];
+        });
+
         $data['query'] = request()->query();
         $data['query']['limit'] = $limit;
-
-        $data['page_url'] = 'admin/card_stock_report';
+        $data['page_url'] = 'admin/commission/drink-view-sales';
         $data['list_data'] = $results;
         return view('admin.commission.drink_view_sales_table', $data);
     }
-    
+
     public function drink_view_sales_pdf(Request $request)
     {
-        $results = User::withTrashed()->where('ref_position_id', 1)->orderBy('id');
+        $results = User::withTrashed()->mama()->orderBy('id');
 
         if (request('name')) {
             $results->Where(function ($query) use ($request) {
@@ -259,13 +331,16 @@ class CommissionController extends Controller
         }
 /////////////////////////////////////////////////////////////////////////////////////////
 
-        if (request('start_date')) {
-            [$data['start_date'], $data['end_date']] = AdminBusinessDay::rangeFromRequest($request);
-        }
+        [$start, $end] = AdminBusinessDay::rangeFromRequest($request);
+        $data['start_date'] = $start;
+        $data['end_date'] = $end;
 
-        $results = $results->get();
-        
-        $data['list_data'] = $results;
+        $data['rows'] = $results->get()->map(function ($staff) use ($start, $end) {
+            return [
+                'staff' => $staff,
+                'c' => MamaCommissionCalculator::computeForStaff($staff, $start, $end, 'drink'),
+            ];
+        });
 
         $html = view('admin.commission.drink_view_sales_pdf', $data,)->render();
 
@@ -425,7 +500,8 @@ class CommissionController extends Controller
     {
         try {
 
-            $results = User::withTrashed()->where('ref_position_id', 1)->orderBy('id');
+            // ให้ตรงกับหน้ารายงาน (มาม่า = ทุกตำแหน่งยกเว้นนวด) ไม่ใช่เฉพาะ position 1
+            $results = User::withTrashed()->mama()->orderBy('id');
 
             if (request('name')) {
                 $results->Where(function ($query) use ($request) {
@@ -434,49 +510,38 @@ class CommissionController extends Controller
                                     });
             }
 
-            if (request('start_date')) {
-                [$start_date, $end_date] = AdminBusinessDay::rangeFromRequest($request);
-            }
+            [$start_date, $end_date] = AdminBusinessDay::rangeFromRequest($request);
 
             $results = $results->get();
 
             $history = HistoryCommission::orderBy('round', 'desc')->first();
-            
-            $round = 0;
+            $round = ($history ? $history->round : 0) + 1;
+
+            // คอลัมน์ snapshot rank (มีเมื่อรัน SQL เพิ่มแล้ว)
+            $hasRankCols = \Illuminate\Support\Facades\Schema::hasColumn('history_commissions', 'rank_no');
 
             foreach($results as $row){
 
-                $total_price = OrderHasProduct::whereHas('order', function ($query) use ($row) {
-                                                            $query->where('ref_seller_id', $row->id)
-                                                                    ->whereIn('type', [1, 2]);
-                                                        })
-                                                        ->whereBetween('created_at', [$start_date, $end_date])
-                                                        ->sum('price') ?? 0;
-                $sale_commission = SalesCommissionTier::where('type', 1)->where('min_sales_amount', '<=', $total_price)->where('max_sales_amount', '>=', $total_price)->first(); // ดึงการตั้งค่า คอมมิชชั่น ที่ตรงกับยอดขายรวม
-                $commission_price = $sale_commission->commission_price ?? 0; // เปอร์เซ็นต์ * ยอดขายรวม / 100
-                if($sale_commission && $sale_commission->commission_by == 1){ // ถ้าเป็น เปอร์เซ็นต์
-                    $commission_price = $sale_commission->commission_rate*$total_price/100; // เปอร์เซ็นต์ * ยอดขายรวม / 100
-                    $sale_commission->commission_price = $sale_commission->commission_rate."%"; // เปอร์เซ็นต์ * ยอดขายรวม / 100
-                }
-                // return $commission_price;
-                
-                if ($history) {
-                    $round = $history->round;
-                }
+                $c = MamaCommissionCalculator::computeForStaff($row, $start_date, $end_date);
 
                 $product = new HistoryCommission;
-                $product->round = $round+1;
+                $product->round = $round;
                 $product->type = 1;
                 $product->ref_staff_id = $row->id;
-                $product->commission = @$commission_price ?? 0;
-                $product->sales_received = $total_price;
-                $product->commission_rate = @$sale_commission->commission_price ?? 0.00;
-                $product->min_sales_amount = @$sale_commission->min_sales_amount ?? 0.00;
-                $product->max_sales_amount = @$sale_commission->max_sales_amount ?? 0.00;
+                $product->commission = $c['commission_amount'];
+                $product->sales_received = $c['accumulated_sales'];
+                $product->commission_rate = $this->rankRateLabel($c);
+                $product->min_sales_amount = $c['applied_min_threshold'];
+                $product->max_sales_amount = 0;
+                if ($hasRankCols) {
+                    $product->rank_no = $c['rank_no'];
+                    $product->accumulated_rounds = $c['accumulated_rounds'];
+                    $product->mode = $c['mode'];
+                    $product->payout_type = $c['applied_payout_type'];
+                }
                 $product->from_date = $start_date;
                 $product->to_date  =  $end_date;
                 $product->save();
-                
             }
 
             DB::commit();
@@ -491,6 +556,25 @@ class CommissionController extends Controller
         }
         //
     }
+    /**
+     * ป้ายเรต/เกณฑ์ ของผลลัพธ์จาก MamaCommissionCalculator (ใช้ในประวัติ/PDF)
+     */
+    private function rankRateLabel(array $c): string
+    {
+        if (($c['rank_no'] ?? 0) <= 0) {
+            return '-';
+        }
+        switch ($c['applied_payout_type']) {
+            case 'fixed_per_round':
+                return number_format($c['applied_fixed_amount'] ?? 0, 2) . '/รอบ';
+            case 'fixed':
+                return number_format($c['applied_fixed_amount'] ?? 0, 2) . ' คงที่';
+            case 'percent':
+            default:
+                return rtrim(rtrim(number_format($c['applied_rate'], 2), '0'), '.') . '%';
+        }
+    }
+
     // แสดงฟอร์มแก้ไข
     public function edit($id)
     {

@@ -11,7 +11,10 @@ class HistoryCommission extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'type',
+        'round', 'type', 'ref_staff_id', 'commission', 'sales_received',
+        'commission_rate', 'min_sales_amount', 'max_sales_amount',
+        'rank_no', 'accumulated_rounds', 'mode', 'payout_type',
+        'from_date', 'to_date',
     ];
     
     public function user()

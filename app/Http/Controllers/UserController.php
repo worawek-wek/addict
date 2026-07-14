@@ -239,6 +239,8 @@ class UserController extends Controller
             $user->nickname  =  $request->nickname;
             $user->email  =  $request->email;
             $user->ref_position_id  =  $request->ref_position_id;
+            $user->commission_mode = in_array($request->commission_mode, ['sales', 'rounds'], true) ? $request->commission_mode : 'sales';
+            $user->drink_commission_mode = in_array($request->drink_commission_mode, ['sales', 'rounds'], true) ? $request->drink_commission_mode : 'sales';
             $user->remark  =  $request->remark;
             $user->salary  =  $request->salary;
             $user->image_name = $image_name;
@@ -419,6 +421,8 @@ class UserController extends Controller
             $user->nickname  =  $request->nickname;
             $user->email  =  $request->email;
             $user->ref_position_id  =  $request->ref_position_id;
+            $user->commission_mode = in_array($request->commission_mode, ['sales', 'rounds'], true) ? $request->commission_mode : 'sales';
+            $user->drink_commission_mode = in_array($request->drink_commission_mode, ['sales', 'rounds'], true) ? $request->drink_commission_mode : 'sales';
             $user->ref_branch_id  =  $request->ref_branch_id;
             $user->remark  =  $request->remark;
              $user->salary  =  $request->salary;

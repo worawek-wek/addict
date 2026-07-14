@@ -26,6 +26,8 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CheerChargeController;
 use App\Http\Controllers\ColorSchemeController;
 use App\Http\Controllers\CommissionController;
+use App\Http\Controllers\CommissionRankController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Front\OrderCusController;
 use App\Http\Controllers\pos\POSController;
 use App\Http\Controllers\pos\RoomPOSController;
@@ -185,9 +187,25 @@ Route::prefix('admin')->group(function () {
         Route::get('dark-mode-switcher', [DarkModeController::class, 'switch'])->name('dark-mode-switcher');
         Route::get('color-scheme-switcher/{color_scheme}', [ColorSchemeController::class, 'switch'])->name('color-scheme-switcher');
 
+        // ระบบลงเวลาเข้างาน (แตะบัตร)
+        Route::controller(AttendanceController::class)->group(function () {
+            Route::get('attendance', 'index')->name('attendance.index');
+            Route::get('attendance/data', 'data')->name('attendance.data');
+            Route::get('attendance/report', 'report')->name('attendance.report');
+            Route::get('attendance/report/pdf', 'reportPdf')->name('attendance.report.pdf');
+        });
+
+        // Mama Rank Commission — บันได Rank (sales/rounds)
+        Route::controller(CommissionRankController::class)->group(function () {
+            Route::get('commission-ranks', 'index')->name('commission_ranks.index');
+            Route::post('commission-ranks', 'save')->name('commission_ranks.save');
+        });
+
         // Commission CRUD
         Route::controller(CommissionController::class)->group(function () {
             Route::get('commission', 'index')->name('commission.index');
+            Route::get('commission/dashboard', 'dashboard')->name('commission.dashboard');
+            Route::get('commission/dashboard/datatable', 'dashboard_datatable')->name('commission.dashboard_datatable');
             Route::get('commission/create', 'create')->name('commission.create');
             Route::post('commission', 'store')->name('commission.store');
             Route::get('commission/{id}/edit', 'edit')->name('commission.edit');
