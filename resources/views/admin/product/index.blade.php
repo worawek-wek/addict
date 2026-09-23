@@ -94,7 +94,7 @@
                                             <div class="col-sm-3">
                                                 <select name="ref_branch_id" class="form-select p_search"
                                                     onchange='loadData("{{ $page_url }}/datatable")' required>
-                                                    @if (Auth::id() == 1)
+                                                    @if (\App\Models\User::isAllBranchAdmin(Auth::id()))
                                                         <option value="">ทั้งหมด</option>
                                                     @endif
                                                     @foreach ($branch as $bra)

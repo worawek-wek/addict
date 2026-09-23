@@ -20,12 +20,17 @@ class EndWorkDay extends Command
 
     public function handle(): int
     {
+        // เจ้าของร้าน (Boss กัส id=1) ยกเว้นจากการลงเวลา ถือว่าเข้างานตลอด ไม่ถูกรีเซ็ต
+        $exemptId = 1;
+
         $ended = 0;
         if (Schema::hasTable('work_attendances')) {
-            $ended = WorkAttendance::where('status', 'working')->update(['status' => 'auto_ended']);
+            $ended = WorkAttendance::where('status', 'working')
+                ->where('ref_staff_id', '!=', $exemptId)
+                ->update(['status' => 'auto_ended']);
         }
 
-        $reset = User::query()->update(['work_status' => 0]);
+        $reset = User::where('id', '!=', $exemptId)->update(['work_status' => 0]);
 
         $this->info("attendance:end-day auto_ended={$ended} reset_work_status={$reset}");
 

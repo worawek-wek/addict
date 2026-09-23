@@ -27,7 +27,7 @@ class ProductController extends Controller
 
     private function isProductSuperAdmin(): bool
     {
-        return (int) Auth::id() === 1;
+        return \App\Models\User::isAllBranchAdmin(Auth::id());
     }
 
     private function branchQueryForUser()

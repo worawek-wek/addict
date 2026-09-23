@@ -12,6 +12,33 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable , SoftDeletes;
 
+    /**
+     * user id ที่เห็น/จัดการได้ทุกสาขา (เทียบเท่าแอดมิน)
+     *  - 1  = Boss กัส (เจ้าของร้าน)
+     *  - 235 = ราณี วันหมัด (ranee252600@hotmail.com)
+     * ใช้กับสิทธิ์ "เห็นทุกสาขา" เท่านั้น ไม่รวมสิทธิ์ตั้งค่าเจ้าของร้าน (เช่น ตั้งค่าบันได Rank ยังเฉพาะ id=1)
+     */
+    public const ALL_BRANCH_ADMIN_IDS = [1, 235];
+
+    /** true = user นี้เห็น/จัดการได้ทุกสาขา */
+    public static function isAllBranchAdmin($id): bool
+    {
+        return in_array((int) $id, self::ALL_BRANCH_ADMIN_IDS, true);
+    }
+
+    /**
+     * user id ที่เข้าได้เฉพาะเมนู stock (สินค้า & สต็อก) เท่านั้น — เมนู/หน้าอื่นถูกซ่อนและกันเข้า
+     *  - 235 = ราณี (บัญชี) เห็นทุกสาขาแต่จำกัดเฉพาะ stock
+     * (เฉพาะ user รายคน จนกว่าจะมีระบบ permission ตามตำแหน่งจริง)
+     */
+    public const STOCK_ONLY_IDS = [235];
+
+    /** true = user นี้เข้าได้เฉพาะเมนู stock */
+    public static function isStockOnly($id): bool
+    {
+        return in_array((int) $id, self::STOCK_ONLY_IDS, true);
+    }
+
 
     /**
      * The attributes that are mass assignable.

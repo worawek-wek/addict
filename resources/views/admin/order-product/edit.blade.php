@@ -461,49 +461,48 @@
                                             </div>
                                         </div>
 
+                                        @php
+                                            $pays = $order->payments;
+                                            $paysByMethod = $pays->keyBy('method');
+                                            $checkedMethods = $pays->count()
+                                                ? $pays->pluck('method')->all()
+                                                : ($order->payment_method && $order->payment_method !== 'split' ? [$order->payment_method] : []);
+                                        @endphp
+                                        <div class="px-4">
+                                            <small class="text-muted">ช่องทางชำระเงิน (ติ๊กมากกว่า 1 วิธีเพื่อจ่ายแยก)</small>
+                                        </div>
                                         <div class="row g-3 payment-methods px-4">
 
-                                            <div class="col-md-6">
-                                                <input type="radio" class="btn-check payment-method" name="payment_method"
-                                                    id="pay-cash" value="cash"
-                                                    {{ $order->payment_method == 'cash' ? 'checked' : '' }}>
-                                                <label class="card payment-card text-center p-3" for="pay-cash">
-                                                    <i class="bi bi-cash-coin fs-1 text-success"></i>
-                                                    <div class="mt-2 fw-bold">เงินสด</div>
-                                                </label>
-                                            </div>
+                                            @foreach ([
+                                                'cash' => ['เงินสด', 'bi-cash-coin fs-1 text-success', ''],
+                                                'credit_card' => ['บัตรเครดิต', 'bi-credit-card-2-front fs-1 text-primary', ''],
+                                                'alipay' => ['Alipay / WeChat', 'bi-phone fs-1 text-info', ''],
+                                                'qr_code' => ['QR Code', 'bi-qr-code-scan fs-1 text-dark', 'PromptPay'],
+                                            ] as $mv => $mi)
+                                                <div class="col-md-6">
+                                                    <input type="checkbox" class="btn-check payment-method" id="pay-{{ $mv }}"
+                                                        data-method="{{ $mv }}" value="{{ $mv }}"
+                                                        {{ in_array($mv, $checkedMethods) ? 'checked' : '' }}>
+                                                    <label class="card payment-card text-center p-3" for="pay-{{ $mv }}">
+                                                        <i class="bi {{ $mi[1] }}"></i>
+                                                        <div class="mt-2 fw-bold">{{ $mi[0] }}</div>
+                                                        @if ($mi[2])<div class="small text-muted">{{ $mi[2] }}</div>@endif
+                                                    </label>
+                                                    <input type="number" step="0.01" min="0"
+                                                        class="form-control form-control-sm pm-amount mt-1" data-method="{{ $mv }}"
+                                                        style="display:none;" placeholder="จำนวนเงิน"
+                                                        value="{{ optional($paysByMethod->get($mv))->amount ? number_format($paysByMethod->get($mv)->amount, 2, '.', '') : '' }}">
+                                                </div>
+                                            @endforeach
 
-                                            <div class="col-md-6">
-                                                <input type="radio" class="btn-check payment-method" name="payment_method"
-                                                    id="pay-credit" value="credit_card"
-                                                    {{ $order->payment_method == 'credit_card' ? 'checked' : '' }}>
-                                                <label class="card payment-card text-center p-3" for="pay-credit">
-                                                    <i class="bi bi-credit-card-2-front fs-1 text-primary"></i>
-                                                    <div class="mt-2 fw-bold">บัตรเครดิต</div>
-                                                </label>
+                                        </div>
+                                        <div class="px-4">
+                                            <div class="d-flex justify-content-between mt-2 small payment-split-info" style="display:none !important;">
+                                                <span>รวมที่กรอก</span><span id="pmEntered" class="fw-bold">0.00</span>
                                             </div>
-
-                                            <div class="col-md-6">
-                                                <input type="radio" class="btn-check payment-method" name="payment_method"
-                                                    id="pay-alipay" value="alipay"
-                                                    {{ $order->payment_method == 'alipay' ? 'checked' : '' }}>
-                                                <label class="card payment-card text-center p-3" for="pay-alipay">
-                                                    <i class="bi bi-phone fs-1 text-info"></i>
-                                                    <div class="mt-2 fw-bold">Alipay / WeChat</div>
-                                                </label>
+                                            <div class="d-flex justify-content-between small payment-split-info" style="display:none !important;">
+                                                <span>คงเหลือต้องชำระ</span><span id="pmRemaining" class="fw-bold text-danger">0.00</span>
                                             </div>
-
-                                            <div class="col-md-6">
-                                                <input type="radio" class="btn-check payment-method" name="payment_method"
-                                                    id="pay-qr" value="qr_code"
-                                                    {{ $order->payment_method == 'qr_code' ? 'checked' : '' }}>
-                                                <label class="card payment-card text-center p-3" for="pay-qr">
-                                                    <i class="bi bi-qr-code-scan fs-1 text-dark"></i>
-                                                    <div class="mt-2 fw-bold">QR Code</div>
-                                                    <div class="small text-muted">PromptPay</div>
-                                                </label>
-                                            </div>
-
                                         </div>
 
                                         {{-- รายการสินค้า --}}
@@ -719,7 +718,41 @@
             el.addEventListener('change', togglePaymentMethod);
         });
 
+        // ===== จ่ายแยกหลายวิธี =====
+        const pmNum = (v) => parseFloat(String(v == null ? '' : v).replace(/[^0-9.]/g, '')) || 0;
+        const pmActiveChecks = () => Array.from(document.querySelectorAll('.payment-method')).filter(c => c.checked && !c.disabled);
+        const pmTotal = () => {
+            const t = document.getElementById('total');
+            return t ? pmNum(t.textContent) : 0;
+        };
+        function pmRecalc() {
+            const total = pmTotal();
+            const checked = pmActiveChecks();
+            const multi = checked.length > 1;
+            document.querySelectorAll('.payment-method').forEach(c => {
+                const amt = c.closest('.col-md-6').querySelector('.pm-amount');
+                if (!amt) return;
+                if (!c.checked || c.disabled) { amt.style.display = 'none'; }
+                else if (!multi) { amt.style.display = 'none'; }
+                else { amt.style.display = ''; }
+            });
+            document.querySelectorAll('.payment-split-info').forEach(el => el.style.setProperty('display', multi ? 'flex' : 'none', 'important'));
+            let entered = 0;
+            checked.forEach(c => { entered += pmNum(c.closest('.col-md-6').querySelector('.pm-amount').value); });
+            const remaining = Math.round((total - entered) * 100) / 100;
+            const en = document.getElementById('pmEntered'), rm = document.getElementById('pmRemaining');
+            if (en) en.textContent = entered.toFixed(2);
+            if (rm) { rm.textContent = remaining.toFixed(2); rm.className = 'fw-bold ' + (Math.abs(remaining) < 0.01 ? 'text-success' : 'text-danger'); }
+        }
+        document.addEventListener('change', function(e) {
+            if (e.target.classList && (e.target.classList.contains('payment-method') || e.target.classList.contains('pm-amount'))) pmRecalc();
+        });
+        document.addEventListener('input', function(e) {
+            if (e.target.classList && e.target.classList.contains('pm-amount')) pmRecalc();
+        });
+
         togglePaymentMethod();
+        setTimeout(pmRecalc, 300);
 
         // ===== Init on page load =====
         updateCustomerTypeUI();
@@ -753,9 +786,22 @@
         function saveChanges() {
             const saleType = document.querySelector('input[name="customer_type"]:checked')?.value || '2';
             const paymentStatus = document.querySelector('input[name="payment_status"]:checked')?.value ?? '0';
-            const paymentMethod = paymentStatus == 1
-                ? (document.querySelector('input[name="payment_method"]:checked')?.value ?? null)
-                : null;
+            // จ่ายแยก: เก็บวิธี+จำนวนเงินจากการ์ดที่ติ๊ก
+            let payments = [];
+            if (paymentStatus == 1) {
+                const checked = pmActiveChecks();
+                const total = pmTotal();
+                let entered = 0;
+                checked.forEach(c => { entered += pmNum(c.closest('.col-md-6').querySelector('.pm-amount').value); });
+                if (checked.length > 1 && Math.abs(total - entered) >= 0.01) {
+                    return Swal.fire('แจ้งเตือน', 'จ่ายแยก: ยอดรวมแต่ละวิธีต้องเท่ากับยอดสุทธิ ' + total.toFixed(2) + ' (ตอนนี้ ' + entered.toFixed(2) + ')', 'warning');
+                }
+                payments = checked.map(c => ({
+                    method: c.dataset.method,
+                    amount: (checked.length === 1) ? total.toFixed(2) : pmNum(c.closest('.col-md-6').querySelector('.pm-amount').value).toFixed(2)
+                }));
+            }
+            const paymentMethod = (paymentStatus == 1 && payments.length === 1) ? payments[0].method : null;
             const discount = parseFloat(document.getElementById('discount-input')?.value) || 0;
             const items = [];
 
@@ -800,7 +846,8 @@
                             items,
                             discount,
                             payment_status: paymentStatus,
-                            payment_method: paymentMethod
+                            payment_method: paymentMethod,
+                            payments
                         })
                     })
                     .then(r => r.json())

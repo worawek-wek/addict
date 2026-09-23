@@ -37,7 +37,7 @@
     }
 </style>
 @php
-    $canViewAllBranches = (int) Auth::id() === 1;
+    $canViewAllBranches = \App\Models\User::isAllBranchAdmin(Auth::id());
 @endphp
 <span style="font-size: 13px; font-weight: bold;">รายงานสต็อกการ์ด(สินค้า) วันที่ {{ date('d/m/Y H:i น.', strtotime($startDate)) }} - {{ date('d/m/Y H:i น.', strtotime($endDate)) }} , พิมพ์เมื่อ {{ date('d/m/Y H:i น.') }}</span>
 

@@ -233,21 +233,17 @@ class OrderDrinkController extends Controller
             );
         $data['drink_customer'] = $drink_customer->get();
 
-        $payment_channel = Order::whereNull('ref_daily_sales_closure_id')
+        // สรุปยอดตามช่องทางชำระ (รองรับจ่ายแยก) = SUM(order_payments.amount) แยกตามวิธี
+        $payment_channel = \App\Models\OrderPayment::query()
+            ->join('orders', 'orders.id', '=', 'order_payments.ref_order_id')
+            ->whereNull('orders.ref_daily_sales_closure_id')
             ->where('orders.payment_status', 1)
             ->where('orders.type', 3)
             ->where('orders.ref_account_id', Auth::id())
-            ->groupBy('orders.payment_method')
-            ->whereNotNull("orders.payment_method")
-            ->join(
-                'order_has_drinks',
-                'orders.id',
-                '=',
-                'order_has_drinks.ref_order_id'
-            )
+            ->groupBy('order_payments.method')
             ->select(
-                'orders.payment_method',
-                DB::raw('SUM(order_has_drinks.price * order_has_drinks.quantity) as total_price')
+                'order_payments.method as payment_method',
+                DB::raw('SUM(order_payments.amount) as total_price')
             );
         $data['payment_channel'] = $payment_channel->get();
 

@@ -181,7 +181,7 @@
                 @endphp
                     <tr>
                         <td width="10%">{{ $key+1 }}</td>
-                        <td width="70%">{{ $item3->payment_method }}</td>
+                        <td width="70%">{{ \App\Models\OrderPayment::label($item3->payment_method) }}</td>
                         <td width="20%" align="right">{{ number_format($item3->total_price, 2) }}</td>
                     </tr>
                 @endforeach

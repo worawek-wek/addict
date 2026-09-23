@@ -35,7 +35,7 @@
                                         <label class="form-label">ถึงวันที่</label>
                                         <input type="date" name="end_date" class="form-control" value="{{ $end }}">
                                     </div>
-                                    @if (auth()->id() === 1)
+                                    @if (\App\Models\User::isAllBranchAdmin(auth()->id()))
                                         <div class="col-auto">
                                             <label class="form-label">สาขา</label>
                                             <select name="ref_branch_id" class="form-select">

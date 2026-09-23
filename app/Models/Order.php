@@ -66,6 +66,73 @@ class Order extends Model
         });
     }
 
+    /** รายการชำระเงินของบิลนี้ (จ่ายแยกหลายวิธีได้) */
+    public function payments()
+    {
+        return $this->hasMany(OrderPayment::class, 'ref_order_id');
+    }
+
+    /**
+     * บันทึกการชำระเงินของบิลนี้ (ล้างของเดิมแล้วเขียนใหม่ทั้งชุด)
+     *  - $payments = [['method' => 'cash', 'amount' => 500], ['method' => 'qr_code', 'amount' => 300], ...]
+     *  - นับเฉพาะแถวที่มีวิธี + จำนวนเงิน > 0
+     *  - อัปเดต orders.payment_method เป็นสรุป: 1 วิธี = วิธีนั้น, หลายวิธี = 'split'
+     *  - คืนจำนวนแถวที่บันทึกจริง
+     */
+    public function syncPayments(array $payments): int
+    {
+        $rows = [];
+        foreach ($payments as $p) {
+            $method = OrderPayment::normalizeMethod($p['method'] ?? '');
+            $amount = round((float) ($p['amount'] ?? 0), 2);
+            if ($method === '' || $amount <= 0) {
+                continue;
+            }
+            $rows[] = ['method' => $method, 'amount' => $amount];
+        }
+
+        $this->payments()->delete();
+        foreach ($rows as $r) {
+            $this->payments()->create($r);
+        }
+
+        if (count($rows) === 1) {
+            $this->payment_method = $rows[0]['method'];
+        } elseif (count($rows) > 1) {
+            $this->payment_method = 'split';
+        }
+        $this->save();
+
+        return count($rows);
+    }
+
+    /**
+     * แปลง request เป็น array รายการชำระเงิน — รองรับทั้งแบบใหม่ (จ่ายแยก) และเก่า (วิธีเดียว)
+     *  - แบบใหม่: payments[] = [{method, amount}, ...]
+     *  - แบบเก่า: payment_method (วิธีเดียว) -> ใช้ยอด $fallbackAmount ทั้งก้อน
+     */
+    public static function parsePaymentsFromRequest($request, float $fallbackAmount): array
+    {
+        $raw = $request->input('payments');
+        if (is_array($raw) && count($raw) > 0) {
+            return collect($raw)
+                ->map(fn ($p) => [
+                    'method' => $p['method'] ?? ($p['payment_method'] ?? ''),
+                    'amount' => (float) preg_replace('/[^0-9.]/', '', (string) ($p['amount'] ?? 0)),
+                ])
+                ->filter(fn ($p) => $p['method'] !== '' && $p['amount'] > 0)
+                ->values()
+                ->all();
+        }
+
+        $method = $request->input('payment_method');
+        if ($method) {
+            return [['method' => $method, 'amount' => $fallbackAmount]];
+        }
+
+        return [];
+    }
+
     protected static function nextOrderSequenceForBusinessDay(Carbon $date): int
     {
         [$businessDate, $windowStart, $windowEnd] = static::resolveBusinessDayWindow($date);

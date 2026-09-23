@@ -8,13 +8,17 @@ use App\Models\User;
 use App\Models\WorkAttendance;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AttendanceController extends Controller
 {
+    /** เจ้าของร้าน (Boss กัส) ยกเว้นจากการลงเวลา ถือว่าเข้างานตลอด ไม่นับในรายชื่อ */
+    private const EXEMPT_STAFF_ID = 1;
+
     /** id = 1 (เจ้าของร้าน) ดูได้ทุกสาขา นอกนั้นเฉพาะสาขาตัวเอง */
     private function canSeeAllBranches(): bool
     {
-        return (int) auth()->id() === 1;
+        return \App\Models\User::isAllBranchAdmin(auth()->id());
     }
 
     private function scopedBranchId(Request $request): ?int
@@ -53,9 +57,10 @@ class AttendanceController extends Controller
     public function data(Request $request)
     {
         $branchId = $this->scopedBranchId($request);
-        $date = $this->parseDate($request->input('date'), Carbon::today()->toDateString());
+        $date = $this->parseDate($request->input('date'), WorkAttendance::businessDate());
 
         $users = User::with(['position', 'branch'])
+            ->where('id', '!=', self::EXEMPT_STAFF_ID)
             ->when($branchId, fn ($q) => $q->where('ref_branch_id', $branchId))
             ->orderBy('ref_position_id')
             ->orderBy('name')
@@ -68,7 +73,42 @@ class AttendanceController extends Controller
 
         $byPosition = $users->groupBy(fn ($u) => optional($u->position)->position_name ?: 'อื่นๆ');
 
-        return view('admin.attendance._data', compact('byPosition', 'attendance', 'date'));
+        // ปุ่มกดเปิด/ปิดมาทำงานเอง โชว์เฉพาะเมื่อกำลังดูวันปัจจุบัน (ยึดขอบตี 3)
+        $canToggle = ($date === WorkAttendance::businessDate());
+
+        return view('admin.attendance._data', compact('byPosition', 'attendance', 'date', 'canToggle'));
+    }
+
+    /** กดเปิด/ปิด มาทำงานเอง (ไม่ได้แตะบัตร) — ทำงานเหมือนแตะบัตร: บันทึกเข้างาน + ให้ขึ้นหน้า booking */
+    public function toggle(Request $request, $staff)
+    {
+        try {
+            $user = User::find($staff);
+            if (!$user) {
+                return response()->json(['ok' => false, 'message' => 'ไม่พบพนักงาน'], 404);
+            }
+
+            // เจ้าของร้าน (Boss กัส) ยกเว้นจากการลงเวลา
+            if ((int) $user->id === self::EXEMPT_STAFF_ID) {
+                return response()->json(['ok' => false, 'message' => 'บัญชีนี้ยกเว้นการลงเวลา'], 422);
+            }
+
+            // สิทธิ์: คนที่ไม่ใช่เจ้าของร้าน (id=1) เปิดได้เฉพาะพนักงานสาขาตัวเอง
+            if (!$this->canSeeAllBranches()
+                && (int) $user->ref_branch_id !== (int) auth()->user()->ref_branch_id) {
+                return response()->json(['ok' => false, 'message' => 'ไม่มีสิทธิ์จัดการพนักงานสาขาอื่น'], 403);
+            }
+
+            DB::beginTransaction();
+            $result = WorkAttendance::punch($user);
+            DB::commit();
+
+            return response()->json(['ok' => true, 'action' => $result['action'], 'message' => $result['message']]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json(['ok' => false, 'message' => 'ผิดพลาด: ' . $e->getMessage()], 500);
+        }
     }
 
     /** หน้ารายงานเข้างาน ต่อวัน + ช่วงวันที่ */
@@ -77,13 +117,14 @@ class AttendanceController extends Controller
         $page_url = 'admin/attendance/report';
         $branches = Branch::orderBy('name')->get();
 
-        $today = Carbon::today()->toDateString();
+        $today = WorkAttendance::businessDate();
         $start = $this->parseDate($request->input('start_date'), $today);
         $end = $this->parseDate($request->input('end_date'), $start);
         $branchId = $this->scopedBranchId($request);
 
         $records = WorkAttendance::with(['staff.position', 'staff.branch'])
             ->whereBetween('work_date', [$start, $end])
+            ->where('ref_staff_id', '!=', self::EXEMPT_STAFF_ID)
             ->when($branchId, fn ($q) => $q->where('ref_branch_id', $branchId))
             ->orderBy('work_date', 'desc')
             ->orderBy('ref_staff_id')
@@ -95,13 +136,14 @@ class AttendanceController extends Controller
     /** PDF ของรายงานเข้างาน (ใช้ตัวกรองเดียวกับหน้า report) */
     public function reportPdf(Request $request)
     {
-        $today = Carbon::today()->toDateString();
+        $today = WorkAttendance::businessDate();
         $start = $this->parseDate($request->input('start_date'), $today);
         $end = $this->parseDate($request->input('end_date'), $start);
         $branchId = $this->scopedBranchId($request);
 
         $records = WorkAttendance::with(['staff.position', 'staff.branch'])
             ->whereBetween('work_date', [$start, $end])
+            ->where('ref_staff_id', '!=', self::EXEMPT_STAFF_ID)
             ->when($branchId, fn ($q) => $q->where('ref_branch_id', $branchId))
             ->orderBy('work_date', 'desc')
             ->orderBy('ref_staff_id')

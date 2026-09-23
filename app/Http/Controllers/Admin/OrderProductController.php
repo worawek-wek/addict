@@ -24,7 +24,7 @@ class OrderProductController extends Controller
 {
     private function canViewAllBranches(): bool
     {
-        return (int) Auth::id() === 1;
+        return \App\Models\User::isAllBranchAdmin(Auth::id());
     }
 
     private function branchOptions()
@@ -285,7 +285,7 @@ class OrderProductController extends Controller
 
             if (!empty($order->payment_method)) {
                 $order->badge_class = 'bg-info';
-                $order->status_label = $order->payment_method;
+                $order->status_label = $order->payment_method === 'split' ? 'จ่ายแยก' : $order->payment_method;
             } elseif ($order->ref_status_id == 2) {
                 $order->badge_class = 'bg-success';
                 $order->status_label = 'อยู่ระหว่างใช้บริการ';
@@ -435,19 +435,15 @@ class OrderProductController extends Controller
             );
         $data['product_customer'] = $product_customer->get();
 
-        $payment_channel = Order::where('orders.payment_status', 1)
+        // สรุปยอดตามช่องทางชำระ (รองรับจ่ายแยก) = SUM(order_payments.amount) แยกตามวิธี
+        $payment_channel = \App\Models\OrderPayment::query()
+            ->join('orders', 'orders.id', '=', 'order_payments.ref_order_id')
+            ->where('orders.payment_status', 1)
             ->where('orders.type', 2)
             ->when(!$canViewAllBranches, fn($q) => $q->where('orders.ref_account_id', Auth::id()))
             ->when(!$canViewAllBranches, fn($q) => $q->where('orders.ref_branch_id', Auth::user()->ref_branch_id))
             ->when($canViewAllBranches && $branchId && $branchId !== 'all', fn($q) => $q->where('orders.ref_branch_id', $branchId))
-            ->groupBy('orders.payment_method')
-            ->whereNotNull("orders.payment_method")
-            ->join(
-                'order_has_products',
-                'orders.id',
-                '=',
-                'order_has_products.ref_order_id'
-            )->where(function ($q) use ($startDate, $endDate) {
+            ->where(function ($q) use ($startDate, $endDate) {
                 $q->whereRaw(
                     "COALESCE(orders.paid_at, CONCAT(orders.booking_date, ' ', orders.start_time)) BETWEEN ? AND ?",
                     [
@@ -456,9 +452,10 @@ class OrderProductController extends Controller
                     ]
                 );
             })
+            ->groupBy('order_payments.method')
             ->select(
-                'orders.payment_method',
-                DB::raw('SUM(order_has_products.price * order_has_products.quantity) as total_price')
+                'order_payments.method as payment_method',
+                DB::raw('SUM(order_payments.amount) as total_price')
             );
         $data['payment_channel'] = $payment_channel->get();
 
@@ -504,7 +501,7 @@ class OrderProductController extends Controller
 
         if (!empty($orderProduct->payment_method)) {
             $orderProduct->badge_class = 'bg-info';
-            $orderProduct->status_label = $orderProduct->payment_method;
+            $orderProduct->status_label = $orderProduct->payment_method === 'split' ? 'จ่ายแยก' : $orderProduct->payment_method;
         } elseif ($statusId === 2 || $isOngoing) {
             $orderProduct->badge_class = 'bg-success';
             $orderProduct->status_label = $statusName;
@@ -560,6 +557,10 @@ class OrderProductController extends Controller
         $order->payment_method = $request->payment_channel;
         $order->paid_at = now();
         $order->save();
+
+        // sync order_payments (รองรับจ่ายแยก payments[] หรือวิธีเดียว payment_channel)
+        $order->syncPayments(Order::parsePaymentsFromRequest($request, (float) $order->total_price)
+            ?: [['method' => $request->payment_channel, 'amount' => (float) $order->total_price]]);
 
 
         return response()->json([
@@ -728,6 +729,18 @@ class OrderProductController extends Controller
             }
 
             $order->save();
+
+            // sync order_payments ให้ตรงกับสถานะล่าสุด (จ่ายแล้ว = เขียนรายการ, ยังไม่จ่าย = ล้าง)
+            if ((int) $order->payment_status === 1) {
+                $lines = Order::parsePaymentsFromRequest($request, (float) $order->total_price);
+                if (empty($lines) && $payment_method) {
+                    $lines = [['method' => $payment_method, 'amount' => (float) $order->total_price]];
+                }
+                $order->syncPayments($lines);
+            } else {
+                $order->payments()->delete();
+            }
+
             DB::commit();
             return response()->json([
                 'success' => true,
@@ -832,6 +845,12 @@ class OrderProductController extends Controller
 
         // --- บันทึกค่าคอมมิชชั่นลง commissions_history ---
         $order->save();
+
+        // แก้วิธีชำระของบิลที่จ่ายแล้ว -> อัปเดต order_payments ให้ตรง (วิธีเดียวเต็มยอด)
+        if ((int) $order->payment_status === 1 && $request->payment_method) {
+            $order->syncPayments([['method' => $request->payment_method, 'amount' => (float) $order->total_price]]);
+        }
+
         CommissionsHistory::updateOrCreate(
             [
                 'order_id' => $order->id,

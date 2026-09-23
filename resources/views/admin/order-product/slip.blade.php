@@ -268,12 +268,20 @@
         {{-- Payment status --}}
         <div style="text-align:center; margin-top:10px;">
             @if ($order->payment_status)
+                @php $pays = $order->payments; @endphp
                 <span class="payment-badge paid">
                     ชำระเงินแล้ว
-                    @if($order->payment_method)
-                        — {{ $order->payment_method }}
+                    @if ($pays->count() <= 1 && $order->payment_method && $order->payment_method !== 'split')
+                        — {{ \App\Models\OrderPayment::label($order->payment_method) }}
                     @endif
                 </span>
+                @if ($pays->count() > 1)
+                    <div style="margin-top:6px; font-size:13px;">
+                        @foreach ($pays as $p)
+                            <div>{{ \App\Models\OrderPayment::label($p->method) }} : {{ number_format($p->amount, 2) }} ฿</div>
+                        @endforeach
+                    </div>
+                @endif
             @else
                 <span class="payment-badge unpaid">ยังไม่ชำระเงิน</span>
             @endif

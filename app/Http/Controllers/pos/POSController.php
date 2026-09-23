@@ -131,7 +131,7 @@ class POSController extends Controller
         $room = Room::findOrFail($room_id);
         $authUser = Auth::user();
 
-        if ($authUser && (int) $authUser->id !== 1 && (int) $room->ref_branch_id !== (int) $authUser->ref_branch_id) {
+        if ($authUser && !\App\Models\User::isAllBranchAdmin($authUser->id) && (int) $room->ref_branch_id !== (int) $authUser->ref_branch_id) {
             abort(403);
         }
 
@@ -589,6 +589,26 @@ class POSController extends Controller
             'payment_status' => $request->input('payment_status') ?? 1,
             'paid_at' => ((int) $request->input('payment_status', 1) === 1) ? now() : null,
         ], $request->filled('ref_course_id') ? Order::ORDER_NUMBER_COURSE : Order::ORDER_NUMBER_PRODUCT);
+
+        // บันทึกการชำระเงิน (รองรับจ่ายแยกหลายวิธี payments[] หรือวิธีเดียวแบบเดิม)
+        if ((int) $request->input('payment_status', 1) === 1) {
+            $order->syncPayments(Order::parsePaymentsFromRequest($request, (float) $order->total_price));
+        }
+        $order->load('payments');
+        // ข้อความวิธีชำระเงินสำหรับสลิป — ครอบทุกกรณี (จ่ายแยก / วิธีเดียว / fallback payment_method) ไม่ปล่อยว่าง
+        if ($order->payments->count() > 1) {
+            // จ่ายแยก แสดงทุกวิธี + จำนวนเงิน ในใบเสร็จ
+            $payment_met = $order->payments
+                ->map(fn ($p) => \App\Models\OrderPayment::label($p->method) . ' ' . number_format($p->amount, 2) . '฿')
+                ->implode(' + ');
+        } elseif ($order->payments->count() === 1) {
+            $payment_met = \App\Models\OrderPayment::label($order->payments->first()->method);
+        } elseif (!empty($order->payment_method)) {
+            $payment_met = \App\Models\OrderPayment::label($order->payment_method);
+        } else {
+            $payment_met = '-';
+        }
+
         // เพิ่ม addon option ใน order_has_addon_options
         if ($request->filled('ref_option_id')) {
             foreach ($request->ref_option_id as $addon_id) {
@@ -1264,11 +1284,21 @@ if ($order->payment_status) {
             ✓ ชำระเงินแล้ว
     ";
 
-    if ($order->payment_method) {
+    $pays = $order->payments;
+    if ($pays->count() > 1) {
+        // จ่ายแยกหลายวิธี แสดงทุกวิธี + จำนวนเงิน
+        foreach ($pays as $p) {
+            $slip .= "
+            <div>
+                ".\App\Models\OrderPayment::label($p->method)." : ".number_format($p->amount, 2)." ฿
+            </div>
+            ";
+        }
+    } elseif ($order->payment_method && $order->payment_method !== 'split') {
 
         $slip .= "
             <div>
-                ".$order->payment_method."
+                ".\App\Models\OrderPayment::label($order->payment_method)."
             </div>
         ";
     }
@@ -1511,6 +1541,11 @@ $slip .= "
             'payment_status' => $request->input('payment_status') ?? 1,
             'paid_at' => ((int) $request->input('payment_status', 1) === 1) ? now() : null,
         ], Order::ORDER_NUMBER_PRODUCT);
+
+        // บันทึกการชำระเงิน (รองรับจ่ายแยกหลายวิธี payments[] หรือวิธีเดียวแบบเดิม)
+        if ((int) $request->input('payment_status', 1) === 1) {
+            $order->syncPayments(Order::parsePaymentsFromRequest($request, (float) $order->total_price));
+        }
 
         // --- โค้ดส่วนที่เหลือของคุณ (ทำงานกับตัวแปร $order ที่ได้มา) ---
         $list_drink = "";

@@ -25,7 +25,31 @@ class ReportController extends Controller
 {
     private function canViewAllBranches(): bool
     {
-        return (int) Auth::id() === 1;
+        return \App\Models\User::isAllBranchAdmin(Auth::id());
+    }
+
+    /**
+     * แบ่งยอด $value ของบิลไปตามช่องทางชำระ (รองรับจ่ายแยกหลายวิธี)
+     * - มี order_payments: แบ่งตามสัดส่วนจำนวนเงินที่จ่ายแต่ละวิธี
+     * - ไม่มี (บิลเก่า): ใช้ orders.payment_method ทั้งก้อน
+     * คืน array คีย์ cash, credit_card, qr_code, alipay
+     */
+    private function allocatePaymentByMethod($order, float $value): array
+    {
+        $out = ['cash' => 0.0, 'credit_card' => 0.0, 'qr_code' => 0.0, 'alipay' => 0.0];
+        $pays = $order->relationLoaded('payments') ? $order->payments : $order->payments()->get();
+        $total = (float) $pays->sum('amount');
+        if ($pays->count() && $total > 0) {
+            foreach ($pays as $p) {
+                $method = \App\Models\OrderPayment::normalizeMethod($p->method);
+                if (array_key_exists($method, $out)) {
+                    $out[$method] += $value * ((float) $p->amount / $total);
+                }
+            }
+        } elseif (array_key_exists((string) $order->payment_method, $out)) {
+            $out[$order->payment_method] += $value;
+        }
+        return $out;
     }
 
     private function reportBranches()
@@ -196,7 +220,7 @@ class ReportController extends Controller
     public function coupon_report(Request $request)
     {
         $data['page_url'] = "admin/report/coupon-report";
-        $data['branch'] = Branch::orderBy('name')->get();
+        $data['branch'] = $this->reportBranches();
         $data['employees'] = \App\Models\User::withTrashed()
             ->where('ref_branch_id', Auth::user()->ref_branch_id)
             ->where('ref_position_id', 2)
@@ -220,7 +244,7 @@ class ReportController extends Controller
         $user = Auth::user();
 
         // if ($user->work_status == 3) {
-        $branches = Branch::orderBy('name')->get();
+        $branches = $this->reportBranches();
         // } else {
         //     $branches = Branch::where('id', $user->ref_branch_id)->get();
         // }
@@ -267,10 +291,13 @@ class ReportController extends Controller
         //     $query->where('ref_branch_id', $userBranchId);
         // }
 
-        // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
-        if (request()->filled('ref_branch_id')) {
-            // dd(123);
-            $query->where('ref_branch_id', request()->ref_branch_id);
+        // สิทธิ์สาขา: Boss (id=1) ดูได้ทุกสาขา/เลือกสาขา, คนอื่นบังคับเห็นเฉพาะสาขาตัวเอง
+        if ($this->canViewAllBranches()) {
+            if (request()->filled('ref_branch_id')) {
+                $query->where('ref_branch_id', request()->ref_branch_id);
+            }
+        } else {
+            $query->where('ref_branch_id', Auth::user()->ref_branch_id);
         }
 
         if (request()->filled('search')) {
@@ -302,7 +329,7 @@ class ReportController extends Controller
 
             if (!empty($order->payment_method)) {
                 $order->badge_class = 'bg-info';
-                $order->status_label = $order->payment_method;
+                $order->status_label = $order->payment_method === 'split' ? 'จ่ายแยก' : $order->payment_method;
             } elseif ($order->ref_status_id == 2) {
                 $order->badge_class = 'bg-success';
                 $order->status_label = 'อยู่ระหว่างใช้บริการ';
@@ -362,8 +389,13 @@ class ReportController extends Controller
         // }
 
         /////////////////////////////////////////////////////////////////////////////////////////
-        if (@request('ref_branch_id')) {
-            $orderRooms->where('ref_branch_id', request('ref_branch_id'));
+        // สิทธิ์สาขา: Boss (id=1) ดูได้ทุกสาขา/เลือกสาขา, คนอื่นบังคับเห็นเฉพาะสาขาตัวเอง
+        if ($this->canViewAllBranches()) {
+            if (request()->filled('ref_branch_id')) {
+                $orderRooms->where('ref_branch_id', request('ref_branch_id'));
+            }
+        } else {
+            $orderRooms->where('ref_branch_id', Auth::user()->ref_branch_id);
         }
         /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -420,7 +452,7 @@ class ReportController extends Controller
             ->where('ref_position_id', 2)
             ->orderBy('name')
             ->get();
-        $data['branch'] = Branch::orderBy('name')->get();
+        $data['branch'] = $this->reportBranches();
         return view('admin.report.report-drink-com', $data);
     }
 
@@ -433,7 +465,7 @@ class ReportController extends Controller
         $user = Auth::user();
 
         // if ($user->work_status == 3) {
-        $branches = Branch::orderBy('name')->get();
+        $branches = $this->reportBranches();
         // } else {
         //     $branches = Branch::where('id', $user->ref_branch_id)->get();
         // }
@@ -511,7 +543,7 @@ class ReportController extends Controller
 
             if (!empty($order->payment_method)) {
                 $order->badge_class = 'bg-info';
-                $order->status_label = $order->payment_method;
+                $order->status_label = $order->payment_method === 'split' ? 'จ่ายแยก' : $order->payment_method;
             } elseif ($order->ref_status_id == 2) {
                 $order->badge_class = 'bg-success';
                 $order->status_label = 'อยู่ระหว่างใช้บริการ';
@@ -628,7 +660,7 @@ class ReportController extends Controller
         $user = Auth::user();
 
         // if ($user->work_status == 3) {
-        $branches = Branch::orderBy('name')->get();
+        $branches = $this->reportBranches();
         // } else {
         //     $branches = Branch::where('id', $user->ref_branch_id)->get();
         // }
@@ -669,8 +701,13 @@ class ReportController extends Controller
 
         // filter สาขา (ถ้าเป็น admin อาจเลือกได้)
 
-        if (request('ref_branch_id')) {
-            $query->where('ref_branch_id', request('ref_branch_id'));
+        // สิทธิ์สาขา: Boss (id=1) ดูได้ทุกสาขา/เลือกสาขา, คนอื่นบังคับเห็นเฉพาะสาขาตัวเอง
+        if ($this->canViewAllBranches()) {
+            if (request()->filled('ref_branch_id')) {
+                $query->where('ref_branch_id', request('ref_branch_id'));
+            }
+        } else {
+            $query->where('ref_branch_id', Auth::user()->ref_branch_id);
         }
         // $DailySalesClosure = DailySalesClosure::orderBy("id", "DESC")->first();
 
@@ -710,7 +747,7 @@ class ReportController extends Controller
 
             if (!empty($order->payment_method)) {
                 $order->badge_class = 'bg-info';
-                $order->status_label = $order->payment_method;
+                $order->status_label = $order->payment_method === 'split' ? 'จ่ายแยก' : $order->payment_method;
             } elseif ($order->ref_status_id == 2) {
                 $order->badge_class = 'bg-success';
                 $order->status_label = 'อยู่ระหว่างใช้บริการ';
@@ -770,8 +807,13 @@ class ReportController extends Controller
         // }
 
         /////////////////////////////////////////////////////////////////////////////////////////
-        if (@request('ref_branch_id')) {
-            $query->where('ref_branch_id', request('ref_branch_id'));
+        // สิทธิ์สาขา: Boss (id=1) ดูได้ทุกสาขา/เลือกสาขา, คนอื่นบังคับเห็นเฉพาะสาขาตัวเอง
+        if ($this->canViewAllBranches()) {
+            if (request()->filled('ref_branch_id')) {
+                $query->where('ref_branch_id', request('ref_branch_id'));
+            }
+        } else {
+            $query->where('ref_branch_id', Auth::user()->ref_branch_id);
         }
         /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -835,7 +877,7 @@ class ReportController extends Controller
         $user = Auth::user();
 
         // if ($user->work_status == 3) {
-        $branches = Branch::orderBy('name')->get();
+        $branches = $this->reportBranches();
         // } else {
         //     $branches = Branch::where('id', $user->ref_branch_id)->get();
         // }
@@ -875,22 +917,13 @@ class ReportController extends Controller
             $rev = $coursePrice - ($usedCoupon + $usedCommission);
             $grandCommission += $usedCommission;
             $totalNetSum += $rev;
-            if ($order->payment_method === 'cash') {
-                $totalCashRaw += $coursePrice;
-                $totalNetCash += $rev;
-            }
-            if ($order->payment_method === 'qr_code') {
-                $totalNetTransfer += $rev;
-                $totalRawTransfer += $coursePrice;
-            }
-            if ($order->payment_method === 'credit_card') {
-                $totalNetCredit += $rev;
-                $totalRawCredit += $coursePrice;
-            }
-            if ($order->payment_method === 'alipay') {
-                $totalNetAl += $rev;
-                $totalRawAl += $coursePrice;
-            }
+            // แบ่งยอดตามช่องทางชำระ (รองรับจ่ายแยกหลายวิธี) raw=ยอดเต็มบิล, net=ยอดสุทธิ
+            $raw = $this->allocatePaymentByMethod($order, (float) $coursePrice);
+            $net = $this->allocatePaymentByMethod($order, (float) $rev);
+            $totalCashRaw += $raw['cash'];        $totalNetCash += $net['cash'];
+            $totalRawTransfer += $raw['qr_code']; $totalNetTransfer += $net['qr_code'];
+            $totalRawCredit += $raw['credit_card']; $totalNetCredit += $net['credit_card'];
+            $totalRawAl += $raw['alipay'];        $totalNetAl += $net['alipay'];
         }
         $totalRawNonCash = $totalRawTransfer + $totalRawCredit + $totalRawAl;
         $totalNetCashAfterNonCash = $totalNetSum - $totalRawNonCash;
@@ -923,7 +956,7 @@ class ReportController extends Controller
         $query = Order::withSum('addons', 'price')
             ->withSum('addons', 'coupon')
             ->withSum('products', 'price')
-            ->with(['branch', 'customer', 'user', 'room', 'status', 'room_type'])
+            ->with(['branch', 'customer', 'user', 'room', 'status', 'room_type', 'payments'])
             ->where('type', 1)
             ->whereIn('ref_status_id', [2, 3, 4])
             ->orderByRaw("
@@ -940,10 +973,13 @@ class ReportController extends Controller
                     ")
             ->orderBy('created_at', 'ASC');
 
-        if (request()->filled('ref_branch_id')) {
-            $query->where('ref_branch_id', request('ref_branch_id'));
-        } elseif (!request()->has('ref_branch_id') && $user && $user->ref_branch_id) {
-            $query->where('ref_branch_id', $user->ref_branch_id);
+        // สิทธิ์สาขา: Boss (id=1) ดูได้ทุกสาขา/เลือกสาขา, คนอื่นบังคับเห็นเฉพาะสาขาตัวเอง
+        if ($this->canViewAllBranches()) {
+            if (request()->filled('ref_branch_id')) {
+                $query->where('ref_branch_id', request('ref_branch_id'));
+            }
+        } else {
+            $query->where('ref_branch_id', Auth::user()->ref_branch_id);
         }
 
         if (request()->filled('search')) {
@@ -976,7 +1012,7 @@ class ReportController extends Controller
 
             if (!empty($order->payment_method)) {
                 $order->badge_class = 'bg-info';
-                $order->status_label = $order->payment_method;
+                $order->status_label = $order->payment_method === 'split' ? 'จ่ายแยก' : $order->payment_method;
             } elseif ($order->ref_status_id == 2) {
                 $order->badge_class = 'bg-success';
                 $order->status_label = 'อยู่ระหว่างใช้บริการ';
@@ -1008,7 +1044,7 @@ class ReportController extends Controller
         // $order = Order::withSum('addons', 'price')->get();
         // return $this->getOrderRooms(1)[0]->addons_sum_price;
         $data['page_url'] = "admin/report/monthly-sale";
-        $data['branch'] = Branch::orderBy('name')->get();
+        $data['branch'] = $this->reportBranches();
 
         return view('admin.report.report-saleMonthly', $data);
     }
@@ -1028,7 +1064,8 @@ class ReportController extends Controller
                 'status',
                 'room_type',
                 'course',
-                'seller'
+                'seller',
+                'payments'
             ])
             ->where('type', 1)
             ->whereIn('ref_status_id', [2, 3, 4])
@@ -1039,10 +1076,13 @@ class ReportController extends Controller
 
 
         $user = Auth::user();
-        if (request()->filled('ref_branch_id')) {
-            $query->where('ref_branch_id', request()->ref_branch_id);
-        } elseif (!request()->has('ref_branch_id') && $user && $user->ref_branch_id) {
-            $query->where('ref_branch_id', $user->ref_branch_id);
+        // สิทธิ์สาขา: Boss (id=1) ดูได้ทุกสาขา/เลือกสาขา, คนอื่นบังคับเห็นเฉพาะสาขาตัวเอง
+        if ($this->canViewAllBranches()) {
+            if (request()->filled('ref_branch_id')) {
+                $query->where('ref_branch_id', request()->ref_branch_id);
+            }
+        } else {
+            $query->where('ref_branch_id', Auth::user()->ref_branch_id);
         }
 
         // $DailySalesClosure = DailySalesClosure::orderBy("id","DESC")->first();
@@ -1085,10 +1125,17 @@ class ReportController extends Controller
         $data['report_end_date']   = request('end_date')   ?? date('d/m/Y');
         $data['report_start_time'] = request('start_time_filter') ?? AdminBusinessDay::START_TIME;
         $data['report_end_time']   = request('end_time_filter')   ?? AdminBusinessDay::END_TIME;
-        $data['summary_type_payment_cash'] = $nonCancelledOrders->where('payment_method', 'cash')->sum('total_price');
-        $data['summary_type_payment_credit'] = $nonCancelledOrders->where('payment_method', 'credit_card')->sum('total_price');
-        $data['summary_type_payment_transfer'] = $nonCancelledOrders->where('payment_method', 'qr_code')->sum('total_price');
-        $data['summary_type_payment_al'] = $nonCancelledOrders->where('payment_method', 'alipay')->sum('total_price');
+        // ยอดรวมแยกช่องทาง (รองรับจ่ายแยกหลายวิธี) — gross ใช้ยอดเงินจริงต่อวิธีจาก order_payments
+        $grossCash = $grossCredit = $grossTransfer = $grossAl = 0.0;
+        foreach ($nonCancelledOrders as $order) {
+            $g = $this->allocatePaymentByMethod($order, (float) ($order->total_price ?? 0));
+            $grossCash += $g['cash']; $grossCredit += $g['credit_card'];
+            $grossTransfer += $g['qr_code']; $grossAl += $g['alipay'];
+        }
+        $data['summary_type_payment_cash'] = $grossCash;
+        $data['summary_type_payment_credit'] = $grossCredit;
+        $data['summary_type_payment_transfer'] = $grossTransfer;
+        $data['summary_type_payment_al'] = $grossAl;
         $data['summary_type_payment_non_cash'] =
             $data['summary_type_payment_transfer'] +
             $data['summary_type_payment_credit'] +
@@ -1117,10 +1164,12 @@ class ReportController extends Controller
             $rev = $coursePrice - ($usedCoupon + $usedCommission);
             $pdfGrandCommission += $usedCommission;
             $pdfTotalNetSum     += $rev;
-            if ($order->payment_method === 'cash') $pdfTotalNetCash += $rev;
-            if ($order->payment_method === 'qr_code') $pdfTotalNetTransfer += $rev;
-            if ($order->payment_method === 'credit_card') $pdfTotalNetCredit += $rev;
-            if ($order->payment_method === 'alipay') $pdfTotalNetAl += $rev;
+            // แบ่งยอดสุทธิตามสัดส่วนที่จ่ายแต่ละวิธี
+            $n = $this->allocatePaymentByMethod($order, (float) $rev);
+            $pdfTotalNetCash += $n['cash'];
+            $pdfTotalNetTransfer += $n['qr_code'];
+            $pdfTotalNetCredit += $n['credit_card'];
+            $pdfTotalNetAl += $n['alipay'];
         }
         $data['grandCommission'] = $pdfGrandCommission;
         $data['totalNetSum']     = $pdfTotalNetSum;
@@ -1144,7 +1193,7 @@ class ReportController extends Controller
     public function oversee_employee(Request $request)
     {
         $data['page_url'] = "admin/report/oversee-employee";
-        $data['branch'] = Branch::orderBy('name')->get();
+        $data['branch'] = $this->reportBranches();
 
         return view('admin.report.report-overseeEmp', $data);
     }

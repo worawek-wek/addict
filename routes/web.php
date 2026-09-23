@@ -59,7 +59,7 @@ Route::get('/clc', function () {
     return "Cleared!";
 });
 
-Route::middleware('auth')->prefix('pos')->name('pos.')->group(function () {
+Route::middleware(['auth', 'stockonly'])->prefix('pos')->name('pos.')->group(function () {
     Route::get('/api/search-users', function (Request $request) {
         $q = $request->get('q', '');
         $users = \App\Models\Customer::query()
@@ -152,7 +152,7 @@ Route::prefix('admin')->group(function () {
         Route::post('register', 'register')->name('register.store');
     });
 
-    Route::middleware('auth')->group(function () {
+    Route::middleware(['auth', 'stockonly'])->group(function () {
         // แตะบัตรเข้างาน
         Route::controller(FrontClockInController::class)->group(function () {
             Route::get('{branch}/clock-in', 'index')->name('clock-in');
@@ -193,6 +193,7 @@ Route::prefix('admin')->group(function () {
             Route::get('attendance/data', 'data')->name('attendance.data');
             Route::get('attendance/report', 'report')->name('attendance.report');
             Route::get('attendance/report/pdf', 'reportPdf')->name('attendance.report.pdf');
+            Route::post('attendance/toggle/{staff}', 'toggle')->name('attendance.toggle');
         });
 
         // Mama Rank Commission — บันได Rank (sales/rounds)
@@ -221,15 +222,8 @@ Route::prefix('admin')->group(function () {
             Route::get('commission/drink-view-sales/datatable', 'drink_view_sales_datatable')->name('commission.drink_view_sales_datatable');
             Route::get('commission/drink-view-sales/pdf', 'drink_view_sales_pdf')->name('commission.drink-view-sales-pdf');
 
-            Route::get('commission/view-sales', 'view_sales')->name('commission.view_sales');
-            Route::get('commission/view-sales/datatable', 'view_sales_datatable')->name('commission.view_sales_datatable');
-            Route::get('commission/view-sales/pdf', 'view_sales_pdf')->name('commission.view-sales-pdf');
             Route::post('commission/view-sales/save-commission-history', 'save_commission_history')->name('commission.view-sales-save-commission-history');
             Route::get('commission/view-sales/history/{round}', 'get_history_by_round')->name('commission.view-sales-history-by-round');
-
-            Route::get('commission/drink-view-sales', 'drink_view_sales')->name('commission.drink_view_sales');
-            Route::get('commission/drink-view-sales/datatable', 'drink_view_sales_datatable')->name('commission.drink_view_sales_datatable');
-            Route::get('commission/drink-view-sales/pdf', 'drink_view_sales_pdf')->name('commission.drink-view-sales-pdf');
 
             Route::get('commission/sales-orders', 'salesOrders')->name('commission.sales_orders');
             Route::get('commission/massage-orders', 'massageOrders')->name('commission.massage_orders');

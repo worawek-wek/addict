@@ -38,11 +38,14 @@
                         <th class="text-center">เวลาเข้า</th>
                         <th class="text-center">เวลาออก</th>
                         <th class="text-center">สถานะ</th>
+                        @if (!empty($canToggle))
+                            <th class="text-center" style="width:140px;">จัดการ</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($staffs as $i => $u)
-                        @php $att = $attendance->get($u->id); @endphp
+                        @php $att = $attendance->get($u->id); $st = optional($att)->status; @endphp
                         <tr>
                             <td class="text-center">{{ $i + 1 }}</td>
                             <td>{{ $u->name }}{{ $u->nickname ? ' (' . $u->nickname . ')' : '' }}</td>
@@ -50,10 +53,25 @@
                             <td class="text-center">{{ $fmt(optional($att)->check_in_at) }}</td>
                             <td class="text-center">{{ $fmt(optional($att)->check_out_at) }}</td>
                             <td class="text-center">{!! $statusBadge($att) !!}</td>
+                            @if (!empty($canToggle))
+                                <td class="text-center">
+                                    @if ($st === 'working')
+                                        <button type="button" class="btn btn-sm btn-outline-danger att-toggle" data-id="{{ $u->id }}">
+                                            <i class="ti ti-logout"></i> ออกงาน
+                                        </button>
+                                    @elseif ($st === 'left' || $st === 'auto_ended')
+                                        <span class="text-muted">ครบแล้ว</span>
+                                    @else
+                                        <button type="button" class="btn btn-sm btn-outline-success att-toggle" data-id="{{ $u->id }}">
+                                            <i class="ti ti-login"></i> เปิดมาทำงาน
+                                        </button>
+                                    @endif
+                                </td>
+                            @endif
                         </tr>
                     @endforeach
                     @if (count($staffs) === 0)
-                        <tr><td colspan="6" class="text-center text-muted">- ไม่มีพนักงาน -</td></tr>
+                        <tr><td colspan="{{ !empty($canToggle) ? 7 : 6 }}" class="text-center text-muted">- ไม่มีพนักงาน -</td></tr>
                     @endif
                 </tbody>
             </table>

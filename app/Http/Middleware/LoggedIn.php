@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Support\Facades\Auth;
 
 class LoggedIn
 {
@@ -14,10 +15,9 @@ class LoggedIn
      */
     public function handle($request, Closure $next)
     {
-        if (!is_null(request()->user())) {
-            return redirect('/');
-        } else {
-            return $next($request);
+        if (Auth::guard('web')->check()) {
+            return redirect('/admin/room');
         }
+        return $next($request);
     }
 }

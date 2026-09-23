@@ -4,6 +4,7 @@
 
 <head>
     @include('admin/layout/inc_header')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>รายชื่อการเข้างาน - CRM</title>
 </head>
 <style>
@@ -31,7 +32,7 @@
                                     <small class="text-muted">อัปเดตอัตโนมัติทุก 15 วินาที</small>
                                 </h5>
                                 <div class="d-flex align-items-center gap-2">
-                                    @if (auth()->id() === 1)
+                                    @if (\App\Models\User::isAllBranchAdmin(auth()->id()))
                                         <select id="att-branch" class="form-select" style="width:180px;">
                                             <option value="">ทุกสาขา</option>
                                             @foreach ($branches as $b)
@@ -40,7 +41,7 @@
                                         </select>
                                     @endif
                                     <input type="date" id="att-date" class="form-control" style="width:180px;"
-                                        value="{{ now()->toDateString() }}">
+                                        value="{{ \App\Models\WorkAttendance::businessDate() }}">
                                     <a href="{{ url('admin/attendance/report') }}" class="btn btn-outline-primary">
                                         <i class="ti ti-report"></i> รายงาน
                                     </a>
@@ -90,6 +91,22 @@
         document.addEventListener('click', function (e) {
             const tab = e.target.closest('.att-tab');
             if (tab) attSelect(tab.dataset.key);
+
+            const toggleBtn = e.target.closest('.att-toggle');
+            if (toggleBtn) {
+                toggleBtn.disabled = true;
+                $.ajax({
+                    url: '/admin/attendance/toggle/' + toggleBtn.dataset.id,
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': $('meta[name=csrf-token]').attr('content') },
+                }).done(function (res) {
+                    loadAtt();
+                }).fail(function (xhr) {
+                    const msg = (xhr.responseJSON && xhr.responseJSON.message) || 'ทำรายการไม่สำเร็จ';
+                    alert(msg);
+                    toggleBtn.disabled = false;
+                });
+            }
         });
 
         document.addEventListener('change', function (e) {

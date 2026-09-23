@@ -82,7 +82,50 @@
             $clockInBranchId = optional(auth()->user())->ref_branch_id ?: \App\Models\Branch::query()->value('id');
             $isBoss = auth()->id() === 1;
             $isCommissionAdmin = $isBoss || (auth()->user() && in_array(auth()->user()->ref_position_id, [0, 3]));
+            $isStockOnly = \App\Models\User::isStockOnly(auth()->id());
         @endphp
+
+        @if ($isStockOnly)
+            {{-- ▸ เมนูจำกัดเฉพาะ stock (สำหรับบัญชี id=235 — เห็นทุกสาขา แต่เข้าได้แค่สต็อก) --}}
+            <li class="menu-item">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons ti ti-box"></i>
+                    <div data-i18n="สินค้า & สต็อก">สินค้า &amp; สต็อก</div>
+                </a>
+                <ul class="menu-sub">
+                    <li class="menu-item">
+                        <a href="/admin/product" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-package"></i>
+                            <div data-i18n="สินค้า">สินค้า</div>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/admin/card_stock_report" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
+                            <div data-i18n="สต็อกการ์ด(สินค้า)">สต็อกการ์ด(สินค้า)</div>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/admin/drink" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-glass"></i>
+                            <div data-i18n="ดื่ม">ดื่ม</div>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/admin/drink_card_stock_report" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
+                            <div data-i18n="สต็อกการ์ด(ดื่ม)">สต็อกการ์ด(ดื่ม)</div>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            <li class="menu-item">
+                <a href="/admin/report/stock-history" class="menu-link">
+                    <i class="menu-icon tf-icons ti ti-report"></i>
+                    <div data-i18n="รายงานสต็อกการ์ด(สินค้า)">รายงานสต็อกการ์ด(สินค้า)</div>
+                </a>
+            </li>
+        @else
 
         {{-- ▸ หมวด: ขาย / หน้าร้าน --}}
         <li class="menu-item">
@@ -315,6 +358,7 @@
                 </li>
             </ul>
         </li>
+        @endif
 
     </ul>
 </aside>

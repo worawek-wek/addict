@@ -25,7 +25,7 @@ class RoomPOSController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $canViewAllBranches = $user && (int) $user->id === 1;
+        $canViewAllBranches = $user && \App\Models\User::isAllBranchAdmin($user->id);
         $branches = $canViewAllBranches
             ? Branch::orderBy('name')->get()
             : collect();
@@ -76,7 +76,7 @@ class RoomPOSController extends Controller
         $room = Room::findOrFail($roomId);
         $user = Auth::user();
 
-        if ($user && (int) $user->id !== 1 && (int) $room->ref_branch_id !== (int) $user->ref_branch_id) {
+        if ($user && !\App\Models\User::isAllBranchAdmin($user->id) && (int) $room->ref_branch_id !== (int) $user->ref_branch_id) {
             abort(403);
         }
 

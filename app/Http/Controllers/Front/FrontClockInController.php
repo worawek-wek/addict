@@ -18,8 +18,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
-DB::beginTransaction();
-
 class FrontClockInController extends Controller
 {
     private const MASSAGE_POSITION_ID = 2;
@@ -74,16 +72,21 @@ class FrontClockInController extends Controller
             }
 
             $userCode = $this->normalizeCardCode($request->user_code);
+            if ($userCode === '') {
+                return "เข้างานผิดพลาด ไม่พบพนักงาน";
+            }
+
             $matchedUsers = User::where(function ($q) use ($userCode) {
                 $q->where('user_code', $userCode)
                     ->orWhere('user_id', $userCode);
             });
 
-            if ($userCode === '') {
-                return "เข้างานผิดพลาด ไม่พบพนักงาน";
-            }
-
-            $find = (clone $matchedUsers)->where('ref_branch_id', $branchModel->id)->first();
+            // ช่องนี้รับได้ทั้งแตะบัตร (user_code = รหัสบัตร) และพิมพ์รหัสพนักงาน (user_id)
+            // ให้คนที่ user_code (บัตร) ตรงพอดีชนะก่อน และจัดลำดับด้วย id กัน first() เลือกมั่วเมื่อ match ได้หลายคน
+            $find = (clone $matchedUsers)->where('ref_branch_id', $branchModel->id)
+                ->orderByRaw('CASE WHEN user_code = ? THEN 0 ELSE 1 END', [$userCode])
+                ->orderBy('id')
+                ->first();
 
             if(!$find){
                 if ((clone $matchedUsers)->where('ref_branch_id', '!=', $branchModel->id)->exists()) {
@@ -94,44 +97,16 @@ class FrontClockInController extends Controller
             }
             $user = User::find($find->id);
 
-            $today = Carbon::today()->toDateString();
-            $now = Carbon::now();
+            // ลงเวลาแบบ toggle (ขอบวันตี 3) ใช้ลอจิกกลางร่วมกับปุ่มกดเปิดเองในหน้ารายชื่อ
+            DB::beginTransaction();
+            $result = \App\Models\WorkAttendance::punch($user);
+            DB::commit();
 
-            $attendance = \App\Models\WorkAttendance::where('ref_staff_id', $user->id)
-                ->where('work_date', $today)
-                ->first();
-
-            // แตะครั้งแรกของวัน = เข้างาน
-            if (!$attendance) {
-                \App\Models\WorkAttendance::create([
-                    'ref_staff_id' => $user->id,
-                    'ref_branch_id' => $user->ref_branch_id,
-                    'work_date' => $today,
-                    'check_in_at' => $now,
-                    'status' => 'working',
-                ]);
-                $user->work_status = 1;
-                $user->ref_status_id = 1;
-                $user->save();
-                DB::commit();
-
-                return "คุณ $user->nickname เข้างานสำเร็จ เวลา " . $now->format('H:i') . " น.";
+            if ($result['action'] === 'done') {
+                return "รหัส $userCode วันนี้ลงเวลาครบแล้ว";
             }
 
-            // แตะครั้งที่สอง = ออก/ลา
-            if ($attendance->status === 'working') {
-                $attendance->check_out_at = $now;
-                $attendance->status = 'left';
-                $attendance->save();
-                $user->work_status = 0;
-                $user->save();
-                DB::commit();
-
-                return "คุณ $user->nickname ออกงาน เวลา " . $now->format('H:i') . " น.";
-            }
-
-            // แตะเพิ่มหลังออกแล้ว = วันนี้ลงเวลาครบแล้ว
-            return "รหัส $userCode วันนี้ลงเวลาครบแล้ว";
+            return $result['message'];
 
         } catch (\Throwable $err) {
             DB::rollBack();

@@ -447,63 +447,73 @@
                                         </div>
 
                                         <div class="px-4 mt-4">
-                                            <label class="form-label fw-bold">ช่องทางชำระเงิน</label>
+                                            <label class="form-label fw-bold">ช่องทางชำระเงิน
+                                                <small class="text-muted fw-normal">(ติ๊กมากกว่า 1 วิธีเพื่อจ่ายแยก)</small>
+                                            </label>
 
                                             <div class="row g-3 payment-methods">
 
                                                 <!-- เงินสด -->
                                                 <div class="col-md-6">
-                                                    <input type="radio" class="btn-check payment-method"
-                                                        name="payment_method" id="pay-cash" value="cash">
+                                                    <input type="checkbox" class="btn-check payment-method"
+                                                        id="pay-cash" data-method="cash" value="cash" checked>
                                                     <label class="card payment-card text-center p-3" for="pay-cash">
                                                         <i class="bi bi-cash-coin fs-1 text-success"></i>
                                                         <div class="mt-2 fw-bold">เงินสด</div>
                                                     </label>
+                                                    <input type="number" step="0.01" min="0"
+                                                        class="form-control form-control-sm pay-amount mt-1"
+                                                        data-method="cash" style="display:none;" placeholder="จำนวนเงิน">
                                                 </div>
-
-                                                {{-- <div class="col-md-6">
-                                            <input type="radio" class="btn-check calculate"
-                                                name="payment_method"
-                                                id="pay-cash"
-                                                value="cash"
-                                                required>
-
-                                            <label class="card payment-card text-center p-3" for="pay-cash">
-                                                <i class="bi bi-cash-coin fs-1 text-success"></i>
-                                                <div class="mt-2 fw-bold">เงินสด</div>
-                                            </label>
-                                        </div> --}}
 
                                                 <!-- บัตรเครดิต -->
                                                 <div class="col-md-6">
-                                                    <input type="radio" class="btn-check payment-method"
-                                                        name="payment_method" id="pay-credit" value="credit_card">
+                                                    <input type="checkbox" class="btn-check payment-method"
+                                                        id="pay-credit" data-method="credit_card" value="credit_card">
                                                     <label class="card payment-card text-center p-3" for="pay-credit">
                                                         <i class="bi bi-credit-card-2-front fs-1 text-primary"></i>
                                                         <div class="mt-2 fw-bold">บัตรเครดิต</div>
                                                     </label>
+                                                    <input type="number" step="0.01" min="0"
+                                                        class="form-control form-control-sm pay-amount mt-1"
+                                                        data-method="credit_card" style="display:none;" placeholder="จำนวนเงิน">
                                                 </div>
                                                 <!-- Alipay -->
                                                 <div class="col-md-6">
-                                                    <input type="radio" class="btn-check payment-method"
-                                                        name="payment_method" id="pay-alipay" value="alipay">
-
+                                                    <input type="checkbox" class="btn-check payment-method"
+                                                        id="pay-alipay" data-method="alipay" value="alipay">
                                                     <label class="card payment-card text-center p-3" for="pay-alipay">
                                                         <i class="bi bi-phone fs-1 text-info"></i>
                                                         <div class="mt-2 fw-bold">Alipay / WeChat</div>
                                                     </label>
+                                                    <input type="number" step="0.01" min="0"
+                                                        class="form-control form-control-sm pay-amount mt-1"
+                                                        data-method="alipay" style="display:none;" placeholder="จำนวนเงิน">
                                                 </div>
                                                 <!-- QR -->
                                                 <div class="col-md-6">
-                                                    <input type="radio" class="btn-check payment-method"
-                                                        name="payment_method" id="pay-qr" value="qr_code">
+                                                    <input type="checkbox" class="btn-check payment-method"
+                                                        id="pay-qr" data-method="qr_code" value="qr_code">
                                                     <label class="card payment-card text-center p-3" for="pay-qr">
                                                         <i class="bi bi-qr-code-scan fs-1"></i>
                                                         <div class="mt-2 fw-bold">QR Code</div>
                                                     </label>
+                                                    <input type="number" step="0.01" min="0"
+                                                        class="form-control form-control-sm pay-amount mt-1"
+                                                        data-method="qr_code" style="display:none;" placeholder="จำนวนเงิน">
                                                 </div>
 
                                             </div>
+
+                                            <div class="d-flex justify-content-between mt-2 small payment-split-info" style="display:none !important;">
+                                                <span>รวมที่กรอก</span>
+                                                <span id="prodPayEntered" class="fw-bold">0.00</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between small payment-split-info" style="display:none !important;">
+                                                <span>คงเหลือต้องชำระ</span>
+                                                <span id="prodPayRemaining" class="fw-bold text-danger">0.00</span>
+                                            </div>
+                                            <div id="prodPayContainer"></div>
                                         </div>
                                         <div class="px-4 mt-3">
 
@@ -543,7 +553,7 @@
                                             </div>
                                             <input type="hidden" name="total_price" id="total_value">
 
-                                            <button type="submit" class="btn btn-dark w-100 mt-3">
+                                            <button type="submit" class="btn btn-dark w-100 mt-3" id="inlineCheckoutBtn">
                                                 Checkout
                                             </button>
                                         </div>
@@ -671,9 +681,10 @@
                 const card = $(this).closest('.payment-card');
 
                 if (status == 1) {
+                    // เป็น checkbox (จ่ายแยกได้) — ห้าม required รายช่อง ไม่งั้นบังคับติ๊กครบทุกช่อง
                     $(this)
                         .prop('disabled', false)
-                        .prop('required', true);
+                        .prop('required', false);
 
                     card.removeClass('disabled');
 
@@ -686,6 +697,12 @@
                     card.addClass('disabled');
                 }
             });
+
+            // จ่ายเงินแล้วแต่ยังไม่ติ๊กวิธีไหนเลย = ตั้งเงินสดเป็นค่าเริ่มต้น (กันสลิปวิธีชำระเงินว่าง)
+            if (status == 1 && $('.payment-method:checked').length === 0) {
+                $('#pay-cash').prop('checked', true);
+            }
+            if (typeof prodPayRecalc === 'function') prodPayRecalc();
         }
 
         // bind event
@@ -705,6 +722,9 @@
                 this.reportValidity();
                 return console.log('ฟอร์มไม่ถูกต้อง');
             }
+
+            // สร้าง payments[] จ่ายแยก + ตรวจยอดครบ ก่อนเก็บ FormData
+            if (window.buildInlinePayments && !window.buildInlinePayments()) return;
 
             var formData = new FormData(this);
 
@@ -1271,16 +1291,90 @@
                 }
             });
 
-            // --- Payment Logic ---
-            const paymentMethod = document.getElementById('paymentMethod');
-            // const confirmBtn = document.getElementById('confirmBtn'); // Already declared above
-            // เมื่อเลือกวิธีการชำระเงิน ให้เซ็ตค่าและ enable ปุ่ม
-            document.querySelectorAll('input[name="payment_method_radio"]').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    paymentMethod.value = this.value;
-                    confirmBtn.disabled = false;
+            // --- Payment Logic (รองรับจ่ายแยกหลายวิธี) ---
+            const paymentMethod = document.getElementById('paymentMethod'); // อาจ null (โค้ดโมดัลค้างถูก guard ไว้)
+            const prodPayChecks = () => Array.from(document.querySelectorAll('.payment-method'));
+            const prodTotal = () => {
+                const tv = document.getElementById('total_value');
+                if (tv && tv.value) return parseFloat(String(tv.value).replace(/[^0-9.]/g, '')) || 0;
+                const t = document.getElementById('total');
+                return t ? (parseFloat((t.textContent || '0').replace(/,/g, '')) || 0) : 0;
+            };
+
+            function prodPayRecalc() {
+                const total = prodTotal();
+                const checked = prodPayChecks().filter(c => c.checked);
+                const multi = checked.length > 1;
+                prodPayChecks().forEach(c => {
+                    const amt = c.closest('.col-md-6').querySelector('.pay-amount');
+                    if (!c.checked) {
+                        amt.style.display = 'none';
+                        amt.value = '';
+                    } else if (!multi) {
+                        amt.style.display = 'none';
+                        amt.value = total.toFixed(2);
+                    } else {
+                        // จ่ายแยก = ช่องว่างให้กรอกเอง (เคลียร์ค่า auto เดิม)
+                        if (amt.style.display === 'none') amt.value = '';
+                        amt.style.display = '';
+                    }
                 });
+                // โชว์แถวสรุปเฉพาะตอนจ่ายแยก
+                document.querySelectorAll('.payment-split-info').forEach(el => {
+                    el.style.setProperty('display', multi ? 'flex' : 'none', 'important');
+                });
+                let entered = 0;
+                checked.forEach(c => {
+                    entered += (parseFloat(String(c.closest('.col-md-6').querySelector('.pay-amount').value).replace(/[^0-9.]/g, '')) || 0);
+                });
+                const remaining = Math.round((total - entered) * 100) / 100;
+                const enEl = document.getElementById('prodPayEntered');
+                const remEl = document.getElementById('prodPayRemaining');
+                if (enEl) enEl.textContent = entered.toFixed(2);
+                if (remEl) {
+                    remEl.textContent = remaining.toFixed(2);
+                    remEl.className = 'fw-bold ' + (Math.abs(remaining) < 0.01 ? 'text-success' : 'text-danger');
+                }
+                const btn = document.getElementById('inlineCheckoutBtn');
+                if (btn) btn.disabled = (multi && Math.abs(remaining) >= 0.01);
+            }
+
+            document.addEventListener('change', function(e) {
+                if (e.target.classList && (e.target.classList.contains('payment-method') || e.target.classList.contains('pay-amount'))) {
+                    prodPayRecalc();
+                }
             });
+            document.addEventListener('input', function(e) {
+                if (e.target.classList && e.target.classList.contains('pay-amount')) prodPayRecalc();
+            });
+
+            // สร้าง payments[] ก่อน submit — เรียกจาก handler ที่ส่งฟอร์มจริง (jQuery #insert_product)
+            // คืน false = ยอดจ่ายแยกไม่ครบ (บล็อกไม่ให้ checkout)
+            window.buildInlinePayments = function () {
+                const isPaid = document.getElementById('status-paid') && document.getElementById('status-paid').checked;
+                const checked = prodPayChecks().filter(c => c.checked);
+                const container = document.getElementById('prodPayContainer');
+                if (container) container.innerHTML = '';
+                if (!isPaid || checked.length === 0) return true; // ยังไม่ชำระ/ไม่เลือกวิธี = ปล่อยผ่าน
+                const total = prodTotal();
+                let entered = 0;
+                checked.forEach(c => {
+                    const raw = c.closest('.col-md-6').querySelector('.pay-amount').value;
+                    entered += parseFloat(String(raw).replace(/[^0-9.]/g, '')) || 0;
+                });
+                if (checked.length > 1 && Math.abs(total - entered) >= 0.01) {
+                    alert('จ่ายแยก: ยอดรวมแต่ละวิธีต้องเท่ากับยอดสุทธิ ' + total.toFixed(2) + ' (ตอนนี้ ' + entered.toFixed(2) + ')');
+                    return false;
+                }
+                checked.forEach((c, i) => {
+                    const raw = c.closest('.col-md-6').querySelector('.pay-amount').value;
+                    const amt = raw !== '' ? (parseFloat(String(raw).replace(/[^0-9.]/g, '')) || 0).toFixed(2) : total.toFixed(2);
+                    if (container) container.insertAdjacentHTML('beforeend',
+                        '<input type="hidden" name="payments[' + i + '][method]" value="' + c.dataset.method + '">' +
+                        '<input type="hidden" name="payments[' + i + '][amount]" value="' + amt + '">');
+                });
+                return true;
+            };
 
             // --- Cart & Search Logic ---
             // document.querySelectorAll('.qty-input').forEach(input => {

@@ -291,61 +291,69 @@
                                             <input name="discount" type="text" placeholder="ส่วนลด" class="form-control me-2 calculate" id="discount-list" oninput="calculate()"/>
                                             </div>
                                     </div>
+                                    <div class="px-4">
+                                        <small class="text-muted">ช่องทางชำระเงิน (ติ๊กมากกว่า 1 วิธีเพื่อจ่ายแยก)</small>
+                                    </div>
                                     <div class="row g-3 payment-methods px-4">
 
                                         <div class="col-md-6">
-                                            <input type="radio" class="btn-check calculate"
-                                                name="payment_method"
-                                                id="pay-cash"
-                                                value="cash"
-                                                required>
-
+                                            <input type="checkbox" class="btn-check calculate payment-method"
+                                                id="pay-cash" data-method="cash" value="cash" checked>
                                             <label class="card payment-card text-center p-3" for="pay-cash">
                                                 <i class="bi bi-cash-coin fs-1 text-success"></i>
                                                 <div class="mt-2 fw-bold">เงินสด</div>
                                             </label>
+                                            <input type="number" step="0.01" min="0"
+                                                class="form-control form-control-sm pm-amount mt-1"
+                                                data-method="cash" style="display:none;" placeholder="จำนวนเงิน">
                                         </div>
 
                                         <div class="col-md-6">
-                                            <input type="radio" class="btn-check calculate"
-                                                name="payment_method"
-                                                id="pay-credit"
-                                                value="credit_card"
-                                                required>
-
+                                            <input type="checkbox" class="btn-check calculate payment-method"
+                                                id="pay-credit" data-method="credit_card" value="credit_card">
                                             <label class="card payment-card text-center p-3" for="pay-credit">
                                                 <i class="bi bi-credit-card-2-front fs-1 text-primary"></i>
                                                 <div class="mt-2 fw-bold">บัตรเครดิต</div>
                                             </label>
+                                            <input type="number" step="0.01" min="0"
+                                                class="form-control form-control-sm pm-amount mt-1"
+                                                data-method="credit_card" style="display:none;" placeholder="จำนวนเงิน">
                                         </div>
 
                                         <div class="col-md-6">
-                                            <input type="radio" class="btn-check calculate"
-                                                name="payment_method"
-                                                id="pay-alipay"
-                                                value="alipay"
-                                                required>
-
+                                            <input type="checkbox" class="btn-check calculate payment-method"
+                                                id="pay-alipay" data-method="alipay" value="alipay">
                                             <label class="card payment-card text-center p-3" for="pay-alipay">
                                                 <i class="bi bi-phone fs-1 text-info"></i>
                                                 <div class="mt-2 fw-bold">Alipay</div>
                                             </label>
+                                            <input type="number" step="0.01" min="0"
+                                                class="form-control form-control-sm pm-amount mt-1"
+                                                data-method="alipay" style="display:none;" placeholder="จำนวนเงิน">
                                         </div>
 
                                         <div class="col-md-6">
-                                            <input type="radio" class="btn-check calculate"
-                                                name="payment_method"
-                                                id="pay-qr"
-                                                value="qr_code"
-                                                required>
-
+                                            <input type="checkbox" class="btn-check calculate payment-method"
+                                                id="pay-qr" data-method="qr_code" value="qr_code">
                                             <label class="card payment-card text-center p-3" for="pay-qr">
                                                 <i class="bi bi-qr-code-scan fs-1 text-dark"></i>
                                                 <div class="mt-2 fw-bold">QR Code</div>
                                                 <div class="small text-muted">PromptPay / WeChat / Alipay</div>
                                             </label>
+                                            <input type="number" step="0.01" min="0"
+                                                class="form-control form-control-sm pm-amount mt-1"
+                                                data-method="qr_code" style="display:none;" placeholder="จำนวนเงิน">
                                         </div>
 
+                                    </div>
+                                    <div class="px-4">
+                                        <div class="d-flex justify-content-between mt-2 small payment-split-info" style="display:none !important;">
+                                            <span>รวมที่กรอก</span><span id="pmEntered" class="fw-bold">0.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between small payment-split-info" style="display:none !important;">
+                                            <span>คงเหลือต้องชำระ</span><span id="pmRemaining" class="fw-bold text-danger">0.00</span>
+                                        </div>
+                                        <div id="pmContainer"></div>
                                     </div>
                                         {{-- <div class="card-body" style="max-height: 350px; overflow-y: auto;">
                                             @forelse($cart as $item)
@@ -459,7 +467,7 @@
                                             <hr>
                                             <div class="d-flex justify-content-between fw-bold"><span>Total</span><span>THB <span id="total">{{ number_format($total, 2) }}</span></span></div>
                                             <input type="hidden" name="total_price" id="total_value">
-                                            <button type="submit" class="btn btn-dark w-100 mt-3">
+                                            <button type="submit" class="btn btn-dark w-100 mt-3" id="inlineCheckoutBtn">
                                                 Checkout
                                             </button>
                                         </div>
@@ -630,33 +638,37 @@
                                     <hr class="my-3">
 
                                     <div class="mb-3">
-                                        <label class="form-label fw-bold">เลือกวิธีการชำระเงิน</label>
-                                        <div class="list-group">
-                                            <label class="list-group-item">
-                                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="cash">
-                                                เงินสด (Cash)
-                                            </label>
-                                            <label class="list-group-item">
-                                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="promptpay">
-                                                โอน/สแกน QR Code (PromptPay)
-                                            </label>
-                                            <label class="list-group-item">
-                                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="credit_card">
-                                                บัตรเครดิต/เดบิต (Credit/Debit Card)
-                                            </label>
-                                            <label class="list-group-item">
-                                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="wechat">
-                                                WeChat Pay
-                                            </label>
-                                            <label class="list-group-item">
-                                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="alipay">
-                                                Alipay
-                                            </label>
-                                            <label class="list-group-item">
-                                                <input class="form-check-input me-2" type="radio" name="payment_method_radio" value="ewallet">
-                                                TrueMoney Wallet / LINE Pay (E-Wallet)
-                                            </label>
+                                        <label class="form-label fw-bold">เลือกวิธีการชำระเงิน
+                                            <small class="text-muted fw-normal">(ติ๊กมากกว่า 1 วิธีเพื่อจ่ายแยก)</small>
+                                        </label>
+                                        <div class="list-group" id="payMethodList">
+                                            @foreach ([
+                                                'cash' => 'เงินสด (Cash)',
+                                                'promptpay' => 'โอน/สแกน QR Code (PromptPay)',
+                                                'credit_card' => 'บัตรเครดิต/เดบิต (Credit/Debit Card)',
+                                                'wechat' => 'WeChat Pay',
+                                                'alipay' => 'Alipay',
+                                                'ewallet' => 'TrueMoney Wallet / LINE Pay (E-Wallet)',
+                                            ] as $mv => $ml)
+                                                <label class="list-group-item d-flex align-items-center">
+                                                    <input class="form-check-input me-2 pay-check" type="checkbox" value="{{ $mv }}">
+                                                    <span class="flex-grow-1">{{ $ml }}</span>
+                                                    <input type="number" step="0.01" min="0"
+                                                        class="form-control form-control-sm pay-amount ms-2"
+                                                        data-method="{{ $mv }}" style="max-width:130px; display:none;"
+                                                        placeholder="จำนวนเงิน">
+                                                </label>
+                                            @endforeach
                                         </div>
+                                        <div class="d-flex justify-content-between mt-2 small">
+                                            <span>รวมที่กรอก</span>
+                                            <span id="payEntered" class="fw-bold">0.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between small">
+                                            <span>คงเหลือต้องชำระ</span>
+                                            <span id="payRemaining" class="fw-bold text-danger">0.00</span>
+                                        </div>
+                                        <div id="payContainer"></div>
                                     </div>
                                 </div>
 
@@ -704,7 +716,63 @@
     .other-btn.active { background-color: #5e2a5f; color: #fff; }
 </style>
 <script>
-
+        // --- Inline Payment (การ์ดหน้าจอ ดื่ม) รองรับจ่ายแยกหลายวิธี ---
+        const pmNum = (v) => parseFloat(String(v == null ? '' : v).replace(/[^0-9.]/g, '')) || 0;
+        const pmChecks = () => Array.from(document.querySelectorAll('.payment-method'));
+        const pmTotal = () => {
+            const tv = document.getElementById('total_value');
+            if (tv && tv.value !== '') return pmNum(tv.value);
+            const t = document.getElementById('total');
+            return t ? pmNum(t.textContent) : 0;
+        };
+        function pmRecalc() {
+            const total = pmTotal();
+            const checked = pmChecks().filter(c => c.checked);
+            const multi = checked.length > 1;
+            pmChecks().forEach(c => {
+                const amt = c.closest('.col-md-6').querySelector('.pm-amount');
+                if (!amt) return;
+                if (!c.checked) { amt.style.display = 'none'; amt.value = ''; }
+                else if (!multi) { amt.style.display = 'none'; amt.value = total.toFixed(2); }
+                else { if (amt.style.display === 'none') amt.value = ''; amt.style.display = ''; }
+            });
+            document.querySelectorAll('.payment-split-info').forEach(el => el.style.setProperty('display', multi ? 'flex' : 'none', 'important'));
+            let entered = 0;
+            checked.forEach(c => { entered += pmNum(c.closest('.col-md-6').querySelector('.pm-amount').value); });
+            const remaining = Math.round((total - entered) * 100) / 100;
+            const en = document.getElementById('pmEntered'), rm = document.getElementById('pmRemaining');
+            if (en) en.textContent = entered.toFixed(2);
+            if (rm) { rm.textContent = remaining.toFixed(2); rm.className = 'fw-bold ' + (Math.abs(remaining) < 0.01 ? 'text-success' : 'text-danger'); }
+            const btn = document.getElementById('inlineCheckoutBtn');
+            if (btn) btn.disabled = (multi && Math.abs(remaining) >= 0.01);
+        }
+        document.addEventListener('change', function(e) {
+            if (e.target.classList && (e.target.classList.contains('payment-method') || e.target.classList.contains('pm-amount'))) pmRecalc();
+        });
+        document.addEventListener('input', function(e) {
+            if (e.target.classList && e.target.classList.contains('pm-amount')) pmRecalc();
+        });
+        setTimeout(pmRecalc, 300);
+        function buildInlinePayments() {
+            const checked = pmChecks().filter(c => c.checked);
+            const container = document.getElementById('pmContainer');
+            if (container) container.innerHTML = '';
+            if (checked.length === 0 || !container) return true;
+            const total = pmTotal();
+            let entered = 0;
+            checked.forEach(c => { entered += pmNum(c.closest('.col-md-6').querySelector('.pm-amount').value); });
+            if (checked.length > 1 && Math.abs(total - entered) >= 0.01) {
+                alert('จ่ายแยก: ยอดรวมแต่ละวิธีต้องเท่ากับยอดสุทธิ ' + total.toFixed(2) + ' (ตอนนี้ ' + entered.toFixed(2) + ')');
+                return false;
+            }
+            checked.forEach((c, i) => {
+                const amt = (checked.length === 1) ? total.toFixed(2) : pmNum(c.closest('.col-md-6').querySelector('.pm-amount').value).toFixed(2);
+                container.insertAdjacentHTML('beforeend',
+                    '<input type="hidden" name="payments[' + i + '][method]" value="' + c.dataset.method + '">' +
+                    '<input type="hidden" name="payments[' + i + '][amount]" value="' + amt + '">');
+            });
+            return true;
+        }
 
         $('#insert_drink').on('submit', function(event) {
             event.preventDefault(); // ป้องกันการส่งฟอร์มปกติ
@@ -714,6 +782,9 @@
                 this.reportValidity();
                 return console.log('ฟอร์มไม่ถูกต้อง');
             }
+
+            // สร้าง payments[] จ่ายแยก + ตรวจยอดครบ ก่อนเก็บ FormData
+            if (!buildInlinePayments()) return;
 
             var formData = new FormData(this);
 
@@ -1376,16 +1447,67 @@
             }
         });
 
-        // --- Payment Logic ---
-    const paymentMethod = document.getElementById('paymentMethod');
-    // const confirmBtn = document.getElementById('confirmBtn'); // Already declared above
-        // เมื่อเลือกวิธีการชำระเงิน ให้เซ็ตค่าและ enable ปุ่ม
-        document.querySelectorAll('input[name="payment_method_radio"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                paymentMethod.value = this.value;
-                confirmBtn.disabled = false;
+        // --- Payment Logic (รองรับจ่ายแยกหลายวิธี) ---
+        const paymentMethod = document.getElementById('paymentMethod');
+        const formTotalPriceEl = document.getElementById('formTotalPrice');
+        const payChecks = () => Array.from(document.querySelectorAll('.pay-check'));
+        const payTotal = () => parseFloat(String((formTotalPriceEl && formTotalPriceEl.value) || '0').replace(/[^0-9.]/g, '')) || 0;
+
+        function payRecalc() {
+            const total = payTotal();
+            const checked = payChecks().filter(c => c.checked);
+            payChecks().forEach(c => {
+                const amt = c.closest('.list-group-item').querySelector('.pay-amount');
+                if (!c.checked) {
+                    amt.style.display = 'none';
+                    amt.value = '';
+                } else if (checked.length <= 1) {
+                    amt.style.display = 'none';
+                    amt.value = total.toFixed(2);
+                } else {
+                    amt.style.display = '';
+                }
             });
+            let entered = 0;
+            checked.forEach(c => {
+                entered += parseFloat(c.closest('.list-group-item').querySelector('.pay-amount').value) || 0;
+            });
+            const remaining = Math.round((total - entered) * 100) / 100;
+            document.getElementById('payEntered').textContent = entered.toFixed(2);
+            const remEl = document.getElementById('payRemaining');
+            remEl.textContent = remaining.toFixed(2);
+            remEl.className = 'fw-bold ' + (Math.abs(remaining) < 0.01 ? 'text-success' : 'text-danger');
+            confirmBtn.disabled = !(checked.length >= 1 && total > 0 && Math.abs(remaining) < 0.01);
+            paymentMethod.value = checked.length === 1 ? checked[0].value : (checked.length > 1 ? 'split' : '');
+        }
+
+        document.addEventListener('change', function(e) {
+            if (e.target.classList && (e.target.classList.contains('pay-check') || e.target.classList.contains('pay-amount'))) {
+                payRecalc();
+            }
         });
+        document.addEventListener('input', function(e) {
+            if (e.target.classList && e.target.classList.contains('pay-amount')) payRecalc();
+        });
+
+        // สร้าง payments[] ตอน submit
+        if (paymentModalEl) {
+            const drinkPayForm = paymentModalEl.querySelector('form');
+            if (drinkPayForm) {
+                drinkPayForm.addEventListener('submit', function() {
+                    const container = document.getElementById('payContainer');
+                    container.innerHTML = '';
+                    const total = payTotal();
+                    payChecks().filter(c => c.checked).forEach((c, i) => {
+                        const raw = c.closest('.list-group-item').querySelector('.pay-amount').value;
+                        const amt = raw !== '' ? raw : total.toFixed(2);
+                        container.insertAdjacentHTML('beforeend',
+                            '<input type="hidden" name="payments[' + i + '][method]" value="' + c.value + '">' +
+                            '<input type="hidden" name="payments[' + i + '][amount]" value="' + amt + '">');
+                    });
+                });
+            }
+        }
 
         // --- Cart & Search Logic ---
         // document.querySelectorAll('.qty-input').forEach(input => {
@@ -1422,6 +1544,12 @@
             summaryContainer.innerHTML = '<p class="text-center text-muted py-3">กำลังโหลด...</p>';
             totalContainer.textContent = 'THB 0.00';
 
+            // reset วิธีชำระทุกครั้งที่เปิด
+            payChecks().forEach(c => { c.checked = false; });
+            document.getElementById('payContainer').innerHTML = '';
+            confirmBtn.disabled = true;
+            payRecalc();
+
             const addonId = formAddonId.value;
             const roomId = formRoomId.value;
             const duration = formDuration.value;
@@ -1456,6 +1584,7 @@
                 }
                 totalContainer.textContent = `THB ${parseFloat(data.total).toFixed(2)}`;
                 formTotalPrice.value = data.total;
+                    payRecalc();
             })
             .catch(error => {
                 summaryContainer.innerHTML = '<p class="text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
