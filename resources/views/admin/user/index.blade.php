@@ -428,8 +428,7 @@
         });
     }
     
-    function delete_view(id, v, element) {
-        $(element).prop('checked', v === 1 ? false : true);
+    function delete_view(id) {
         Swal.fire({
             title: 'ยืนยันการดำเนินการ?',
             text: 'คุณต้องการลบพนักงานหรือไม่?',
@@ -450,8 +449,12 @@
                             loadData(page);
                         }
                     },
-                    error: function () {
-                        Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+                    error: function (error) {
+                        let message = error.responseJSON?.message || 'ไม่สามารถลบพนักงานได้ กรุณาลองใหม่อีกครั้ง';
+                        if (error.status === 419 || error.status === 401) {
+                            message = 'เซสชันหมดอายุ กรุณารีเฟรชหน้าและเข้าสู่ระบบใหม่';
+                        }
+                        Swal.fire('เกิดข้อผิดพลาด', message, 'error');
                     }
                 });
             }

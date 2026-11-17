@@ -129,8 +129,8 @@ class UserController extends Controller
         $results = User::where('work_status', '!=', 3)
             ->orderBy('user_id');
 
-        if (@$request->search) {
-            $results = $results->orWhere(function ($query) use ($request) {
+        if ($request->filled('search')) {
+            $results = $results->where(function ($query) use ($request) {
                 $query->where('name', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('user_id', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('email', 'LIKE', '%' . $request->search . '%')
@@ -140,10 +140,10 @@ class UserController extends Controller
             });
         }
 
-        if ($request->ref_branch_id != "all") {
+        if ($request->filled('ref_branch_id') && $request->ref_branch_id != "all") {
             $results = $results->Where('ref_branch_id', $request->ref_branch_id);
         }
-        if ($request->ref_position_id != "all") {
+        if ($request->filled('ref_position_id') && $request->ref_position_id != "all") {
             $results = $results->Where('ref_position_id', $request->ref_position_id);
         }
 
@@ -616,18 +616,31 @@ class UserController extends Controller
     public function destroy($id)
     {
         try {
+            if (DB::transactionLevel() === 0) {
+                DB::beginTransaction();
+            }
+
             $item = User::findOrFail($id);
             $deletedSort = $item->sort;
-            $item->delete();
+            if (!$item->delete()) {
+                throw new \RuntimeException('Employee deletion was cancelled.');
+            }
 
             // เลื่อนตัวด้านล่างขึ้น
-            User::where('sort', '>', $deletedSort)->decrement('sort');
+            if ($deletedSort !== null) {
+                User::where('sort', '>', $deletedSort)->decrement('sort');
+            }
+
             DB::commit();
             return true;
-        } catch (QueryException $err) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $err) {
             DB::rollBack();
+            return response()->json(['message' => 'ไม่พบพนักงาน หรือพนักงานถูกลบไปแล้ว'], 404);
+        } catch (\Throwable $err) {
+            DB::rollBack();
+            report($err);
+            return response()->json(['message' => 'ไม่สามารถลบพนักงานได้ กรุณาลองใหม่อีกครั้ง'], 500);
         }
-        //
     }
 }
 
